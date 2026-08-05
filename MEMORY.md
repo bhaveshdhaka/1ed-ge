@@ -92,6 +92,19 @@ servers when finished.
 
 ## Session log (recent)
 
+- 2026-08-05 — Rebrand to **1edge** (no TLD): gradient "1" + soft glow + gradient
+  edge-line that draws in on load, shimmers subtly, glows on hover (pure CSS,
+  reduced-motion safe). Dropped the blinking `▋` cursor everywhere; hero prompt is
+  now `$ whoami` → `> the edge is all we need.` Applied to nav, admin header,
+  footer, OG image. Committed + deployed + verified live.
+- 2026-08-05 — Perf/a11y pass + verification stack: Playwright E2E (48 tests,
+  desktop+mobile, public+admin+axe), Lighthouse CI with zero-JS budget. Final
+  LHCI: Performance 0.97–1.00, Accessibility 1.00, Best-Practices 1.00, SEO 1.00
+  on all 8 public URLs. axe public violations 295 → 0. Tracker HTML 284K → ~40K.
+  Emoji 📈 favicon + full-color PWA icons; og.png generated. `--color-dim/faint`
+  brightened for WCAG AA. Note: LHCI writes reports to `.lighthouseci/` (gitignored);
+  `astro check` OOMs if `playwright-report/`/`test-results/` exist → they're excluded
+  in tsconfig + gitignored.
 - 2026-08-05 — v0.5 UX pass: mobile hamburger nav (no horizontal scroll), 44px
   tap targets, direct-click evidence editing (✎ removed), date-picker + mini
   calendar day browser, expand-all trades, collapsible RebuildBar with rebuild
