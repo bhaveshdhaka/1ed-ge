@@ -25,7 +25,13 @@ decisions, gotchas and open items here; keep it short and factual.
   editor. Its ImageBlock `onUpload` uploads pasted images to the media API.
 - **AI-first day input:** paste text + screenshots anywhere (global clipboard
   paste sink); `structureDayFull` reads everything in one pass — Qwen2.5-VL for
-  image days, DeepSeek for text-only. Same schema/tone either way.
+  image days, DeepSeek for text-only — and returns the whole day (mood/sleep/
+  habits/device/trades) **plus a suggested journal** (title/summary/tags/draft).
+  Same schema/tone either way.
+- **One day = one admin screen (v0.4).** The "day" tab: capture → day summary →
+  reflection (Milkdown) → one Save. **Evidence first:** values render read-only
+  with rare ✎ overrides; screen-time hours come from the screenshot, never typed.
+  The journal owns no structured fields (mood/sleep live in the day record).
 - **Models:** DeepSeek `deepseek/deepseek-chat` (text day / coach / assist),
   Qwen2.5-VL `qwen/qwen-2.5-vl-72b-instruct` (image days + screenshots), both
   via OpenRouter. Overridable in `.env`. Cost ≈ $1–3/month at a few calls/day.
@@ -66,6 +72,11 @@ decisions, gotchas and open items here; keep it short and factual.
 
 ## Session log (recent)
 
+- 2026-08-05 — v0.4: one "day" workspace (capture → evidence-first summary →
+  reflection → one save). Screen-time values come from screenshots only; rare ✎
+  overrides. Journal schema dropped `mood` (day owns it); `structureDayFull`
+  now suggests title/summary/tags/draft; "AI draft from today"; public journal
+  posts embed the day strip. Tested end-to-end and deployed.
 - 2026-08-05 — v0.3: save≠rebuild with a pending-changes RebuildBar, day
   browser (browse/edit/hard-delete old days), clipboard paste-anywhere,
   AI-first whole-day structuring with screenshots, Milkdown Crepe journal

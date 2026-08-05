@@ -106,7 +106,6 @@ const journal = defineCollection({
     day: z.string().optional(),
     summary: z.string().optional(),
     tags: z.array(z.string()).default([]),
-    mood: z.number().int().min(1).max(5).optional(),
     tradeRefs: z.array(z.string()).optional(),
     featuredImage: z.string().optional(),
   }),

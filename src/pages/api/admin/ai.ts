@@ -1,6 +1,13 @@
 import type { APIRoute } from 'astro'
 import { authorized, json, error } from '../../../lib/auth'
-import { structureDayFull, readScreenshot, readScreenTime, assist, type AssistKind } from '../../../lib/ai'
+import {
+  structureDayFull,
+  readScreenshot,
+  readScreenTime,
+  assist,
+  draftReflection,
+  type AssistKind,
+} from '../../../lib/ai'
 import { listMds } from '../../../lib/content'
 
 export const prerender = false
@@ -30,6 +37,10 @@ export const POST: APIRoute = async ({ request }) => {
     if (action === 'assist') {
       const kind = (String(body.kind ?? 'polish') as AssistKind) || 'polish'
       const result = await assist(String(body.text ?? ''), kind)
+      return json({ ok: true, result })
+    }
+    if (action === 'draft') {
+      const result = await draftReflection(String(body.text ?? ''))
       return json({ ok: true, result })
     }
     return error('unknown action')

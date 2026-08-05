@@ -69,7 +69,9 @@ src/pages/                  public pages: / /journal /performance /tracker /tren
 src/pages/admin/[secret]/   private admin (SSR), renders the React app
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/media/[...file].ts SSR media file server (uploads in public/media)
-src/components/admin/*      React admin (DayLog / Journal / Accounts / Coach / Media / Overview)
+src/components/admin/*      React admin (Day / Accounts / Coach / Media / Overview)
+src/components/admin/tabs/DayWorkspace.tsx  the single "day" screen: capture → evidence-first
+                            summary (read-only + rare ✎ overrides) → reflection (Milkdown) → one save
 src/components/admin/RebuildBar.tsx  sticky pending-changes → rebuild bar (all tabs)
 src/components/admin/JournalEditor.tsx  Milkdown Crepe markdown editor
 src/components/admin/editor.css  Crepe theme tuned to the 1ed.ge palette
@@ -137,12 +139,19 @@ trades:                      # one idea, executions per account
 
 ## AI-first day input
 
-The Day Log tab is screenshot + free-text driven: paste trade charts, screen-time
-reports, or notes anywhere (clipboard paste routes to the day input via a global
-paste sink). `structureDayFull(text, images)` (in `lib/ai.ts`) reads everything
-in one call — Qwen2.5-VL when images are present, DeepSeek otherwise — and
-returns the whole day (mood/sleep/habits/device/trades) plus which image index
-belongs where. The AI fills, the human verifies, then saves.
+The **Day** admin tab is one screen: capture → day summary → reflection.
+Paste trade charts, screen-time reports, or notes anywhere (clipboard paste
+routes to the capture zone via a global paste sink). `structureDayFull(text,
+images)` (in `lib/ai.ts`) reads everything in one call — Qwen2.5-VL when images
+are present, DeepSeek otherwise — and returns the whole day (mood/sleep/habits/
+device/trades) plus which image index belongs where **and a suggested journal
+(title/summary/tags/draft)**. Evidence first: values render read-only; a rare
+✎ flips one value to edit. Screen-time hours always come from the screenshot,
+never typed. The reflection editor has an "AI draft from today" action
+(`draftReflection`) that writes a first draft from the day's data. One Save /
+Save & rebuild writes the day record **and** the journal together. The journal
+owns no structured fields (mood/sleep live in the day record) — only prose +
+optional title/summary/tags/featuredImage.
 
 ## Conventions & rules
 
@@ -174,7 +183,7 @@ belongs where. The AI fills, the human verifies, then saves.
   (`feat:` / `fix:` / `chore:` / `docs:`).
 - Content is auto-committed by a cron every 30 min
   (`chore(content): autosave …`); do not fight it.
-- Tag releases: `git tag v0.2.0`.
+- Tag releases: `git tag v0.4.0`.
 
 ## Future moves
 

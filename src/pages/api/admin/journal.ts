@@ -43,15 +43,11 @@ export const POST: APIRoute = async ({ request }) => {
   if (oldFile && oldFile !== file) deleteEntry('journal', oldFile)
 
   const tags = Array.isArray(body.tags) ? body.tags.map(String) : []
-  const rawMood = typeof body.mood === 'number' || typeof body.mood === 'string' ? Number(body.mood) : undefined
-  const mood =
-    typeof rawMood === 'number' && Number.isFinite(rawMood) ? Math.max(1, Math.min(5, rawMood)) : undefined
   const data: Record<string, unknown> = {
     date,
     ...(body.day ? { day: String(body.day) } : {}),
     ...(body.summary ? { summary: String(body.summary) } : {}),
     tags,
-    ...(mood !== undefined ? { mood } : {}),
     ...(body.featuredImage ? { featuredImage: String(body.featuredImage) } : {}),
   }
   writeEntry('journal', file, data, String(body.content ?? ''))

@@ -82,6 +82,7 @@ export interface StructuredDay {
   device: { iphoneHours: number | null; socialHours: number | null; macHours: number | null; notes: string | null } | null
   deviceScreens: number[]
   trades: StructuredTrade[]
+  journal: { title: string | null; summary: string | null; tags: string[] | null; draft: string | null } | null
 }
 
 const TRADE_SHAPE = `{
@@ -119,6 +120,7 @@ Rules:
   - a trade chart/ticket -> that trade's "screenshotIndices": [its index]
   - other day-level photos -> "deviceScreens"
 - accounts must be from: ${ctx.accounts.join(', ') || 'none'}.
+- journal: propose an honest reflection for the day, grounded ONLY in what the data/text shows (never invent). "title": short understated title; "summary": 1-2 sentences; "tags": 2-4 lowercase tags; "draft": a first-draft markdown reflection of 2-4 short paragraphs in the trader's voice (plain, raw, no hype) referencing the actual trades, mood, sleep and screen behaviour. If there is nothing worth writing, use nulls / [].
 Return exactly this shape:
 {
   "mood": 1-5 or null,
@@ -127,7 +129,8 @@ Return exactly this shape:
   "habits": { "slug": boolean },
   "device": { "iphoneHours": number or null, "socialHours": number or null, "macHours": number or null, "notes": string or null },
   "deviceScreens": [0..n-1],
-  "trades": [ ${TRADE_SHAPE} ]
+  "trades": [ ${TRADE_SHAPE} ],
+  "journal": { "title": string or null, "summary": string or null, "tags": [string] or [], "draft": markdown string or null }
 }`
 
   const userText = `Raw day notes:\n\n${raw.slice(0, 12000)}`
@@ -165,6 +168,17 @@ Return exactly this shape:
         }
       : null,
     deviceScreens: Array.isArray(parsed.deviceScreens) ? parsed.deviceScreens.map(Number).filter((n) => Number.isInteger(n) && n >= 0) : [],
+    journal:
+      parsed.journal && typeof parsed.journal === 'object'
+        ? {
+            title: typeof (parsed.journal as any).title === 'string' ? (parsed.journal as any).title : null,
+            summary: typeof (parsed.journal as any).summary === 'string' ? (parsed.journal as any).summary : null,
+            tags: Array.isArray((parsed.journal as any).tags)
+              ? (parsed.journal as any).tags.map(String).filter((t: string) => t.trim()).slice(0, 6)
+              : [],
+            draft: typeof (parsed.journal as any).draft === 'string' ? (parsed.journal as any).draft : null,
+          }
+        : null,
     trades: trades.map((t) => ({
       market: typeof t?.market === 'string' ? String(t.market).toUpperCase() : 'MNQ',
       session: typeof t?.session === 'string' ? t.session : null,
@@ -333,7 +347,27 @@ Rules:
   return raw.trim().replace(/^```(?:markdown)?\s*|\s*```$/g, '').trim()
 }
 
-function num(v: unknown): number | null {
+export async function draftReflection(daySnapshot: string): Promise<string> {
+  const system = `You are the journal writer for 1ed.ge. Given a structured summary of one trading day, write a first-draft reflection in the trader's voice.
+Tone: plain, honest, a little raw. Zero hype. First person. Short paragraphs.
+Rules:
+- Ground EVERYTHING in the given data. Never invent trades, prices, moods or habits.
+- Reference the actual trades (setup, direction, R), the mood, sleep, screen-time behaviour.
+- End with one honest line — a lesson or a question for tomorrow.
+- Markdown only, 2-4 short paragraphs. Max ~180 words.`
+  const raw = await orChat(
+    [
+      { role: 'system', content: system },
+      { role: 'user', content: `Today's day record:\n\n${daySnapshot.slice(0, 6000)}` },
+    ],
+    env.modelAssist(),
+    false,
+    900,
+  )
+  return raw.trim().replace(/^```(?:markdown)?\s*|\s*```$/g, '').trim()
+}
+
+export function num(v: unknown): number | null {
   const n = typeof v === 'number' ? v : typeof v === 'string' ? parseFloat(v) : NaN
   return Number.isFinite(n) ? round2(n) : null
 }

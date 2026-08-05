@@ -6,6 +6,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-05
+
+### Added
+- **One "day" admin workspace** — the Day Log and Journal tabs merge into a
+  single screen per date: capture → day summary → reflection → one Save /
+  Save & rebuild.
+- **Evidence-first review surface** — the day's structured data renders
+  read-only from the AI build (mood, sleep, habits, screen-time, trades); a
+  subtle ✎ flips a single value to edit only when the AI erred. No field grids
+  by default.
+- **Screen-time from the screenshot only** — no manual hour inputs; paste the
+  Screen Time screenshot, the AI reads total/social/Mac hours + a note, values
+  display with the screenshot as proof (✎ override remains for the rare miss).
+- **Compact trade rows** — each trade shows `+R · pts · accounts` with its chart
+  thumbnail; expand only to correct fields.
+- **AI suggests the reflection** — `structureDayFull` now also returns a journal
+  title/summary/tags/first-draft; an **"AI draft from today"** action
+  (`draftReflection`) writes a first-draft reflection from the day's data.
+- **Public journal posts embed the day strip** — mood · sleep · screen · trades/R
+  pulled from the day record above the prose.
+
+### Changed
+- Journal schema dropped `mood` (the day record owns structured fields); journal
+  is prose + optional title/summary/tags/featuredImage only.
+- Admin nav is now overview · day · accounts · coach · media.
+
 ## [0.3.0] - 2026-08-05
 
 ### Added

@@ -2,18 +2,16 @@ import { useCallback, useEffect, useState } from 'react'
 import { setSecret, getPasteSink } from './api'
 import { RebuildBar } from './RebuildBar'
 import { OverviewTab } from './tabs/OverviewTab'
-import { DayLogTab } from './tabs/DayLogTab'
-import { JournalTab } from './tabs/JournalTab'
+import { DayWorkspace } from './tabs/DayWorkspace'
 import { AccountsTab } from './tabs/AccountsTab'
 import { CoachTab } from './tabs/CoachTab'
 import { MediaTab } from './tabs/MediaTab'
 
-export type Tab = 'overview' | 'day' | 'journal' | 'accounts' | 'coach' | 'media'
+export type Tab = 'overview' | 'day' | 'accounts' | 'coach' | 'media'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'overview' },
-  { id: 'day', label: 'day log' },
-  { id: 'journal', label: 'journal' },
+  { id: 'day', label: 'day' },
   { id: 'accounts', label: 'accounts' },
   { id: 'coach', label: 'coach' },
   { id: 'media', label: 'media' },
@@ -79,8 +77,7 @@ export default function AdminApp({ secret }: { secret: string }) {
 
       <main className="shell py-8">
         {tab === 'overview' && <OverviewTab notify={notify} go={go} />}
-        {tab === 'day' && <DayLogTab notify={notify} />}
-        {tab === 'journal' && <JournalTab notify={notify} />}
+        {tab === 'day' && <DayWorkspace notify={notify} />}
         {tab === 'accounts' && <AccountsTab notify={notify} />}
         {tab === 'coach' && <CoachTab notify={notify} />}
         {tab === 'media' && <MediaTab notify={notify} />}

@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content'
 
 const journal = (await getCollection('journal')).sort((a, b) => b.data.date.localeCompare(a.data.date))
 const days = await getCollection('days')
+const dayByDate = new Map(days.map((d) => [d.data.date, d.data]))
 const tradeCount = new Map<string, number>()
 for (const d of days) {
   if ((d.data.trades ?? []).length) tradeCount.set(d.data.date, d.data.trades!.length)
@@ -32,7 +33,7 @@ for (const d of days) {
             {(tradeCount.get(j.data.date) ?? 0) > 0 && (
               <span class="tag text-up">{tradeCount.get(j.data.date)} trades</span>
             )}
-            {j.data.mood && <span class="tag">mood {j.data.mood}/5</span>}
+            {dayByDate.get(j.data.date)?.mood && <span class="tag">mood {dayByDate.get(j.data.date)!.mood}/5</span>}
             {j.data.tags?.map((t) => <span class="tag">#{t}</span>)}
           </div>
         </a>
