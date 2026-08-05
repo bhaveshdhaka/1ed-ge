@@ -27,6 +27,8 @@
   body {
     @apply bg-bg text-ink font-mono antialiased;
     text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
   ::selection {
     background: #7dd3fc33;

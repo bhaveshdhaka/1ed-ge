@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
 import { authorized, json, error } from '../../../lib/auth'
-import { structureTradeNotes, readScreenshot, assist, type AssistKind } from '../../../lib/ai'
+import { structureDayNotes, readScreenshot, readScreenTime, assist, type AssistKind } from '../../../lib/ai'
 import { listMds } from '../../../lib/content'
 
 export const prerender = false
@@ -12,11 +12,15 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     if (action === 'structure') {
       const accounts = listMds('accounts').map((f) => f.replace(/\.md$/, ''))
-      const result = await structureTradeNotes(String(body.text ?? ''), accounts)
+      const result = await structureDayNotes(String(body.text ?? ''), accounts)
       return json({ ok: true, result })
     }
     if (action === 'vision') {
       const result = await readScreenshot(String(body.image ?? ''))
+      return json({ ok: true, result })
+    }
+    if (action === 'screentime') {
+      const result = await readScreenTime(String(body.image ?? ''))
       return json({ ok: true, result })
     }
     if (action === 'assist') {

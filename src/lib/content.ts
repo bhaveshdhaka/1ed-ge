@@ -6,14 +6,15 @@ export const ROOT = process.cwd()
 export const CONTENT = path.join(ROOT, 'src/content')
 export const MEDIA = path.join(ROOT, 'public/media')
 
-export type Kind = 'trades' | 'journal' | 'habits' | 'habitLog' | 'accounts'
+export type Kind = 'days' | 'accounts' | 'payouts' | 'coach' | 'journal' | 'habits'
 
 const DIRS: Record<Kind, string> = {
-  trades: 'trades',
+  days: 'days',
+  accounts: 'accounts',
+  payouts: 'payouts',
+  coach: 'coach',
   journal: 'journal',
   habits: 'habits',
-  habitLog: 'habit-log',
-  accounts: 'accounts',
 }
 
 export const dirOf = (kind: Kind) => path.join(CONTENT, DIRS[kind])
@@ -53,13 +54,6 @@ export function sanitizeSlug(s: string): string {
     .trim()
     .replace(/[^a-z0-9-]+/g, '-')
     .replace(/^-+|-+$/g, '')
-}
-
-export function nextTradeSlug(date: string): string {
-  const prefix = `${date}-`
-  const files = listMds('trades').filter((f) => f.startsWith(prefix))
-  const n = files.length + 1
-  return `${date}-${String(n).padStart(3, '0')}.md`
 }
 
 export function listMedia(): string[] {

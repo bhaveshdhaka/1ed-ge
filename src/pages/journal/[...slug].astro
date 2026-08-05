@@ -41,6 +41,9 @@ const jsonLd = {
         <span>{entry.data.date}</span>
         {entry.data.mood && <span>mood {entry.data.mood}/5</span>}
         {entry.data.tags?.map((t) => <span class="tag">#{t}</span>)}
+        <a href={`/day/${entry.data.date}`} class="ml-auto border border-line px-2 py-0.5 text-accent transition-colors hover:border-accent">
+          structured day →
+        </a>
       </div>
     </header>
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline></script>

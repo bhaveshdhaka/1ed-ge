@@ -1,0 +1,121 @@
+---
+import Base from '../layouts/Base.astro'
+import { getCollection } from 'astro:content'
+import { buildStats, fmtPnl } from '../lib/stats'
+
+const [accounts, days, payouts] = await Promise.all([
+  getCollection('accounts'),
+  getCollection('days'),
+  getCollection('payouts'),
+])
+const { perAccount } = buildStats(days, accounts, payouts)
+const payoutRows = [...payouts].sort((a, b) => b.data.date.localeCompare(a.data.date))
+
+const stageColor: Record<string, string> = {
+  eval: 'text-warn',
+  buffer: 'text-accent',
+  payout: 'text-up',
+  failed: 'text-down',
+  paused: 'text-dim',
+}
+const stageOrder: Record<string, number> = { eval: 0, buffer: 1, payout: 2, failed: 3, paused: 4 }
+const sorted = [...perAccount].sort((a, b) => stageOrder[a.stage] - stageOrder[b.stage] || a.id.localeCompare(b.id))
+const active = sorted.filter((a) => a.active)
+---
+
+<Base title="accounts — 1ed.ge" description="Every prop account live: stage, drawdown buffer, P&L net of payouts, and payout history.">
+  <section class="shell pt-12 pb-20">
+    <div class="flex items-baseline gap-3">
+      <h1 class="text-2xl">/ accounts</h1>
+      <span class="text-[12px] text-faint">eval → buffer → payout</span>
+    </div>
+
+    <div class="mt-8 overflow-x-auto panel">
+      <table class="w-full min-w-[860px] border-collapse">
+        <thead>
+          <tr>
+            <th class="th">account</th>
+            <th class="th">stage</th>
+            <th class="th text-right">size</th>
+            <th class="th text-right">dd limit</th>
+            <th class="th text-right">trades</th>
+            <th class="th text-right">$ pnl</th>
+            <th class="th text-right">payouts</th>
+            <th class="th text-right">net</th>
+            <th class="th text-right">R</th>
+            <th class="th text-right">buffer left</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map((a) => (
+            <tr class:list={[!a.active && 'opacity-50']}>
+              <td class="td">
+                <div class="text-ink">{a.firm}</div>
+                <div class="text-[11px] text-faint">{a.id}</div>
+              </td>
+              <td class="td"><span class={stageColor[a.stage] ?? ''}>{a.stage}</span></td>
+              <td class="td text-right text-dim">{a.sizeLabel}</td>
+              <td class="td text-right text-dim">${a.drawdownLimit.toLocaleString()}</td>
+              <td class="td text-right">{a.trades}</td>
+              <td class="td text-right num-up">{fmtPnl(a.grossPnl)}</td>
+              <td class="td text-right text-dim">{a.payouts ? fmtPnl(-a.payouts) : '—'}</td>
+              <td class="td text-right num-up">{fmtPnl(a.netPnl)}</td>
+              <td class="td text-right num-up">{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
+              <td class="td">
+                <div class="flex items-center justify-end gap-2">
+                  <div class="h-1.5 w-20 bg-raise">
+                    <div class="h-full" style={`width:${a.ddUsedPct}%`} class:list={[a.ddUsedPct > 70 ? 'bg-down' : a.ddUsedPct > 40 ? 'bg-warn' : 'bg-up']} />
+                  </div>
+                  <span class="w-24 text-right text-[11px] text-dim">${a.buffer.toLocaleString()}</span>
+                </div>
+              </td>
+            </tr>
+          ))}
+          {sorted.length === 0 && (
+            <tr><td class="td text-faint" colspan="10">no accounts yet</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 flex flex-wrap gap-4 text-[12px] text-dim">
+      <span><span class="text-up">●</span> active: {active.length}</span>
+      <span><span class="text-warn">●</span> eval</span>
+      <span><span class="text-accent">●</span> building buffer</span>
+      <span><span class="text-up">●</span> payout stage</span>
+      <span><span class="text-down">●</span> failed — stays in the record forever</span>
+    </div>
+
+    <h2 class="mt-14 text-lg">/ payout history</h2>
+    <div class="mt-4 overflow-x-auto panel">
+      <table class="w-full min-w-[560px] border-collapse">
+        <thead>
+          <tr>
+            <th class="th">date</th>
+            <th class="th">account</th>
+            <th class="th text-right">amount</th>
+            <th class="th">status</th>
+            <th class="th">note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {payoutRows.map((p) => {
+            const acc = accounts.find((a) => a.data.id === p.data.account)
+            return (
+              <tr>
+                <td class="td text-dim">{p.data.date}</td>
+                <td class="td">{acc?.data.firm ?? ''} {acc?.data.sizeLabel ?? ''} <span class="text-faint">·{p.data.account}</span></td>
+                <td class="td text-right num-up">{fmtPnl(p.data.amount)}</td>
+                <td class="td"><span class={p.data.status === 'paid' ? 'text-up' : 'text-warn'}>{p.data.status}</span></td>
+                <td class="td text-dim">{p.data.note ?? ''}</td>
+              </tr>
+            )
+          })}
+          {payoutRows.length === 0 && (
+            <tr><td class="td text-faint" colspan="5">no payouts yet — the first one arrives after the buffer is built.</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</Base>

@@ -2,13 +2,14 @@
   "name": "1ed.ge",
   "private": true,
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "rm -rf node_modules/.astro && astro build",
     "preview": "astro preview",
     "start": "node ./dist/server/entry.mjs",
     "seed": "node scripts/seed.mjs",
+    "migrate": "node scripts/migrate.mjs",
     "typecheck": "astro check"
   },
   "dependencies": {

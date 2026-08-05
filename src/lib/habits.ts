@@ -1,4 +1,4 @@
-import type { HabitEntry, HabitLogEntry } from './stats'
+import type { DayEntry, HabitEntry } from './stats'
 
 export interface HabitStat {
   id: string
@@ -30,38 +30,34 @@ function addDays(d: Date, n: number): Date {
   return x
 }
 
-export function buildHabitStats(habits: HabitEntry[], logs: HabitLogEntry[]): HabitStat[] {
+export function buildHabitStats(habits: HabitEntry[], days: DayEntry[]): HabitStat[] {
   const byHabit = new Map<string, Set<string>>()
   for (const h of habits) byHabit.set(h.id, new Set())
-  const logDates = new Map<string, HabitLogEntry['data']>()
-  for (const log of logs) logDates.set(log.data.date, log.data)
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  for (const log of logs) {
-    for (const [slug, val] of Object.entries(log.data.values)) {
-      if (val && byHabit.has(slug)) byHabit.get(slug)!.add(log.data.date)
+  const loggedDates = new Map<string, DayEntry['data']>()
+  for (const d of days) {
+    if (!d.data.habits || !Object.values(d.data.habits).some(Boolean)) continue
+    loggedDates.set(d.data.date, d.data)
+    for (const [slug, val] of Object.entries(d.data.habits)) {
+      if (val && byHabit.has(slug)) byHabit.get(slug)!.add(d.data.date)
     }
   }
 
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
   const heatStart = addDays(today, -364)
 
   return habits.map((h) => {
-    const doneDays = [...byHabit.get(h.id)!]
     const doneSet = byHabit.get(h.id)!
 
-    // current streak: walk backwards from today (or yesterday if today not yet logged)
     let cursor = new Date(today)
-    if (!logDates.has(dayKey(cursor))) cursor = addDays(cursor, -1)
+    if (!loggedDates.has(dayKey(cursor))) cursor = addDays(cursor, -1)
     let currentStreak = 0
     while (doneSet.has(dayKey(cursor))) {
       currentStreak++
       cursor = addDays(cursor, -1)
     }
 
-    // best streak
-    const allKeys = [...logDates.keys()].sort()
+    const allKeys = [...loggedDates.keys()].sort()
     let bestStreak = 0
     let run = 0
     for (const k of allKeys) {
@@ -73,47 +69,42 @@ export function buildHabitStats(habits: HabitEntry[], logs: HabitLogEntry[]): Ha
       }
     }
 
-    // last 30 days pct
     let done30 = 0
     let logged30 = 0
     for (let i = 29; i >= 0; i--) {
       const k = dayKey(addDays(today, -i))
-      if (logDates.has(k)) {
+      if (loggedDates.has(k)) {
         logged30++
         if (doneSet.has(k)) done30++
       }
     }
 
-    // last 7
     const last7: (boolean | null)[] = []
     for (let i = 6; i >= 0; i--) {
       const k = dayKey(addDays(today, -i))
-      last7.push(logDates.has(k) ? doneSet.has(k) : null)
+      last7.push(loggedDates.has(k) ? doneSet.has(k) : null)
     }
 
-    // heatmap year (52 weeks x 7 days)
     const heatmap: { date: string; value: boolean | null }[] = []
     for (let i = 0; i < 365; i++) {
       const d = addDays(heatStart, i)
       const k = dayKey(d)
-      heatmap.push({ date: k, value: logDates.has(k) ? doneSet.has(k) : null })
+      heatmap.push({ date: k, value: loggedDates.has(k) ? doneSet.has(k) : null })
     }
 
-    const logged = logDates.size
-    const done = doneDays.length
     return {
       id: h.id,
       name: h.data.name,
       emoji: h.data.emoji,
       color: h.data.color,
       description: h.data.description,
-      done,
-      logged,
-      pctAll: logged ? (done / logged) * 100 : null,
+      done: doneSet.size,
+      logged: loggedDates.size,
+      pctAll: loggedDates.size ? (doneSet.size / loggedDates.size) * 100 : null,
       pct30: logged30 ? (done30 / logged30) * 100 : null,
       currentStreak,
       bestStreak,
-      doneToday: logDates.has(dayKey(today)) ? doneSet.has(dayKey(today)) : null,
+      doneToday: loggedDates.has(dayKey(today)) ? doneSet.has(dayKey(today)) : null,
       last7,
       heatmap,
     }

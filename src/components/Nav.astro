@@ -1,10 +1,13 @@
 ---
 const links = [
-  { href: '/', label: '~/home', n: '00' },
-  { href: '/journal', label: '~/journal', n: '01' },
-  { href: '/performance', label: '~/performance', n: '02' },
-  { href: '/tracker', label: '~/tracker', n: '03' },
-  { href: '/about', label: '~/about', n: '04' },
+  { href: '/', label: 'home', n: '00' },
+  { href: '/journal', label: 'journal', n: '01' },
+  { href: '/performance', label: 'performance', n: '02' },
+  { href: '/tracker', label: 'tracker', n: '03' },
+  { href: '/trends', label: 'trends', n: '04' },
+  { href: '/accounts', label: 'accounts', n: '05' },
+  { href: '/coach', label: 'coach', n: '06' },
+  { href: '/about', label: 'about', n: '07' },
 ]
 const path = Astro.url.pathname
 ---
@@ -14,7 +17,7 @@ const path = Astro.url.pathname
     <span class="text-accent">1ed</span><span class="text-dim">.ge</span>
     <span class="cursor-blink text-accent">▋</span>
   </a>
-  <div class="flex items-center gap-1 overflow-x-auto text-[12px] md:gap-4 md:text-[13px]">
+  <div class="flex items-center gap-1 overflow-x-auto text-[12px] md:gap-3 md:text-[13px]">
     {links.map((l) => (
       <a
         href={l.href}

@@ -1,0 +1,111 @@
+---
+import Base from '../layouts/Base.astro'
+import { getCollection } from 'astro:content'
+import { buildTrends } from '../lib/trends'
+import CorrTable from '../components/CorrTable.astro'
+
+const [accounts, days] = await Promise.all([getCollection('accounts'), getCollection('days')])
+const t = buildTrends(days, accounts)
+---
+
+<Base title="trends — 1ed.ge" description="The patterns in the data: how sleep, mood, habits, and screen time move the R.">
+  <section class="shell pt-12 pb-20">
+    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <h1 class="text-2xl">/ trends</h1>
+      <span class="text-[12px] text-faint">what the data says — nothing hidden</span>
+    </div>
+
+    <h2 class="mt-10 text-lg">/ rolling windows</h2>
+    <div class="mt-4 overflow-x-auto panel">
+      <table class="w-full min-w-[720px] border-collapse">
+        <thead>
+          <tr>
+            <th class="th">window</th>
+            <th class="th text-right">days</th>
+            <th class="th text-right">trades</th>
+            <th class="th text-right">win%</th>
+            <th class="th text-right">trades/day</th>
+            <th class="th text-right">sum R</th>
+            <th class="th text-right">avg R</th>
+            <th class="th text-right">$ pnl</th>
+          </tr>
+        </thead>
+        <tbody>
+          {t.windows.map((w) => (
+            <tr>
+              <td class="td text-ink">{w.label}</td>
+              <td class="td text-right">{w.days}</td>
+              <td class="td text-right">{w.trades}</td>
+              <td class="td text-right">{w.winRate === null ? '—' : w.winRate.toFixed(1) + '%'}</td>
+              <td class="td text-right">{w.tradesPerDay}</td>
+              <td class="td text-right text-dim">{w.sumR > 0 ? '+' : ''}{w.sumR.toFixed(2)}</td>
+              <td class:list={['td text-right', w.avgR > 0 ? 'num-up' : w.avgR < 0 ? 'num-down' : '']}>{w.avgR > 0 ? '+' : ''}{w.avgR.toFixed(2)}R</td>
+              <td class:list={['td text-right', w.sumPnl >= 0 ? 'num-up' : 'num-down']}>{w.sumPnl >= 0 ? '+' : ''}${Math.round(w.sumPnl).toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="mt-14 text-lg">/ monthly</h2>
+    <div class="mt-4 overflow-x-auto panel">
+      <table class="w-full min-w-[520px] border-collapse">
+        <thead>
+          <tr><th class="th">month</th><th class="th text-right">trades</th><th class="th text-right">win%</th><th class="th text-right">sum R</th><th class="th text-right">$ pnl</th></tr>
+        </thead>
+        <tbody>
+          {t.months.map((m) => (
+            <tr>
+              <td class="td text-ink">{m.month}</td>
+              <td class="td text-right">{m.trades}</td>
+              <td class="td text-right">{m.winRate === null ? '—' : m.winRate.toFixed(0) + '%'}</td>
+              <td class="td text-right text-dim">{m.sumR > 0 ? '+' : ''}{m.sumR.toFixed(2)}</td>
+              <td class:list={['td text-right', m.sumPnl >= 0 ? 'num-up' : 'num-down']}>{m.sumPnl >= 0 ? '+' : ''}${Math.round(m.sumPnl).toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-14 grid gap-10 lg:grid-cols-2">
+      <div>
+        <h2 class="text-lg">/ R by sleep</h2>
+        <div class="mt-4 panel"><CorrTable label="bucket" rows={t.correlations.sleep} /></div>
+      </div>
+      <div>
+        <h2 class="text-lg">/ R by mood</h2>
+        <div class="mt-4 panel"><CorrTable label="bucket" rows={t.correlations.mood} /></div>
+      </div>
+      <div>
+        <h2 class="text-lg">/ R by habits done</h2>
+        <div class="mt-4 panel"><CorrTable label="bucket" rows={t.correlations.habits} /></div>
+      </div>
+      <div>
+        <h2 class="text-lg">/ R by screen time</h2>
+        <div class="mt-4 panel"><CorrTable label="bucket" rows={t.correlations.screen} /></div>
+      </div>
+      <div>
+        <h2 class="text-lg">/ R by session</h2>
+        <div class="mt-4 panel"><CorrTable label="session" rows={t.correlations.session} /></div>
+      </div>
+      <div>
+        <h2 class="text-lg">/ R by setup</h2>
+        <div class="mt-4 panel"><CorrTable label="setup" rows={t.correlations.setup} /></div>
+      </div>
+    </div>
+
+    {t.flags.length > 0 && (
+      <div class="mt-14">
+        <h2 class="text-lg">/ observations</h2>
+        <ul class="mt-4 space-y-2">
+          {t.flags.map((f) => (
+            <li class="flex gap-3 border-b border-line/60 pb-2 text-[13px] text-soft">
+              <span class="text-faint">›</span>
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </section>
+</Base>

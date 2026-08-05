@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro'
+import { getCollection, render } from 'astro:content'
+
+const coach = (await getCollection('coach')).sort((a, b) => b.data.date.localeCompare(a.data.date))
+const rendered = await Promise.all(
+  coach.map(async (c) => {
+    let Content: any = null
+    try {
+      ;({ Content } = await render(c))
+    } catch {}
+    return { c, Content }
+  }),
+)
+---
+
+<Base title="coach — 1ed.ge" description="f-R-iend — the data-driven coach reading the trends and telling me what the numbers mean.">
+  <section class="shell pt-12 pb-20">
+    <div class="flex items-baseline gap-3">
+      <h1 class="text-2xl">/ coach</h1>
+      <span class="text-[12px] text-faint">f-R-iend — reads the data, calls it straight</span>
+    </div>
+
+    <div class="mt-10 max-w-3xl space-y-10">
+      {rendered.map(({ c, Content }) => (
+        <article class="border-l-2 border-line2 pl-6">
+          <div class="flex flex-wrap items-baseline gap-3 text-[12px] text-dim">
+            <span>{c.data.date}</span>
+            {c.data.summary && <span class="text-soft">{c.data.summary}</span>}
+          </div>
+          <div class="prose mt-4">
+            {Content ? <Content /> : <p class="text-faint">empty session</p>}
+          </div>
+        </article>
+      ))}
+      {rendered.length === 0 && (
+        <p class="text-[13px] text-faint">
+          no coaching sessions yet — the coach speaks once the data has something to say.
+        </p>
+      )}
+    </div>
+  </section>
+</Base>

@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useState } from 'react'
 import { setSecret, api } from './api'
 import { OverviewTab } from './tabs/OverviewTab'
-import { TradesTab } from './tabs/TradesTab'
+import { DayLogTab } from './tabs/DayLogTab'
 import { JournalTab } from './tabs/JournalTab'
-import { TrackerTab } from './tabs/TrackerTab'
+import { AccountsTab } from './tabs/AccountsTab'
+import { CoachTab } from './tabs/CoachTab'
 import { MediaTab } from './tabs/MediaTab'
 
-export type Tab = 'overview' | 'trades' | 'journal' | 'tracker' | 'media'
+export type Tab = 'overview' | 'day' | 'journal' | 'accounts' | 'coach' | 'media'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'overview' },
-  { id: 'trades', label: 'trades' },
+  { id: 'day', label: 'day log' },
   { id: 'journal', label: 'journal' },
-  { id: 'tracker', label: 'tracker' },
+  { id: 'accounts', label: 'accounts' },
+  { id: 'coach', label: 'coach' },
   { id: 'media', label: 'media' },
 ]
 
@@ -60,9 +62,10 @@ export default function AdminApp({ secret }: { secret: string }) {
 
       <main className="shell py-8">
         {tab === 'overview' && <OverviewTab notify={notify} go={go} />}
-        {tab === 'trades' && <TradesTab notify={notify} />}
+        {tab === 'day' && <DayLogTab notify={notify} />}
         {tab === 'journal' && <JournalTab notify={notify} />}
-        {tab === 'tracker' && <TrackerTab notify={notify} />}
+        {tab === 'accounts' && <AccountsTab notify={notify} />}
+        {tab === 'coach' && <CoachTab notify={notify} />}
         {tab === 'media' && <MediaTab notify={notify} />}
       </main>
 

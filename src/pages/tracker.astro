@@ -1,11 +1,11 @@
 ---
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
-import { buildHabitStats, todayKey } from '../lib/habits'
+import { buildHabitStats } from '../lib/habits'
 import Heatmap from '../components/Heatmap.astro'
 
-const [habits, habitLog] = await Promise.all([getCollection('habits'), getCollection('habitLog')])
-const stats = buildHabitStats(habits, habitLog)
+const [habits, days] = await Promise.all([getCollection('habits'), getCollection('days')])
+const stats = buildHabitStats(habits, days)
 const doneToday = stats.filter((h) => h.doneToday === true).length
 
 const wd = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
@@ -37,12 +37,12 @@ const last7 = stats.length
 
     <div class="mt-8 grid grid-cols-7 gap-1">
       {last7.map((d) => (
-        <div class="panel p-3 text-center">
+        <a href={`/day/${d.key}`} class="panel p-3 text-center transition-colors hover:border-accent">
           <div class="text-[10px] uppercase tracking-widest text-dim">{d.label}</div>
           <div class:list={['mt-1 text-[15px]', d.done === d.total ? 'text-up' : 'text-ink']}>
             {d.done}/{d.total}
           </div>
-        </div>
+        </a>
       ))}
     </div>
 
@@ -65,7 +65,7 @@ const last7 = stats.length
             </div>
           </div>
           <div class="mt-4 flex items-center gap-1.5">
-            {h.last7.map((v) => (
+            {h.last7.map((v, i) => (
               <div
                 class="flex h-8 w-8 items-center justify-center border text-[12px]"
                 class:list={[v === null ? 'border-line bg-bg text-faint' : v ? 'border-transparent text-bg' : 'border-line bg-raise text-dim']}

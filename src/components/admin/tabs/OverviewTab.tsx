@@ -6,9 +6,10 @@ import type { Tab } from '../AdminApp'
 interface Status {
   env: { adminSecretSet: boolean; openrouterKeySet: boolean; modelStructure: string; modelVision: string }
   today: string
-  counts: { trades: number; todayTrades: number; journal: number; habits: number; habitDays: number; media: number }
+  counts: { days: number; todayTrades: number; journal: number; habits: number; accounts: number; payouts: number; coach: number; media: number }
+  habitsDoneToday: number
   journalToday: boolean
-  todayLog: { values?: Record<string, boolean> } | null
+  todayDay: { trades?: unknown[]; device?: { screenshots?: string[] } } | null
   build: { running?: boolean; ok?: boolean | null; finishedAt?: number } | null
 }
 
@@ -59,10 +60,8 @@ export function OverviewTab({
   }
   if (!status) return <Card title="loading"><p className="text-[13px] text-faint">loading…</p></Card>
 
-  const doneToday = status.todayLog
-    ? Object.values(status.todayLog.values ?? {}).filter(Boolean).length
-    : 0
   const habitCount = status.counts.habits
+  const screenLogged = !!status.todayDay?.device?.screenshots?.length
 
   return (
     <div className="space-y-6">
@@ -75,10 +74,10 @@ export function OverviewTab({
       </div>
 
       <div className="grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">
-        <Stat label="trades logged" value={status.counts.trades} />
+        <Stat label="days logged" value={status.counts.days} />
         <Stat label="journal entries" value={status.counts.journal} />
-        <Stat label="habit days" value={status.counts.habitDays} />
-        <Stat label="media files" value={status.counts.media} />
+        <Stat label="accounts" value={status.counts.accounts} />
+        <Stat label="payouts" value={status.counts.payouts} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -92,9 +91,13 @@ export function OverviewTab({
             </div>
             <div className="flex items-center justify-between border-b border-line/60 pb-2">
               <span>habits done</span>
-              <span className={doneToday === habitCount && habitCount ? 'text-up' : 'text-ink'}>
-                {doneToday}/{habitCount}
+              <span className={status.habitsDoneToday === habitCount && habitCount ? 'text-up' : 'text-ink'}>
+                {status.habitsDoneToday}/{habitCount}
               </span>
+            </div>
+            <div className="flex items-center justify-between border-b border-line/60 pb-2">
+              <span>screen time logged</span>
+              <span className={screenLogged ? 'text-up' : 'text-dim'}>{screenLogged ? 'yes' : 'no'}</span>
             </div>
             <div className="flex items-center justify-between border-b border-line/60 pb-2">
               <span>journal written</span>
@@ -103,9 +106,10 @@ export function OverviewTab({
               </span>
             </div>
             <div className="flex flex-wrap gap-2 pt-2">
-              <Button size="sm" onClick={() => go('trades')}>log trade →</Button>
+              <Button size="sm" onClick={() => go('day')}>log the day →</Button>
               <Button size="sm" onClick={() => go('journal')}>write journal →</Button>
-              <Button size="sm" onClick={() => go('tracker')}>track habits →</Button>
+              <Button size="sm" onClick={() => go('accounts')}>manage accounts →</Button>
+              <Button size="sm" onClick={() => go('coach')}>talk to coach →</Button>
             </div>
           </div>
         </Card>
@@ -135,7 +139,8 @@ export function OverviewTab({
               </div>
             )}
             <p className="pt-1 text-[12px] leading-relaxed text-dim">
-              public pages are static — after you save a trade, journal, or habit, the site rebuilds so the numbers update.
+              public pages are static — after you save a day, journal, account or payout, the site
+              rebuilds (~8s) so the public numbers update.
             </p>
           </div>
         </Card>

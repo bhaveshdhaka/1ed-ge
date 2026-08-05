@@ -3,10 +3,10 @@ import Base from '../../layouts/Base.astro'
 import { getCollection } from 'astro:content'
 
 const journal = (await getCollection('journal')).sort((a, b) => b.data.date.localeCompare(a.data.date))
-const trades = await getCollection('trades')
+const days = await getCollection('days')
 const tradeCount = new Map<string, number>()
-for (const t of trades) {
-  tradeCount.set(t.data.date, (tradeCount.get(t.data.date) ?? 0) + 1)
+for (const d of days) {
+  if ((d.data.trades ?? []).length) tradeCount.set(d.data.date, d.data.trades!.length)
 }
 ---
 

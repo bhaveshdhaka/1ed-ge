@@ -1,0 +1,150 @@
+---
+import Base from '../../layouts/Base.astro'
+import { getCollection } from 'astro:content'
+
+export async function getStaticPaths() {
+  const days = await getCollection('days')
+  return days.map((d) => ({ params: { date: d.data.date }, props: { entry: d } }))
+}
+
+const { entry } = Astro.props
+const [accounts, journal] = await Promise.all([getCollection('accounts'), getCollection('journal')])
+const journalFor = journal.find((j) => j.data.date === entry.data.date)
+const accMap = new Map(accounts.map((a) => [a.data.id, a.data]))
+
+const d = entry.data
+const habits = await getCollection('habits')
+const dayHabits = d.habits ?? {}
+
+const fmtH = (h?: number) => (h === undefined ? '—' : `${h}h`)
+const sleep = d.sleep
+const device = d.device
+const moodLabel = d.mood ? `${d.mood}/5` : '—'
+const sumR = (d.trades ?? []).reduce((s, t) => s + (t.points / (t.riskPoints ?? (t.stop !== undefined ? Math.abs(t.entry - t.stop) : 1))), 0)
+const totalPts = (d.trades ?? []).reduce((s, t) => s + t.points, 0)
+---
+
+<Base
+  title={`day ${entry.data.date} — 1ed.ge`}
+  description={`${entry.data.date} — mood ${moodLabel}, ${d.trades.length} trades, ${sumR >= 0 ? '+' : ''}${sumR.toFixed(2)}R. Everything public.`}
+>
+  <article class="shell max-w-4xl pt-12 pb-20">
+    <a href="/journal" class="text-[12px] text-dim transition-colors hover:text-ink">← /journal</a>
+
+    <header class="mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+      <h1 class="text-2xl">day {entry.data.date}</h1>
+      <span class="text-[13px] text-dim">
+        {d.trades.length} trades · {sumR > 0 ? '+' : ''}{sumR.toFixed(2)}R · {totalPts >= 0 ? '+' : ''}{totalPts}pts
+      </span>
+      {journalFor && (
+        <a href={`/journal/${journalFor.id}`} class="ml-auto text-[13px] text-accent hover:text-ink">
+          journal for this day →
+        </a>
+      )}
+    </header>
+
+    <div class="mt-8 grid gap-px border border-line bg-line sm:grid-cols-4">
+      <div class="bg-bg p-4">
+        <div class="text-[10px] uppercase tracking-widest text-dim">mood</div>
+        <div class="mt-1 text-lg">{moodLabel}</div>
+      </div>
+      <div class="bg-bg p-4">
+        <div class="text-[10px] uppercase tracking-widest text-dim">sleep</div>
+        <div class="mt-1 text-lg">{sleep?.hours !== undefined ? sleep.hours + 'h' : '—'}</div>
+        <div class="text-[11px] text-faint">quality {sleep?.quality ?? '—'}/5</div>
+      </div>
+      <div class="bg-bg p-4">
+        <div class="text-[10px] uppercase tracking-widest text-dim">phone screen</div>
+        <div class="mt-1 text-lg">{device?.iphoneHours !== undefined ? device.iphoneHours + 'h' : '—'}</div>
+        <div class="text-[11px] text-faint">{device?.socialHours !== undefined ? `social ${device.socialHours}h` : ''}</div>
+      </div>
+      <div class="bg-bg p-4">
+        <div class="text-[10px] uppercase tracking-widest text-dim">mac</div>
+        <div class="mt-1 text-lg">{device?.macHours !== undefined ? device.macHours + 'h' : '—'}</div>
+      </div>
+    </div>
+
+    <div class="mt-10">
+      <h2 class="text-lg">/ habits</h2>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {habits.map((h) => {
+          const done = dayHabits[h.id] === true
+          return (
+            <span class="flex items-center gap-2 border px-3 py-1.5 text-[13px]" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-line;color:#71717a'}>
+              {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
+            </span>
+          )
+        })}
+      </div>
+    </div>
+
+    {device && (device.screenshots?.length ?? 0) > 0 && (
+      <div class="mt-10">
+        <h2 class="text-lg">/ screen time — proof</h2>
+        <p class="mt-2 text-[13px] text-dim">{device.notes ?? 'no note'}</p>
+        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {device.screenshots!.map((s) => (
+            <a href={s} target="_blank" class="block border border-line bg-panel transition-colors hover:border-accent">
+              <img src={s} alt="screen time screenshot" loading="lazy" class="w-full" />
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <div class="mt-10">
+      <h2 class="text-lg">/ trades</h2>
+      {(d.trades ?? []).length === 0 ? (
+        <p class="mt-3 text-[13px] text-faint">no trades logged this day.</p>
+      ) : (
+        <div class="mt-4 space-y-4">
+          {(d.trades ?? []).map((t, i) => {
+            const risk = t.riskPoints ?? (t.stop !== undefined ? Math.abs(t.entry - t.stop) : 1)
+            const R = t.points / risk
+            const ex = t.executions ?? []
+            const totalPnl = ex.reduce((s, e) => s + t.points * (accMap.get(e.account)?.pointsValue ?? 2) * (e.size ?? 1), 0)
+            return (
+              <div class="panel p-4">
+                <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  <span class="text-[15px] text-ink">{t.direction === 'long' ? '▲' : '▼'} {t.market}</span>
+                  <span class="text-[12px] text-dim">{t.session ?? '—'} · {t.setup ?? 'no setup'}</span>
+                  <span class:list={['ml-auto text-[15px]', R > 0 ? 'num-up' : R < 0 ? 'num-down' : '']}>
+                    {R > 0 ? '+' : ''}{R.toFixed(2)}R
+                  </span>
+                  <span class:list={['text-[13px]', totalPnl >= 0 ? 'num-up' : 'num-down']}>
+                    {totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString()}
+                  </span>
+                </div>
+                <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-[12px] text-dim md:grid-cols-4">
+                  <span>entry <span class="text-ink">{t.entry}</span></span>
+                  <span>exit <span class="text-ink">{t.exit}</span></span>
+                  <span>stop <span class="text-ink">{t.stop ?? '—'}</span></span>
+                  <span>points <span class:list={[t.points >= 0 ? 'text-up' : 'text-down']}>{t.points >= 0 ? '+' : ''}{t.points}</span></span>
+                </div>
+                {(ex.length > 0 || t.note) && (
+                  <div class="mt-2 text-[12px] text-dim">
+                    {ex.length > 0 && (
+                      <span>
+                        accounts: {ex.map((e) => { const a = accMap.get(e.account); return `${a?.firm ?? ''} ${a?.sizeLabel ?? ''}${e.size && e.size > 1 ? ` ×${e.size}` : ''}` }).join(' · ')}
+                      </span>
+                    )}
+                    {t.note && <span class="text-soft"> — {t.note}</span>}
+                  </div>
+                )}
+                {(t.screenshots?.length ?? 0) > 0 && (
+                  <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+                    {t.screenshots!.map((s) => (
+                      <a href={s} target="_blank" class="block border border-line bg-bg transition-colors hover:border-accent">
+                        <img src={s} alt={`trade ${i + 1} screenshot`} loading="lazy" class="w-full" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  </article>
+</Base>
