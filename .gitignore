@@ -11,3 +11,4 @@ dist/
 .lhci/
 playwright-report/
 test-results/
+.lighthouseci/
