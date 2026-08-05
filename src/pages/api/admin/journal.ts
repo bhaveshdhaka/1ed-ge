@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro'
 import { authorized, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry, deleteEntry } from '../../../lib/content'
+import { addChange } from '../../../lib/changes'
 
 export const prerender = false
 
@@ -54,6 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
     ...(body.featuredImage ? { featuredImage: String(body.featuredImage) } : {}),
   }
   writeEntry('journal', file, data, String(body.content ?? ''))
+  addChange('journal', `journal ${date}`, (body.day ? String(body.day) : '') || 'entry saved')
   return json({ ok: true, file, slug: file.replace(/\.(md|mdx)$/, '') })
 }
 
@@ -63,5 +65,6 @@ export const DELETE: APIRoute = async ({ request }) => {
   const file = String(body.file ?? '')
   if (!file || !/^[\w.-]+\.mdx?$/.test(file)) return error('invalid file')
   deleteEntry('journal', file)
+  addChange('journal', `journal deleted`, file)
   return json({ ok: true })
 }

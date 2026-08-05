@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import { spawn } from 'node:child_process'
 import { authorized, json, error } from '../../../lib/auth'
 import { ROOT } from '../../../lib/content'
+import { getPending, clearPending, getRebuilds, pushRebuild } from '../../../lib/changes'
 
 export const prerender = false
 
@@ -23,7 +24,7 @@ function getStatus() {
 
 export const GET: APIRoute = async ({ request }) => {
   if (!authorized(request)) return error('unauthorized', 401)
-  return json({ ok: true, build: getStatus() })
+  return json({ ok: true, build: getStatus(), pending: getPending(), rebuilds: getRebuilds() })
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -31,14 +32,19 @@ export const POST: APIRoute = async ({ request }) => {
   const cur = getStatus()
   if (cur?.running) return json({ ok: true, running: true })
 
+  const snapshot = getPending().map((c) => c.label)
   setStatus({ running: true, startedAt: Date.now(), ok: null, finishedAt: null })
   const child = spawn('npm', ['run', 'build'], { cwd: ROOT, stdio: 'ignore', detached: true })
   child.unref()
   child.on('exit', (code) => {
-    setStatus({ running: false, ok: code === 0, finishedAt: Date.now() })
+    const ok = code === 0
+    setStatus({ running: false, ok, finishedAt: Date.now() })
+    if (ok) clearPending()
+    pushRebuild({ at: new Date().toISOString(), ok, applied: ok ? snapshot : [] })
   })
   child.on('error', () => {
     setStatus({ running: false, ok: false, finishedAt: Date.now(), error: 'spawn failed' })
+    pushRebuild({ at: new Date().toISOString(), ok: false, applied: [], error: 'spawn failed' })
   })
   return json({ ok: true, running: true })
 }

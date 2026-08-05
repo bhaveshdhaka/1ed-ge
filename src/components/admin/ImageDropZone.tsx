@@ -13,6 +13,7 @@ export function ImageDropZone({
 
   return (
     <div
+      data-own-paste
       className={`flex cursor-pointer flex-col items-center justify-center gap-1 border border-dashed border-line2 bg-bg px-3 py-5 text-center text-[12px] text-dim transition-colors hover:border-accent ${className}`}
       onPaste={(e) => {
         const files = Array.from(e.clipboardData?.files ?? [])

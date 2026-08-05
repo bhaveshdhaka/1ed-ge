@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro'
 import { authorized, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry } from '../../../lib/content'
+import { addChange } from '../../../lib/changes'
 import { coachReply } from '../../../lib/ai'
 import { buildTrends, trendsForLLM } from '../../../lib/trends'
 
@@ -69,5 +70,6 @@ export const POST: APIRoute = async ({ request }) => {
 
   const replyMsg = `## ${now} · coach\n${reply}\n`
   writeEntry('coach', file, { date: today }, newContent + '\n' + replyMsg)
+  addChange('coach', `coach · ${today}`, text.slice(0, 60))
   return json({ ok: true, reply, file })
 }

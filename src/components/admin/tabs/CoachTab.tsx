@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api } from '../api'
+import { api, notifyChanged } from '../api'
 import { Card, Button, TextArea } from '../ui'
 
 interface Msg {
@@ -45,6 +45,7 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
     setInput('')
     try {
       await api<{ reply: string }>('/api/admin/coach', { method: 'POST', body: { text } })
+      notifyChanged()
       await load()
     } catch (e) {
       notify(e instanceof Error ? e.message : 'coach failed', false)

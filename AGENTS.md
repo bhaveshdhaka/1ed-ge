@@ -19,10 +19,14 @@ screen time, and trades all live in the same daily record.
 - **Astro 5** (static-first) + **@astrojs/node** (standalone SSR for the few
   server routes) + **Tailwind CSS v4** + TypeScript.
 - React islands only on the admin page (client-side). Public pages ship zero JS.
+- **Milkdown Crepe** (`@milkdown/crepe`) — the open-source markdown WYSIWYG
+  editor used for journal writing in the admin. Images paste → upload to
+  `/api/admin/media` via its ImageBlock `onUpload`. Do not hand-roll editors.
 - Content collections (glob loaders + Zod schemas) for all content.
-- **OpenRouter** for AI: DeepSeek (`deepseek/deepseek-chat`) for structuring
-  day notes + the coach + assist; Qwen2.5-VL (`qwen/qwen-2.5-vl-72b-instruct`)
-  for reading trade screenshots and screen-time screenshots.
+- **OpenRouter** for AI: DeepSeek (`deepseek/deepseek-chat`) for text day
+  structuring + the coach + assist; Qwen2.5-VL (`qwen/qwen-2.5-vl-72b-instruct`)
+  for whole-day structuring with screenshots, trade screenshots, and
+  screen-time screenshots. Same prompt/schema → identical output tone.
 - `sharp` (image → webp), `gray-matter` (file I/O in the admin APIs).
 
 ## Commands
@@ -55,16 +59,20 @@ src/lib/content.ts          fs + gray-matter helpers for admin file I/O
 src/lib/stats.ts            R/pnl/equity/drawdown engine (idea + per-account via executions)
 src/lib/trends.ts           rolling windows + correlations (sleep/mood/habits/screen/session/setup)
 src/lib/habits.ts           streak + heatmap computation
-src/lib/ai.ts               OpenRouter clients: structureDayNotes, readScreenshot,
-                            readScreenTime, coachReply, assist
+src/lib/changes.ts          pending-changes store (/tmp/1edge-pending.json) + rebuild history
+src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), readScreenshot,
+                             readScreenTime, coachReply, assist
 src/lib/auth.ts             admin secret check + JSON responses
 src/lib/env.ts              .env access (ADMIN_SECRET, OPENROUTER_API_KEY, models)
 src/pages/                  public pages: / /journal /performance /tracker /trends
-                            /accounts /coach /about /day/[date] + rss + sitemap
+                             /accounts /coach /about /day/[date] + rss + sitemap
 src/pages/admin/[secret]/   private admin (SSR), renders the React app
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/media/[...file].ts SSR media file server (uploads in public/media)
 src/components/admin/*      React admin (DayLog / Journal / Accounts / Coach / Media / Overview)
+src/components/admin/RebuildBar.tsx  sticky pending-changes → rebuild bar (all tabs)
+src/components/admin/JournalEditor.tsx  Milkdown Crepe markdown editor
+src/components/admin/editor.css  Crepe theme tuned to the 1ed.ge palette
 src/components/*.astro      shared UI + SVG charts (zero JS)
 public/media/               uploaded images (webp) — git-tracked
 scripts/seed.mjs, migrate.mjs, deploy.sh, start.sh
@@ -117,9 +125,24 @@ trades:                      # one idea, executions per account
 2. The API writes files directly with `fs`/`gray-matter`
    (`src/lib/content.ts`) — **not** through content collections (collections
    are cached; fs reads are always fresh).
-3. Save → client calls `POST /api/admin/rebuild` → runs `npm run build`
-   (~8s). Static pages are served from `dist/client` on disk, so the node
-   standalone server picks up new builds in place — no restart needed.
+3. Every mutation (day/journal/account/payout/coach) appends a **pending
+   change** to `/tmp/1edge-pending.json` (`src/lib/changes.ts`).
+4. **Saving does NOT auto-rebuild.** The sticky RebuildBar (all admin tabs)
+   shows queued changes; the user clicks **rebuild now** (or uses the
+   "save & rebuild" buttons). `POST /api/admin/rebuild` snapshots pending,
+   runs `npm run build` (~8–20s), then on success clears pending and records
+   a rebuild-history entry (`/tmp/1edge-rebuilds.json`).
+5. Static pages are served from `dist/client` on disk, so the node standalone
+   server picks up new builds in place — no restart needed.
+
+## AI-first day input
+
+The Day Log tab is screenshot + free-text driven: paste trade charts, screen-time
+reports, or notes anywhere (clipboard paste routes to the day input via a global
+paste sink). `structureDayFull(text, images)` (in `lib/ai.ts`) reads everything
+in one call — Qwen2.5-VL when images are present, DeepSeek otherwise — and
+returns the whole day (mood/sleep/habits/device/trades) plus which image index
+belongs where. The AI fills, the human verifies, then saves.
 
 ## Conventions & rules
 

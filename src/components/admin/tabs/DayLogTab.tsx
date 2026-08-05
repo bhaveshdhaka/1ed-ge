@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { api, todayStr, fileToDataUrl, uploadDataUrl, triggerRebuild } from '../api'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink } from '../api'
 import { Card, Button, Field, TextInput, NumInput, TextArea, Select, inputCls } from '../ui'
 import { ImageDropZone } from '../ImageDropZone'
 
@@ -14,6 +14,17 @@ interface HabitDef {
   name: string
   emoji?: string
   color: string
+}
+interface DayListItem {
+  file: string
+  date: string
+  mood: number | null
+  trades: number
+}
+interface DayImage {
+  id: string
+  dataUrl: string
+  url: string
 }
 interface ExecForm {
   account: string
@@ -55,6 +66,7 @@ const emptyTrade = (): TradeForm => ({
 
 export function DayLogTab({ notify }: { notify: (m: string, ok?: boolean) => void }) {
   const [date, setDate] = useState(todayStr())
+  const [daysList, setDaysList] = useState<DayListItem[]>([])
   const [mood, setMood] = useState('')
   const [sleepHours, setSleepHours] = useState('')
   const [sleepQuality, setSleepQuality] = useState('')
@@ -67,11 +79,17 @@ export function DayLogTab({ notify }: { notify: (m: string, ok?: boolean) => voi
   const [trades, setTrades] = useState<TradeForm[]>([])
   const [accounts, setAccounts] = useState<AccRow[]>([])
   const [habitDefs, setHabitDefs] = useState<HabitDef[]>([])
-  const [rawNotes, setRawNotes] = useState('')
-  const [aiBusy, setAiBusy] = useState(false)
+  const [dayText, setDayText] = useState('')
+  const [dayImages, setDayImages] = useState<DayImage[]>([])
+  const dayImagesRef = useRef<DayImage[]>([])
+  const [dayBusy, setDayBusy] = useState(false)
   const [screenBusy, setScreenBusy] = useState(false)
+  const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const debRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  const markDirty = () => setDirty(true)
 
   const load = useCallback(
     async (d: string) => {
@@ -111,6 +129,7 @@ export function DayLogTab({ notify }: { notify: (m: string, ok?: boolean) => voi
             size: String(e.size ?? ''),
           })),
         })))
+        setDirty(false)
       } catch (e) {
         notify(e instanceof Error ? e.message : 'load failed', false)
       }
@@ -119,13 +138,36 @@ export function DayLogTab({ notify }: { notify: (m: string, ok?: boolean) => voi
     [notify],
   )
 
+  const loadDays = useCallback(async () => {
+    try {
+      const res = await api<{ days: DayListItem[] }>('/api/admin/days')
+      setDaysList(res.days)
+    } catch {}
+  }, [])
+
   useEffect(() => {
     load(date)
-  }, [date, load])
+    loadDays()
+  }, [date, load, loadDays])
 
-  const setTrade = (i: number, patch: Partial<TradeForm>) =>
+  // global clipboard paste lands here (anywhere in the day tab)
+  useEffect(() => {
+    setPasteSink((files) => addDayImages(files))
+    return () => setPasteSink(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const selectDate = (d: string) => {
+    if (!d) return
+    if (d === date) return
+    if (dirty && !confirm(`you have unsaved changes on ${date}. discard and open ${d}?`)) return
+    setDate(d)
+  }
+
+  const setTrade = (i: number, patch: Partial<TradeForm>) => {
     setTrades((ts) => ts.map((t, j) => (j === i ? { ...t, ...patch } : t)))
-
+    markDirty()
+  }
   const setExec = (ti: number, ei: number, patch: Partial<ExecForm>) =>
     setTrades((ts) =>
       ts.map((t, j) =>
@@ -135,45 +177,94 @@ export function DayLogTab({ notify }: { notify: (m: string, ok?: boolean) => voi
       ),
     )
 
-  const applyStructured = (r: any) => {
+  const setImg = (i: number, patch: Partial<TradeForm>) =>
+    setTrades((ts) => ts.map((t, j) => (j === i ? { ...t, ...patch } : t)))
+
+  const addDayImages = async (files: File[]) => {
+    const items: DayImage[] = []
+    for (const f of files) {
+      try {
+        const dataUrl = await fileToDataUrl(f)
+        const url = await uploadDataUrl(dataUrl, f.name)
+        items.push({ id: Math.random().toString(36).slice(2), dataUrl, url })
+      } catch (e) {
+        notify(e instanceof Error ? e.message : 'upload failed', false)
+      }
+    }
+    if (!items.length) return
+    const next = [...dayImagesRef.current, ...items]
+    dayImagesRef.current = next
+    setDayImages(next)
+    markDirty()
+    clearTimeout(debRef.current)
+    debRef.current = setTimeout(() => runStructure(next), 900)
+  }
+
+  const removeDayImage = (id: string) => {
+    const next = dayImagesRef.current.filter((i) => i.id !== id)
+    dayImagesRef.current = next
+    setDayImages(next)
+    markDirty()
+  }
+
+  const applyStructured = (r: any, imgs: DayImage[]) => {
     if (r.mood) setMood(String(r.mood))
     if (r.sleepHours) setSleepHours(String(r.sleepHours))
     if (r.sleepQuality) setSleepQuality(String(r.sleepQuality))
+    if (r.habits && typeof r.habits === 'object') setHabits((h) => ({ ...h, ...r.habits }))
+    const dv = r.device
+    if (dv) {
+      if (dv.iphoneHours != null) setIphoneHours(String(dv.iphoneHours))
+      if (dv.socialHours != null) setSocialHours(String(dv.socialHours))
+      if (dv.macHours != null) setMacHours(String(dv.macHours))
+      if (dv.notes) setDeviceNotes((n) => (n ? n + ' · ' : '') + dv.notes)
+    }
+    const devUrls = (r.deviceScreens ?? [])
+      .map((i: number) => imgs[i]?.url)
+      .filter(Boolean)
+    if (devUrls.length) setDeviceScreens((s) => [...new Set([...s, ...devUrls])])
     if (Array.isArray(r.trades) && r.trades.length) {
       const mapped = r.trades.map((t: any) => ({
         market: String(t.market ?? 'MNQ'),
         session: String(t.session ?? ''),
         direction: t.direction === 'short' ? ('short' as const) : ('long' as const),
         setup: String(t.setup ?? ''),
-        entry: t.entry !== null && t.entry !== undefined ? String(t.entry) : '',
-        stop: t.stop !== null && t.stop !== undefined ? String(t.stop) : '',
-        target: t.target !== null && t.target !== undefined ? String(t.target) : '',
-        exit: t.exit !== null && t.exit !== undefined ? String(t.exit) : '',
-        riskPoints: t.riskPoints !== null && t.riskPoints !== undefined ? String(t.riskPoints) : '',
-        points: t.points !== null && t.points !== undefined ? String(t.points) : '',
+        entry: t.entry != null ? String(t.entry) : '',
+        stop: t.stop != null ? String(t.stop) : '',
+        target: t.target != null ? String(t.target) : '',
+        exit: t.exit != null ? String(t.exit) : '',
+        riskPoints: t.riskPoints != null ? String(t.riskPoints) : '',
+        points: t.points != null ? String(t.points) : '',
         confidence: t.confidence ? String(t.confidence) : '',
         note: String(t.note ?? ''),
-        screenshots: [],
+        screenshots: (t.screenshotIndices ?? []).map((i: number) => imgs[i]?.url).filter(Boolean),
         executions: Array.isArray(t.accounts) && t.accounts.length ? t.accounts.map((a: string) => ({ account: a, size: '' })) : [],
       }))
-      setTrades((prev) => [...prev, ...mapped])
+      setTrades(mapped)
     }
+    setDirty(true)
   }
 
-  const doStructure = async () => {
-    if (!rawNotes.trim()) return notify('paste your day notes first', false)
-    setAiBusy(true)
+  const runStructure = async (imgs?: DayImage[]) => {
+    const images = imgs ?? dayImagesRef.current
+    if (!dayText.trim() && images.length === 0) {
+      return notify('paste text or screenshots first', false)
+    }
+    setDayBusy(true)
     try {
       const res = await api<{ result: any }>('/api/admin/ai', {
         method: 'POST',
-        body: { action: 'structure', text: rawNotes },
+        body: { action: 'day', text: dayText, images: images.map((i) => i.dataUrl) },
       })
-      applyStructured(res.result)
-      notify('day structured — review and save')
+      applyStructured(res.result, images)
+      setDayText('')
+      dayImagesRef.current = []
+      setDayImages([])
+      notify('day structured from your paste — review, then save')
     } catch (e) {
       notify(e instanceof Error ? e.message : 'ai failed', false)
     }
-    setAiBusy(false)
+    setDayBusy(false)
   }
 
   const onTradeScreens = async (ti: number, files: File[]) => {
@@ -192,7 +283,7 @@ export function DayLogTab({ notify }: { notify: (m: string, ok?: boolean) => voi
         if (r.points != null) patch.points = String(r.points)
         if (r.direction === 'short') patch.direction = 'short'
         if (r.session) patch.session = String(r.session)
-        if (Object.keys(patch).length) setTrade(ti, patch)
+        if (Object.keys(patch).length) setImg(ti, patch)
       } catch {}
       try {
         const url = await uploadDataUrl(dataUrl, f.name)
@@ -217,6 +308,7 @@ export function DayLogTab({ notify }: { notify: (m: string, ok?: boolean) => voi
         if (r.socialHours != null) setSocialHours(String(r.socialHours))
         if (r.macHours != null) setMacHours(String(r.macHours))
         if (r.note) setDeviceNotes((n) => (n ? n + ' · ' : '') + r.note)
+        markDirty()
       } catch {}
       try {
         const url = await uploadDataUrl(dataUrl, f.name)
@@ -228,7 +320,7 @@ export function DayLogTab({ notify }: { notify: (m: string, ok?: boolean) => voi
     setScreenBusy(false)
   }
 
-  const save = async () => {
+  const save = async (rebuild = false) => {
     setSaving(true)
     try {
       const payload = {
@@ -264,14 +356,34 @@ export function DayLogTab({ notify }: { notify: (m: string, ok?: boolean) => voi
         })),
       }
       await api('/api/admin/days', { method: 'POST', body: payload })
-      notify('day saved')
-      triggerRebuild()
+      setDirty(false)
+      notifyChanged()
+      if (rebuild) triggerRebuild()
+      notify(rebuild ? 'day saved — rebuild started' : `day ${date} saved — queued for rebuild`)
       await load(date)
+      await loadDays()
     } catch (e) {
       notify(e instanceof Error ? e.message : 'save failed', false)
     }
     setSaving(false)
   }
+
+  const removeDay = async () => {
+    if (!confirm(`hard-delete day ${date}? the day record is removed permanently.`)) return
+    try {
+      await api('/api/admin/days', { method: 'DELETE', body: { date } })
+      notify(`day ${date} deleted — queued for rebuild`)
+      notifyChanged()
+      setDate(todayStr())
+      await loadDays()
+    } catch (e) {
+      notify(e instanceof Error ? e.message : 'delete failed', false)
+    }
+  }
+
+  const idx = daysList.findIndex((d) => d.date === date)
+  const prevDay = idx < daysList.length - 1 ? daysList[idx + 1] : null
+  const nextDay = idx > 0 ? daysList[idx - 1] : null
 
   const dayTotals = trades.reduce(
     (acc, t) => {
@@ -294,226 +406,307 @@ export function DayLogTab({ notify }: { notify: (m: string, ok?: boolean) => voi
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl">/ day log</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl">/ day log</h1>
+          <span className={`text-[12px] ${dirty ? 'text-warn' : 'text-faint'}`}>{dirty ? '● unsaved changes' : 'saved'}</span>
+        </div>
         <div className="flex items-center gap-2">
-          <Button variant="primary" size="sm" onClick={save} disabled={saving}>
-            {saving ? 'saving…' : 'save day'}
+          <Button size="sm" onClick={() => save(false)} disabled={saving}>
+            {saving ? 'saving…' : 'save'}
           </Button>
-          <TextInput type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-40" />
+          <Button size="sm" variant="primary" onClick={() => save(true)} disabled={saving}>
+            save &amp; rebuild
+          </Button>
+          {daysList.some((d) => d.date === date) && (
+            <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
+          )}
+          <TextInput type="date" value={date} onChange={(e) => selectDate(e.target.value)} className="w-40" />
         </div>
       </div>
 
-      {loading ? (
-        <Card title="loading"><p className="text-[13px] text-faint">loading…</p></Card>
-      ) : (
+      <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+        <aside className="panel max-h-[75vh] overflow-y-auto">
+          <div className="sticky top-0 border-b border-line bg-panel px-3 py-2 text-[11px] uppercase tracking-widest text-dim">
+            {daysList.length} days
+          </div>
+          <div className="flex items-center justify-between border-b border-line/60 px-2 py-1.5 text-[12px]">
+            <button
+              disabled={!prevDay}
+              onClick={() => prevDay && selectDate(prevDay.date)}
+              className="text-dim hover:text-ink disabled:opacity-30"
+            >
+              ← newer
+            </button>
+            <span className="text-faint">{date}</span>
+            <button
+              disabled={!nextDay}
+              onClick={() => nextDay && selectDate(nextDay.date)}
+              className="text-dim hover:text-ink disabled:opacity-30"
+            >
+              older →
+            </button>
+          </div>
+          {daysList.map((d) => (
+            <button
+              key={d.file}
+              onClick={() => selectDate(d.date)}
+              className={`block w-full border-b border-line/60 px-3 py-2 text-left text-[12px] transition-colors hover:bg-raise ${
+                d.date === date ? 'bg-raise text-ink' : 'text-dim'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className={d.date === date ? 'text-ink' : ''}>{d.date}</span>
+                {d.mood && <span className="text-faint">mood {d.mood}</span>}
+              </div>
+              <div className="text-[11px] text-faint">{d.trades} trades</div>
+            </button>
+          ))}
+          {daysList.length === 0 && (
+            <div className="px-3 py-6 text-[12px] text-faint">no days logged yet</div>
+          )}
+        </aside>
+
         <div className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Card title="mood" className="lg:col-span-1">
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setMood(String(m))}
-                    className={`h-9 flex-1 border text-[13px] transition-colors ${
-                      mood === String(m) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent'
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
-            </Card>
-            <Card title="sleep" className="lg:col-span-2">
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="hours">
-                  <NumInput value={sleepHours} onChange={(e) => setSleepHours(e.target.value)} placeholder="7.5" />
-                </Field>
-                <Field label="quality 1-5">
-                  <NumInput value={sleepQuality} onChange={(e) => setSleepQuality(e.target.value)} placeholder="4" />
-                </Field>
-              </div>
-            </Card>
-          </div>
-
-          <Card title="habits">
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
-              {habitDefs.map((h) => {
-                const done = habits[h.slug] === true
-                return (
-                  <button
-                    key={h.slug}
-                    onClick={() => setHabits((x) => ({ ...x, [h.slug]: !done }))}
-                    className={`flex items-center justify-between border px-3 py-2.5 text-[13px] transition-colors ${
-                      done ? 'border-transparent text-bg' : 'border-line2 text-ink hover:border-accent'
-                    }`}
-                    style={done ? { background: h.color } : {}}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span>{h.emoji ?? '·'}</span>
-                      <span>{h.name}</span>
-                    </span>
-                    <span className="text-[11px] opacity-70">{done ? '✓' : '·'}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </Card>
-
-          <Card title="device / screen time">
-            <div className="grid gap-4 md:grid-cols-3">
-              <Field label="iphone screen (h)">
-                <NumInput value={iphoneHours} onChange={(e) => setIphoneHours(e.target.value)} placeholder="5.2" />
-              </Field>
-              <Field label="social media (h)">
-                <NumInput value={socialHours} onChange={(e) => setSocialHours(e.target.value)} placeholder="2.1" />
-              </Field>
-              <Field label="mac (h)">
-                <NumInput value={macHours} onChange={(e) => setMacHours(e.target.value)} placeholder="4.5" />
-              </Field>
-            </div>
-            <Field label="notes" className="mt-3">
-              <TextInput value={deviceNotes} onChange={(e) => setDeviceNotes(e.target.value)} placeholder="doomscrolled at night…" />
-            </Field>
-            <div className="mt-3">
-              <ImageDropZone onFiles={onDeviceScreens} label={screenBusy ? 'reading screenshots…' : 'paste screen time screenshots →'} />
-            </div>
-            {deviceScreens.length > 0 && (
-              <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-                {deviceScreens.map((s) => (
-                  <div key={s} className="relative border border-line bg-bg">
-                    <img src={s} alt="" className="h-24 w-full object-cover" />
-                    <button
-                      onClick={() => setDeviceScreens((x) => x.filter((y) => y !== s))}
-                      className="absolute right-1 top-1 border border-line bg-bg px-1.5 text-[11px] text-down hover:border-down"
-                    >
-                      ×
-                    </button>
+          {loading ? (
+            <Card title="loading"><p className="text-[13px] text-faint">loading…</p></Card>
+          ) : (
+            <>
+              <Card title="paste your day — AI structures everything">
+                <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                  <TextArea
+                    rows={3}
+                    placeholder="paste free text here — what happened, how you felt, the trades… or just paste screenshots and let the AI read them."
+                    value={dayText}
+                    onChange={(e) => { setDayText(e.target.value); markDirty() }}
+                  />
+                  <div className="flex items-end">
+                    <Button onClick={() => runStructure()} disabled={dayBusy || (!dayText.trim() && dayImagesRef.current.length === 0)}>
+                      {dayBusy ? 'reading everything…' : 'structure my day →'}
+                    </Button>
                   </div>
-                ))}
-              </div>
-            )}
-          </Card>
-
-          <Card title={`trades (${trades.length})`}>
-            <div className="space-y-3">
-              <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-                <TextArea
-                  rows={3}
-                  placeholder="paste your raw day notes… 'ORB long on NY open, took 2 accounts, stopped out. afternoon revenge risk. slept badly…'"
-                  value={rawNotes}
-                  onChange={(e) => setRawNotes(e.target.value)}
-                />
-                <div className="flex items-end">
-                  <Button onClick={doStructure} disabled={aiBusy || !rawNotes.trim()}>
-                    {aiBusy ? 'thinking…' : 'structure day with AI →'}
-                  </Button>
                 </div>
+                <div className="mt-3">
+                  <ImageDropZone
+                    onFiles={addDayImages}
+                    label="paste screenshots here — trade charts, screen-time, anything. AI sorts them."
+                  />
+                </div>
+                {dayImages.length > 0 && (
+                  <div className="mt-3 grid grid-cols-3 gap-3 md:grid-cols-5">
+                    {dayImages.map((img) => (
+                      <div key={img.id} className="relative border border-line bg-bg">
+                        <img src={img.url} alt="" className="h-20 w-full object-cover" />
+                        <button
+                          onClick={() => removeDayImage(img.id)}
+                          className="absolute right-1 top-1 border border-line bg-bg px-1.5 text-[11px] text-down hover:border-down"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-2 text-[11px] text-faint">
+                  pasted screenshots upload as webp, the AI reads them all in context, and attaches each one to the right place.
+                </p>
+              </Card>
+
+              <div className="grid gap-6 lg:grid-cols-3">
+                <Card title="mood" className="lg:col-span-1">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => { setMood(String(m)); markDirty() }}
+                        className={`h-9 flex-1 border text-[13px] transition-colors ${
+                          mood === String(m) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent'
+                        }`}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                </Card>
+                <Card title="sleep" className="lg:col-span-2">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="hours">
+                      <NumInput value={sleepHours} onChange={(e) => { setSleepHours(e.target.value); markDirty() }} placeholder="7.5" />
+                    </Field>
+                    <Field label="quality 1-5">
+                      <NumInput value={sleepQuality} onChange={(e) => { setSleepQuality(e.target.value); markDirty() }} placeholder="4" />
+                    </Field>
+                  </div>
+                </Card>
               </div>
 
-              {trades.map((t, ti) => (
-                <div key={ti} className="border border-line bg-bg p-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-[11px] uppercase tracking-widest text-dim">trade {ti + 1}</span>
-                    <Button size="sm" variant="danger" onClick={() => setTrades((ts) => ts.filter((_, j) => j !== ti))}>remove</Button>
-                  </div>
-                  <div className="grid gap-2 md:grid-cols-5">
-                    <Field label="market"><TextInput value={t.market} onChange={(e) => setTrade(ti, { market: e.target.value })} /></Field>
-                    <Field label="session">
-                      <Select value={t.session} onChange={(e) => setTrade(ti, { session: e.target.value })}>
-                        <option value="">—</option>
-                        <option value="asia">asia</option>
-                        <option value="london">london</option>
-                        <option value="ny-am">ny-am</option>
-                        <option value="ny-pm">ny-pm</option>
-                        <option value="ny">ny</option>
-                      </Select>
-                    </Field>
-                    <Field label="direction">
-                      <Select value={t.direction} onChange={(e) => setTrade(ti, { direction: e.target.value as 'long' | 'short' })}>
-                        <option value="long">long</option>
-                        <option value="short">short</option>
-                      </Select>
-                    </Field>
-                    <Field label="setup"><TextInput value={t.setup} onChange={(e) => setTrade(ti, { setup: e.target.value })} /></Field>
-                    <Field label="confidence"><NumInput value={t.confidence} onChange={(e) => setTrade(ti, { confidence: e.target.value })} /></Field>
-                  </div>
-                  <div className="mt-2 grid gap-2 md:grid-cols-5">
-                    <Field label="entry"><NumInput value={t.entry} onChange={(e) => setTrade(ti, { entry: e.target.value })} /></Field>
-                    <Field label="stop"><NumInput value={t.stop} onChange={(e) => setTrade(ti, { stop: e.target.value })} /></Field>
-                    <Field label="target"><NumInput value={t.target} onChange={(e) => setTrade(ti, { target: e.target.value })} /></Field>
-                    <Field label="exit"><NumInput value={t.exit} onChange={(e) => setTrade(ti, { exit: e.target.value })} /></Field>
-                    <Field label="points"><NumInput value={t.points} onChange={(e) => setTrade(ti, { points: e.target.value })} /></Field>
-                  </div>
-                  <Field label="note" className="mt-2">
-                    <TextInput value={t.note} onChange={(e) => setTrade(ti, { note: e.target.value })} placeholder="what was the story" />
+              <Card title="habits">
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                  {habitDefs.map((h) => {
+                    const done = habits[h.slug] === true
+                    return (
+                      <button
+                        key={h.slug}
+                        onClick={() => { setHabits((x) => ({ ...x, [h.slug]: !done })); markDirty() }}
+                        className={`flex items-center justify-between border px-3 py-2.5 text-[13px] transition-colors ${
+                          done ? 'border-transparent text-bg' : 'border-line2 text-ink hover:border-accent'
+                        }`}
+                        style={done ? { background: h.color } : {}}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>{h.emoji ?? '·'}</span>
+                          <span>{h.name}</span>
+                        </span>
+                        <span className="text-[11px] opacity-70">{done ? '✓' : '·'}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </Card>
+
+              <Card title="screen time — paste the screenshot, AI fills it">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Field label="iphone screen (h)">
+                    <NumInput value={iphoneHours} onChange={(e) => { setIphoneHours(e.target.value); markDirty() }} placeholder="auto from screenshot" />
                   </Field>
-
-                  <div className="mt-3">
-                    <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">executions (accounts)</div>
-                    <div className="space-y-2">
-                      {t.executions.map((e, ei) => (
-                        <div key={ei} className="flex items-center gap-2">
-                          <Select
-                            value={e.account}
-                            onChange={(ev) => setExec(ti, ei, { account: ev.target.value })}
-                            className="flex-1"
-                          >
-                            <option value="">— account —</option>
-                            {accounts.map((a) => (
-                              <option key={a.id} value={a.id}>{a.firm} {a.sizeLabel} · {a.id}</option>
-                            ))}
-                          </Select>
-                          <TextInput
-                            value={e.size}
-                            onChange={(ev) => setExec(ti, ei, { size: ev.target.value })}
-                            className="w-20"
-                            placeholder="1"
-                          />
-                          <Button size="sm" variant="danger" onClick={() => setTrade(ti, { executions: t.executions.filter((_, k) => k !== ei) })}>×</Button>
-                        </div>
-                      ))}
-                      <Button size="sm" onClick={() => setTrade(ti, { executions: [...t.executions, { account: '', size: '' }] })}>
-                        + execution
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-2 gap-3">
-                    <ImageDropZone onFiles={(fs) => onTradeScreens(ti, fs)} label="paste trade screenshot →" className="!py-3" />
-                    <div className="grid grid-cols-2 gap-2">
-                      {t.screenshots.map((s) => (
-                        <div key={s} className="relative border border-line bg-bg">
-                          <img src={s} alt="" className="h-16 w-full object-cover" />
-                          <button
-                            onClick={() => setTrade(ti, { screenshots: t.screenshots.filter((y) => y !== s) })}
-                            className="absolute right-1 top-1 border border-line bg-bg px-1.5 text-[11px] text-down hover:border-down"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <Field label="social media (h)">
+                    <NumInput value={socialHours} onChange={(e) => { setSocialHours(e.target.value); markDirty() }} placeholder="auto" />
+                  </Field>
+                  <Field label="mac (h)">
+                    <NumInput value={macHours} onChange={(e) => { setMacHours(e.target.value); markDirty() }} placeholder="auto" />
+                  </Field>
                 </div>
-              ))}
+                <Field label="notes" className="mt-3">
+                  <TextInput value={deviceNotes} onChange={(e) => { setDeviceNotes(e.target.value); markDirty() }} placeholder="the AI writes this from the screenshot" />
+                </Field>
+                <div className="mt-3">
+                  <ImageDropZone onFiles={onDeviceScreens} label={screenBusy ? 'reading screenshots…' : 'paste iPhone / Mac screen-time screenshots →'} />
+                </div>
+                {deviceScreens.length > 0 && (
+                  <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+                    {deviceScreens.map((s) => (
+                      <div key={s} className="relative border border-line bg-bg">
+                        <img src={s} alt="" className="h-24 w-full object-cover" />
+                        <button
+                          onClick={() => setDeviceScreens((x) => x.filter((y) => y !== s))}
+                          className="absolute right-1 top-1 border border-line bg-bg px-1.5 text-[11px] text-down hover:border-down"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
 
-              <Button size="sm" onClick={() => setTrades((ts) => [...ts, emptyTrade()])}>+ add trade</Button>
-            </div>
-          </Card>
+              <Card title={`trades (${trades.length})`}>
+                <div className="space-y-3">
+                  {trades.map((t, ti) => (
+                    <div key={ti} className="border border-line bg-bg p-3">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-[11px] uppercase tracking-widest text-dim">trade {ti + 1}</span>
+                        <Button size="sm" variant="danger" onClick={() => setTrades((ts) => ts.filter((_, j) => j !== ti))}>remove</Button>
+                      </div>
+                      <div className="grid gap-2 md:grid-cols-5">
+                        <Field label="market"><TextInput value={t.market} onChange={(e) => setTrade(ti, { market: e.target.value })} /></Field>
+                        <Field label="session">
+                          <Select value={t.session} onChange={(e) => setTrade(ti, { session: e.target.value })}>
+                            <option value="">—</option>
+                            <option value="asia">asia</option>
+                            <option value="london">london</option>
+                            <option value="ny-am">ny-am</option>
+                            <option value="ny-pm">ny-pm</option>
+                            <option value="ny">ny</option>
+                          </Select>
+                        </Field>
+                        <Field label="direction">
+                          <Select value={t.direction} onChange={(e) => setTrade(ti, { direction: e.target.value as 'long' | 'short' })}>
+                            <option value="long">long</option>
+                            <option value="short">short</option>
+                          </Select>
+                        </Field>
+                        <Field label="setup"><TextInput value={t.setup} onChange={(e) => setTrade(ti, { setup: e.target.value })} /></Field>
+                        <Field label="confidence"><NumInput value={t.confidence} onChange={(e) => setTrade(ti, { confidence: e.target.value })} /></Field>
+                      </div>
+                      <div className="mt-2 grid gap-2 md:grid-cols-5">
+                        <Field label="entry"><NumInput value={t.entry} onChange={(e) => setTrade(ti, { entry: e.target.value })} /></Field>
+                        <Field label="stop"><NumInput value={t.stop} onChange={(e) => setTrade(ti, { stop: e.target.value })} /></Field>
+                        <Field label="target"><NumInput value={t.target} onChange={(e) => setTrade(ti, { target: e.target.value })} /></Field>
+                        <Field label="exit"><NumInput value={t.exit} onChange={(e) => setTrade(ti, { exit: e.target.value })} /></Field>
+                        <Field label="points"><NumInput value={t.points} onChange={(e) => setTrade(ti, { points: e.target.value })} /></Field>
+                      </div>
+                      <Field label="note" className="mt-2">
+                        <TextInput value={t.note} onChange={(e) => setTrade(ti, { note: e.target.value })} placeholder="what was the story" />
+                      </Field>
 
-          <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-[13px]">
-            <span className="text-dim">day preview</span>
-            <span className="num-up">{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
-            <span className="text-dim">·</span>
-            <span className={dayTotals.pts >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pts >= 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
-            <span className="text-dim">·</span>
-            <span className={dayTotals.pnl >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pnl >= 0 ? '+' : ''}${Math.round(dayTotals.pnl).toLocaleString()}</span>
-            <Button className="ml-auto" size="sm" variant="primary" onClick={save} disabled={saving}>
-              {saving ? 'saving…' : 'save day'}
-            </Button>
-          </div>
+                      <div className="mt-3">
+                        <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">executions (accounts)</div>
+                        <div className="space-y-2">
+                          {t.executions.map((e, ei) => (
+                            <div key={ei} className="flex items-center gap-2">
+                              <Select
+                                value={e.account}
+                                onChange={(ev) => setExec(ti, ei, { account: ev.target.value })}
+                                className="flex-1"
+                              >
+                                <option value="">— account —</option>
+                                {accounts.map((a) => (
+                                  <option key={a.id} value={a.id}>{a.firm} {a.sizeLabel} · {a.id}</option>
+                                ))}
+                              </Select>
+                              <TextInput
+                                value={e.size}
+                                onChange={(ev) => setExec(ti, ei, { size: ev.target.value })}
+                                className="w-20"
+                                placeholder="1"
+                              />
+                              <Button size="sm" variant="danger" onClick={() => setTrade(ti, { executions: t.executions.filter((_, k) => k !== ei) })}>×</Button>
+                            </div>
+                          ))}
+                          <Button size="sm" onClick={() => setTrade(ti, { executions: [...t.executions, { account: '', size: '' }] })}>
+                            + execution
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <ImageDropZone onFiles={(fs) => onTradeScreens(ti, fs)} label="paste this trade's chart →" className="!py-3" />
+                        <div className="grid grid-cols-2 gap-2">
+                          {t.screenshots.map((s) => (
+                            <div key={s} className="relative border border-line bg-bg">
+                              <img src={s} alt="" className="h-16 w-full object-cover" />
+                              <button
+                                onClick={() => setTrade(ti, { screenshots: t.screenshots.filter((y) => y !== s) })}
+                                className="absolute right-1 top-1 border border-line bg-bg px-1.5 text-[11px] text-down hover:border-down"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); markDirty() }}>+ add trade</Button>
+                </div>
+              </Card>
+
+              <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-[13px]">
+                <span className="text-dim">day preview</span>
+                <span className="num-up">{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
+                <span className="text-dim">·</span>
+                <span className={dayTotals.pts >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pts >= 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
+                <span className="text-dim">·</span>
+                <span className={dayTotals.pnl >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pnl >= 0 ? '+' : ''}${Math.round(dayTotals.pnl).toLocaleString()}</span>
+                <div className="ml-auto flex gap-2">
+                  <Button size="sm" onClick={() => save(false)} disabled={saving}>{saving ? 'saving…' : 'save'}</Button>
+                  <Button size="sm" variant="primary" onClick={() => save(true)} disabled={saving}>save &amp; rebuild</Button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

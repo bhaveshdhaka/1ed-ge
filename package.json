@@ -2,7 +2,7 @@
   "name": "1ed.ge",
   "private": true,
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "scripts": {
     "dev": "astro dev",
     "build": "rm -rf node_modules/.astro && astro build",
@@ -19,13 +19,8 @@
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.2.0",
     "@fontsource-variable/jetbrains-mono": "^5.1.0",
+    "@milkdown/crepe": "^7.22.0",
     "@tailwindcss/vite": "^4.0.0",
-    "@tiptap/extension-image": "^2.10.0",
-    "@tiptap/extension-link": "^2.10.0",
-    "@tiptap/extension-placeholder": "^2.10.0",
-    "@tiptap/pm": "^2.10.0",
-    "@tiptap/react": "^2.10.0",
-    "@tiptap/starter-kit": "^2.10.0",
     "astro": "^5.0.0",
     "dotenv": "^16.4.5",
     "gray-matter": "^4.0.3",
@@ -33,7 +28,6 @@
     "react-dom": "^19.0.0",
     "sharp": "^0.33.5",
     "tailwindcss": "^4.0.0",
-    "tiptap-markdown": "^0.8.10",
     "zod": "^3.23.8"
   },
   "devDependencies": {

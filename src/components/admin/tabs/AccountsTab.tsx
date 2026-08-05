@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { api, todayStr, triggerRebuild } from '../api'
+import { api, todayStr, notifyChanged } from '../api'
 import { Card, Button, Field, TextInput, NumInput, Select, inputCls } from '../ui'
 
 interface AccountRow {
@@ -52,8 +52,8 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
     const d = draft(a)
     try {
       await api('/api/admin/accounts', { method: 'POST', body: { action: 'save', ...d } })
-      notify('account saved')
-      triggerRebuild()
+      notify('account saved — queued for rebuild')
+      notifyChanged()
       await load()
     } catch (e) {
       notify(e instanceof Error ? e.message : 'save failed', false)
@@ -128,8 +128,8 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
         method: 'POST',
         body: { action: 'payout', date: payout.date, account: payout.account, amount: parseFloat(payout.amount), status: payout.status, note: payout.note || undefined },
       })
-      notify('payout logged')
-      triggerRebuild()
+      notify('payout logged — queued for rebuild')
+      notifyChanged()
       setPayout({ date: todayStr(), account: '', amount: '', status: 'paid', note: '' })
       await load()
     } catch (e) {

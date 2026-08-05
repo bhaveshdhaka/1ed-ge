@@ -4,6 +4,27 @@ export function setSecret(s: string) {
   SECRET = s
 }
 
+type Listener = () => void
+const listeners = new Set<Listener>()
+export const bus = {
+  on(fn: Listener) {
+    listeners.add(fn)
+    return () => listeners.delete(fn)
+  },
+  emit() {
+    listeners.forEach((fn) => fn())
+  },
+}
+
+type PasteSink = (files: File[]) => void
+let pasteSink: PasteSink | null = null
+export function setPasteSink(fn: PasteSink | null) {
+  pasteSink = fn
+}
+export function getPasteSink(): PasteSink | null {
+  return pasteSink
+}
+
 export async function api<T = any>(
   path: string,
   opts: { method?: string; body?: unknown } = {},
@@ -50,8 +71,30 @@ export async function uploadDataUrl(dataUrl: string, name: string): Promise<stri
   return res.url
 }
 
+export async function notifyChanged() {
+  bus.emit()
+}
+
 export async function triggerRebuild() {
   try {
     await api('/api/admin/rebuild', { method: 'POST' })
+    bus.emit()
   } catch {}
+}
+
+export interface PendingChange {
+  at: string
+  kind: string
+  label: string
+  detail?: string
+}
+export interface RebuildRecord {
+  at: string
+  ok: boolean
+  applied: string[]
+  error?: string
+}
+
+export async function fetchRebuildState() {
+  return api<{ build: any; pending: PendingChange[]; rebuilds: RebuildRecord[] }>('/api/admin/rebuild')
 }

@@ -18,16 +18,21 @@ decisions, gotchas and open items here; keep it short and factual.
 - **Astro 5.18 removed `output: "hybrid"`** → static + per-route `prerender = false`.
 - **Admin reads/writes via fs** (`src/lib/content.ts`), never via cached
   content collections.
-- **Save → rebuild.** Admin saves trigger `npm run build` (~8s); the node
-  standalone server serves the rebuilt static pages in place.
-- **Models:** DeepSeek `deepseek/deepseek-chat` (structure day / coach /
-  assist), Qwen2.5-VL `qwen/qwen-2.5-vl-72b-instruct` (trade + screen-time
-  screenshot reading), both via OpenRouter. Overridable in `.env`.
+- **Save ≠ rebuild.** Mutations queue a pending change
+  (`/tmp/1edge-pending.json`); the sticky RebuildBar shows them and rebuilds on
+  command (~8–20s). Rebuild history in `/tmp/1edge-rebuilds.json`.
+- **Journal editor is Milkdown Crepe** (`@milkdown/crepe`), not a hand-rolled
+  editor. Its ImageBlock `onUpload` uploads pasted images to the media API.
+- **AI-first day input:** paste text + screenshots anywhere (global clipboard
+  paste sink); `structureDayFull` reads everything in one pass — Qwen2.5-VL for
+  image days, DeepSeek for text-only. Same schema/tone either way.
+- **Models:** DeepSeek `deepseek/deepseek-chat` (text day / coach / assist),
+  Qwen2.5-VL `qwen/qwen-2.5-vl-72b-instruct` (image days + screenshots), both
+  via OpenRouter. Overridable in `.env`. Cost ≈ $1–3/month at a few calls/day.
 - **Media:** uploads → `sharp` → webp (max 1920w) into `public/media/<date>/`.
   Served by SSR route and proxied via nginx.
 - **f-R-iend (coach)** reads the live trend snapshot + remembers prior advice,
-  asks questions, and publishes its notes on `/coach`. Beta now, but public by
-  design — nothing hidden.
+  asks questions, and publishes its notes on `/coach`. Public by design.
 
 ## Gotchas
 
@@ -35,6 +40,9 @@ decisions, gotchas and open items here; keep it short and factual.
   `node_modules/.astro/`. `npm run build` clears it (`rm -rf node_modules/.astro`)
   so deleted files disappear from the static build. Never remove that from the
   build script. Symptom if removed: stale pages survive rebuilds.
+- **`/tmp/1edge-*.json`** (build status, pending, rebuilds) live in the
+  container's /tmp — lost on container restart (content files are the source
+  of truth; only the queue is ephemeral).
 - Public pages must stay **zero-JS** (SVG charts, no React).
 - The VPS system resolver does not resolve `1ed.ge` — use
   `curl --resolve 1ed.ge:443:104.21.7.179` locally.
@@ -58,6 +66,11 @@ decisions, gotchas and open items here; keep it short and factual.
 
 ## Session log (recent)
 
+- 2026-08-05 — v0.3: save≠rebuild with a pending-changes RebuildBar, day
+  browser (browse/edit/hard-delete old days), clipboard paste-anywhere,
+  AI-first whole-day structuring with screenshots, Milkdown Crepe journal
+  editor (replaced the hand-rolled TipTap wrapper), rebuild history. Tested
+  end-to-end and deployed.
 - 2026-08-05 — v0.2: day-log model (mood/sleep/habits/screen-time + trades with
   per-account executions), account lifecycle + payouts, public /day, /trends,
   /accounts, /coach, f-R-iend coach, all tested end-to-end and deployed.

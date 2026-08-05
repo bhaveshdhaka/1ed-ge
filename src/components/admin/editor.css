@@ -1,0 +1,81 @@
+/* Crepe (Milkdown) editor tuned to the 1ed.ge palette */
+.milkdown-1ed {
+  --crepe-color-background: #0a0a0c;
+  --crepe-color-on-background: #d8d8dc;
+  --crepe-color-surface: #111114;
+  --crepe-color-surface-low: #141419;
+  --crepe-color-on-surface: #d8d8dc;
+  --crepe-color-on-surface-variant: #a2a2aa;
+  --crepe-color-outline: #4c4c54;
+  --crepe-color-primary: #7dd3fc;
+  --crepe-color-secondary: #26262c;
+  --crepe-color-on-secondary: #d8d8dc;
+  --crepe-color-inverse: #d8d8dc;
+  --crepe-color-on-inverse: #0a0a0c;
+  --crepe-color-inline-code: #7dd3fc;
+  --crepe-color-error: #f87171;
+  --crepe-color-hover: #17171c;
+  --crepe-color-selected: #26262c;
+  --crepe-color-inline-area: #111114;
+
+  --crepe-base-font-size: 15px;
+  --crepe-font-title: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --crepe-font-default: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --crepe-font-code: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  --crepe-radius: 0;
+  --crepe-border: 1px solid #26262c;
+  --crepe-shadow-1: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --crepe-shadow-2: 0 2px 8px 0 rgba(0, 0, 0, 0.6);
+}
+
+.milkdown-1ed {
+  border: 1px solid #26262c;
+  background: #0a0a0c;
+}
+
+.milkdown-1ed .milkdown {
+  padding: 0.75rem 1rem;
+  min-height: 380px;
+  outline: none;
+}
+
+.milkdown-1ed .milkdown .ProseMirror {
+  color: #a2a2aa;
+  line-height: 1.8;
+}
+
+.milkdown-1ed .milkdown .ProseMirror h1,
+.milkdown-1ed .milkdown .ProseMirror h2,
+.milkdown-1ed .milkdown .ProseMirror h3 {
+  color: #d8d8dc;
+  font-weight: 600;
+}
+
+.milkdown-1ed .milkdown .ProseMirror a {
+  color: #7dd3fc;
+}
+
+.milkdown-1ed .crepe-toolbar {
+  border-bottom: 1px solid #26262c;
+  background: #111114;
+}
+
+.milkdown-1ed .crepe-block-edit-toolbar,
+.milkdown-1ed .crepe-slash,
+.milkdown-1ed .crepe-link-tooltip,
+.milkdown-1ed .crepe-image-block-toolbar {
+  background: #111114;
+  border: 1px solid #26262c;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.milkdown-1ed .crepe-block-edit-toolbar span,
+.milkdown-1ed .crepe-slash span {
+  color: #d8d8dc;
+}
+
+.milkdown-1ed .crepe-slash-item:hover,
+.milkdown-1ed .crepe-toolbar-item:hover {
+  background: #17171c;
+}

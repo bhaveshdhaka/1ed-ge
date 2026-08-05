@@ -3,6 +3,7 @@ import { authorized, json, error } from '../../../lib/auth'
 import { env } from '../../../lib/env'
 import { listMds, listMedia } from '../../../lib/content'
 import { todayKey } from '../../../lib/habits'
+import { getPending, getRebuilds } from '../../../lib/changes'
 
 export const prerender = false
 
@@ -53,5 +54,7 @@ export const GET: APIRoute = async ({ request }) => {
     habitsDoneToday: habitsDone(todayDay),
     journalToday: listMds('journal').includes(`${today}.mdx`),
     build,
+    pending: getPending(),
+    rebuilds: getRebuilds(),
   })
 }

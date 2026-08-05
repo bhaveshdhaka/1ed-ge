@@ -6,6 +6,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-05
+
+### Added
+- **Save ≠ rebuild** — admin mutations queue a pending change; a sticky
+  RebuildBar on every tab lists what will take effect, offers a rebuild button,
+  flashes "N changes live" on completion, and keeps a short rebuild history.
+- **Day browser** in the Day Log tab — browse every logged day, click to edit,
+  prev/next navigation, and **hard-delete** any day (with confirm).
+- **Clipboard paste anywhere** — images pasted from the iPhone/Mac clipboard
+  route into the day input (global paste sink); dedicated zones still handle
+  per-trade and screen-time pastes.
+- **AI-first whole-day input** — one "paste your day" zone (free text + any
+  screenshots). `structureDayFull` reads everything in full context and returns
+  mood, sleep, inferred habits, screen-time, trades with per-account executions,
+  plus which screenshot index belongs where (screen-time vs trade charts).
+  Qwen2.5-VL for image days, DeepSeek for text-only; identical schema/tone.
+- **Screen-time screenshot-first** — paste iPhone/Mac Screen Time screenshot(s),
+  the AI reads total/social/Mac hours + a note and attaches the screenshot;
+  manual fields remain secondary.
+- **Milkdown Crepe journal editor** — replaced the hand-rolled TipTap wrapper
+  with the open-source markdown WYSIWYG editor (toolbar, slash menu, tables,
+  code blocks, image paste → webp upload). AI title/summary/polish moved beside
+  the editor.
+- Clearer confirmation toasts; unsaved-changes guard when switching days.
+
+### Changed
+- Day/Journal/Accounts/Coach saves no longer auto-rebuild — the user controls
+  when to rebuild ("save & rebuild" buttons provided for the quick path).
+
 ## [0.2.0] - 2026-08-05
 
 ### Added

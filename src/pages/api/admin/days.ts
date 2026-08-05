@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro'
 import { authorized, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry } from '../../../lib/content'
+import { addChange } from '../../../lib/changes'
 
 export const prerender = false
 
@@ -124,6 +125,8 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   writeEntry('days', `${date}.md`, data, '')
+  const detail = `${trades.length} trade${trades.length === 1 ? '' : 's'}` + (mood !== null ? ` · mood ${mood}` : '') + (deviceScreens.length ? ' · screen-time' : '')
+  addChange('day', `day ${date}`, detail)
   return json({ ok: true, file: `${date}.md`, trades: trades.length })
 }
 
@@ -134,5 +137,6 @@ export const DELETE: APIRoute = async ({ request }) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return error('invalid date')
   const { deleteEntry } = await import('../../../lib/content')
   deleteEntry('days', `${date}.md`)
+  addChange('day', `day ${date} deleted`)
   return json({ ok: true })
 }

@@ -71,12 +71,16 @@ export interface StructuredTrade {
   confidence: number | null
   note: string | null
   accounts: string[] | null
+  screenshotIndices: number[] | null
 }
 
 export interface StructuredDay {
   mood: number | null
   sleepHours: number | null
   sleepQuality: number | null
+  habits: Record<string, boolean> | null
+  device: { iphoneHours: number | null; socialHours: number | null; macHours: number | null; notes: string | null } | null
+  deviceScreens: number[]
   trades: StructuredTrade[]
 }
 
@@ -93,44 +97,74 @@ const TRADE_SHAPE = `{
   "points": "number or null",
   "confidence": "integer 1-5 or null",
   "note": "one-line summary or null",
-  "accounts": ["account id(s) from the list, or [] if unknown"]
+  "accounts": ["account id(s) from the list, or [] if unknown"],
+  "screenshotIndices": [0..n-1 image indices for THIS trade's charts, or []]
 }`
 
-export async function structureDayNotes(raw: string, accountOptions: string[]): Promise<StructuredDay> {
-  const system = `You convert a trader's raw, messy daily notes into structured JSON for one trading day.
+export async function structureDayFull(
+  raw: string,
+  images: string[],
+  ctx: { accounts: string[]; habits: string[] },
+): Promise<StructuredDay> {
+  const system = `You are the structuring engine for 1ed.ge, a trader's public journal. You convert the trader's raw daily notes + screenshots into ONE structured JSON record, reading ALL provided images AND the free text for full context.
 Rules:
 - Output ONLY valid JSON. No markdown fences, no prose.
-- Use null when missing; empty array when none.
-- direction is "long" or "short". riskPoints = |entry - stop|. points = signed net points (+profit/-loss).
-- If notes describe multiple trades, list them all in "trades" (each trade = one setup/position; executions across accounts are not separate trades).
-- If only one trade exists, trades has one element.
-- accounts: pick from available account ids; if the trader names an account use it; if a trade was on multiple accounts list all; else [].
-- mood: overall mood of the day 1-5 (null if not inferable). sleepHours: decimal hours if mentioned.
-Available account ids: ${accountOptions.join(', ') || 'none'}
-Return exactly:
+- Use null when missing; [] when none.
+- direction is "long" or "short". riskPoints = |entry - stop|. points = signed net points (+profit / -loss).
+- Each trade = one setup/position (NOT one account). If the same trade ran on multiple accounts, list all account ids in that trade's "accounts".
+- habits: object keyed by habit slug -> boolean (true = done that day). Only set values you are confident about; omit the rest. Available habit slugs: ${ctx.habits.join(', ') || 'none'}.
+- device: fill iphoneHours / socialHours / macHours from screen-time screenshots or text; notes = one honest line about phone/screen behaviour.
+- Images are numbered 0..N-1 in the order given (${images.length} images total). Decide where each belongs:
+  - screen-time report -> "deviceScreens": [its index]
+  - a trade chart/ticket -> that trade's "screenshotIndices": [its index]
+  - other day-level photos -> "deviceScreens"
+- accounts must be from: ${ctx.accounts.join(', ') || 'none'}.
+Return exactly this shape:
 {
   "mood": 1-5 or null,
   "sleepHours": number or null,
   "sleepQuality": 1-5 or null,
+  "habits": { "slug": boolean },
+  "device": { "iphoneHours": number or null, "socialHours": number or null, "macHours": number or null, "notes": string or null },
+  "deviceScreens": [0..n-1],
   "trades": [ ${TRADE_SHAPE} ]
 }`
 
-  const rawJson = await orChat(
-    [
-      { role: 'system', content: system },
-      { role: 'user', content: `Raw day notes:\n\n${raw.slice(0, 12000)}` },
-    ],
-    env.modelStructure(),
-    true,
-    3500,
-  )
+  const userText = `Raw day notes:\n\n${raw.slice(0, 12000)}`
+
+  const hasImages = images.length > 0
+  const messages: OrMessage[] = [
+    { role: 'system', content: system },
+    {
+      role: 'user',
+      content: hasImages
+        ? [
+            { type: 'text', text: userText },
+            ...images.map((url) => ({ type: 'image_url' as const, image_url: { url } })),
+          ]
+        : userText,
+    },
+  ]
+
+  const rawJson = await orChat(messages, hasImages ? env.modelVision() : env.modelStructure(), !hasImages, 4500)
   const parsed = tryJson<Partial<StructuredDay>>(rawJson)
   if (!parsed) throw new Error('AI returned unparseable JSON')
+
   const trades = Array.isArray(parsed.trades) ? parsed.trades : []
   return {
     mood: int(parsed.mood),
     sleepHours: num(parsed.sleepHours),
     sleepQuality: int(parsed.sleepQuality),
+    habits: parsed.habits && typeof parsed.habits === 'object' ? (parsed.habits as Record<string, boolean>) : null,
+    device: parsed.device && typeof parsed.device === 'object'
+      ? {
+          iphoneHours: num((parsed.device as any).iphoneHours),
+          socialHours: num((parsed.device as any).socialHours),
+          macHours: num((parsed.device as any).macHours),
+          notes: typeof (parsed.device as any).notes === 'string' ? (parsed.device as any).notes : null,
+        }
+      : null,
+    deviceScreens: Array.isArray(parsed.deviceScreens) ? parsed.deviceScreens.map(Number).filter((n) => Number.isInteger(n) && n >= 0) : [],
     trades: trades.map((t) => ({
       market: typeof t?.market === 'string' ? String(t.market).toUpperCase() : 'MNQ',
       session: typeof t?.session === 'string' ? t.session : null,
@@ -144,7 +178,10 @@ Return exactly:
       points: num(t?.points),
       confidence: int(t?.confidence),
       note: typeof t?.note === 'string' ? t.note : null,
-      accounts: Array.isArray(t?.accounts) ? t.accounts.map(String).filter((a) => accountOptions.includes(a)) : [],
+      accounts: Array.isArray(t?.accounts) ? t.accounts.map(String).filter((a) => ctx.accounts.includes(a)) : [],
+      screenshotIndices: Array.isArray(t?.screenshotIndices)
+        ? t.screenshotIndices.map(Number).filter((n) => Number.isInteger(n) && n >= 0)
+        : [],
     })),
   }
 }

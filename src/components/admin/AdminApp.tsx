@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { setSecret, api } from './api'
+import { setSecret, getPasteSink } from './api'
+import { RebuildBar } from './RebuildBar'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DayLogTab } from './tabs/DayLogTab'
 import { JournalTab } from './tabs/JournalTab'
@@ -26,9 +27,23 @@ export default function AdminApp({ secret }: { secret: string }) {
     setSecret(secret)
   }, [secret])
 
+  // global clipboard paste: images pasted anywhere route to the active tab's sink
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement
+      if (target.closest('[data-own-paste]')) return
+      const files = Array.from(e.clipboardData?.files ?? [])
+      if (!files.length) return
+      const sink = getPasteSink()
+      if (sink) sink(files)
+    }
+    document.addEventListener('paste', onPaste)
+    return () => document.removeEventListener('paste', onPaste)
+  }, [])
+
   const notify = useCallback((msg: string, ok = true) => {
     setToast({ msg, ok })
-    setTimeout(() => setToast(null), 3500)
+    setTimeout(() => setToast(null), 4500)
   }, [])
 
   const go = useCallback((t: Tab) => {
@@ -60,6 +75,8 @@ export default function AdminApp({ secret }: { secret: string }) {
         </div>
       </header>
 
+      <RebuildBar />
+
       <main className="shell py-8">
         {tab === 'overview' && <OverviewTab notify={notify} go={go} />}
         {tab === 'day' && <DayLogTab notify={notify} />}
@@ -70,8 +87,10 @@ export default function AdminApp({ secret }: { secret: string }) {
       </main>
 
       {toast && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 border border-line2 bg-raise px-4 py-2 text-[13px] shadow-lg">
-          <span className={toast.ok ? 'text-up' : 'text-down'}>▍</span>{' '}
+        <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 border border-line2 bg-raise px-5 py-3 text-[13px] shadow-2xl">
+          <span className={toast.ok ? 'text-up' : 'text-down'}>
+            {toast.ok ? '✓' : '✗'}
+          </span>{' '}
           <span className="text-ink">{toast.msg}</span>
         </div>
       )}

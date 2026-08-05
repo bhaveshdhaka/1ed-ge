@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro'
 import { authorized, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry, deleteEntry, sanitizeSlug } from '../../../lib/content'
+import { addChange } from '../../../lib/changes'
 
 export const prerender = false
 
@@ -53,6 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
       ...(body.note ? { note: String(body.note) } : {}),
     }
     writeEntry('accounts', `${id}.md`, data, '')
+    addChange('account', `account ${id}`, `${data.firm} ${data.sizeLabel} → ${stage}`)
     return json({ ok: true, id })
   }
 
@@ -71,6 +73,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
     const file = `${date}-${sanitizeSlug(account)}.md`
     writeEntry('payouts', file, data, '')
+    addChange('payout', `payout ${account}`, `$${Math.round(amount).toLocaleString()} (${data.status})`)
     return json({ ok: true, file })
   }
 
@@ -78,6 +81,7 @@ export const POST: APIRoute = async ({ request }) => {
     const file = String(body.file ?? '')
     if (!/^[\w.-]+\.md$/.test(file)) return error('invalid file')
     deleteEntry('payouts', file)
+    addChange('payout', `payout deleted`, file)
     return json({ ok: true })
   }
 
@@ -85,6 +89,7 @@ export const POST: APIRoute = async ({ request }) => {
     const id = sanitizeSlug(String(body.id ?? ''))
     if (!id) return error('invalid id')
     deleteEntry('accounts', `${id}.md`)
+    addChange('account', `account ${id} deleted`)
     return json({ ok: true })
   }
 
