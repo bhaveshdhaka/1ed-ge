@@ -99,6 +99,6 @@ const journalMeta = fm([
   `summary: "a public experiment begins."`,
   'tags: ["intro", "rules"]',
 ])
-writeIfMissing(C(`journal/0000-welcome.mdx`), journalMeta + '\n' + day0 + '\n')
+writeIfMissing(C(`journal/${today()}.mdx`), journalMeta + '\n' + day0 + '\n')
 
 console.log('\nseed complete')
