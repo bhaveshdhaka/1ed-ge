@@ -52,6 +52,8 @@ export function JournalEditor({
         crepe.destroy()
         return
       }
+      const pm = root.querySelector<HTMLElement>('.ProseMirror')
+      if (pm) pm.setAttribute('aria-label', 'journal reflection editor')
       crepeRef.current = crepe
     })()
     return () => {

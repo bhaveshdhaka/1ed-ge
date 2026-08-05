@@ -32,6 +32,7 @@ export function ImageDropZone({
         type="file"
         accept="image/*"
         multiple
+        aria-label={label ?? 'upload images'}
         className="hidden"
         onChange={(e) => {
           const files = Array.from(e.target.files ?? [])

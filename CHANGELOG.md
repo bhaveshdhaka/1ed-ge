@@ -29,6 +29,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `waitForBuild()` / named event bus topics in the admin API client.
 - Safe-area insets on the footer; `prefers-reduced-motion` disables the CRT scanlines and blinking cursor.
 
+### Performance & accessibility pass
+- **Logo** — the blinking terminal cursor is replaced by a subtle animated "edge" mark
+  (a gradient vertical line that draws in, gently breathes, and glows on hover). No JS.
+- **Favicon** — fun 📈 emoji favicon; PWA icons regenerated from it in full color.
+- **Contrast** — `--color-dim` (#8a8a92) and `--color-faint` (#7e7e86) brightened to pass
+  WCAG AA (axe: 295 → 0 critical/serious violations on public pages).
+- **Tracker page weight** — 284K → ~40K by dropping the per-cell heatmap `<title>`
+  tooltips (2,190 nodes) for a single accessible summary; scroll region is
+  keyboard-focusable and charts now carry `aria-label`s.
+- **Missing `og.png`** — generated a 1200×630 social card (edge identity).
+- **Admin a11y** — date + file inputs labelled, Milkdown editor gets an accessible name.
+- **Verification stack** — Playwright E2E (public + admin + axe-core a11y on desktop &
+  mobile, 46 tests), Lighthouse CI with a zero-JS budget on public pages, `test:*`
+  scripts, and `scripts/audit-a11y.mjs` / `scripts/icon-gen.mjs` / `scripts/og-gen.mjs`.
+- `tsconfig` excludes test/report artifacts so `astro check` stays fast and memory-safe.
+
 ## [0.4.0] - 2026-08-05
 
 ### Added

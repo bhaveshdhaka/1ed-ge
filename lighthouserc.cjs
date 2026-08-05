@@ -16,11 +16,12 @@ const PUBLIC_URLS = [
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: `PORT=${PORT} node dist/server/entry.mjs`,
+      startServerCommand: `PORT=${PORT} HOST=0.0.0.0 node dist/server/entry.mjs`,
       startServerReadyPattern: 'Server listening',
       url: PUBLIC_URLS,
       numberOfRuns: 2,
       settings: {
+        chromePath: '/root/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome',
         chromeFlags: '--no-sandbox --disable-gpu --disable-dev-shm-usage',
         throttlingMethod: 'simulate',
       },

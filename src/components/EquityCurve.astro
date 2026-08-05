@@ -37,7 +37,7 @@ const last = points[points.length - 1]
       {label && (
         <div class="absolute -top-1 left-2 text-[11px] uppercase tracking-widest text-dim">{label}</div>
       )}
-      <svg viewBox={`0 0 ${W} ${H}`} class="w-full" preserveAspectRatio="none" role="img">
+      <svg viewBox={`0 0 ${W} ${H}`} class="w-full" preserveAspectRatio="none" role="img" aria-label={label ?? 'equity curve'}>
         <line x1={padX} x2={W - padX} y1={zeroY} y2={zeroY} stroke="#26262c" stroke-width="1" stroke-dasharray="3 5" />
         <path d={area} fill={color + '1f'} />
         <path d={line} fill="none" stroke={color} stroke-width="1.6" />

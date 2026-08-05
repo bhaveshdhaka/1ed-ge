@@ -44,6 +44,28 @@ screen time, and trades all live in the same daily record.
 Always run `npm run typecheck` (and `npm run build` if it touches the site)
 after changing code.
 
+## Ship it (READ FIRST — non-negotiable)
+
+**The owner judges work by what is LIVE on `https://1ed.ge`, not by the working
+tree.** A change that is committed but not deployed, or deployed but not verified,
+does not exist to them. After ANY meaningful change:
+
+1. `npm run typecheck` (and `npm run build` if it touches the site).
+2. **Commit** — conventional prefix (`feat:` / `fix:` / `chore:` / `docs:`),
+   concise message, `git add -A` first. Never leave work uncommitted at the end
+   of a session.
+3. **Deploy** — `bash scripts/deploy.sh`. The container runs `npm run build` on
+   start (~15s), so wait/poll until `https://1ed.ge` returns 200 before
+   declaring success.
+4. **Verify LIVE** — curl `https://1ed.ge` (and the admin route) and confirm the
+   changed bits are actually in the served HTML/bundle. Do not rely on the local
+   `dist/` or a throwaway port.
+5. Local verification servers on port 4323 and `node dist/server/entry.mjs`
+   are for tests only — kill them when done so they do not hold memory.
+
+The one exception: do NOT commit when the user explicitly says "don't commit /
+wait". Default is commit + deploy + verify.
+
 ## Layout
 
 ```

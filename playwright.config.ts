@@ -28,7 +28,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `PORT=${PORT} node dist/server/entry.mjs`,
+    command: `PORT=${PORT} HOST=0.0.0.0 node dist/server/entry.mjs`,
     url: BASE,
     reuseExistingServer: true,
     timeout: 120000,

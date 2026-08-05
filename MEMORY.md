@@ -3,6 +3,14 @@
 Living project memory. This file is loaded into every agent session. Append
 decisions, gotchas and open items here; keep it short and factual.
 
+## Top rule — ship it
+
+**Commit + deploy + verify live after every meaningful change.** The owner looks
+at `https://1ed.ge`, never the working tree. Local `dist/` and port-4323 test
+servers do NOT count as "done". Workflow: typecheck → commit → `bash
+scripts/deploy.sh` → poll until live → curl-verify the changed bits. Kill test
+servers when finished.
+
 ## Decisions
 
 - **R is the centerpiece.** Risk-based metrics everywhere; `R = points / riskPoints`.

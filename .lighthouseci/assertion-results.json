@@ -1,0 +1,47 @@
+[
+  {
+    "name": "minScore",
+    "expected": 0.95,
+    "actual": 0.94,
+    "values": [
+      0.94,
+      0.94
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "accessibility",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://127.0.0.1:4323/"
+  },
+  {
+    "name": "minScore",
+    "expected": 0.95,
+    "actual": 0.94,
+    "values": [
+      0.94,
+      0.94
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "accessibility",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://127.0.0.1:4323/performance"
+  },
+  {
+    "name": "minScore",
+    "expected": 0.95,
+    "actual": 0.94,
+    "values": [
+      0.94,
+      0.94
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "accessibility",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://127.0.0.1:4323/accounts"
+  }
+]

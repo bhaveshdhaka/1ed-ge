@@ -2,9 +2,10 @@
 interface Props {
   data: { date: string; value: boolean | null }[]
   color?: string
+  name?: string
 }
 
-const { data, color = '#4ade80' } = Astro.props
+const { data, color = '#4ade80', name = 'habit' } = Astro.props
 const CELL = 11
 const GAP = 3
 const PAD_TOP = 16
@@ -31,8 +32,9 @@ data.forEach((d, i) => {
 const dows = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 ---
 
-<div class="overflow-x-auto">
-  <svg viewBox={`0 0 ${w + GAP} ${h + GAP}`} class="min-w-[540px]" role="img">
+<div class="overflow-x-auto" tabindex="0" aria-label={`${name} habit heatmap — scroll horizontally`}>
+  <svg viewBox={`0 0 ${w + GAP} ${h + GAP}`} class="min-w-[540px]" role="img" aria-label={`${name} habit heatmap over the last year`}>
+    <title>{name} — last 365 days, done vs missed</title>
     {monthLabels.map((m) => (
       <text x={m.x} y={8} fill="#71717a" font-size="9">{m.label}</text>
     ))}
@@ -57,9 +59,7 @@ const dows = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
           height={CELL}
           fill={fill}
           opacity={opacity}
-        >
-          <title>{d.date + (d.value === null ? ' — not logged' : d.value ? ' — done' : ' — missed')}</title>
-        </rect>
+        />
       )
     })}
   </svg>

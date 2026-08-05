@@ -604,7 +604,7 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
           {daysList.some((d) => d.date === date) && (
             <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
           )}
-          <TextInput type="date" value={date} onChange={(e) => selectDate(e.target.value)} className="h-9 w-40" />
+          <TextInput type="date" aria-label="day date" value={date} onChange={(e) => selectDate(e.target.value)} className="h-9 w-40" />
           <Button size="sm" onClick={() => save(false)} disabled={saving}>{saving ? 'saving…' : 'save'}</Button>
           <Button size="sm" variant="primary" onClick={() => save(true)} disabled={saving}>save &amp; rebuild</Button>
         </div>
@@ -756,7 +756,7 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
                         <div className="flex items-center gap-2">
                           <label className="flex h-8 cursor-pointer items-center text-[11px] text-accent hover:text-ink">
                             {screenBusy ? 'reading…' : '＋ paste screenshot'}
-                            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { onDeviceScreens(Array.from(e.target.files ?? [])); e.target.value = '' }} />
+                            <input type="file" accept="image/*" multiple className="hidden" aria-label="paste screen time screenshot" onChange={(e) => { onDeviceScreens(Array.from(e.target.files ?? [])); e.target.value = '' }} />
                           </label>
                           {editing === 'screen' && <Button size="sm" onClick={() => { setEditing(null); markDirty() }}>done</Button>}
                         </div>
