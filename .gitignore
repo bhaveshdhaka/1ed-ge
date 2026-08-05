@@ -6,3 +6,8 @@ dist/
 .DS_Store
 *.log
 .tmp/
+
+# test artifacts
+.lhci/
+playwright-report/
+test-results/

@@ -10,7 +10,12 @@
     "start": "node ./dist/server/entry.mjs",
     "seed": "node scripts/seed.mjs",
     "migrate": "node scripts/migrate.mjs",
-    "typecheck": "astro check"
+    "typecheck": "astro check",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test e2e/a11y.spec.ts",
+    "test:lhci": "lhci autorun --config=lighthouserc.cjs",
+    "test:perf": "playwright test e2e/public.spec.ts",
+    "test": "npm run typecheck && npm run test:e2e && npm run test:lhci"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",
@@ -36,6 +41,9 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
+    "@axe-core/playwright": "^4.12.1",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
