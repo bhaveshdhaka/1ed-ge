@@ -12,22 +12,51 @@ const links = [
 const path = Astro.url.pathname
 ---
 
-<nav class="shell flex items-center justify-between gap-4 py-5">
-  <a href="/" class="group flex items-baseline gap-2 text-[15px] font-semibold tracking-tight text-ink">
+<nav class="shell flex items-center justify-between gap-4 py-4 md:py-5">
+  <a href="/" aria-label="1ed.ge home" class="group flex h-11 items-baseline gap-2 text-[15px] font-semibold tracking-tight text-ink">
     <span class="text-accent">1ed</span><span class="text-dim">.ge</span>
     <span class="cursor-blink text-accent">▋</span>
   </a>
-  <div class="flex items-center gap-1 overflow-x-auto text-[12px] md:gap-3 md:text-[13px]">
+
+  <div class="hidden items-center gap-1 text-[12px] md:flex md:gap-3 md:text-[13px]">
     {links.map((l) => (
       <a
         href={l.href}
+        aria-current={path === l.href ? 'page' : undefined}
         class:list={[
-          'whitespace-nowrap text-dim transition-colors hover:text-ink',
+          'flex h-11 items-center whitespace-nowrap text-dim transition-colors hover:text-ink',
           path === l.href && 'text-ink',
         ]}
       >
-        <span class="text-faint">[{l.n}]</span> {l.label}
+        <span class="text-faint">[{l.n}]</span>&nbsp;{l.label}
       </a>
     ))}
   </div>
+
+  <details class="group relative md:hidden">
+    <summary
+      aria-label="menu"
+      class="flex h-11 w-11 list-none cursor-pointer items-center justify-center border border-line2 text-[13px] text-soft transition-colors hover:border-accent hover:text-ink"
+    >
+      <span class="flex flex-col items-center gap-[5px]">
+        <span class="block h-px w-5 bg-current transition-transform group-open:translate-y-[6px] group-open:rotate-45"></span>
+        <span class="block h-px w-5 bg-current transition-opacity group-open:opacity-0"></span>
+        <span class="block h-px w-5 bg-current transition-transform group-open:-translate-y-[6px] group-open:-rotate-45"></span>
+      </span>
+    </summary>
+    <div class="absolute right-0 top-full z-50 mt-2 w-60 border border-line bg-panel shadow-2xl">
+      {links.map((l) => (
+        <a
+          href={l.href}
+          aria-current={path === l.href ? 'page' : undefined}
+          class:list={[
+            'flex h-11 items-center gap-2 border-b border-line/60 px-4 text-[13px] last:border-0',
+            path === l.href ? 'bg-raise text-ink' : 'text-dim',
+          ]}
+        >
+          <span class="text-faint">[{l.n}]</span> {l.label}
+        </a>
+      ))}
+    </div>
+  </details>
 </nav>

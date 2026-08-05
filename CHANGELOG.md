@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Mobile nav** — zero-JS hamburger menu on phones replaces the horizontally-scrolling link row; 44px tap targets everywhere (coarse-pointer media query).
+- **Day X/730 counter** on the homepage with a progress bar.
+- **Journal search + month grouping** — `/journal` is now server-rendered with `?q=` full-text search (title/summary/tags/body/date), a date-jump input, sticky month headers, and a month quick-nav.
+- **Prev/next day navigation** on public `/day/[date]` with a "day N of M" indicator.
+- **PWA** — `manifest.webmanifest`, service worker (network-first), PNG icons, apple-touch-icon.
+- **Admin keyboard shortcuts** — `1–5` tabs, `⌘S`/`⌘⇧S` save / save & rebuild, `⌘←`/`⌘→` prev/next day, `t` today, `?` shortcuts help overlay.
+- **Direct-click editing** — evidence-first day values (mood/sleep/screen-time) are edited by clicking the value itself; the tiny ✎ affordance is gone. `Esc` cancels.
+- **Day browser upgrade** — native date picker + mini 12-week calendar heatmap + recent days replace the endless flat sidebar list.
+- **Expand/collapse all trades** toggle.
+- **RebuildBar rework** — collapses to a slim "published" strip when idle; expands with draft changes, elapsed-time progress while building, and a "view →" publish link when a day goes live.
+- **Draft vs published indicator** on the day workspace and rebuild bar.
+- **Accounts lifecycle stepper** — `eval → buffer → payout` visual flow + failed/paused; the inline new-account form replaces three `prompt()` dialogs.
+- **Coach quick prompts** + a collapsible "data f-R-iend sees" trend-snapshot panel.
+- **Media library** — search by filename, grouped by date folder, "copied ✓" feedback.
+- **Sticky section navigation** on `/performance` and the day workspace.
+- **Admin preview route** — `/admin/<secret>/preview/<date>` renders saved-but-unbuilt days and journal reflections server-side (remark/rehype).
+
+### Changed
+- Overview "log the day"/"write reflection" merged into one "open today's workspace" action.
+- `waitForBuild()` / named event bus topics in the admin API client.
+- Safe-area insets on the footer; `prefers-reduced-motion` disables the CRT scanlines and blinking cursor.
+
 ## [0.4.0] - 2026-08-05
 
 ### Added

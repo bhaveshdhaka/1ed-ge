@@ -118,6 +118,21 @@
     background-image: linear-gradient(rgba(255, 255, 255, 0.02) 50%, transparent 50%);
     background-size: 100% 3px;
   }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .sticky-subnav {
+    top: 0;
+    position: sticky;
+    z-index: 30;
+    scroll-margin-top: 4rem;
+  }
+  .target-44 {
+    min-height: 44px;
+  }
 }
 
 @keyframes blink {
@@ -128,6 +143,40 @@
   50.01%,
   100% {
     opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-blink {
+    animation: none;
+    opacity: 1;
+  }
+  .crt {
+    background-image: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
+  a,
+  button,
+  summary,
+  [role='button'] {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+  }
+}
+
+@media (max-width: 767px) {
+  a,
+  button,
+  summary,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
   }
 }
 

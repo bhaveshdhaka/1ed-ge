@@ -13,11 +13,19 @@ interface Session {
   messages: Msg[]
 }
 
+const PROMPTS = [
+  'read the trends and give me the honest picture',
+  'call me out — what am I fooling myself about?',
+  'what should I work on tomorrow?',
+  'what have I done well recently?',
+  'is my screen time hurting my results?',
+]
+
 export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void }) {
   const [sessions, setSessions] = useState<Session[]>([])
+  const [snapshot, setSnapshot] = useState<string | null>(null)
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
-  const [loading, setLoading] = useState(true)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const load = useCallback(async () => {
@@ -27,24 +35,31 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
     } catch (e) {
       notify(e instanceof Error ? e.message : 'load failed', false)
     }
-    setLoading(false)
   }, [notify])
+
+  const loadSnapshot = useCallback(async () => {
+    try {
+      const res = await api<{ snapshot: string }>('/api/admin/coach?snapshot=1')
+      setSnapshot(res.snapshot)
+    } catch {}
+  }, [])
 
   useEffect(() => {
     load()
-  }, [load])
+    loadSnapshot()
+  }, [load, loadSnapshot])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [sessions, busy])
 
-  const send = async () => {
-    const text = input.trim()
-    if (!text || busy) return
+  const send = async (text: string) => {
+    const t = text.trim()
+    if (!t || busy) return
     setBusy(true)
     setInput('')
     try {
-      await api<{ reply: string }>('/api/admin/coach', { method: 'POST', body: { text } })
+      await api<{ reply: string }>('/api/admin/coach', { method: 'POST', body: { text: t } })
       notifyChanged()
       await load()
     } catch (e) {
@@ -56,7 +71,7 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
   const all = sessions.flatMap((s) => s.messages)
 
   return (
-    <div className="flex h-[calc(100vh-9rem)] flex-col space-y-4">
+    <div className="flex h-[calc(100vh-10rem)] flex-col space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl">/ coach</h1>
         <span className="text-[12px] text-dim">
@@ -91,6 +106,32 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
         </div>
       </Card>
 
+      <details className="border border-line bg-panel">
+        <summary className="cursor-pointer px-3 py-2 text-[11px] uppercase tracking-widest text-dim">
+          the data f-R-iend sees ▾
+        </summary>
+        {snapshot ? (
+          <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap border-t border-line/60 px-3 py-2 text-[11px] leading-relaxed text-faint">
+            {snapshot}
+          </pre>
+        ) : (
+          <p className="border-t border-line/60 px-3 py-2 text-[11px] text-faint">loading snapshot…</p>
+        )}
+      </details>
+
+      <div className="flex flex-wrap gap-1.5">
+        {PROMPTS.map((p) => (
+          <button
+            key={p}
+            onClick={() => send(p)}
+            disabled={busy}
+            className="flex h-8 items-center border border-line px-2.5 text-[11px] text-dim transition-colors hover:border-accent hover:text-ink disabled:opacity-40"
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+
       <div className="flex gap-2">
         <TextArea
           rows={2}
@@ -99,13 +140,13 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault()
-              send()
+              send(input)
             }
           }}
           placeholder="say something — the coach will read the current trends and answer…"
           className="flex-1"
         />
-        <Button variant="primary" onClick={send} disabled={busy || !input.trim()} className="self-end">
+        <Button variant="primary" onClick={() => send(input)} disabled={busy || !input.trim()} className="self-end">
           {busy ? '…' : 'send'}
         </Button>
       </div>

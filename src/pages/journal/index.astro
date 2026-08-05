@@ -1,6 +1,9 @@
 ---
+export const prerender = false
 import Base from '../../layouts/Base.astro'
 import { getCollection } from 'astro:content'
+
+const q = (Astro.url.searchParams.get('q') ?? '').trim().toLowerCase()
 
 const journal = (await getCollection('journal')).sort((a, b) => b.data.date.localeCompare(a.data.date))
 const days = await getCollection('days')
@@ -9,37 +12,117 @@ const tradeCount = new Map<string, number>()
 for (const d of days) {
   if ((d.data.trades ?? []).length) tradeCount.set(d.data.date, d.data.trades!.length)
 }
+
+let filtered = journal
+if (q) {
+  filtered = journal.filter((j) => {
+    const hay = [
+      j.data.date,
+      j.data.day ?? '',
+      j.data.summary ?? '',
+      (j.data.tags ?? []).join(' '),
+      j.body ?? '',
+    ]
+      .join(' ')
+      .toLowerCase()
+    return hay.includes(q)
+  })
+}
+
+const groups: { month: string; entries: typeof journal }[] = []
+for (const j of filtered) {
+  const m = j.data.date.slice(0, 7)
+  const last = groups[groups.length - 1]
+  if (last && last.month === m) last.entries.push(j)
+  else groups.push({ month: m, entries: [j] })
+}
+
+const monthLabel = (m: string) => {
+  const [y, mo] = m.split('-')
+  const names = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+  return `${names[parseInt(mo, 10) - 1]} ${y}`
+}
+const ordered: typeof journal = []
+for (const g of groups) ordered.push(...g.entries)
+const numById = new Map(ordered.map((j, i) => [j.id, i]))
 ---
 
 <Base title="journal — 1ed.ge" description="The daily trading journal — the thinking, the sessions, the misses, the lessons. Everything public.">
   <section class="shell pt-12 pb-20">
-    <div class="flex items-baseline gap-3">
+    <div class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl">/ journal</h1>
-      <span class="text-[12px] text-faint">{journal.length} entries</span>
+      <span class="text-[12px] text-faint">
+        {q ? `${filtered.length} of ${journal.length} entries` : `${journal.length} entries`}
+      </span>
     </div>
 
+    <div class="mt-8 flex max-w-3xl flex-col gap-3">
+      <form method="get" action="/journal" class="flex gap-2">
+        <input
+          type="search"
+          name="q"
+          value={q}
+          placeholder="search title, tags, text, date (yyyy-mm-dd)…"
+          class="input flex-1"
+          aria-label="search journal"
+        />
+        <button type="submit" class="btn shrink-0">search</button>
+        {q && (
+          <a href="/journal" class="btn shrink-0">clear</a>
+        )}
+      </form>
+      <label class="flex items-center gap-2 text-[12px] text-dim">
+        <span class="text-faint">jump to day:</span>
+        <input
+          type="date"
+          class="input w-40"
+          onchange={`const v=this.value; if(v) location.href='/day/'+v`}
+        />
+      </label>
+    </div>
+
+    {groups.length > 1 && (
+      <div class="mt-6 flex flex-wrap gap-1.5">
+        {groups.map((g) => (
+          <a href={`#m-${g.month}`} class="tag transition-colors hover:border-accent hover:text-accent">
+            {monthLabel(g.month)}
+          </a>
+        ))}
+      </div>
+    )}
+
     <div class="mt-10 max-w-3xl">
-      {journal.map((j, i) => (
-        <a href={`/journal/${j.id}`} class="group block border-b border-line/70 py-6 first:pt-0">
-          <div class="flex items-baseline justify-between gap-4">
-            <div class="flex items-baseline gap-3">
-              <span class="text-[12px] text-faint">{String(journal.length - i).padStart(2, '0')}</span>
-              <span class="text-[15px] text-ink group-hover:text-accent">{j.data.day ?? j.data.date}</span>
-            </div>
-            <span class="shrink-0 text-[12px] text-dim">{j.data.date}</span>
+      {groups.map((g) => (
+        <div id={`m-${g.month}`} class="scroll-mt-28">
+          <div class="sticky top-[76px] z-10 -mx-1 bg-bg/95 px-1 py-1 text-[11px] uppercase tracking-widest text-dim backdrop-blur md:top-[84px]">
+            {monthLabel(g.month)} <span class="text-faint">· {g.entries.length}</span>
           </div>
-          {j.data.summary && <p class="mt-2 text-[13px] leading-relaxed text-dim">{j.data.summary}</p>}
-          <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-            {(tradeCount.get(j.data.date) ?? 0) > 0 && (
-              <span class="tag text-up">{tradeCount.get(j.data.date)} trades</span>
-            )}
-            {dayByDate.get(j.data.date)?.mood && <span class="tag">mood {dayByDate.get(j.data.date)!.mood}/5</span>}
-            {j.data.tags?.map((t) => <span class="tag">#{t}</span>)}
-          </div>
-        </a>
+          {g.entries.map((j) => (
+            <a href={`/journal/${j.id}`} class="group block border-b border-line/70 py-6 first:pt-4">
+              <div class="flex items-baseline justify-between gap-4">
+                <div class="flex items-baseline gap-3">
+                  <span class="text-[12px] text-faint">{String(journal.length - (numById.get(j.id) ?? 0)).padStart(2, '0')}</span>
+                  <span class="text-[15px] text-ink group-hover:text-accent">{j.data.day ?? j.data.date}</span>
+                </div>
+                <span class="shrink-0 text-[12px] text-dim">{j.data.date}</span>
+              </div>
+              {j.data.summary && <p class="mt-2 text-[13px] leading-relaxed text-dim">{j.data.summary}</p>}
+              <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                {(tradeCount.get(j.data.date) ?? 0) > 0 && (
+                  <span class="tag text-up">{tradeCount.get(j.data.date)} trades</span>
+                )}
+                {dayByDate.get(j.data.date)?.mood && <span class="tag">mood {dayByDate.get(j.data.date)!.mood}/5</span>}
+                {j.data.tags?.map((t) => <span class="tag">#{t}</span>)}
+              </div>
+            </a>
+          ))}
+        </div>
       ))}
       {journal.length === 0 && (
         <p class="text-[13px] text-faint">no entries yet — the journal starts when the trading does.</p>
+      )}
+      {journal.length > 0 && filtered.length === 0 && (
+        <p class="text-[13px] text-faint">no entries match “{q}”.</p>
       )}
     </div>
   </section>

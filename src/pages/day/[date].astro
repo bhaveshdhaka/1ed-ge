@@ -8,15 +8,22 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props
-const [accounts, journal] = await Promise.all([getCollection('accounts'), getCollection('journal')])
+const [accounts, journal, allDaysCollection] = await Promise.all([
+  getCollection('accounts'),
+  getCollection('journal'),
+  getCollection('days'),
+])
 const journalFor = journal.find((j) => j.data.date === entry.data.date)
 const accMap = new Map(accounts.map((a) => [a.data.id, a.data]))
+const allDays = [...allDaysCollection].sort((a, b) => a.data.date.localeCompare(b.data.date))
+const dayIdx = allDays.findIndex((d) => d.data.date === entry.data.date)
+const prevDay = dayIdx > 0 ? allDays[dayIdx - 1] : null
+const nextDay = dayIdx >= 0 && dayIdx < allDays.length - 1 ? allDays[dayIdx + 1] : null
 
 const d = entry.data
 const habits = await getCollection('habits')
 const dayHabits = d.habits ?? {}
 
-const fmtH = (h?: number) => (h === undefined ? '—' : `${h}h`)
 const sleep = d.sleep
 const device = d.device
 const moodLabel = d.mood ? `${d.mood}/5` : '—'
@@ -42,6 +49,24 @@ const totalPts = (d.trades ?? []).reduce((s, t) => s + t.points, 0)
         </a>
       )}
     </header>
+
+    <nav class="mt-4 flex items-center justify-between gap-3 text-[12px]">
+      {prevDay ? (
+        <a href={`/day/${prevDay.data.date}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">
+          ← {prevDay.data.date}
+        </a>
+      ) : (
+        <span class="text-faint">← older</span>
+      )}
+      <span class="text-faint">day {dayIdx + 1} of {allDays.length}</span>
+      {nextDay ? (
+        <a href={`/day/${nextDay.data.date}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">
+          {nextDay.data.date} →
+        </a>
+      ) : (
+        <span class="text-faint">newer →</span>
+      )}
+    </nav>
 
     <div class="mt-8 grid gap-px border border-line bg-line sm:grid-cols-4">
       <div class="bg-bg p-4">

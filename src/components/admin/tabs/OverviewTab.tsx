@@ -106,8 +106,7 @@ export function OverviewTab({
               </span>
             </div>
             <div className="flex flex-wrap gap-2 pt-2">
-              <Button size="sm" onClick={() => go('day')}>log the day →</Button>
-              <Button size="sm" onClick={() => go('day')}>write reflection →</Button>
+              <Button size="sm" variant="primary" onClick={() => go('day')}>open today's workspace →</Button>
               <Button size="sm" onClick={() => go('accounts')}>manage accounts →</Button>
               <Button size="sm" onClick={() => go('coach')}>talk to coach →</Button>
             </div>

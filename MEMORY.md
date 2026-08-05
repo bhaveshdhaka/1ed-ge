@@ -32,6 +32,18 @@ decisions, gotchas and open items here; keep it short and factual.
   reflection (Milkdown) → one Save. **Evidence first:** values render read-only
   with rare ✎ overrides; screen-time hours come from the screenshot, never typed.
   The journal owns no structured fields (mood/sleep live in the day record).
+- **Evidence-first overrides are direct-click (v0.5).** Click the value itself
+  (dashed-underline affordance), never a ✎ button; `Esc` cancels.
+- **Admin day navigation is picker-first.** Native date input + mini 12-week
+  calendar + recent-days list; the flat "all days" sidebar list is gone.
+- **Journal index is SSR.** `/journal` uses `prerender = false` for `?q=` search
+  (title/summary/tags/body/date) + month grouping. SSR routes read the content
+  store from server start — a rebuild alone won't update them; the server must
+  be restarted (deploy does this). Static pages pick up rebuilds in place.
+- **Zero-JS still holds on public pages.** Mobile nav is a `<details>` hamburger;
+  the only inline JS is the SW registration and a one-line date-jump handler.
+- **PWA shipped.** `public/manifest.webmanifest` + network-first `sw.js` + PNG
+  icons generated from `favicon.svg` via sharp. SW skips `/admin`.
 - **Models:** DeepSeek `deepseek/deepseek-chat` (text day / coach / assist),
   Qwen2.5-VL `qwen/qwen-2.5-vl-72b-instruct` (image days + screenshots), both
   via OpenRouter. Overridable in `.env`. Cost ≈ $1–3/month at a few calls/day.
@@ -72,6 +84,16 @@ decisions, gotchas and open items here; keep it short and factual.
 
 ## Session log (recent)
 
+- 2026-08-05 — v0.5 UX pass: mobile hamburger nav (no horizontal scroll), 44px
+  tap targets, direct-click evidence editing (✎ removed), date-picker + mini
+  calendar day browser, expand-all trades, collapsible RebuildBar with rebuild
+  progress + publish link, admin keyboard shortcuts (⌘S, 1-5, ⌘←/→, t, ?),
+  Day X/730 homepage counter, SSR journal search + month grouping, prev/next
+  day nav, accounts lifecycle stepper, coach quick prompts + data panel, media
+  date-grouping + search, sticky section nav (performance + day workspace),
+  PWA (manifest + SW + icons), admin preview route for unbuilt days. Tested
+  end-to-end via the running server (save → pending → rebuild → live day page);
+  test data cleaned up after.
 - 2026-08-05 — v0.4: one "day" workspace (capture → evidence-first summary →
   reflection → one save). Screen-time values come from screenshots only; rare ✎
   overrides. Journal schema dropped `mood` (day owns it); `structureDayFull`

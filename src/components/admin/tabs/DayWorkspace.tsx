@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink } from '../api'
+import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, getSecret, fetchRebuildState, bus } from '../api'
 import { Card, Button, Field, TextInput, NumInput, TextArea, Select } from '../ui'
 import { ImageDropZone } from '../ImageDropZone'
 import { JournalEditor } from '../JournalEditor'
@@ -20,6 +20,10 @@ const emptyTrade = (): TradeForm => ({
   entry: '', stop: '', target: '', exit: '', riskPoints: '', points: '',
   confidence: '', note: '', screenshots: [], executions: [],
 })
+
+function dayKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => void }) {
   const [date, setDate] = useState(todayStr())
@@ -50,6 +54,8 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
 
   const [editing, setEditing] = useState<string | null>(null)
   const [expandedTrade, setExpandedTrade] = useState<number | null>(null)
+  const [expandAll, setExpandAll] = useState(false)
+  const [pendingLabels, setPendingLabels] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -65,6 +71,7 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
       setLoading(true)
       setEditing(null)
       setExpandedTrade(null)
+      setExpandAll(false)
       try {
         const res = await api<{ day: any; accounts: AccRow[]; habits: HabitDef[] }>(
           `/api/admin/days?date=${encodeURIComponent(d)}`,
@@ -129,10 +136,28 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
     } catch {}
   }, [])
 
+  const refreshPending = useCallback(async () => {
+    try {
+      const st = await fetchRebuildState()
+      setPendingLabels(st.pending.map((p) => p.label))
+    } catch {}
+  }, [])
+
   useEffect(() => {
     load(date)
     loadDays()
-  }, [date, load, loadDays])
+    refreshPending()
+  }, [date, load, loadDays, refreshPending])
+
+  // keep the published/draft indicator fresh while mounted
+  useEffect(() => {
+    const id = setInterval(refreshPending, 4000)
+    const off = bus.on(refreshPending)
+    return () => {
+      clearInterval(id)
+      off()
+    }
+  }, [refreshPending])
 
   useEffect(() => {
     setPasteSink((files) => addDayImages(files))
@@ -140,15 +165,15 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const setTrade = (i: number, patch: Partial<TradeForm>) => {
+    setTrades((ts) => ts.map((t, j) => (j === i ? { ...t, ...patch } : t)))
+    markDirty()
+  }
+
   const selectDate = (d: string) => {
     if (!d || d === date) return
     if (dirty && !confirm(`unsaved changes on ${date} — discard and open ${d}?`)) return
     setDate(d)
-  }
-
-  const setTrade = (i: number, patch: Partial<TradeForm>) => {
-    setTrades((ts) => ts.map((t, j) => (j === i ? { ...t, ...patch } : t)))
-    markDirty()
   }
 
   // ---------- capture: paste everything, AI builds the day ----------
@@ -231,9 +256,6 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
       if (Array.isArray(j.tags) && j.tags.length) setTags(j.tags.join(', '))
       if (j.draft) {
         setContent((c) => (c && c.trim() ? c : String(j.draft)))
-        if (!content && j.draft) {
-          // draft landed — surface it
-        }
       }
     }
     setDirty(true)
@@ -356,10 +378,19 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
 
       setDirty(false)
       notifyChanged()
-      if (rebuild) triggerRebuild()
-      notify(rebuild ? `day ${date} saved — rebuild started` : `day ${date} saved — queued for rebuild`)
+      if (rebuild) {
+        try {
+          await triggerRebuild()
+        } catch {
+          notify('saved, but the rebuild failed to start', false)
+        }
+        notify(`day ${date} saved — publishing… the bar will flash when it is live`)
+      } else {
+        notify(`day ${date} saved — queued for rebuild`)
+      }
       await load(date)
       await loadDays()
+      await refreshPending()
     } catch (e) {
       notify(e instanceof Error ? e.message : 'save failed', false)
     }
@@ -469,47 +500,168 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
     return { R: pts / risk, pts }
   }
 
+  // ---------- mini calendar (last 12 weeks, Mon-first) ----------
+  const daySet = new Set(daysList.map((d) => d.date))
+  const now = new Date()
+  const todayK = todayStr()
+  const dow = (d: Date) => (d.getDay() + 6) % 7
+  const calStart = new Date(now)
+  calStart.setDate(calStart.getDate() - 83)
+  calStart.setDate(calStart.getDate() - dow(calStart))
+  const minKeyDate = new Date(now)
+  minKeyDate.setDate(minKeyDate.getDate() - 83)
+  const minKey = dayKey(minKeyDate)
+  const calWeeks: { date: string; hasData: boolean; isToday: boolean; blank: boolean; day: number }[][] = []
+  {
+    let row: { date: string; hasData: boolean; isToday: boolean; blank: boolean; day: number }[] = []
+    const cursor = new Date(calStart)
+    for (let i = 0; i < 14 * 7; i++) {
+      const key = dayKey(cursor)
+      const inRange = key >= minKey && key <= todayK
+      row.push({
+        date: key,
+        hasData: daySet.has(key),
+        isToday: key === todayK,
+        blank: !inRange,
+        day: cursor.getDate(),
+      })
+      if (row.length === 7) {
+        calWeeks.push(row)
+        row = []
+      }
+      cursor.setDate(cursor.getDate() + 1)
+    }
+  }
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const hasDayRecord = daysList.some((d) => d.date === date)
+  const dayPending = pendingLabels.some((l) => l.includes(date))
+  const previewHref = `/admin/${getSecret()}/preview/${date}`
+  const editableHint = 'underline decoration-dashed decoration-line2 underline-offset-4 hover:text-accent hover:decoration-accent cursor-pointer'
+
+  // day-level keyboard shortcuts (global save handled in AdminApp)
+  useEffect(() => {
+    const offSave = bus.on('save', () => save(false))
+    const offRebuild = bus.on('save-rebuild', () => save(true))
+    const offPrev = bus.on('prev-day', () => prevDay && selectDate(prevDay.date))
+    const offNext = bus.on('next-day', () => nextDay && selectDate(nextDay.date))
+    const offToday = bus.on('today', () => selectDate(todayStr()))
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setEditing(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      offSave()
+      offRebuild()
+      offPrev()
+      offNext()
+      offToday()
+      window.removeEventListener('keydown', onKey)
+    }
+  })
+
   return (
     <div className="space-y-6">
+      {/* sticky section jump (desktop) */}
+      <div className="sticky top-14 z-30 -mx-2 hidden border-b border-line bg-bg/95 px-2 py-1 backdrop-blur md:block">
+        <div className="flex gap-1 overflow-x-auto text-[12px]">
+          {[
+            ['capture', 'sec-capture'],
+            ['day', 'sec-day'],
+            ['trades', 'sec-trades'],
+            ['reflection', 'sec-reflection'],
+          ].map(([label, id]) => (
+            <button key={id} onClick={() => scrollTo(id)} className="h-8 whitespace-nowrap px-2 text-dim transition-colors hover:text-ink">
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-xl">/ day</h1>
-          <span className={`text-[12px] ${dirty ? 'text-warn' : 'text-faint'}`}>{dirty ? '● unsaved' : 'saved'}</span>
+          <span
+            className={`text-[12px] ${
+              dirty ? 'text-warn' : dayPending ? 'text-warn' : hasDayRecord || content.trim() ? 'text-up' : 'text-faint'
+            }`}
+          >
+            {dirty ? '● unsaved draft' : dayPending ? '● draft saved · not published' : hasDayRecord || content.trim() ? '● published' : '— no day yet'}
+          </span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => save(false)} disabled={saving}>{saving ? 'saving…' : 'save'}</Button>
-          <Button size="sm" variant="primary" onClick={() => save(true)} disabled={saving}>save &amp; rebuild</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {hasDayRecord && (
+            <a href={`/day/${date}`} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-[12px] text-accent transition-colors hover:border-accent">
+              view live →
+            </a>
+          )}
+          <a href={previewHref} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink">
+            preview →
+          </a>
           {daysList.some((d) => d.date === date) && (
             <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
           )}
-          <TextInput type="date" value={date} onChange={(e) => selectDate(e.target.value)} className="w-40" />
+          <TextInput type="date" value={date} onChange={(e) => selectDate(e.target.value)} className="h-9 w-40" />
+          <Button size="sm" onClick={() => save(false)} disabled={saving}>{saving ? 'saving…' : 'save'}</Button>
+          <Button size="sm" variant="primary" onClick={() => save(true)} disabled={saving}>save &amp; rebuild</Button>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[210px_1fr]">
-        <aside className="panel max-h-[80vh] overflow-y-auto">
-          <div className="sticky top-0 border-b border-line bg-panel px-3 py-2 text-[11px] uppercase tracking-widest text-dim">
+        <aside className="panel self-start max-h-[80vh] overflow-y-auto">
+          <div className="sticky top-0 z-10 border-b border-line bg-panel px-3 py-2 text-[11px] uppercase tracking-widest text-dim">
             {daysList.length} days
           </div>
           <div className="flex items-center justify-between border-b border-line/60 px-2 py-1.5 text-[12px]">
-            <button disabled={!prevDay} onClick={() => prevDay && selectDate(prevDay.date)} className="text-dim hover:text-ink disabled:opacity-30">← newer</button>
+            <button disabled={!prevDay} onClick={() => prevDay && selectDate(prevDay.date)} className="h-8 px-1 text-dim hover:text-ink disabled:opacity-30">← newer</button>
             <span className="text-faint">{date}</span>
-            <button disabled={!nextDay} onClick={() => nextDay && selectDate(nextDay.date)} className="text-dim hover:text-ink disabled:opacity-30">older →</button>
+            <button disabled={!nextDay} onClick={() => nextDay && selectDate(nextDay.date)} className="h-8 px-1 text-dim hover:text-ink disabled:opacity-30">older →</button>
           </div>
-          {daysList.map((d) => (
-            <button
-              key={d.file}
-              onClick={() => selectDate(d.date)}
-              className={`block w-full border-b border-line/60 px-3 py-2 text-left text-[12px] transition-colors hover:bg-raise ${d.date === date ? 'bg-raise text-ink' : 'text-dim'}`}
-            >
-              <div className="flex items-center justify-between">
-                <span>{d.date}</span>
-                {d.mood && <span className="text-faint">mood {d.mood}</span>}
-              </div>
-              <div className="text-[11px] text-faint">{d.trades} trades</div>
-            </button>
-          ))}
-          {daysList.length === 0 && <div className="px-3 py-6 text-[12px] text-faint">no days yet</div>}
+
+          <div className="border-b border-line/60 p-2">
+            <div className="grid grid-cols-7 gap-0.5 text-center text-[9px] text-faint">
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((l, i) => <div key={i}>{l}</div>)}
+            </div>
+            <div className="mt-0.5 grid grid-cols-7 gap-0.5">
+              {calWeeks.flat().map((c, i) =>
+                c.blank ? (
+                  <div key={i} className="h-3.5" />
+                ) : (
+                  <button
+                    key={i}
+                    onClick={() => selectDate(c.date)}
+                    title={c.date}
+                    className={`flex h-3.5 items-center justify-center text-[8px] leading-none ${
+                      c.isToday
+                        ? 'border border-accent text-accent'
+                        : c.hasData
+                          ? 'bg-accent/40 text-bg'
+                          : 'bg-raise text-faint'
+                    }`}
+                  >
+                    {c.day}
+                  </button>
+                ),
+              )}
+            </div>
+          </div>
+
+          <div className="border-b border-line/60 px-1 py-1">
+            {daysList.slice(0, 14).map((d) => (
+              <button
+                key={d.file}
+                onClick={() => selectDate(d.date)}
+                className={`flex w-full items-center justify-between px-2 py-1.5 text-left text-[11px] transition-colors hover:bg-raise ${d.date === date ? 'bg-raise text-ink' : 'text-dim'}`}
+              >
+                <span>{d.date.slice(5)}</span>
+                {d.trades > 0 && <span className="text-faint">{d.trades}t</span>}
+              </button>
+            ))}
+            {daysList.length === 0 && <div className="px-3 py-4 text-[12px] text-faint">no days yet</div>}
+          </div>
         </aside>
 
         <div className="space-y-6">
@@ -518,261 +670,293 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
           ) : (
             <>
               {/* ---------- CAPTURE ---------- */}
-              <Card title="capture — paste everything, AI builds the day">
-                <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-                  <TextArea
-                    rows={2}
-                    placeholder="free text: what happened, how you felt, the trades… or just paste screenshots."
-                    value={dayText}
-                    onChange={(e) => { setDayText(e.target.value); markDirty() }}
-                  />
-                  <div className="flex items-end">
-                    <Button onClick={() => runStructure()} disabled={dayBusy || (!dayText.trim() && dayImagesRef.current.length === 0)}>
-                      {dayBusy ? 'reading everything…' : 'build this day →'}
-                    </Button>
+              <div id="sec-capture" className="scroll-mt-20">
+                <Card title="capture — paste everything, AI builds the day">
+                  <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                    <TextArea
+                      rows={2}
+                      placeholder="free text: what happened, how you felt, the trades… or just paste screenshots."
+                      value={dayText}
+                      onChange={(e) => { setDayText(e.target.value); markDirty() }}
+                    />
+                    <div className="flex items-end">
+                      <Button onClick={() => runStructure()} disabled={dayBusy || (!dayText.trim() && dayImagesRef.current.length === 0)}>
+                        {dayBusy ? 'reading everything…' : 'build this day →'}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-3">
-                  <ImageDropZone onFiles={addDayImages} label="paste screenshots — trade charts, screen-time, notes. the AI sorts them." />
-                </div>
-                {dayImages.length > 0 && (
-                  <div className="mt-3 grid grid-cols-4 gap-3 md:grid-cols-6">
-                    {dayImages.map((img) => (
-                      <div key={img.id} className="relative border border-line bg-bg">
-                        <img src={img.url} alt="" className="h-16 w-full object-cover" />
-                        <button onClick={() => removeDayImage(img.id)} className="absolute right-1 top-1 border border-line bg-bg px-1.5 text-[11px] text-down hover:border-down">×</button>
-                      </div>
-                    ))}
+                  <div className="mt-3">
+                    <ImageDropZone onFiles={addDayImages} label="paste screenshots — trade charts, screen-time, notes. the AI sorts them." />
                   </div>
-                )}
-              </Card>
+                  {dayImages.length > 0 && (
+                    <div className="mt-3 grid grid-cols-4 gap-3 md:grid-cols-6">
+                      {dayImages.map((img) => (
+                        <div key={img.id} className="relative border border-line bg-bg">
+                          <img src={img.url} alt="" className="h-16 w-full object-cover" />
+                          <button onClick={() => removeDayImage(img.id)} className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center border border-line bg-bg text-[11px] text-down hover:border-down">×</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              </div>
 
-              {/* ---------- DAY SUMMARY (evidence-first) ---------- */}
-              <Card title={`day — ${date}`}>
-                <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-                  {/* mood */}
-                  <div className="border-b border-line/60 pb-3">
-                    <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">mood</div>
-                    {editing === 'mood' ? (
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((m) => (
-                            <button key={m} onClick={() => { setMood(String(m)); setEditing(null) }}
-                              className={`h-8 w-8 border text-[13px] ${mood === String(m) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim'}`}>{m}</button>
+              {/* ---------- DAY SUMMARY (evidence-first, direct-click edit) ---------- */}
+              <div id="sec-day" className="scroll-mt-20">
+                <Card title={`day — ${date}`}>
+                  <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
+                    {/* mood */}
+                    <div className="border-b border-line/60 pb-3">
+                      <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">mood</div>
+                      {editing === 'mood' ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map((m) => (
+                              <button key={m} onClick={() => { setMood(String(m)); setEditing(null); markDirty() }}
+                                className={`h-10 w-10 border text-[13px] ${mood === String(m) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim'}`}>{m}</button>
+                            ))}
+                          </div>
+                          <Button size="sm" onClick={() => setEditing(null)}>done</Button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setEditing('mood')}
+                          className={`text-left text-[15px] text-ink ${editableHint}`}
+                          title="click to correct"
+                        >
+                          {mood ? `${mood}/5` : '—'}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* sleep */}
+                    <div className="border-b border-line/60 pb-3">
+                      <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">sleep</div>
+                      {editing === 'sleep' ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <NumInput value={sleepHours} onChange={(e) => setSleepHours(e.target.value)} className="h-9 w-24" placeholder="7.5" />
+                          <NumInput value={sleepQuality} onChange={(e) => setSleepQuality(e.target.value)} className="h-9 w-20" placeholder="quality" />
+                          <Button size="sm" onClick={() => { setEditing(null); markDirty() }}>done</Button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setEditing('sleep')}
+                          className={`text-left text-[15px] text-ink ${editableHint}`}
+                          title="click to correct"
+                        >
+                          {sleepHours ? `${sleepHours}h` : '—'}{sleepQuality ? ` · ${sleepQuality}/5` : ''}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* screen-time — values come from the screenshot */}
+                    <div className="md:col-span-2 border-b border-line/60 pb-3">
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="text-[11px] uppercase tracking-widest text-dim">screen time</span>
+                        <div className="flex items-center gap-2">
+                          <label className="flex h-8 cursor-pointer items-center text-[11px] text-accent hover:text-ink">
+                            {screenBusy ? 'reading…' : '＋ paste screenshot'}
+                            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { onDeviceScreens(Array.from(e.target.files ?? [])); e.target.value = '' }} />
+                          </label>
+                          {editing === 'screen' && <Button size="sm" onClick={() => { setEditing(null); markDirty() }}>done</Button>}
+                        </div>
+                      </div>
+                      {editing === 'screen' ? (
+                        <div className="grid grid-cols-3 gap-3">
+                          <Field label="iphone (h)"><NumInput value={iphoneHours} onChange={(e) => setIphoneHours(e.target.value)} /></Field>
+                          <Field label="social (h)"><NumInput value={socialHours} onChange={(e) => setSocialHours(e.target.value)} /></Field>
+                          <Field label="mac (h)"><NumInput value={macHours} onChange={(e) => setMacHours(e.target.value)} /></Field>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setEditing('screen')}
+                          className={`text-left text-[13px] text-soft ${editableHint}`}
+                          title="click to correct"
+                        >
+                          <span>iphone <span className="text-ink">{iphoneHours || '—'}h</span></span>
+                          <span className="mx-2 text-faint">·</span>
+                          <span>social <span className="text-ink">{socialHours || '—'}h</span></span>
+                          <span className="mx-2 text-faint">·</span>
+                          <span>mac <span className="text-ink">{macHours || '—'}h</span></span>
+                          {deviceNotes && <span className="text-dim"> — {deviceNotes}</span>}
+                        </button>
+                      )}
+                      {deviceScreens.length > 0 && (
+                        <div className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-6">
+                          {deviceScreens.map((s) => (
+                            <div key={s} className="relative border border-line bg-bg">
+                              <img src={s} alt="" className="h-14 w-full object-cover" />
+                              <button onClick={() => setDeviceScreens((x) => x.filter((y) => y !== s))} className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center border border-line bg-bg text-[10px] text-down hover:border-down">×</button>
+                            </div>
                           ))}
                         </div>
-                        <Button size="sm" onClick={() => setEditing(null)}>done</Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-[15px] text-ink">
-                        {mood ? `${mood}/5` : '—'}
-                        <button onClick={() => setEditing('mood')} className="text-[11px] text-faint hover:text-accent" title="correct">✎</button>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
 
-                  {/* sleep */}
-                  <div className="border-b border-line/60 pb-3">
-                    <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">sleep</div>
-                    {editing === 'sleep' ? (
-                      <div className="flex items-center gap-2">
-                        <NumInput value={sleepHours} onChange={(e) => setSleepHours(e.target.value)} className="w-24" placeholder="7.5" />
-                        <NumInput value={sleepQuality} onChange={(e) => setSleepQuality(e.target.value)} className="w-20" placeholder="quality" />
-                        <Button size="sm" onClick={() => setEditing(null)}>done</Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-[15px] text-ink">
-                        {sleepHours ? `${sleepHours}h` : '—'}{sleepQuality ? ` · ${sleepQuality}/5` : ''}
-                        <button onClick={() => setEditing('sleep')} className="text-[11px] text-faint hover:text-accent">✎</button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* screen-time — values come from the screenshot */}
-                  <div className="md:col-span-2 border-b border-line/60 pb-3">
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="text-[11px] uppercase tracking-widest text-dim">screen time</span>
-                      <div className="flex items-center gap-2">
-                        <label className="cursor-pointer text-[11px] text-accent hover:text-ink">
-                          {screenBusy ? 'reading…' : '＋ paste screenshot'}
-                          <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { onDeviceScreens(Array.from(e.target.files ?? [])); e.target.value = '' }} />
-                        </label>
-                        {editing === 'screen' && <Button size="sm" onClick={() => setEditing(null)}>done</Button>}
+                    {/* habits */}
+                    <div className="md:col-span-2">
+                      <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">habits</div>
+                      <div className="flex flex-wrap gap-2">
+                        {habitDefs.map((h) => {
+                          const done = habits[h.slug] === true
+                          return (
+                            <button
+                              key={h.slug}
+                              onClick={() => { setHabits((x) => ({ ...x, [h.slug]: !done })); markDirty() }}
+                              className={`flex h-9 items-center border px-2.5 text-[12px] transition-colors ${done ? 'border-transparent text-bg' : 'border-line2 text-dim hover:border-accent'}`}
+                              style={done ? { background: h.color } : {}}
+                            >
+                              {h.emoji ?? '·'} {h.name}
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
-                    {editing === 'screen' ? (
-                      <div className="grid grid-cols-3 gap-3">
-                        <Field label="iphone (h)"><NumInput value={iphoneHours} onChange={(e) => setIphoneHours(e.target.value)} /></Field>
-                        <Field label="social (h)"><NumInput value={socialHours} onChange={(e) => setSocialHours(e.target.value)} /></Field>
-                        <Field label="mac (h)"><NumInput value={macHours} onChange={(e) => setMacHours(e.target.value)} /></Field>
-                      </div>
-                    ) : (
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-soft">
-                        <span>iphone <span className="text-ink">{iphoneHours || '—'}h</span></span>
-                        <span>social <span className="text-ink">{socialHours || '—'}h</span></span>
-                        <span>mac <span className="text-ink">{macHours || '—'}h</span></span>
-                        {deviceNotes && <span className="text-dim">— {deviceNotes}</span>}
-                        <button onClick={() => setEditing('screen')} className="text-[11px] text-faint hover:text-accent">✎</button>
-                      </div>
-                    )}
-                    {deviceScreens.length > 0 && (
-                      <div className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-6">
-                        {deviceScreens.map((s) => (
-                          <div key={s} className="relative border border-line bg-bg">
-                            <img src={s} alt="" className="h-14 w-full object-cover" />
-                            <button onClick={() => setDeviceScreens((x) => x.filter((y) => y !== s))} className="absolute right-0.5 top-0.5 border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
 
-                  {/* habits */}
-                  <div className="md:col-span-2">
-                    <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">habits</div>
-                    <div className="flex flex-wrap gap-2">
-                      {habitDefs.map((h) => {
-                        const done = habits[h.slug] === true
+                  {/* trades */}
+                  <div id="sec-trades" className="mt-5 scroll-mt-20">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[11px] uppercase tracking-widest text-dim">trades ({trades.length})</span>
+                      <div className="flex items-center gap-2">
+                        {trades.length > 0 && (
+                          <Button size="sm" onClick={() => { setExpandAll((e) => !e); setExpandedTrade(null) }}>
+                            {expandAll ? 'collapse all' : 'expand all'}
+                          </Button>
+                        )}
+                        <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); setExpandAll(false); setExpandedTrade(trades.length); markDirty() }}>+ add trade</Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {trades.map((t, ti) => {
+                        const r = tradeR(t)
+                        const open = expandAll || expandedTrade === ti
                         return (
-                          <button
-                            key={h.slug}
-                            onClick={() => { setHabits((x) => ({ ...x, [h.slug]: !done })); markDirty() }}
-                            className={`border px-2.5 py-1 text-[12px] transition-colors ${done ? 'border-transparent text-bg' : 'border-line2 text-dim hover:border-accent'}`}
-                            style={done ? { background: h.color } : {}}
-                          >
-                            {h.emoji ?? '·'} {h.name}
-                          </button>
+                          <div key={ti} className="border border-line bg-bg">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
+                              <button
+                                onClick={() => {
+                                  if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
+                                  else setExpandedTrade(open ? null : ti)
+                                }}
+                                className="flex h-9 flex-1 items-baseline gap-3 text-left"
+                              >
+                                <span className="text-[12px] text-faint">{open ? '▾' : '▸'}</span>
+                                <span className="text-[14px] text-ink">
+                                  {t.direction === 'long' ? '▲' : '▼'} {t.market || 'MNQ'}
+                                </span>
+                                <span className="text-[12px] text-dim">{t.setup || '—'} · {t.session || '—'}</span>
+                              </button>
+                              <span className={`text-[13px] ${r && r.R > 0 ? 'text-up' : r && r.R < 0 ? 'text-down' : 'text-dim'}`}>
+                                {r ? `${r.R > 0 ? '+' : ''}${r.R.toFixed(2)}R` : '—'}
+                              </span>
+                              <span className={`text-[12px] ${r && r.pts >= 0 ? 'text-up' : r ? 'text-down' : 'text-dim'}`}>
+                                {r ? `${r.pts >= 0 ? '+' : ''}${r.pts}pts` : ''}
+                              </span>
+                              {t.executions.filter((e) => e.account).length > 0 && (
+                                <span className="text-[11px] text-dim">{t.executions.filter((e) => e.account).map((e) => accountLabel(e.account)).join(' · ')}</span>
+                              )}
+                              {t.screenshots[0] && <img src={t.screenshots[0]} alt="" className="h-8 w-12 border border-line object-cover" />}
+                              <Button size="sm" variant="danger" onClick={() => setTrades((ts) => ts.filter((_, j) => j !== ti))}>×</Button>
+                            </div>
+                            {open && (
+                              <div className="border-t border-line p-3">
+                                <div className="grid gap-2 md:grid-cols-5">
+                                  <Field label="market"><TextInput value={t.market} onChange={(e) => setTrade(ti, { market: e.target.value })} /></Field>
+                                  <Field label="session">
+                                    <Select value={t.session} onChange={(e) => setTrade(ti, { session: e.target.value })}>
+                                      <option value="">—</option>
+                                      {['asia', 'london', 'ny-am', 'ny-pm', 'ny'].map((s) => <option key={s} value={s}>{s}</option>)}
+                                    </Select>
+                                  </Field>
+                                  <Field label="direction">
+                                    <Select value={t.direction} onChange={(e) => setTrade(ti, { direction: e.target.value as 'long' | 'short' })}>
+                                      <option value="long">long</option><option value="short">short</option>
+                                    </Select>
+                                  </Field>
+                                  <Field label="setup"><TextInput value={t.setup} onChange={(e) => setTrade(ti, { setup: e.target.value })} /></Field>
+                                  <Field label="confidence"><NumInput value={t.confidence} onChange={(e) => setTrade(ti, { confidence: e.target.value })} /></Field>
+                                </div>
+                                <div className="mt-2 grid gap-2 md:grid-cols-5">
+                                  <Field label="entry"><NumInput value={t.entry} onChange={(e) => setTrade(ti, { entry: e.target.value })} /></Field>
+                                  <Field label="stop"><NumInput value={t.stop} onChange={(e) => setTrade(ti, { stop: e.target.value })} /></Field>
+                                  <Field label="target"><NumInput value={t.target} onChange={(e) => setTrade(ti, { target: e.target.value })} /></Field>
+                                  <Field label="exit"><NumInput value={t.exit} onChange={(e) => setTrade(ti, { exit: e.target.value })} /></Field>
+                                  <Field label="points"><NumInput value={t.points} onChange={(e) => setTrade(ti, { points: e.target.value })} /></Field>
+                                </div>
+                                <Field label="note" className="mt-2">
+                                  <TextInput value={t.note} onChange={(e) => setTrade(ti, { note: e.target.value })} placeholder="what was the story" />
+                                </Field>
+                                <div className="mt-3">
+                                  <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">executions (accounts)</div>
+                                  <div className="space-y-2">
+                                    {t.executions.map((e, ei) => (
+                                      <div key={ei} className="flex items-center gap-2">
+                                        <Select value={e.account} onChange={(ev) => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.map((y, k) => k === ei ? { ...y, account: ev.target.value } : y) } : x))} className="flex-1">
+                                          <option value="">— account —</option>
+                                          {accounts.map((a) => <option key={a.id} value={a.id}>{a.firm} {a.sizeLabel}</option>)}
+                                        </Select>
+                                        <TextInput value={e.size} onChange={(ev) => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.map((y, k) => k === ei ? { ...y, size: ev.target.value } : y) } : x))} className="w-20" placeholder="1" />
+                                        <Button size="sm" variant="danger" onClick={() => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.filter((_, k) => k !== ei) } : x))}>×</Button>
+                                      </div>
+                                    ))}
+                                    <Button size="sm" onClick={() => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: [...x.executions, { account: '', size: '' }] } : x))}>+ execution</Button>
+                                  </div>
+                                </div>
+                                <div className="mt-3 flex items-center gap-3">
+                                  <ImageDropZone onFiles={(fs) => onTradeScreens(ti, fs)} label="paste this trade's chart →" className="!py-2" />
+                                  <div className="grid flex-1 grid-cols-4 gap-2">
+                                    {t.screenshots.map((s) => (
+                                      <div key={s} className="relative border border-line bg-bg">
+                                        <img src={s} alt="" className="h-14 w-full object-cover" />
+                                        <button onClick={() => setTrade(ti, { screenshots: t.screenshots.filter((y) => y !== s) })} className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         )
                       })}
+                      {trades.length === 0 && <p className="text-[12px] text-faint">no trades — paste charts above to build the day.</p>}
                     </div>
                   </div>
-                </div>
-
-                {/* trades */}
-                <div className="mt-5">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-[11px] uppercase tracking-widest text-dim">trades ({trades.length})</span>
-                    <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); setExpandedTrade(trades.length); markDirty() }}>+ add trade</Button>
-                  </div>
-                  <div className="space-y-2">
-                    {trades.map((t, ti) => {
-                      const r = tradeR(t)
-                      const open = expandedTrade === ti
-                      return (
-                        <div key={ti} className="border border-line bg-bg">
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
-                            <button
-                              onClick={() => { setExpandedTrade(open ? null : ti); markDirty() }}
-                              className="flex flex-1 items-baseline gap-3 text-left"
-                            >
-                              <span className="text-[12px] text-faint">{open ? '▾' : '▸'}</span>
-                              <span className="text-[14px] text-ink">
-                                {t.direction === 'long' ? '▲' : '▼'} {t.market || 'MNQ'}
-                              </span>
-                              <span className="text-[12px] text-dim">{t.setup || '—'} · {t.session || '—'}</span>
-                            </button>
-                            <span className={`text-[13px] ${r && r.R > 0 ? 'text-up' : r && r.R < 0 ? 'text-down' : 'text-dim'}`}>
-                              {r ? `${r.R > 0 ? '+' : ''}${r.R.toFixed(2)}R` : '—'}
-                            </span>
-                            <span className={`text-[12px] ${r && r.pts >= 0 ? 'text-up' : r ? 'text-down' : 'text-dim'}`}>
-                              {r ? `${r.pts >= 0 ? '+' : ''}${r.pts}pts` : ''}
-                            </span>
-                            {t.executions.filter((e) => e.account).length > 0 && (
-                              <span className="text-[11px] text-dim">{t.executions.filter((e) => e.account).map((e) => accountLabel(e.account)).join(' · ')}</span>
-                            )}
-                            {t.screenshots[0] && <img src={t.screenshots[0]} alt="" className="h-8 w-12 border border-line object-cover" />}
-                            <Button size="sm" variant="danger" onClick={() => setTrades((ts) => ts.filter((_, j) => j !== ti))}>×</Button>
-                          </div>
-                          {open && (
-                            <div className="border-t border-line p-3">
-                              <div className="grid gap-2 md:grid-cols-5">
-                                <Field label="market"><TextInput value={t.market} onChange={(e) => setTrade(ti, { market: e.target.value })} /></Field>
-                                <Field label="session">
-                                  <Select value={t.session} onChange={(e) => setTrade(ti, { session: e.target.value })}>
-                                    <option value="">—</option>
-                                    {['asia', 'london', 'ny-am', 'ny-pm', 'ny'].map((s) => <option key={s} value={s}>{s}</option>)}
-                                  </Select>
-                                </Field>
-                                <Field label="direction">
-                                  <Select value={t.direction} onChange={(e) => setTrade(ti, { direction: e.target.value as 'long' | 'short' })}>
-                                    <option value="long">long</option><option value="short">short</option>
-                                  </Select>
-                                </Field>
-                                <Field label="setup"><TextInput value={t.setup} onChange={(e) => setTrade(ti, { setup: e.target.value })} /></Field>
-                                <Field label="confidence"><NumInput value={t.confidence} onChange={(e) => setTrade(ti, { confidence: e.target.value })} /></Field>
-                              </div>
-                              <div className="mt-2 grid gap-2 md:grid-cols-5">
-                                <Field label="entry"><NumInput value={t.entry} onChange={(e) => setTrade(ti, { entry: e.target.value })} /></Field>
-                                <Field label="stop"><NumInput value={t.stop} onChange={(e) => setTrade(ti, { stop: e.target.value })} /></Field>
-                                <Field label="target"><NumInput value={t.target} onChange={(e) => setTrade(ti, { target: e.target.value })} /></Field>
-                                <Field label="exit"><NumInput value={t.exit} onChange={(e) => setTrade(ti, { exit: e.target.value })} /></Field>
-                                <Field label="points"><NumInput value={t.points} onChange={(e) => setTrade(ti, { points: e.target.value })} /></Field>
-                              </div>
-                              <Field label="note" className="mt-2">
-                                <TextInput value={t.note} onChange={(e) => setTrade(ti, { note: e.target.value })} placeholder="what was the story" />
-                              </Field>
-                              <div className="mt-3">
-                                <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">executions (accounts)</div>
-                                <div className="space-y-2">
-                                  {t.executions.map((e, ei) => (
-                                    <div key={ei} className="flex items-center gap-2">
-                                      <Select value={e.account} onChange={(ev) => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.map((y, k) => k === ei ? { ...y, account: ev.target.value } : y) } : x))} className="flex-1">
-                                        <option value="">— account —</option>
-                                        {accounts.map((a) => <option key={a.id} value={a.id}>{a.firm} {a.sizeLabel}</option>)}
-                                      </Select>
-                                      <TextInput value={e.size} onChange={(ev) => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.map((y, k) => k === ei ? { ...y, size: ev.target.value } : y) } : x))} className="w-20" placeholder="1" />
-                                      <Button size="sm" variant="danger" onClick={() => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.filter((_, k) => k !== ei) } : x))}>×</Button>
-                                    </div>
-                                  ))}
-                                  <Button size="sm" onClick={() => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: [...x.executions, { account: '', size: '' }] } : x))}>+ execution</Button>
-                                </div>
-                              </div>
-                              <div className="mt-3 flex items-center gap-3">
-                                <ImageDropZone onFiles={(fs) => onTradeScreens(ti, fs)} label="paste this trade's chart →" className="!py-2" />
-                                <div className="grid flex-1 grid-cols-4 gap-2">
-                                  {t.screenshots.map((s) => (
-                                    <div key={s} className="relative border border-line bg-bg">
-                                      <img src={s} alt="" className="h-14 w-full object-cover" />
-                                      <button onClick={() => setTrade(ti, { screenshots: t.screenshots.filter((y) => y !== s) })} className="absolute right-0.5 top-0.5 border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                    {trades.length === 0 && <p className="text-[12px] text-faint">no trades — paste charts above to build the day.</p>}
-                  </div>
-                </div>
-              </Card>
+                </Card>
+              </div>
 
               {/* ---------- REFLECTION ---------- */}
-              <Card
-                title="reflection"
-                actions={
-                  <Button size="sm" variant="primary" onClick={runDraft} disabled={draftBusy}>
-                    {draftBusy ? 'drafting…' : 'AI draft from today'}
-                  </Button>
-                }
-              >
-                <div className="grid gap-3 md:grid-cols-3">
-                  <Field label="title"><TextInput value={title} onChange={(e) => { setTitle(e.target.value); markDirty() }} placeholder="AI suggests" /></Field>
-                  <Field label="summary"><TextInput value={summary} onChange={(e) => { setSummary(e.target.value); markDirty() }} placeholder="one line" /></Field>
-                  <Field label="tags (comma)"><TextInput value={tags} onChange={(e) => { setTags(e.target.value); markDirty() }} placeholder="discipline, revenge" /></Field>
-                </div>
-                <div className="mt-3">
-                  <JournalEditor key={date + (content ? '-c' : '-e')} initialContent={content} onChange={(md) => { setContent(md); markDirty() }} />
-                </div>
-                {featuredImage && (
-                  <div className="mt-3 flex items-center gap-3">
-                    <span className="text-[11px] uppercase tracking-widest text-dim">featured</span>
-                    <img src={featuredImage} alt="" className="h-12 w-20 border border-line object-cover" />
-                    <TextInput value={featuredImage} onChange={(e) => { setFeaturedImage(e.target.value); markDirty() }} className="flex-1" />
+              <div id="sec-reflection" className="scroll-mt-20">
+                <Card
+                  title="reflection"
+                  actions={
+                    <div className="flex items-center gap-2">
+                      <a href={previewHref} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink">
+                        preview day →
+                      </a>
+                      <Button size="sm" variant="primary" onClick={runDraft} disabled={draftBusy}>
+                        {draftBusy ? 'drafting…' : 'AI draft from today'}
+                      </Button>
+                    </div>
+                  }
+                >
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <Field label="title"><TextInput value={title} onChange={(e) => { setTitle(e.target.value); markDirty() }} placeholder="AI suggests" /></Field>
+                    <Field label="summary"><TextInput value={summary} onChange={(e) => { setSummary(e.target.value); markDirty() }} placeholder="one line" /></Field>
+                    <Field label="tags (comma)"><TextInput value={tags} onChange={(e) => { setTags(e.target.value); markDirty() }} placeholder="discipline, revenge" /></Field>
                   </div>
-                )}
-              </Card>
+                  <div className="mt-3">
+                    <JournalEditor key={date + (content ? '-c' : '-e')} initialContent={content} onChange={(md) => { setContent(md); markDirty() }} />
+                  </div>
+                  {featuredImage && (
+                    <div className="mt-3 flex items-center gap-3">
+                      <span className="text-[11px] uppercase tracking-widest text-dim">featured</span>
+                      <img src={featuredImage} alt="" className="h-12 w-20 border border-line object-cover" />
+                      <TextInput value={featuredImage} onChange={(e) => { setFeaturedImage(e.target.value); markDirty() }} className="flex-1" />
+                    </div>
+                  )}
+                </Card>
+              </div>
 
               {/* ---------- FOOTER ---------- */}
               <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-[13px]">

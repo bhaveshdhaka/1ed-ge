@@ -21,7 +21,6 @@ const dayR = (day?.data.trades ?? []).reduce((s, t) => {
   const risk = t.riskPoints ?? (t.stop !== undefined ? Math.abs(t.entry - t.stop) : 1)
   return s + (risk > 0 ? t.points / risk : 0)
 }, 0)
-const dayPts = (day?.data.trades ?? []).reduce((s, t) => s + t.points, 0)
 
 const SITE = 'https://1ed.ge'
 const jsonLd = {

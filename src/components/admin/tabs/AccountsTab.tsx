@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, todayStr, notifyChanged } from '../api'
-import { Card, Button, Field, TextInput, NumInput, Select, inputCls } from '../ui'
+import { Card, Button, Field, TextInput, NumInput, Select } from '../ui'
 
 interface AccountRow {
   file?: string
@@ -24,12 +24,15 @@ interface PayoutRow {
 }
 
 const STAGES = ['eval', 'buffer', 'payout', 'failed', 'paused']
+const FLOW = ['eval', 'buffer', 'payout']
+const TERMINAL = ['failed', 'paused']
 
 export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => void }) {
   const [accounts, setAccounts] = useState<AccountRow[]>([])
   const [payouts, setPayouts] = useState<PayoutRow[]>([])
   const [drafts, setDrafts] = useState<Record<string, AccountRow>>({})
   const [adding, setAdding] = useState(false)
+  const [newAcc, setNewAcc] = useState({ firm: 'Lucid', size: '50000', id: '' })
   const [payout, setPayout] = useState({ date: todayStr(), account: '', amount: '', status: 'paid', note: '' })
 
   const load = useCallback(async () => {
@@ -71,10 +74,9 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
   }
 
   const addAccount = async () => {
-    const firm = prompt('firm?')?.trim() || 'Lucid'
-    const size = parseInt(prompt('account size? (e.g. 50000)') || '50000', 10)
-    const id = prompt('id? (e.g. lucid-50k-b)')?.trim()
-    if (!id) return notify('id required', false)
+    const id = newAcc.id.trim()
+    if (!id) return notify('id required (e.g. lucid-50k-b)', false)
+    const size = parseInt(newAcc.size || '50000', 10) || 50000
     const drawdownLimit = size >= 50000 ? 2000 : 1000
     try {
       await api('/api/admin/accounts', {
@@ -82,7 +84,7 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
         body: {
           action: 'save',
           id,
-          firm,
+          firm: newAcc.firm.trim() || 'Lucid',
           size,
           sizeLabel: `${Math.round(size / 1000)}k`,
           drawdownLimit,
@@ -97,6 +99,7 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
       notify(e instanceof Error ? e.message : 'create failed', false)
     }
     setAdding(false)
+    setNewAcc({ firm: 'Lucid', size: '50000', id: '' })
   }
 
   const setStage = (a: AccountRow, stage: string) => {
@@ -147,15 +150,21 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
     }
   }
 
-  const stageColor: Record<string, string> = { eval: 'text-warn', buffer: 'text-accent', payout: 'text-up', failed: 'text-down', paused: 'text-dim' }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl">/ accounts</h1>
-        <Button size="sm" onClick={() => (adding ? addAccount() : setAdding(true))}>
-          {adding ? 'confirm new account' : '+ new account'}
-        </Button>
+        {adding ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <TextInput value={newAcc.firm} onChange={(e) => setNewAcc((a) => ({ ...a, firm: e.target.value }))} placeholder="firm" className="w-28" />
+            <TextInput value={newAcc.size} onChange={(e) => setNewAcc((a) => ({ ...a, size: e.target.value }))} placeholder="size $" className="w-28" />
+            <TextInput value={newAcc.id} onChange={(e) => setNewAcc((a) => ({ ...a, id: e.target.value }))} placeholder="id (lucid-50k-b)" className="w-40" />
+            <Button size="sm" variant="primary" onClick={addAccount}>create</Button>
+            <Button size="sm" onClick={() => { setAdding(false); setNewAcc({ firm: 'Lucid', size: '50000', id: '' }) }}>cancel</Button>
+          </div>
+        ) : (
+          <Button size="sm" onClick={() => setAdding(true)}>+ new account</Button>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -177,21 +186,58 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
               <Field label="size label"><TextInput value={draft(a).sizeLabel} onChange={(e) => setField(a, { sizeLabel: e.target.value })} /></Field>
               <Field label="dd limit ($)"><NumInput value={String(draft(a).drawdownLimit)} onChange={(e) => setField(a, { drawdownLimit: parseFloat(e.target.value || '0') })} /></Field>
               <Field label="risk / trade ($)"><NumInput value={String(draft(a).riskPerTrade)} onChange={(e) => setField(a, { riskPerTrade: parseFloat(e.target.value || '0') })} /></Field>
-              <Field label="current stage">
-                <Select value={draft(a).stage} onChange={(e) => setStage(a, e.target.value)}>
-                  {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </Select>
-              </Field>
             </div>
+
+            {/* lifecycle stepper */}
+            <div className="mt-3">
+              <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">stage</div>
+              <div className="flex items-center gap-1">
+                {FLOW.map((s, i) => (
+                  <div key={s} className="flex items-center gap-1">
+                    <button
+                      onClick={() => setStage(a, s)}
+                      className={`flex h-9 items-center border px-2.5 text-[12px] transition-colors ${
+                        draft(a).stage === s
+                          ? 'border-accent bg-accent/15 text-accent'
+                          : 'border-line2 text-dim hover:border-accent hover:text-ink'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                    {i < FLOW.length - 1 && <span className="text-faint">→</span>}
+                  </div>
+                ))}
+                <span className="mx-1 text-faint">|</span>
+                {TERMINAL.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setStage(a, s)}
+                    className={`flex h-9 items-center border px-2.5 text-[12px] transition-colors ${
+                      draft(a).stage === s
+                        ? s === 'failed'
+                          ? 'border-down bg-down/15 text-down'
+                          : 'border-line2 bg-raise text-soft'
+                        : 'border-line2 text-faint hover:border-down hover:text-down'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1 text-[11px] text-faint">clicking a stage records it in the history with today's date</p>
+            </div>
+
             <Field label="note" className="mt-3">
               <TextInput value={draft(a).note ?? ''} onChange={(e) => setField(a, { note: e.target.value })} placeholder="optional" />
             </Field>
 
-            <div className="mt-4">
-              <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">stage history</div>
-              <div className="space-y-2">
+            <details className="mt-4">
+              <summary className="cursor-pointer text-[11px] uppercase tracking-widest text-dim">
+                stage history ({draft(a).stages.length}) ▾
+              </summary>
+              <div className="mt-2 space-y-2">
                 {draft(a).stages.map((s, i) => (
-                  <div key={i} className="flex items-center gap-2">
+                  <div key={i} className="flex flex-wrap items-center gap-2">
                     <Select value={s.stage} onChange={(e) => setStageField(a, i, { stage: e.target.value })} className="w-28">
                       {STAGES.map((x) => <option key={x} value={x}>{x}</option>)}
                     </Select>
@@ -202,11 +248,10 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
                   </div>
                 ))}
               </div>
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-2">
                 <Button size="sm" onClick={() => setField(a, { stages: [...draft(a).stages, { stage: 'buffer', from: todayStr() }] })}>+ stage</Button>
-                <span className="text-[11px] text-faint">changing stage adds an entry automatically</span>
               </div>
-            </div>
+            </details>
           </Card>
         ))}
         {accounts.length === 0 && <p className="text-[13px] text-faint">no accounts yet.</p>}

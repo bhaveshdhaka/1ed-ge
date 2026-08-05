@@ -3,16 +3,31 @@ let SECRET = ''
 export function setSecret(s: string) {
   SECRET = s
 }
+export function getSecret(): string {
+  return SECRET
+}
 
 type Listener = () => void
 const listeners = new Set<Listener>()
+const topics = new Map<string, Set<Listener>>()
 export const bus = {
-  on(fn: Listener) {
-    listeners.add(fn)
-    return () => listeners.delete(fn)
+  on(topicOrFn: string | Listener, maybeFn?: Listener) {
+    if (typeof topicOrFn === 'function') {
+      listeners.add(topicOrFn as Listener)
+      return () => listeners.delete(topicOrFn as Listener)
+    }
+    const topic = topicOrFn
+    const set = topics.get(topic) ?? new Set<Listener>()
+    set.add(maybeFn!)
+    topics.set(topic, set)
+    return () => set.delete(maybeFn!)
   },
-  emit() {
-    listeners.forEach((fn) => fn())
+  emit(topic?: string) {
+    if (!topic) {
+      listeners.forEach((fn) => fn())
+      return
+    }
+    topics.get(topic)?.forEach((fn) => fn())
   },
 }
 
@@ -76,10 +91,8 @@ export async function notifyChanged() {
 }
 
 export async function triggerRebuild() {
-  try {
-    await api('/api/admin/rebuild', { method: 'POST' })
-    bus.emit()
-  } catch {}
+  await api('/api/admin/rebuild', { method: 'POST' })
+  bus.emit()
 }
 
 export interface PendingChange {
@@ -95,6 +108,30 @@ export interface RebuildRecord {
   error?: string
 }
 
+export interface BuildState {
+  build: any
+  pending: PendingChange[]
+  rebuilds: RebuildRecord[]
+}
+
 export async function fetchRebuildState() {
-  return api<{ build: any; pending: PendingChange[]; rebuilds: RebuildRecord[] }>('/api/admin/rebuild')
+  return api<BuildState>('/api/admin/rebuild')
+}
+
+/** Poll until a running build finishes. Returns true on success, false on failure. */
+export async function waitForBuild(timeoutMs = 120000): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs
+  for (;;) {
+    try {
+      const st = await fetchRebuildState()
+      if (!st.build?.running) return st.build?.ok === true
+    } catch {}
+    if (Date.now() > deadline) return false
+    await new Promise((r) => setTimeout(r, 2000))
+  }
+}
+
+/** True when the site reflects all saved content (nothing pending / unbuilt). */
+export function isPublished(pending: PendingChange[]): boolean {
+  return pending.length === 0
 }

@@ -28,6 +28,13 @@ function loadAllTranscripts(): { role: 'me' | 'coach'; text: string; when: strin
 
 export const GET: APIRoute = async ({ request }) => {
   if (!authorized(request)) return error('unauthorized', 401)
+  const url = new URL(request.url)
+  if (url.searchParams.get('snapshot')) {
+    const days = listMds('days').map((f) => ({ id: f.replace(/\.md$/, ''), data: readEntry('days', f).data }))
+    const accounts = listMds('accounts').map((f) => ({ id: f.replace(/\.md$/, ''), data: readEntry('accounts', f).data }))
+    const snapshot = buildTrends(days as never, accounts as never)
+    return json({ ok: true, snapshot: trendsForLLM(snapshot) })
+  }
   const sessions = listMds('coach')
     .map((f) => {
       const e = readEntry('coach', f)

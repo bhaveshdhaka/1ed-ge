@@ -40,7 +40,22 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       <span class="text-[12px] text-faint">R = points risked vs points made</span>
     </div>
 
-    <div class="mt-8 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4 lg:grid-cols-6">
+    <div class="sticky top-[76px] z-10 mt-6 -mx-1 border-b border-line bg-bg/95 px-1 py-1 backdrop-blur md:top-[84px]">
+      <div class="flex gap-1 overflow-x-auto text-[12px]">
+        {[
+          ['summary', 'stats'],
+          ['charts', 'charts'],
+          ['accounts', 'accounts'],
+          ['recent trades', 'recent'],
+        ].map(([label, id]) => (
+          <a href={`#${id}`} class="flex h-8 items-center whitespace-nowrap px-2 text-dim transition-colors hover:text-ink">
+            {label}
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <div id="stats" class="mt-8 grid scroll-mt-28 grid-cols-2 gap-px border border-line bg-line md:grid-cols-4 lg:grid-cols-6">
       {cards.map((c) => (
         <div class="bg-bg p-4">
           <div class="text-[10px] uppercase tracking-widest text-dim">{c.label}</div>
@@ -49,7 +64,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       ))}
     </div>
 
-    <div class="mt-10 grid gap-10 lg:grid-cols-2">
+    <div id="charts" class="mt-10 grid scroll-mt-28 gap-10 lg:grid-cols-2">
       <div class="panel p-5">
         <EquityCurve points={s.equityR} color="#4ade80" label="equity curve — cumulative R" />
       </div>
@@ -62,7 +77,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       <RHistogram rs={trades.map((t) => t.R)} />
     </div>
 
-    <h2 class="mt-14 text-lg">/ accounts</h2>
+    <h2 id="accounts" class="mt-14 scroll-mt-28 text-lg">/ accounts</h2>
     <div class="mt-4 overflow-x-auto panel">
       <table class="w-full min-w-[820px] border-collapse">
         <thead>
@@ -111,7 +126,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       </table>
     </div>
 
-    <h2 class="mt-14 text-lg">/ recent trades</h2>
+    <h2 id="recent" class="mt-14 scroll-mt-28 text-lg">/ recent trades</h2>
     <div class="mt-4 overflow-x-auto panel">
       <table class="w-full min-w-[820px] border-collapse">
         <thead>
