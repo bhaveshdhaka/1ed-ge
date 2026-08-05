@@ -119,8 +119,11 @@ export default function AdminApp({ secret }: { secret: string }) {
     <div className="min-h-screen bg-bg">
       <header className="border-b border-line">
         <div className="shell flex flex-wrap items-center justify-between gap-3 py-3 md:py-4">
-          <a href="/" target="_blank" className="flex h-11 items-center text-[15px] font-semibold text-ink">
-            1ed<span className="text-dim">.ge</span>
+          <a href="/" target="_blank" className="group flex h-11 items-center text-[15px] font-semibold">
+            <span className="brand">
+              <span className="brand-one">1</span><span className="brand-word">edge</span>
+              <span className="brand-edge" aria-hidden="true"></span>
+            </span>
             <span className="ml-2 text-[11px] font-normal uppercase tracking-widest text-faint">admin</span>
           </a>
           <nav className="flex flex-wrap items-center gap-1">

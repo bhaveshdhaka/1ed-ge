@@ -33,6 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Logo** — the blinking terminal cursor is replaced by a subtle animated "edge" mark
   (a gradient vertical line that draws in, gently breathes, and glows on hover). No JS.
 - **Favicon** — fun 📈 emoji favicon; PWA icons regenerated from it in full color.
+- **Brand: `1ed.ge` → `1edge`** — the visible wordmark is now **1edge** (no TLD), with a
+  gradient "1", a soft glow, and a gradient edge-line that draws in on load, shimmers
+  subtly, and glows on hover. Applied to nav, admin header, footer, and the OG image.
+  The blinking `▋` cursor is gone from the hero (`$ whoami` → `> the edge is all we need.`)
+  and the tracker.
 - **Contrast** — `--color-dim` (#8a8a92) and `--color-faint` (#7e7e86) brightened to pass
   WCAG AA (axe: 295 → 0 critical/serious violations on public pages).
 - **Tracker page weight** — 284K → ~40K by dropping the per-cell heatmap `<title>`

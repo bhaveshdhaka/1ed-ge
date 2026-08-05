@@ -28,9 +28,9 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>
   <div style="position:absolute;top:40px;left:88px;font-size:26px;color:#5c5c64;letter-spacing:1px">$ whoami</div>
 
   <div style="position:absolute;top:225px;left:88px;font-size:128px;font-weight:700;line-height:1">
-    <span style="color:#7dd3fc">1ed</span><span style="color:#8a8a92">.ge</span>
+    <span style="color:#7dd3fc">1</span><span style="color:#d8d8dc">edge</span>
   </div>
-  <svg style="position:absolute;top:245px;left:370px" width="24" height="230" viewBox="0 0 24 230">
+  <svg style="position:absolute;top:245px;left:410px" width="24" height="230" viewBox="0 0 24 230">
     <defs>
       <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="#7dd3fc" stop-opacity="0"/>
