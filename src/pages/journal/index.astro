@@ -1,0 +1,45 @@
+---
+import Base from '../../layouts/Base.astro'
+import { getCollection } from 'astro:content'
+
+const journal = (await getCollection('journal')).sort((a, b) => b.data.date.localeCompare(a.data.date))
+const trades = await getCollection('trades')
+const tradeCount = new Map<string, number>()
+for (const t of trades) {
+  tradeCount.set(t.data.date, (tradeCount.get(t.data.date) ?? 0) + 1)
+}
+---
+
+<Base title="journal — 1ed.ge" description="The daily trading journal — the thinking, the sessions, the misses, the lessons. Everything public.">
+  <section class="shell pt-12 pb-20">
+    <div class="flex items-baseline gap-3">
+      <h1 class="text-2xl">/ journal</h1>
+      <span class="text-[12px] text-faint">{journal.length} entries</span>
+    </div>
+
+    <div class="mt-10 max-w-3xl">
+      {journal.map((j, i) => (
+        <a href={`/journal/${j.id}`} class="group block border-b border-line/70 py-6 first:pt-0">
+          <div class="flex items-baseline justify-between gap-4">
+            <div class="flex items-baseline gap-3">
+              <span class="text-[12px] text-faint">{String(journal.length - i).padStart(2, '0')}</span>
+              <span class="text-[15px] text-ink group-hover:text-accent">{j.data.day ?? j.data.date}</span>
+            </div>
+            <span class="shrink-0 text-[12px] text-dim">{j.data.date}</span>
+          </div>
+          {j.data.summary && <p class="mt-2 text-[13px] leading-relaxed text-dim">{j.data.summary}</p>}
+          <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+            {(tradeCount.get(j.data.date) ?? 0) > 0 && (
+              <span class="tag text-up">{tradeCount.get(j.data.date)} trades</span>
+            )}
+            {j.data.mood && <span class="tag">mood {j.data.mood}/5</span>}
+            {j.data.tags?.map((t) => <span class="tag">#{t}</span>)}
+          </div>
+        </a>
+      ))}
+      {journal.length === 0 && (
+        <p class="text-[13px] text-faint">no entries yet — the journal starts when the trading does.</p>
+      )}
+    </div>
+  </section>
+</Base>

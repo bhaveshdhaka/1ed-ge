@@ -1,0 +1,66 @@
+---
+interface Props {
+  data: { date: string; value: boolean | null }[]
+  color?: string
+}
+
+const { data, color = '#4ade80' } = Astro.props
+const CELL = 11
+const GAP = 3
+const PAD_TOP = 16
+
+const first = data[0]?.date
+const startDow = first ? new Date(first + 'T00:00:00Z').getUTCDay() : 0
+const weeks = Math.ceil((startDow + data.length) / 7)
+const w = weeks * (CELL + GAP)
+const h = PAD_TOP + 7 * (CELL + GAP)
+
+const monthLabels: { x: number; label: string }[] = []
+let prevMonth = ''
+data.forEach((d, i) => {
+  const m = d.date.slice(5, 7)
+  if (m !== prevMonth) {
+    const col = Math.floor((startDow + i) / 7)
+    const x = col * (CELL + GAP)
+    const names = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    if (i !== 0) monthLabels.push({ x, label: names[parseInt(m, 10)] })
+    prevMonth = m
+  }
+})
+
+const dows = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+---
+
+<div class="overflow-x-auto">
+  <svg viewBox={`0 0 ${w + GAP} ${h + GAP}`} class="min-w-[540px]" role="img">
+    {monthLabels.map((m) => (
+      <text x={m.x} y={8} fill="#71717a" font-size="9">{m.label}</text>
+    ))}
+    {dows.map((d, i) => (
+      <text x={0} y={PAD_TOP + i * (CELL + GAP) + CELL - 2} fill="#4c4c54" font-size="8">
+        {d}
+      </text>
+    ))}
+    {data.map((d, i) => {
+      const pos = startDow + i
+      const col = Math.floor(pos / 7)
+      const row = pos % 7
+      const x = GAP + col * (CELL + GAP)
+      const y = PAD_TOP + row * (CELL + GAP)
+      const fill = d.value === true ? color : d.value === false ? '#26262c' : '#141419'
+      const opacity = d.value === true ? 0.92 : 1
+      return (
+        <rect
+          x={x}
+          y={y}
+          width={CELL}
+          height={CELL}
+          fill={fill}
+          opacity={opacity}
+        >
+          <title>{d.date + (d.value === null ? ' — not logged' : d.value ? ' — done' : ' — missed')}</title>
+        </rect>
+      )
+    })}
+  </svg>
+</div>

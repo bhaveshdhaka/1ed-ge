@@ -1,0 +1,52 @@
+---
+interface Props {
+  rs: number[]
+  height?: number
+}
+
+const { rs, height = 160 } = Astro.props
+const lo = -4
+const hi = 12
+const nBuckets = hi - lo
+const W = 900
+const H = height
+const padX = 8
+const padY = 18
+
+const counts = Array.from({ length: nBuckets }, (_, i) => {
+  const b = lo + i
+  return rs.filter((r) => r >= b && r < b + 1).length
+})
+const maxCount = Math.max(1, ...counts)
+const bw = (W - padX * 2) / nBuckets
+const bh = (v: number) => (v / maxCount) * (H - padY)
+---
+
+<div class="relative">
+  <div class="absolute -top-1 left-2 text-[11px] uppercase tracking-widest text-dim">R distribution</div>
+  {
+    rs.length === 0 ? (
+      <div class="mt-2 flex h-32 items-center justify-center border border-dashed border-line text-[12px] text-faint">
+        no trades yet
+      </div>
+    ) : (
+      <svg viewBox={`0 0 ${W} ${H}`} class="mt-3 w-full" preserveAspectRatio="none" role="img">
+        {counts.map((c, i) => {
+          const b = lo + i
+          const x = padX + i * bw
+          const color = b < 0 ? '#f87171' : '#4ade80'
+          return (
+            <g>
+              <rect x={x + 1} y={H - padY - bh(c)} width={bw - 2} height={Math.max(bh(c), c > 0 ? 2 : 0)} fill={color} opacity="0.85" />
+              {i % 2 === 0 && (
+                <text x={x + bw / 2} y={H - 4} fill="#4c4c54" font-size="9" text-anchor="middle">
+                  {b >= 0 ? `+${b}` : b}
+                </text>
+              )}
+            </g>
+          )
+        })}
+      </svg>
+    )
+  }
+</div>

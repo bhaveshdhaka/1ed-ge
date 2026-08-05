@@ -1,0 +1,102 @@
+---
+import Base from '../layouts/Base.astro'
+import { getCollection } from 'astro:content'
+
+const accounts = await getCollection('accounts')
+const byFirm = new Map<string, typeof accounts>()
+for (const a of accounts) {
+  if (!byFirm.has(a.data.firm)) byFirm.set(a.data.firm, [])
+  byFirm.get(a.data.firm)!.push(a)
+}
+
+const rules = [
+  'risk the same fixed $ amount every single trade. no scaling into size when angry.',
+  'only my A+ setups. if it is not a setup, it is not a trade.',
+  'no revenge trades. no "getting it back" in the same session.',
+  'a loss is information, not an insult. log it like a win.',
+  'if i would not publish it, i do not do it.',
+  'drawdown is the killer. the account buffer is the seatbelt.',
+]
+
+const timeline = [
+  { d: 'now', t: 'two years of public trading' },
+  { d: '2y', t: 'proven record, in public, with R as the unit of truth' },
+  { d: '3y', t: 'a real fund, managed with the same rules' },
+]
+---
+
+<Base title="about — 1ed.ge" description="The two-year public proof: rules, prop firms, accounts, and the plan to turn a public trading record into a hedge fund.">
+  <section class="shell pt-12 pb-20 max-w-3xl">
+    <div class="flex items-baseline gap-3">
+      <h1 class="text-2xl">/ about</h1>
+      <span class="text-[12px] text-faint">why this exists</span>
+    </div>
+
+    <p class="mt-8 text-[15px] leading-relaxed text-soft">
+      i want to run a hedge fund. but before anyone — including me — should trust me with money,
+      i need to prove i can trade. properly. consistently. without hiding the bad days.
+    </p>
+    <p class="mt-4 text-[15px] leading-relaxed text-soft">
+      so for two years, everything goes public. every trade. every account. every journal entry.
+      every habit logged. the numbers are the numbers, and <span class="text-up">R</span> — points
+      risked vs points made — is the centerpiece. it is the one metric that survives changing
+      account sizes, changing firms, and changing bankrolls.
+    </p>
+
+    <h2 class="mt-14 text-lg">/ the rules</h2>
+    <ul class="mt-4 space-y-2">
+      {rules.map((r, i) => (
+        <li class="flex gap-3 border-b border-line/60 pb-2 text-[14px] leading-relaxed text-soft">
+          <span class="text-faint">{String(i + 1).padStart(2, '0')}</span>
+          <span>{r}</span>
+        </li>
+      ))}
+    </ul>
+
+    <h2 class="mt-14 text-lg">/ the accounts</h2>
+    <p class="mt-3 text-[14px] leading-relaxed text-dim">
+      trading mnq through prop firms. the live P&amp;L of every account is on
+      <a href="/performance" class="text-accent underline underline-offset-4"> /performance</a>.
+    </p>
+    <div class="mt-4 overflow-x-auto panel">
+      <table class="w-full min-w-[540px] border-collapse">
+        <thead>
+          <tr>
+            <th class="th">firm</th>
+            <th class="th">size</th>
+            <th class="th text-right">drawdown</th>
+            <th class="th">status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {accounts.map((a) => (
+            <tr>
+              <td class="td">{a.data.firm}</td>
+              <td class="td text-dim">{a.data.sizeLabel}</td>
+              <td class="td text-right text-dim">${a.data.drawdownLimit.toLocaleString()}</td>
+              <td class="td"><span class="text-up">{a.data.status}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="mt-14 text-lg">/ the plan</h2>
+    <div class="mt-4">
+      {timeline.map((t) => (
+        <div class="flex gap-4 border-b border-line/60 py-3">
+          <span class="w-12 shrink-0 text-[13px] text-accent">{t.d}</span>
+          <span class="text-[14px] text-soft">{t.t}</span>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-14 border border-line bg-panel p-6">
+      <p class="text-[13px] leading-relaxed text-dim">
+        <span class="text-warn">disclaimer:</span> nothing here is financial advice. i am not a
+        licensed advisor. these are the trades of one person proving himself in public. do your
+        own work. prop accounts can and do fail — that is part of the record.
+      </p>
+    </div>
+  </section>
+</Base>

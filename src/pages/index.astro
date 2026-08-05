@@ -1,0 +1,142 @@
+---
+import Base from '../layouts/Base.astro'
+import { getCollection } from 'astro:content'
+import { render } from 'astro:content'
+import { buildStats } from '../lib/stats'
+import { buildHabitStats, todayKey } from '../lib/habits'
+
+const [accounts, trades, journal, habits, habitLog] = await Promise.all([
+  getCollection('accounts'),
+  getCollection('trades'),
+  getCollection('journal'),
+  getCollection('habits'),
+  getCollection('habitLog'),
+])
+
+const stats = buildStats(trades, accounts)
+const habitStats = buildHabitStats(habits, habitLog)
+const today = todayKey()
+
+const latestJournal = [...journal].sort((a, b) => b.data.date.localeCompare(a.data.date))[0]
+let latestContent: { Content: any } | null = null
+if (latestJournal) {
+  try {
+    latestContent = await render(latestJournal)
+  } catch {}
+}
+
+const doneToday = habitStats.filter((h) => h.doneToday === true).length
+const totalHabits = habitStats.length
+const journalDays = new Set(journal.map((j) => j.data.date)).size
+const s = stats.overall
+const live = (n: number | null, suffix = '', up = true) => {
+  if (n === null) return '—'
+  const v = typeof n === 'number' && !Number.isInteger(n) ? n.toFixed(1) : String(n)
+  return v + suffix
+}
+---
+
+<Base>
+  <section class="shell pt-16 pb-20">
+    <div class="max-w-3xl">
+      <p class="text-[13px] text-dim">
+        <span class="text-faint">$</span> whoami<span class="cursor-blink text-accent">▋</span>
+      </p>
+      <h1 class="mt-4 text-3xl leading-tight md:text-5xl">
+        trader. building a hedge fund <span class="text-dim">in public</span>.
+      </h1>
+      <p class="mt-6 max-w-2xl text-[15px] leading-relaxed text-soft">
+        this is a two-year public experiment. every trade, every account, every win, every loss —
+        logged live and uncensored. no cherry-picking, no hidden P&amp;L. if i wouldn't show it,
+        i shouldn't do it.
+      </p>
+      <p class="mt-3 text-[15px] leading-relaxed text-soft">
+        the centerpiece is <span class="text-up font-semibold">R</span> — the points risked vs the
+        points made. risk is the unit of truth here. everything else is noise.
+      </p>
+    </div>
+
+    <div class="mt-14 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-5">
+      <div class="bg-bg p-5">
+        <div class="text-[11px] uppercase tracking-widest text-dim">cumulative R</div>
+        <div class="mt-2 text-2xl num-up">{s.totalTrades ? (s.sumR > 0 ? '+' : '') + s.sumR.toFixed(2) + 'R' : '—'}</div>
+      </div>
+      <div class="bg-bg p-5">
+        <div class="text-[11px] uppercase tracking-widest text-dim">win rate</div>
+        <div class="mt-2 text-2xl text-ink">{s.totalTrades ? s.winRate!.toFixed(0) + '%' : '—'}</div>
+      </div>
+      <div class="bg-bg p-5">
+        <div class="text-[11px] uppercase tracking-widest text-dim">trades logged</div>
+        <div class="mt-2 text-2xl text-ink">{s.totalTrades || '0'}</div>
+      </div>
+      <div class="bg-bg p-5">
+        <div class="text-[11px] uppercase tracking-widest text-dim">expectancy</div>
+        <div class="mt-2 text-2xl num-up">{s.totalTrades ? live(s.expectancy, 'R') : '—'}</div>
+      </div>
+      <div class="bg-bg p-5">
+        <div class="text-[11px] uppercase tracking-widest text-dim">accounts</div>
+        <div class="mt-2 text-2xl text-ink">{accounts.length}</div>
+      </div>
+    </div>
+
+    <div class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] text-dim">
+      <span>
+        habits today: <span class={doneToday === totalHabits && totalHabits ? 'text-up' : ''}>{doneToday}/{totalHabits}</span>
+      </span>
+      <span>journal days: {journalDays}</span>
+      <span>today: {today}</span>
+      <span class="text-faint">status: public</span>
+    </div>
+  </section>
+
+  <section class="border-t border-line bg-panel/40">
+    <div class="shell py-14">
+      <div class="mb-6 flex items-baseline justify-between">
+        <h2 class="text-lg">/ latest journal</h2>
+        <a href="/journal" class="text-[13px] text-dim transition-colors hover:text-ink">all entries →</a>
+      </div>
+      {latestJournal && latestContent ? (
+        <article class="max-w-3xl">
+          <div class="flex items-center gap-3 text-[12px] text-dim">
+            <span>{latestJournal.data.date}</span>
+            {latestJournal.data.day && <span class="text-ink">{latestJournal.data.day}</span>}
+            {latestJournal.data.tags?.map((t) => <span class="tag">#{t}</span>)}
+          </div>
+          <div class="prose mt-4 line-clamp-[8] [&>*]:text-[14px]">
+            <latestContent.Content />
+          </div>
+          <a href={`/journal/${latestJournal.id}`} class="btn mt-6">read full entry</a>
+        </article>
+      ) : (
+        <p class="text-[13px] text-faint">no journal entries yet.</p>
+      )}
+    </div>
+  </section>
+
+  <section class="shell py-14">
+    <h2 class="text-lg">/ go deeper</h2>
+    <div class="mt-6 grid gap-4 md:grid-cols-3">
+      <a href="/performance" class="panel group p-6 transition-colors hover:border-accent">
+        <div class="text-[12px] text-dim">[02]</div>
+        <div class="mt-3 text-[15px] text-ink group-hover:text-accent">performance</div>
+        <p class="mt-2 text-[13px] leading-relaxed text-dim">
+          equity curve, R distribution, win rate, profit factor, and every account tracked against its drawdown limit.
+        </p>
+      </a>
+      <a href="/tracker" class="panel group p-6 transition-colors hover:border-accent">
+        <div class="text-[12px] text-dim">[03]</div>
+        <div class="mt-3 text-[15px] text-ink group-hover:text-accent">tracker</div>
+        <p class="mt-2 text-[13px] leading-relaxed text-dim">
+          the six daily habits behind the trading — streaks and heatmaps, public and honest.
+        </p>
+      </a>
+      <a href="/about" class="panel group p-6 transition-colors hover:border-accent">
+        <div class="text-[12px] text-dim">[04]</div>
+        <div class="mt-3 text-[15px] text-ink group-hover:text-accent">about</div>
+        <p class="mt-2 text-[13px] leading-relaxed text-dim">
+          the rules, the firms, the accounts, and the two-year proof before the fund.
+        </p>
+      </a>
+    </div>
+  </section>
+</Base>

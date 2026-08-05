@@ -1,0 +1,12 @@
+services:
+  site:
+    build: .
+    image: 1edge-site
+    container_name: 1edge-site
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4321:4321"
+    env_file: .env
+    volumes:
+      - ./src/content:/app/src/content
+      - ./public/media:/app/public/media

@@ -1,0 +1,30 @@
+---
+const links = [
+  { href: '/', label: '~/home', n: '00' },
+  { href: '/journal', label: '~/journal', n: '01' },
+  { href: '/performance', label: '~/performance', n: '02' },
+  { href: '/tracker', label: '~/tracker', n: '03' },
+  { href: '/about', label: '~/about', n: '04' },
+]
+const path = Astro.url.pathname
+---
+
+<nav class="shell flex items-center justify-between gap-4 py-5">
+  <a href="/" class="group flex items-baseline gap-2 text-[15px] font-semibold tracking-tight text-ink">
+    <span class="text-accent">1ed</span><span class="text-dim">.ge</span>
+    <span class="cursor-blink text-accent">▋</span>
+  </a>
+  <div class="flex items-center gap-1 overflow-x-auto text-[12px] md:gap-4 md:text-[13px]">
+    {links.map((l) => (
+      <a
+        href={l.href}
+        class:list={[
+          'whitespace-nowrap text-dim transition-colors hover:text-ink',
+          path === l.href && 'text-ink',
+        ]}
+      >
+        <span class="text-faint">[{l.n}]</span> {l.label}
+      </a>
+    ))}
+  </div>
+</nav>

@@ -1,0 +1,20 @@
+---
+export const prerender = false
+import Bare from '../../../layouts/Bare.astro'
+import AdminApp from '../../../components/admin/AdminApp'
+import { env } from '../../../lib/env'
+
+const { secret } = Astro.params
+const ok = secret === env.adminSecret()
+if (!ok) {
+  Astro.response.status = 404
+}
+---
+
+<Bare title={ok ? 'admin — 1ed.ge' : 'not found'}>
+  {ok ? (
+    <AdminApp client:only="react" secret={secret!} />
+  ) : (
+    <div class="shell py-24 text-[13px] text-faint">404 — not found</div>
+  )}
+</Bare>

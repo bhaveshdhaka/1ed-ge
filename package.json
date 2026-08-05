@@ -1,0 +1,45 @@
+{
+  "name": "1ed.ge",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node ./dist/server/entry.mjs",
+    "seed": "node scripts/seed.mjs",
+    "typecheck": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.0.0",
+    "@astrojs/node": "^9.0.0",
+    "@astrojs/react": "^4.0.0",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.2.0",
+    "@fontsource-variable/jetbrains-mono": "^5.1.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@tiptap/extension-image": "^2.10.0",
+    "@tiptap/extension-link": "^2.10.0",
+    "@tiptap/extension-placeholder": "^2.10.0",
+    "@tiptap/pm": "^2.10.0",
+    "@tiptap/react": "^2.10.0",
+    "@tiptap/starter-kit": "^2.10.0",
+    "astro": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "gray-matter": "^4.0.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.33.5",
+    "tailwindcss": "^4.0.0",
+    "tiptap-markdown": "^0.8.10",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

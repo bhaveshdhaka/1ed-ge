@@ -1,0 +1,152 @@
+---
+import Base from '../layouts/Base.astro'
+import { getCollection } from 'astro:content'
+import { buildStats, fmtPnl, fmtPts } from '../lib/stats'
+import EquityCurve from '../components/EquityCurve.astro'
+import RHistogram from '../components/RHistogram.astro'
+
+const [accounts, trades] = await Promise.all([getCollection('accounts'), getCollection('trades')])
+const { list, overall, perAccount } = buildStats(trades, accounts)
+const s = overall
+
+const cards = [
+  { label: 'cumulative R', value: s.totalTrades ? `${s.sumR > 0 ? '+' : ''}${s.sumR.toFixed(2)}R` : '—', up: s.sumR >= 0 },
+  { label: 'trades', value: String(s.totalTrades || 0) },
+  { label: 'win rate', value: s.totalTrades ? `${s.winRate!.toFixed(1)}%` : '—' },
+  { label: 'profit factor', value: s.totalTrades ? (s.profitFactor === Infinity ? '∞' : s.profitFactor === null ? '—' : s.profitFactor.toFixed(2)) : '—' },
+  { label: 'expectancy', value: s.totalTrades ? `${s.expectancy > 0 ? '+' : ''}${s.expectancy.toFixed(2)}R` : '—', up: s.expectancy >= 0 },
+  { label: 'avg R', value: s.totalTrades ? `${s.avgR > 0 ? '+' : ''}${s.avgR.toFixed(2)}R` : '—', up: s.avgR >= 0 },
+  { label: 'best trade', value: s.totalTrades ? `+${s.bestR.toFixed(2)}R` : '—' },
+  { label: 'worst trade', value: s.totalTrades ? `${s.worstR.toFixed(2)}R` : '—', up: false },
+  { label: 'max drawdown (R)', value: s.totalTrades ? `${s.maxDrawdownR.toFixed(2)}R` : '—', up: false },
+  { label: 'max drawdown ($)', value: s.totalTrades ? fmtPnl(s.maxDrawdownPnl) : '—', up: false },
+  { label: 'gross profit', value: s.totalTrades ? fmtPnl(s.grossProfit) : '—' },
+  { label: 'gross loss', value: s.totalTrades ? fmtPnl(-s.grossLoss) : '—', up: false },
+]
+
+const recent = [...list].reverse().slice(0, 20)
+
+const statusColor: Record<string, string> = { active: 'text-up', passed: 'text-accent', paused: 'text-warn', lost: 'text-down' }
+---
+
+<Base title="performance — 1ed.ge" description="Live R performance dashboard: equity curve, win rate, profit factor, and every prop account vs its drawdown limit.">
+  <section class="shell pt-12 pb-20">
+    <div class="flex items-baseline gap-3">
+      <h1 class="text-2xl">/ performance</h1>
+      <span class="text-[12px] text-faint">R = points risked vs points made</span>
+    </div>
+
+    <div class="mt-8 grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4 lg:grid-cols-6">
+      {cards.map((c) => (
+        <div class="bg-bg p-4">
+          <div class="text-[10px] uppercase tracking-widest text-dim">{c.label}</div>
+          <div class:list={['mt-1.5 text-lg', c.up === undefined ? 'text-ink' : c.up ? 'num-up' : 'num-down']}>{c.value}</div>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-10 grid gap-10 lg:grid-cols-2">
+      <div class="panel p-5">
+        <EquityCurve points={s.equityR} color="#4ade80" label="equity curve — cumulative R" />
+      </div>
+      <div class="panel p-5">
+        <EquityCurve points={s.equityPnl} color="#7dd3fc" label="equity curve — $ pnl" />
+      </div>
+    </div>
+
+    <div class="mt-10 panel p-5">
+      <RHistogram rs={list.map((t) => t.R)} />
+    </div>
+
+    <h2 class="mt-14 text-lg">/ accounts</h2>
+    <div class="mt-4 overflow-x-auto panel">
+      <table class="w-full min-w-[760px] border-collapse">
+        <thead>
+          <tr>
+            <th class="th">account</th>
+            <th class="th">status</th>
+            <th class="th text-right">dd limit</th>
+            <th class="th text-right">trades</th>
+            <th class="th text-right">win%</th>
+            <th class="th text-right">points</th>
+            <th class="th text-right">$ pnl</th>
+            <th class="th text-right">R</th>
+            <th class="th text-right">dd used</th>
+          </tr>
+        </thead>
+        <tbody>
+          {perAccount.map((a) => (
+            <tr>
+              <td class="td">
+                <div class="text-ink">{a.firm}</div>
+                <div class="text-[11px] text-faint">{a.sizeLabel} · {a.contract}</div>
+              </td>
+              <td class="td"><span class={statusColor[a.status] ?? ''}>{a.status}</span></td>
+              <td class="td text-right text-dim">${a.drawdownLimit.toLocaleString()}</td>
+              <td class="td text-right">{a.trades}</td>
+              <td class="td text-right">{a.winRate === null ? '—' : a.winRate.toFixed(0) + '%'}</td>
+              <td class="td text-right">{fmtPts(a.points)}</td>
+              <td class="td text-right num-up">{fmtPnl(a.pnl)}</td>
+              <td class="td text-right num-up">{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
+              <td class="td">
+                <div class="flex items-center justify-end gap-2">
+                  <div class="h-1.5 w-20 bg-raise">
+                    <div class="h-full" style={`width:${a.ddUsedPct}%`} class:list={[a.ddUsedPct > 70 ? 'bg-down' : 'bg-up']} />
+                  </div>
+                  <span class="w-24 text-right text-[11px] text-dim">${a.buffer.toLocaleString()} left</span>
+                </div>
+              </td>
+            </tr>
+          ))}
+          {perAccount.length === 0 && (
+            <tr><td class="td text-faint" colspan="9">no accounts yet</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="mt-14 text-lg">/ recent trades</h2>
+    <div class="mt-4 overflow-x-auto panel">
+      <table class="w-full min-w-[760px] border-collapse">
+        <thead>
+          <tr>
+            <th class="th">date</th>
+            <th class="th">account</th>
+            <th class="th">dir</th>
+            <th class="th">setup</th>
+            <th class="th text-right">entry</th>
+            <th class="th text-right">exit</th>
+            <th class="th text-right">points</th>
+            <th class="th text-right">risk</th>
+            <th class="th text-right">R</th>
+            <th class="th">note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {recent.map((t) => (
+            <tr>
+              <td class="td text-dim">{t.date}</td>
+              <td class="td">
+                <span class="text-dim">{t.accountLabel}</span>
+                <span class="text-faint">·{t.firm}</span>
+              </td>
+              <td class="td">
+                <span class={t.direction === 'long' ? 'num-up' : 'num-down'}>{t.direction === 'long' ? '▲ L' : '▼ S'}</span>
+              </td>
+              <td class="td text-dim">{t.setup ?? '—'}</td>
+              <td class="td text-right">{t.entry}</td>
+              <td class="td text-right">{t.exit}</td>
+              <td class="td text-right">{fmtPts(t.points)}</td>
+              <td class="td text-right text-dim">{t.riskPoints}pts</td>
+              <td class:list={['td text-right', t.R > 0 ? 'num-up' : t.R < 0 ? 'num-down' : '']}>{t.R > 0 ? '+' : ''}{t.R.toFixed(2)}R</td>
+              <td class="td max-w-[220px] truncate text-dim">{t.note ?? ''}</td>
+            </tr>
+          ))}
+          {recent.length === 0 && (
+            <tr><td class="td text-faint" colspan="10">no trades logged yet — the first one starts the curve.</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</Base>
