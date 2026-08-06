@@ -1,0 +1,67 @@
+---
+import { marketSchedule } from '../lib/market'
+
+const year = new Date().getUTCFullYear()
+const schedule = {
+  holidays: [...marketSchedule(year).holidays, ...marketSchedule(year + 1).holidays],
+  early: [...marketSchedule(year).earlyCloses, ...marketSchedule(year + 1).earlyCloses],
+}
+---
+
+<script type="application/json" id="mkt-data" set:html={JSON.stringify(schedule).replace(/</g, '\\u003c')} is:inline></script>
+
+<script is:inline>
+  (() => {
+    const el = document.getElementById('mkt-data')
+    if (!el) return
+    let S = { holidays: [], early: [] }
+    try { S = JSON.parse(el.textContent || '{}') } catch {}
+
+    const fmtDur = (sec) => {
+      const h = Math.floor(sec / 3600)
+      const m = Math.floor((sec % 3600) / 60)
+      return (h ? h + 'h ' : '') + m + 'm'
+    }
+
+    const etNow = () => {
+      const p = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+      }).formatToParts(new Date())
+      const g = {}
+      for (const x of p) g[x.type] = x.value
+      const h = (+g.hour) % 24
+      return { iso: `${g.year}-${g.month}-${g.day}`, sec: h * 3600 + (+g.minute) * 60 + (+g.second) }
+    }
+
+    const apply = (text, color) => {
+      document.querySelectorAll('[data-mkt-live]').forEach((n) => {
+        n.textContent = text
+        if (color) n.style.color = color
+      })
+    }
+
+    const tick = () => {
+      const n = etNow()
+      const [y, m, d] = n.iso.split('-').map(Number)
+      const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
+      const holiday = (S.holidays || []).includes(n.iso)
+      if (dow === 0 || dow === 6 || holiday) {
+        return apply('✕ closed · ' + (holiday ? 'holiday' : 'weekend'), 'var(--color-down)')
+      }
+      const early = (S.early || []).includes(n.iso)
+      const open = 9.5 * 3600
+      const close = early ? 13 * 3600 : 16 * 3600
+      if (n.sec < open) return apply('✕ closed — opens in ' + fmtDur(open - n.sec), 'var(--color-down)')
+      if (n.sec < close) {
+        const left = fmtDur(close - n.sec)
+        return apply(early ? '◐ open · half day — closes in ' + left : '● open — closes in ' + left, 'var(--color-up)')
+      }
+      return apply('✕ closed', 'var(--color-down)')
+    }
+
+    tick()
+    setInterval(tick, 1000)
+  })()
+</script>

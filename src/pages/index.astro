@@ -7,12 +7,13 @@ import { buildHabitStats, todayKey } from '../lib/habits'
 import { fmtDay } from '../lib/dates'
 import { marketMarker } from '../lib/market'
 
-const [accounts, days, journal, habits, payouts] = await Promise.all([
+const [accounts, days, journal, habits, payouts, news] = await Promise.all([
   getCollection('accounts'),
   getCollection('days'),
   getCollection('journal'),
   getCollection('habits'),
   getCollection('payouts'),
+  getCollection('market-news'),
 ])
 
 const stats = buildStats(days, accounts, payouts)
@@ -29,6 +30,8 @@ if (latestJournal) {
 
 const latestDay = [...days].sort((a, b) => b.data.date.localeCompare(a.data.date))[0]
 const mk = marketMarker(today)
+const newsToday = news.find((n) => n.data.date === today)
+const firstRedToday = newsToday?.data.red[0]
 const doneToday = habitStats.filter((h) => h.doneToday === true).length
 const totalHabits = habitStats.length
 const journalDays = new Set(journal.map((j) => j.data.date)).size
@@ -110,8 +113,11 @@ const live = (n: number | null, suffix = '') => {
       <span>journal days: {journalDays}</span>
       <span>today: {today}</span>
       <span>
-        market: <span class={mk.status === 'open' ? 'text-up' : mk.status === 'early' ? 'text-warn' : 'text-down'}>{mk.glyph} {mk.text}</span>
+        market: <span data-mkt-live class={mk.status === 'open' ? 'text-up' : mk.status === 'early' ? 'text-warn' : 'text-down'}>{mk.glyph} {mk.text}</span>
       </span>
+      {firstRedToday && (
+        <span class="text-down">red {firstRedToday.time} hkt</span>
+      )}
       <span class="text-faint">status: public</span>
     </div>
   </section>

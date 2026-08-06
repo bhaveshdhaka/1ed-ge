@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css'
 import ThemeBackground from '../components/ThemeBackground.astro'
+import MarketLive from '../components/MarketLive.astro'
 
 interface Props {
   title?: string
@@ -22,5 +23,6 @@ const { title = '1ed.ge' } = Astro.props
   <body class="crt min-h-screen">
     <ThemeBackground />
     <slot />
+    <MarketLive />
   </body>
 </html>

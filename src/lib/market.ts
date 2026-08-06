@@ -104,3 +104,21 @@ export function marketMarker(iso: string): { glyph: string; text: string; status
   if (m.status === 'early') return { glyph: '◐', text: 'early close 1:15pm ct', status: m.status }
   return { glyph: '✕', text: `closed · ${m.label}`, status: m.status }
 }
+
+/** Regular-session open/close in America/New_York (ET). Close is 1:00pm on early-close days. */
+export function openCloseTimes(iso: string): { open: string; close: string } {
+  const m = marketDay(iso)
+  const close = m.status === 'early' ? '13:00' : '16:00'
+  return { open: '09:30', close }
+}
+
+/** Compact per-year schedule for the client-side live marker: observed US holidays + early closes. */
+export function marketSchedule(year: number): { holidays: string[]; earlyCloses: string[] } {
+  const holidays = holidaysForYear(year).map(isoFromDate)
+  const earlyCloses: string[] = []
+  for (const rule of earlyCloseRules) {
+    const e = rule(year)
+    if (e.getDay() !== 0 && e.getDay() !== 6) earlyCloses.push(isoFromDate(e))
+  }
+  return { holidays, earlyCloses }
+}

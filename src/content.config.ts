@@ -111,6 +111,25 @@ const journal = defineCollection({
   }),
 })
 
+const newsEvent = z.object({
+  time: z.string(),
+  currency: z.string().default('USD'),
+  title: z.string(),
+})
+
+const newsList = z.preprocess((v) => (v == null ? [] : v), z.array(newsEvent))
+
+const marketNews = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/market-news' }),
+  schema: z.object({
+    date: z.string(),
+    verified: z.boolean().default(false),
+    cachedAt: z.string().optional(),
+    red: newsList.default([]),
+    orange: newsList.default([]),
+  }),
+})
+
 const habits = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/habits' }),
   schema: z.object({
@@ -121,4 +140,4 @@ const habits = defineCollection({
   }),
 })
 
-export const collections = { accounts, days, payouts, coach, journal, habits }
+export const collections = { accounts, days, payouts, coach, journal, habits, 'market-news': marketNews }

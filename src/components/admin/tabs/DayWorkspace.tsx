@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, getSecret, fetchRebuildState, bus } from '../api'
 import { fmtDay } from '../../../lib/dates'
 import { Card, Button, Field, TextInput, NumInput, TextArea, Select } from '../ui'
+import { MarketCard } from '../MarketCard'
 import { ImageDropZone } from '../ImageDropZone'
 import { JournalEditor } from '../JournalEditor'
 
@@ -610,6 +611,8 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
           <Button size="sm" variant="primary" onClick={() => save(true)} disabled={saving}>save &amp; rebuild</Button>
         </div>
       </div>
+
+      <MarketCard />
 
       <div className="grid gap-6 lg:grid-cols-[210px_1fr]">
         <aside className="panel self-start max-h-[80vh] overflow-y-auto">

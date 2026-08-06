@@ -2,6 +2,7 @@
 import '../styles/global.css'
 import Nav from '../components/Nav.astro'
 import ThemeBackground from '../components/ThemeBackground.astro'
+import MarketLive from '../components/MarketLive.astro'
 
 interface Props {
   title?: string
@@ -73,6 +74,11 @@ const canonical = new URL(Astro.url.pathname, SITE)
         <span>1edge — everything public, nothing hidden</span>
         <span class="text-faint">R is the only metric that matters.</span>
       </div>
+      <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line/50 pt-3 text-[12px]">
+        <span class="text-faint uppercase tracking-widest">market</span>
+        <span data-mkt-live class="text-dim">—</span>
+      </div>
     </footer>
+    <MarketLive />
   </body>
 </html>
