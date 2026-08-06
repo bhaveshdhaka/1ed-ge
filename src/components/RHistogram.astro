@@ -34,12 +34,12 @@ const bh = (v: number) => (v / maxCount) * (H - padY)
         {counts.map((c, i) => {
           const b = lo + i
           const x = padX + i * bw
-          const color = b < 0 ? '#f87171' : '#4ade80'
+          const color = b < 0 ? 'var(--color-down)' : 'var(--color-up)'
           return (
             <g>
               <rect x={x + 1} y={H - padY - bh(c)} width={bw - 2} height={Math.max(bh(c), c > 0 ? 2 : 0)} fill={color} opacity="0.85" />
               {i % 2 === 0 && (
-                <text x={x + bw / 2} y={H - 4} fill="#4c4c54" font-size="9" text-anchor="middle">
+                <text x={x + bw / 2} y={H - 4} fill="var(--color-faint)" font-size="9" text-anchor="middle">
                   {b >= 0 ? `+${b}` : b}
                 </text>
               )}

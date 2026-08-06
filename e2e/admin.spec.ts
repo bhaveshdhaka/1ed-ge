@@ -1,7 +1,21 @@
 import { test, expect, type APIRequestContext } from '@playwright/test'
+import { writeFileSync } from 'node:fs'
 
 const SECRET = process.env.ADMIN_SECRET ?? ''
 const TEST_DATE = '2099-12-31'
+
+// The pending-changes queue is ephemeral (/tmp) and accumulates across sessions;
+// count-based assertions ("1 draft change") need a clean slate per test.
+test.beforeEach(async () => {
+  writeFileSync('/tmp/1edge-pending.json', JSON.stringify([]))
+})
+
+// Admin is a React island that hydrates after SSR — wait for the tab bar (React-rendered)
+// before pressing keyboard shortcuts, or the keydown handler isn't attached yet.
+async function gotoAdmin(page: import('@playwright/test').Page) {
+  await page.goto(`/admin/${SECRET}`)
+  await expect(page.locator('button:has-text("overview")').first()).toBeVisible({ timeout: 20000 })
+}
 
 async function cleanup(request: APIRequestContext) {
   await request.delete('/api/admin/days', { headers: { 'x-admin-secret': SECRET }, data: { date: TEST_DATE } })
@@ -14,7 +28,7 @@ test.afterEach(async ({ request }) => {
 
 test.describe('admin shell', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/admin/${SECRET}`)
+    await gotoAdmin(page)
   })
 
   test('loads with header, tabs and help overlay', async ({ page }) => {
@@ -40,7 +54,7 @@ test.describe('admin shell', () => {
 
 test.describe('day workspace save flow', () => {
   test('set date, log mood, save, see pending + draft indicator', async ({ page }) => {
-    await page.goto(`/admin/${SECRET}`)
+    await gotoAdmin(page)
     await page.keyboard.press('2')
     await expect(page.locator('h1:has-text("/ day")')).toBeVisible()
 
@@ -52,7 +66,7 @@ test.describe('day workspace save flow', () => {
     // direct-click mood edit
     const moodValue = page.locator('button[title="click to correct"]').filter({ hasText: /\/5|—/ }).first()
     await moodValue.click()
-    await page.locator('button:has-text("4")').first().click()
+    await page.locator('button.h-10.w-10:has-text("4")').first().click()
 
     // save
     await page.locator('button:has-text("save")').first().click()
@@ -66,7 +80,7 @@ test.describe('day workspace save flow', () => {
 
 test.describe('accounts stepper + coach + media + design', () => {
   test('accounts lifecycle stepper renders', async ({ page }) => {
-    await page.goto(`/admin/${SECRET}`)
+    await gotoAdmin(page)
     await page.keyboard.press('3')
     await expect(page.locator('button:has-text("eval")').first()).toBeVisible()
     await expect(page.locator('button:has-text("buffer")').first()).toBeVisible()
@@ -74,25 +88,33 @@ test.describe('accounts stepper + coach + media + design', () => {
   })
 
   test('coach quick prompts render', async ({ page }) => {
-    await page.goto(`/admin/${SECRET}`)
+    await gotoAdmin(page)
     await page.keyboard.press('4')
     await expect(page.locator('button:has-text("read the trends")').first()).toBeVisible()
     await expect(page.locator('text=the data f-R-iend sees')).toBeVisible()
   })
 
   test('media search input renders', async ({ page }) => {
-    await page.goto(`/admin/${SECRET}`)
+    await gotoAdmin(page)
     await page.keyboard.press('5')
     await expect(page.locator('input[placeholder="search by filename…"]')).toBeVisible()
   })
 
   test('design tab shows 3 theme previews and apply queues a rebuild', async ({ page }) => {
-    await page.goto(`/admin/${SECRET}`)
+    await gotoAdmin(page)
     await page.keyboard.press('6')
     await expect(page.locator('h1:has-text("/ design")')).toBeVisible()
     await expect(page.locator('iframe[title="summit theme preview"]')).toBeVisible()
     await expect(page.locator('iframe[title="aurora theme preview"]')).toBeVisible()
     await expect(page.locator('iframe[title="mono theme preview"]')).toBeVisible()
+
+    // ensure we start from summit so the aurora apply is enabled (a previous partial run
+    // can leave site.json on another theme)
+    const summitBtn = page.locator('button[data-theme="summit"]')
+    if (await summitBtn.isEnabled()) {
+      await summitBtn.click()
+      await expect(page.locator('text=theme → summit').first()).toBeVisible({ timeout: 15000 })
+    }
 
     // apply aurora, then reset to summit so the repo config is unchanged
     await page.locator('button[data-theme="aurora"]').click()

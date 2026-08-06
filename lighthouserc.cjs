@@ -20,8 +20,8 @@ module.exports = {
       startServerReadyPattern: 'Server listening',
       url: PUBLIC_URLS,
       numberOfRuns: 2,
+      chromePath: '/root/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome',
       settings: {
-        chromePath: '/root/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome',
         chromeFlags: '--no-sandbox --disable-gpu --disable-dev-shm-usage',
         throttlingMethod: 'simulate',
       },

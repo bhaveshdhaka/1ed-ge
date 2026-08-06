@@ -18,7 +18,7 @@ if (!ok) {
   ) : (
     <div class="shell flex min-h-screen flex-col py-10">
       <div class="flex items-center justify-between">
-        <Brand />
+        <Brand theme={ok ? name : undefined} />
         <span class="text-[12px] text-faint">theme preview — {name}</span>
       </div>
       <div class="hero-fade mt-auto mb-auto max-w-md pt-24 pb-16">

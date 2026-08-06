@@ -7,24 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Theme system** — a `src/config/site.json` file + `[data-theme]` CSS-variable
-  overrides re-skin the whole site at build. Three themes, all JetBrains Mono,
-  all CSS-only / zero-JS / reduced-motion safe:
-  - **summit** (default) — twinkling starfield + faint mountain-ridge silhouette
-    with a breathing peak glow; ice-blue accent; logo `1` is a gradient **peak**
-    that rises from a ridge-line on load and glows on hover.
-  - **aurora** — slow-drifting violet/cyan nebula fields; logo `1` with a flowing
-    gradient + breathing halo and a periodic wordmark sheen.
-  - **mono** — hairline dot-grid + vignette; logo `1` is a stroke that draws
-    itself once; a 1px underline extends on hover. No glow.
+- **Theme system v2** — `src/config/site.json` + `[data-theme]` CSS-variable
+  overrides re-skin the whole site at build. Three **genuinely distinct** dark
+  identities, each with its own type system, material, background, chart style
+  and logo — all CSS-only / zero-JS / reduced-motion safe:
+  - **summit** (default) — *alpine night*: starfield + mountain ridge, serif
+    display (Newsreader) over mono data, ice-blue accent, crisp translucent
+    panels; logo = a **summit flag** planted on a peak.
+  - **aurora** — *observatory glass*: drifting nebula fields + faint stars,
+    rounded glass panels, cyan→violet gradients and glow; logo = a **flowing
+    light ribbon** that draws itself.
+  - **mono** — *phosphor terminal*: dot grid + scanlines, square hard corners,
+    single phosphor-green accent, uppercase section labels; logo = a **pixel
+    "1" with a blinking block cursor**.
+- **Theme-aware data viz** — chart SVGs (EquityCurve, RHistogram, Heatmap,
+  CorrTable) now use CSS-variable tokens (`--color-up/down`, `--chart-grid`,
+  `--chart-alt`) instead of hardcoded hex, so charts re-skin with each theme.
+- **Heatmap DOM optimization** — empty (null) habit cells no longer render a
+  `<rect>` (365×6 cells → only the days actually logged), a large perf win on
+  /tracker.
 - **Admin "design" tab** — three cards with live iframe previews (new SSR route
   `/admin/<secret>/preview/theme/<name>`) and an **apply** button that writes the
   config and queues a rebuild. Admin itself stays plain/functional.
 - **Hero entrance** — a soft 0.7s fade + 6px rise on the homepage hero.
 
 ### Changed
-- Nav/admin logo is now a shared `Brand.astro` (per-theme mark); `ThemeBackground.astro`
-  renders the per-theme layers in `Base.astro`. Admin keeps a static plain wordmark.
+- Charts/UI a11y: scrollable table wrappers on /performance, /trends,
+  /accounts, /about are now keyboard-focusable (`tabindex`), fixing
+  `scrollable-region-focusable` axe violations on mobile.
+- e2e: admin tests wait for React hydration before pressing keyboard shortcuts;
+  theme SVG counts and pending-change state are handled robustly; 68/68 green.
+- lighthouserc: `chromePath` moved to `collect.chromePath` (was silently ignored
+  inside `settings`); LHCI now finds Chrome and runs clean.
+- Nav/admin logo is now a shared `Brand.astro` (per-theme mark, theme-aware);
+  `ThemeBackground.astro` renders the per-theme layers in `Base.astro`.
 - `theme-color` meta follows the summit palette.
 - tsconfig: `resolveJsonModule` for `src/config/site.json`.
 - **Day X/730 counter** on the homepage with a progress bar.

@@ -5,7 +5,7 @@ interface Props {
   name?: string
 }
 
-const { data, color = '#4ade80', name = 'habit' } = Astro.props
+const { data, color = 'var(--color-up)', name = 'habit' } = Astro.props
 const CELL = 11
 const GAP = 3
 const PAD_TOP = 16
@@ -36,21 +36,21 @@ const dows = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
   <svg viewBox={`0 0 ${w + GAP} ${h + GAP}`} class="min-w-[540px]" role="img" aria-label={`${name} habit heatmap over the last year`}>
     <title>{name} — last 365 days, done vs missed</title>
     {monthLabels.map((m) => (
-      <text x={m.x} y={8} fill="#71717a" font-size="9">{m.label}</text>
+      <text x={m.x} y={8} fill="var(--color-dim)" font-size="9">{m.label}</text>
     ))}
     {dows.map((d, i) => (
-      <text x={0} y={PAD_TOP + i * (CELL + GAP) + CELL - 2} fill="#4c4c54" font-size="8">
+      <text x={0} y={PAD_TOP + i * (CELL + GAP) + CELL - 2} fill="var(--color-faint)" font-size="8">
         {d}
       </text>
     ))}
     {data.map((d, i) => {
+      if (d.value === null) return null
       const pos = startDow + i
       const col = Math.floor(pos / 7)
       const row = pos % 7
       const x = GAP + col * (CELL + GAP)
       const y = PAD_TOP + row * (CELL + GAP)
-      const fill = d.value === true ? color : d.value === false ? '#26262c' : '#141419'
-      const opacity = d.value === true ? 0.92 : 1
+      const fill = d.value === true ? color : 'var(--chart-grid)'
       return (
         <rect
           x={x}
@@ -58,7 +58,7 @@ const dows = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
           width={CELL}
           height={CELL}
           fill={fill}
-          opacity={opacity}
+          opacity={d.value === true ? 0.92 : 1}
         />
       )
     })}

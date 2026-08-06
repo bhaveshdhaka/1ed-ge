@@ -1,37 +1,70 @@
 ---
 import site from '../config/site.json'
-const theme = site.theme as string
+
+interface Props {
+  theme?: string
+}
+
+const { theme = site.theme as string } = Astro.props
+const t = theme
 ---
 
 <a href="/" aria-label="1edge — home" class="group brand">
   <span class="brand-mark" aria-hidden="true">
-    {theme === 'summit' && (
-      <svg viewBox="0 0 22 34">
+    {t === 'summit' && (
+      <svg viewBox="0 0 26 36">
         <defs>
-          <linearGradient id="brand-summit" x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0" stop-color="#1e2a44" />
-            <stop offset="0.55" stop-color="#4a6cae" />
+          <linearGradient id="brand-summit-ridge" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stop-color="#25355e" />
+            <stop offset="0.6" stop-color="#5b84d6" />
             <stop offset="1" stop-color="#eaf4ff" />
           </linearGradient>
-        </defs>
-        <path class="brand-tip" d="M11 2 L20.5 32 L1.5 32 Z" fill="url(#brand-summit)" />
-        <circle class="brand-tip" cx="11" cy="6" r="1.6" fill="#eaf4ff" />
-      </svg>
-    )}
-    {theme === 'aurora' && (
-      <svg viewBox="0 0 22 34">
-        <defs>
-          <linearGradient id="brand-aurora" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#67e8f9" />
-            <stop offset="1" stop-color="#c4b5fd" />
+          <linearGradient id="brand-summit-flag" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#eaf4ff" />
+            <stop offset="1" stop-color="#8ab4ff" />
           </linearGradient>
         </defs>
-        <rect x="6.5" y="2" width="9" height="30" rx="4.5" fill="url(#brand-aurora)" />
+        <path class="brand-summit-peak" d="M13 15 L1.5 33 L24.5 33 Z" fill="url(#brand-summit-ridge)" />
+        <path
+          class="brand-summit-snow"
+          d="M13 15 L9.6 20.5 L11 21.5 L8 27 L6.4 25"
+          fill="none"
+          stroke="#eaf4ff"
+          stroke-width="1.2"
+          stroke-linecap="round"
+          opacity="0.85"
+        />
+        <line x1="13" y1="15" x2="13" y2="5.5" stroke="#eaf4ff" stroke-width="1.7" stroke-linecap="round" />
+        <path class="brand-summit-flag" d="M13 5.5 L22 8.3 L13 11.1 Z" fill="url(#brand-summit-flag)" />
+        <circle cx="13" cy="5" r="1.15" fill="#eaf4ff" />
       </svg>
     )}
-    {theme === 'mono' && (
-      <svg viewBox="0 0 22 34">
-        <path d="M11 2 V32" stroke="#e6e6e6" stroke-width="1.6" fill="none" />
+    {t === 'aurora' && (
+      <svg viewBox="0 0 26 36">
+        <defs>
+          <linearGradient id="brand-aurora-ribbon" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#67e8f9" />
+            <stop offset="0.55" stop-color="#c4b5fd" />
+            <stop offset="1" stop-color="#8b7cf6" />
+          </linearGradient>
+        </defs>
+        <path
+          class="brand-aurora-ribbon"
+          d="M13 3 C8 9 18 12.5 13 18 C8 23.5 18 27 13 33"
+          fill="none"
+          stroke="url(#brand-aurora-ribbon)"
+          stroke-width="3.4"
+          stroke-linecap="round"
+        />
+        <circle class="brand-aurora-orb" cx="13" cy="3.2" r="1.7" fill="#e0f7ff" />
+      </svg>
+    )}
+    {t === 'mono' && (
+      <svg viewBox="0 0 26 36">
+        <rect x="8" y="3" width="4.6" height="24" fill="var(--color-up)" />
+        <rect x="5.6" y="3" width="4.6" height="3.2" fill="var(--color-up)" />
+        <rect x="8" y="27" width="6.6" height="3" fill="var(--color-up)" />
+        <rect class="brand-mono-cursor" x="16" y="4" width="2.6" height="24" fill="var(--color-ink)" />
       </svg>
     )}
   </span>

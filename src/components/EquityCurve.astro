@@ -6,7 +6,7 @@ interface Props {
   label?: string
 }
 
-const { points, height = 220, color = '#4ade80', label } = Astro.props
+const { points, height = 220, color = 'var(--color-up)', label } = Astro.props
 const W = 900
 const H = height
 const padX = 8
@@ -38,17 +38,17 @@ const last = points[points.length - 1]
         <div class="absolute -top-1 left-2 text-[11px] uppercase tracking-widest text-dim">{label}</div>
       )}
       <svg viewBox={`0 0 ${W} ${H}`} class="w-full" preserveAspectRatio="none" role="img" aria-label={label ?? 'equity curve'}>
-        <line x1={padX} x2={W - padX} y1={zeroY} y2={zeroY} stroke="#26262c" stroke-width="1" stroke-dasharray="3 5" />
-        <path d={area} fill={color + '1f'} />
+        <line x1={padX} x2={W - padX} y1={zeroY} y2={zeroY} stroke="var(--chart-grid)" stroke-width="1" stroke-dasharray="3 5" />
+        <path d={area} fill={color} fill-opacity="0.12" />
         <path d={line} fill="none" stroke={color} stroke-width="1.6" />
         {last && <circle cx={px(last.i)} cy={py(last.equity)} r="3.2" fill={color} />}
-        <text x={padX + 2} y={py(maxY) - 4} fill="#71717a" font-size="10" font-family="inherit">
+        <text x={padX + 2} y={py(maxY) - 4} fill="var(--color-dim)" font-size="10" font-family="inherit">
           {maxY > 0 ? `+${maxY.toFixed(0)}` : maxY.toFixed(0)}
         </text>
-        <text x={padX + 2} y={py(minY) + 12} fill="#71717a" font-size="10">
+        <text x={padX + 2} y={py(minY) + 12} fill="var(--color-dim)" font-size="10">
           {minY < 0 ? minY.toFixed(0) : `+${minY.toFixed(0)}`}
         </text>
-        <text x={W - padX - 3} y={H - 4} fill="#4c4c54" font-size="10" text-anchor="end">
+        <text x={W - padX - 3} y={H - 4} fill="var(--color-faint)" font-size="10" text-anchor="end">
           {points.length} trades
         </text>
       </svg>

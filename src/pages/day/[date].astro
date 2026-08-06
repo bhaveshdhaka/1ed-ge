@@ -95,7 +95,7 @@ const totalPts = (d.trades ?? []).reduce((s, t) => s + t.points, 0)
         {habits.map((h) => {
           const done = dayHabits[h.id] === true
           return (
-            <span class="flex items-center gap-2 border px-3 py-1.5 text-[13px]" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-line;color:#71717a'}>
+            <span class="flex items-center gap-2 border px-3 py-1.5 text-[13px]" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
               {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
             </span>
           )

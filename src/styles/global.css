@@ -1,8 +1,10 @@
 @import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource-variable/newsreader';
 @import 'tailwindcss';
 
 @theme {
   --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, 'Menlo', Consolas, monospace;
+  --font-display: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, 'Menlo', Consolas, monospace;
 
   --color-bg: #0a0a0c;
   --color-panel: #111114;
@@ -164,12 +166,13 @@
 
 /* ---- themes: token overrides (utilities use var(--color-*) so these re-skin the site) ---- */
 [data-theme='summit'] {
+  --font-display: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
   --color-bg: #07080c;
   --color-panel: #0d0f16;
   --color-raise: #12141d;
   --color-line: #1c2030;
   --color-line2: #2a2f42;
-  --color-ink: #dfe4ee;
+  --color-ink: #e6ebf5;
   --color-soft: #aab2c6;
   --color-dim: #8b93a6;
   --color-faint: #7d859a;
@@ -179,27 +182,41 @@
   --color-warn: #fbbf24;
   --color-purp: #c4b5fd;
   --glow: rgba(138, 180, 255, 0.35);
-  --accent2: #8ab4ff;
+  --accent2: #a9c8ff;
+  --radius: 2px;
+  --radius-sm: 1px;
+  --shadow-panel: 0 1px 0 rgba(138, 180, 255, 0.06), 0 8px 28px -12px rgba(0, 0, 0, 0.55);
+  --chart-grid: #242b3d;
+  --chart-empty: #10141f;
+  --chart-alt: #7dd3fc;
 }
 [data-theme='aurora'] {
+  --font-display: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, 'Menlo', Consolas, monospace;
   --color-bg: #0a0812;
-  --color-panel: #120e1e;
-  --color-raise: #18122a;
-  --color-line: #241d3a;
-  --color-line2: #322a4e;
-  --color-ink: #e8e2f5;
-  --color-soft: #b9b0d6;
-  --color-dim: #9790b4;
+  --color-panel: #141026;
+  --color-raise: #1a1430;
+  --color-line: #2a2350;
+  --color-line2: #3a315f;
+  --color-ink: #ece6fb;
+  --color-soft: #c0b8de;
+  --color-dim: #9c94bd;
   --color-faint: #8b84a6;
   --color-accent: #c4b5fd;
   --color-up: #4ade80;
   --color-down: #f87171;
   --color-warn: #fbbf24;
   --color-purp: #67e8f9;
-  --glow: rgba(196, 181, 253, 0.4);
+  --glow: rgba(196, 181, 253, 0.45);
   --accent2: #67e8f9;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-panel: 0 12px 40px -14px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(196, 181, 253, 0.06);
+  --chart-grid: #2c2447;
+  --chart-empty: #120e20;
+  --chart-alt: #67e8f9;
 }
 [data-theme='mono'] {
+  --font-display: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, 'Menlo', Consolas, monospace;
   --color-bg: #0a0a0c;
   --color-panel: #111114;
   --color-raise: #17171c;
@@ -209,13 +226,114 @@
   --color-soft: #b3b3b8;
   --color-dim: #8f8f96;
   --color-faint: #83838a;
-  --color-accent: #e8e8e8;
-  --color-up: #4ade80;
+  --color-accent: #4aff8f;
+  --color-up: #4aff8f;
   --color-down: #f87171;
   --color-warn: #fbbf24;
   --color-purp: #9db2cc;
-  --glow: rgba(255, 255, 255, 0.12);
-  --accent2: #e8e8e8;
+  --glow: rgba(74, 255, 143, 0.18);
+  --accent2: #e6e6e6;
+  --radius: 0;
+  --radius-sm: 0;
+  --shadow-panel: none;
+  --chart-grid: #26262c;
+  --chart-empty: #131317;
+  --chart-alt: #b3b3b8;
+}
+
+/* ---- per-theme component skinning (materials, type, interactions) ---- */
+
+/* scanlines belong to the terminal only */
+[data-theme='summit'] .crt,
+[data-theme='aurora'] .crt {
+  background-image: none;
+}
+
+/* display typography per theme */
+[data-theme] h1,
+[data-theme] h2,
+[data-theme] h3 {
+  font-family: var(--font-display);
+}
+[data-theme='summit'] h1,
+[data-theme='summit'] h2,
+[data-theme='summit'] h3 {
+  font-weight: 640;
+  letter-spacing: -0.012em;
+}
+[data-theme='aurora'] h1,
+[data-theme='aurora'] h2,
+[data-theme='aurora'] h3 {
+  font-weight: 340;
+  letter-spacing: 0.015em;
+}
+[data-theme='mono'] h2,
+[data-theme='mono'] h3 {
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+[data-theme='mono'] .hero-fade h1 {
+  letter-spacing: 0.02em;
+}
+
+/* panel / card material */
+.panel {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+}
+[data-theme='aurora'] .panel {
+  background: linear-gradient(180deg, rgba(26, 20, 48, 0.82), rgba(16, 12, 32, 0.9));
+  border-color: rgba(138, 124, 210, 0.28);
+}
+[data-theme='mono'] .panel {
+  box-shadow: none;
+}
+[data-theme='mono'] details .shadow-2xl {
+  box-shadow: none;
+}
+
+/* controls */
+.btn,
+.input {
+  border-radius: var(--radius-sm);
+}
+[data-theme='aurora'] .btn {
+  background: rgba(26, 20, 48, 0.72);
+  border-color: rgba(138, 124, 210, 0.38);
+}
+[data-theme='mono'] .btn {
+  border-radius: 0;
+}
+
+/* tables */
+[data-theme='aurora'] .th,
+[data-theme='aurora'] .td {
+  border-color: rgba(138, 124, 210, 0.18);
+}
+[data-theme='aurora'] tbody .td {
+  background: rgba(20, 16, 38, 0.35);
+}
+
+/* nav interactions */
+[data-theme='summit'] nav a:hover {
+  color: var(--color-accent);
+}
+[data-theme='aurora'] nav a:hover {
+  color: var(--color-ink);
+  text-shadow: 0 0 14px var(--glow);
+}
+[data-theme='mono'] nav a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--color-up);
+}
+
+/* prose accents */
+[data-theme='aurora'] .prose a {
+  text-shadow: 0 0 18px rgba(196, 181, 253, 0.25);
+}
+[data-theme='mono'] .prose blockquote {
+  border-left-color: var(--color-up);
 }
 
 /* ---- theme background layers (fixed, decorative, zero-JS) ---- */
@@ -284,31 +402,44 @@
 .tb-aurora {
   position: absolute;
   border-radius: 50%;
-  opacity: 0.45;
+  opacity: 0.5;
+  mix-blend-mode: screen;
 }
 .tb-aurora-a {
-  width: 58vw;
-  height: 58vw;
-  left: -14%;
-  top: -12%;
-  background: radial-gradient(circle, rgba(196, 181, 253, 0.55), transparent 62%);
+  width: 62vw;
+  height: 62vw;
+  left: -16%;
+  top: -14%;
+  background: radial-gradient(circle, rgba(196, 181, 253, 0.5), transparent 64%);
   animation: tb-drift-a 95s ease-in-out infinite alternate;
 }
 .tb-aurora-b {
-  width: 52vw;
-  height: 52vw;
-  right: -14%;
-  bottom: -14%;
-  background: radial-gradient(circle, rgba(103, 232, 249, 0.5), transparent 62%);
+  width: 56vw;
+  height: 56vw;
+  right: -16%;
+  bottom: -16%;
+  background: radial-gradient(circle, rgba(103, 232, 249, 0.45), transparent 64%);
   animation: tb-drift-b 120s ease-in-out infinite alternate;
 }
 .tb-aurora-c {
-  width: 40vw;
-  height: 40vw;
-  left: 52%;
-  top: 38%;
-  background: radial-gradient(circle, rgba(240, 171, 252, 0.42), transparent 62%);
+  width: 44vw;
+  height: 44vw;
+  left: 50%;
+  top: 36%;
+  background: radial-gradient(circle, rgba(240, 171, 252, 0.4), transparent 64%);
   animation: tb-drift-c 80s ease-in-out infinite alternate;
+}
+.tb-stars-faint {
+  background-image:
+    radial-gradient(1px 1px at 14% 20%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1px 1px at 31% 42%, rgba(255, 255, 255, 0.4), transparent 60%),
+    radial-gradient(1.5px 1.5px at 55% 12%, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(1px 1px at 72% 34%, rgba(255, 255, 255, 0.4), transparent 60%),
+    radial-gradient(1px 1px at 88% 18%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1.5px 1.5px at 44% 60%, rgba(255, 255, 255, 0.35), transparent 60%);
+  background-size: 340px 340px;
+  animation: none;
+  opacity: 0.5;
 }
 @keyframes tb-drift-a {
   to {
@@ -326,12 +457,18 @@
   }
 }
 
-/* mono: hairline dot grid + vignette (static) */
+/* mono: hairline dot grid + scanlines + vignette (static) */
 .tb-grid {
   position: absolute;
   inset: 0;
   background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
   background-size: 26px 26px;
+}
+.tb-scan {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.025) 50%, transparent 50%);
+  background-size: 100% 4px;
 }
 .tb-vignette {
   position: absolute;
@@ -360,15 +497,15 @@
   display: inline-flex;
   align-items: center;
   height: 44px;
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 650;
   letter-spacing: -0.01em;
 }
 .brand-mark {
   flex: none;
-  width: 0.64em;
-  height: 1.06em;
-  margin-right: 0.08em;
+  width: 26px;
+  height: 36px;
+  margin-right: 0.16em;
   overflow: visible;
 }
 .brand-mark svg {
@@ -383,14 +520,26 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 9px;
+  bottom: 8px;
   height: 2px;
   pointer-events: none;
 }
 
-/* summit: peak rises, tip breathes, ridge draws */
+/* summit: peak rises, flag unfurls, tip glows */
 [data-theme='summit'] .brand-mark {
   animation: brand-rise 0.85s cubic-bezier(0.22, 0.68, 0.2, 1) 0.12s both;
+}
+[data-theme='summit'] .brand-summit-peak {
+  transform-origin: 13px 33px;
+  animation: brand-rise 0.9s cubic-bezier(0.22, 0.68, 0.2, 1) 0.2s both;
+}
+[data-theme='summit'] .brand-summit-flag {
+  transform-origin: 13px 5.5px;
+  transform: scaleX(0);
+  animation: brand-unfurl 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.65s forwards;
+}
+[data-theme='summit'] .brand-summit-snow {
+  animation: brand-fade 1s ease 0.5s both;
 }
 [data-theme='summit'] .brand-edge {
   background: linear-gradient(90deg, transparent, var(--color-accent) 30%, var(--color-up) 75%, transparent);
@@ -400,25 +549,28 @@
   transform-origin: left center;
   opacity: 0;
   animation:
-    edge-line-in 1s cubic-bezier(0.22, 0.68, 0.2, 1) 0.4s forwards,
-    edge-shimmer 6s ease-in-out 1.6s infinite;
+    edge-line-in 1s cubic-bezier(0.22, 0.68, 0.2, 1) 0.5s forwards,
+    edge-shimmer 6s ease-in-out 2s infinite;
 }
-[data-theme='summit'] .group:hover .brand-edge {
-  filter: drop-shadow(0 0 5px var(--glow));
+[data-theme='summit'] .group:hover .brand-mark {
+  filter: drop-shadow(0 0 7px var(--glow));
 }
-[data-theme='summit'] .brand-tip {
-  animation: edge-glow 4.2s ease-in-out 1s infinite;
-}
-[data-theme='summit'] .group:hover .brand-tip {
-  opacity: 1;
+[data-theme='summit'] .group:hover .brand-summit-peak {
+  filter: drop-shadow(0 0 10px var(--glow));
 }
 
-/* aurora: breathing halo + gradient edge */
+/* aurora: ribbon draws, orb breathes, halo glows */
 [data-theme='aurora'] .brand-mark {
-  filter: drop-shadow(0 0 7px var(--glow));
-  animation:
-    brand-fade 0.8s ease 0.15s both,
-    edge-glow 5.5s ease-in-out 0.9s infinite;
+  filter: drop-shadow(0 0 8px var(--glow));
+  animation: brand-fade 0.8s ease 0.15s both;
+}
+[data-theme='aurora'] .brand-aurora-ribbon {
+  stroke-dasharray: 42;
+  stroke-dashoffset: 42;
+  animation: brand-draw 1.1s cubic-bezier(0.6, 0, 0.2, 1) 0.25s forwards;
+}
+[data-theme='aurora'] .brand-aurora-orb {
+  animation: edge-glow 5.5s ease-in-out 1.2s infinite;
 }
 [data-theme='aurora'] .brand-edge {
   background: linear-gradient(90deg, transparent, var(--color-accent) 30%, var(--accent2) 75%, transparent);
@@ -428,25 +580,25 @@
   transform-origin: left center;
   opacity: 0;
   animation:
-    edge-line-in 1s cubic-bezier(0.22, 0.68, 0.2, 1) 0.3s forwards,
-    edge-shimmer 7s linear 1.5s infinite;
+    edge-line-in 1s cubic-bezier(0.22, 0.68, 0.2, 1) 0.4s forwards,
+    edge-shimmer 7s linear 1.6s infinite;
 }
 [data-theme='aurora'] .group:hover .brand-mark {
-  filter: drop-shadow(0 0 12px var(--glow));
+  filter: drop-shadow(0 0 14px var(--glow));
 }
 
-/* mono: hairline draws once, underline extends on hover */
+/* mono: pixel mark fades in, cursor blinks, underline extends on hover */
 [data-theme='mono'] .brand-mark {
   opacity: 0;
-  animation: brand-hair 0.9s cubic-bezier(0.6, 0, 0.2, 1) 0.15s forwards;
+  animation: brand-fade 0.7s ease 0.15s forwards;
 }
-[data-theme='mono'] .brand-mark svg {
-  transform-origin: 50% 0;
+[data-theme='mono'] .brand-mono-cursor {
+  animation: brand-blink 1.1s steps(1) infinite;
 }
 [data-theme='mono'] .brand-edge {
-  background: var(--color-ink);
+  background: var(--color-up);
   height: 1px;
-  bottom: 10px;
+  bottom: 8px;
   transform: scaleX(0);
   transform-origin: left center;
   opacity: 0;
@@ -455,6 +607,9 @@
 [data-theme='mono'] .group:hover .brand-edge {
   transform: scaleX(1);
   opacity: 1;
+}
+[data-theme='mono'] .group:hover .brand-mark {
+  filter: drop-shadow(0 0 6px var(--glow));
 }
 
 @keyframes brand-rise {
@@ -475,14 +630,24 @@
     opacity: 1;
   }
 }
-@keyframes brand-hair {
-  from {
-    opacity: 0;
-    transform: scaleY(0);
-  }
+@keyframes brand-unfurl {
   to {
+    transform: scaleX(1);
+  }
+}
+@keyframes brand-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes brand-blink {
+  0%,
+  55% {
     opacity: 1;
-    transform: scaleY(1);
+  }
+  55.01%,
+  100% {
+    opacity: 0.12;
   }
 }
 @keyframes edge-line-in {
@@ -514,10 +679,17 @@
 
 @media (prefers-reduced-motion: reduce) {
   [data-theme] .brand-mark,
+  [data-theme] .brand-summit-peak,
+  [data-theme] .brand-summit-flag,
+  [data-theme] .brand-summit-snow,
+  [data-theme] .brand-aurora-ribbon,
+  [data-theme] .brand-aurora-orb,
+  [data-theme] .brand-mono-cursor,
   [data-theme='summit'] .brand-edge,
   [data-theme='aurora'] .brand-edge,
   .tb-stars-a,
   .tb-stars-b,
+  .tb-stars-faint,
   .tb-aurora-a,
   .tb-aurora-b,
   .tb-aurora-c,
@@ -528,6 +700,12 @@
   [data-theme] .brand-mark {
     opacity: 1;
   }
+  [data-theme] .brand-summit-flag {
+    transform: scaleX(1);
+  }
+  [data-theme] .brand-aurora-ribbon {
+    stroke-dashoffset: 0;
+  }
   [data-theme='summit'] .brand-edge,
   [data-theme='aurora'] .brand-edge {
     transform: scaleX(1);
@@ -537,9 +715,8 @@
   [data-theme='mono'] .brand-edge {
     transition: none;
   }
-  [data-theme] .brand-tip {
-    animation: none;
-    opacity: 0.8;
+  [data-theme='mono'] .brand-mono-cursor {
+    opacity: 0.6;
   }
   .hero-fade {
     opacity: 1;

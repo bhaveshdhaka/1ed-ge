@@ -82,6 +82,7 @@ test.describe('performance', () => {
 test.describe('tracker', () => {
   test('habit heatmaps render', async ({ page }) => {
     await page.goto('/tracker')
-    await expect(page.locator('svg')).toHaveCount(6)
+    // heatmap SVGs specifically — the nav brand + theme background also render SVGs
+    await expect(page.locator('.overflow-x-auto svg')).toHaveCount(6)
   })
 })

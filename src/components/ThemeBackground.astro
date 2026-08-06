@@ -34,12 +34,14 @@ const { theme = 'summit' } = Astro.props as { theme?: string }
     <div class="tb-aurora tb-aurora-a"></div>
     <div class="tb-aurora tb-aurora-b"></div>
     <div class="tb-aurora tb-aurora-c"></div>
+    <div class="tb-stars tb-stars-a tb-stars-faint"></div>
   </div>
 )}
 
 {theme === 'mono' && (
   <div class="theme-bg" aria-hidden="true">
     <div class="tb-grid"></div>
+    <div class="tb-scan"></div>
     <div class="tb-vignette"></div>
   </div>
 )}

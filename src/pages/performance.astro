@@ -41,7 +41,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
     </div>
 
     <div class="sticky top-[76px] z-10 mt-6 -mx-1 border-b border-line bg-bg/95 px-1 py-1 backdrop-blur md:top-[84px]">
-      <div class="flex gap-1 overflow-x-auto text-[12px]">
+      <div class="flex gap-1 overflow-x-auto text-[12px]" tabindex="0">
         {[
           ['summary', 'stats'],
           ['charts', 'charts'],
@@ -66,10 +66,10 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
 
     <div id="charts" class="mt-10 grid scroll-mt-28 gap-10 lg:grid-cols-2">
       <div class="panel p-5">
-        <EquityCurve points={s.equityR} color="#4ade80" label="equity curve — cumulative R" />
+        <EquityCurve points={s.equityR} color="var(--color-up)" label="equity curve — cumulative R" />
       </div>
       <div class="panel p-5">
-        <EquityCurve points={s.equityPnl} color="#7dd3fc" label="equity curve — $ pnl (all accounts)" />
+        <EquityCurve points={s.equityPnl} color="var(--chart-alt)" label="equity curve — $ pnl (all accounts)" />
       </div>
     </div>
 
@@ -78,7 +78,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
     </div>
 
     <h2 id="accounts" class="mt-14 scroll-mt-28 text-lg">/ accounts</h2>
-    <div class="mt-4 overflow-x-auto panel">
+    <div class="mt-4 overflow-x-auto panel" tabindex="0">
       <table class="w-full min-w-[820px] border-collapse">
         <thead>
           <tr>
@@ -127,7 +127,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
     </div>
 
     <h2 id="recent" class="mt-14 scroll-mt-28 text-lg">/ recent trades</h2>
-    <div class="mt-4 overflow-x-auto panel">
+    <div class="mt-4 overflow-x-auto panel" tabindex="0">
       <table class="w-full min-w-[820px] border-collapse">
         <thead>
           <tr>
