@@ -167,3 +167,53 @@ deployed in this session; the autosave cron is active again.
   /accounts, /coach, f-R-iend coach, all tested end-to-end and deployed.
 - 2026-08-05 — v0.1: full site + admin + AI pipeline, deployed on VPS
   (docker + nginx), domain live on Cloudflare (Flexible SSL).
+
+## PENDING — Handoff: Phase 1 + Phase 2 (agreed, not yet built)
+
+Owner approved a two-phase batch; build Phase 1 first, then Phase 2, in a fresh
+session (this context was full). Live state safe: main @ d94ae34 + 327ec8d, tree
+clean, site 200, cron active.
+
+### Phase 1 — unified day page + /journal UX + market status
+1. `src/lib/dates.ts` (new): fmtDay('2028-08-03') → '03-aug-2028' (lowercase month); parseDay reverse.
+2. `src/pages/day/[date].astro`: getStaticPaths = days ∪ journal ∪ coach; slug = dd-mon-yyyy, props carry ISO.
+   Sections: data → habits → screen proof → trades → /reflection → /coach, hairline empty states
+   ("no journal entry/coaching session this day"). Breadcrumbs ←/journal · all sessions →/coach. fmtDay everywhere.
+3. `src/pages/journal/[...slug].astro` → prerender=false + Astro.redirect('/day/'+fmtDay(slug), 301).
+4. Repoint every /day/${iso} → /day/${fmtDay}: index.astro, journal/index.astro (+date-jump), rss.xml.ts,
+   performance.astro, tracker.astro, DayWorkspace.tsx, RebuildBar.tsx, admin preview/[date].astro.
+5. tracker.astro last-7: only link days with records; others dimmed non-links (fixes the 404).
+6. journal/index.astro: inline JSON search index (per post {id,title,meta,body}; meta incl. linked day-record
+   text; bodies ~54KB total — cheap). Client filter: tokenize AND + word-boundary prefix, digit→substring;
+   score title+3/meta+2/body+1; flat ranked clone-list while searching; / focuses, Esc clears.
+   Sticky month-chip strip (top:0, h-scroll); back-to-top ↑ button (fades after 400px).
+   Delete src/pages/api/journal/search.ts (dead).
+7. `src/lib/market.ts` (new, deterministic): US holidays (observed-day shift + Good Friday via Easter),
+   early closes (day after Thanksgiving, Dec 24, Dec 31 → 1:15pm CT), weekends. Markers on day page + homepage:
+   ● open / ◐ early close / ✕ closed · holiday.
+8. Docs: CHANGELOG + MEMORY. Verify: typecheck → build → deploy.sh → live verify → commit.
+
+### Phase 2 — USD red/orange news in HKT (double-verified; USD only, red primary / orange secondary)
+- Source A: FF CDN JSON https://nfs.faireconomy.media/ff_calendar_thisweek.json
+  (country USD, impact High→red / Medium→orange; ISO dates carry explicit offset; this-week only).
+- Source B: TradingView API https://economic-calendar.tradingview.com/events?from&to
+  with headers Origin: https://in.tradingview.com + browser UA + Accept: application/json. VERIFIED 200.
+  Its importance encoding (0/1/-1) is unreliable → FF defines the level; TradingView confirms each event
+  exists at matching UTC time (title + ±1min) → verified flag. Events in both = verified:true; else false+logged.
+- HKT = UTC+8 (no DST). New market-news content collection (src/content/market-news/<date>.md:
+  date, verified, cachedAt, red[], orange[] of {time HKT, currency, title}).
+- scripts/market-news-fetch.mjs (no scraping) → writes files; runs on deploy, ~6h cron (fetch + npm run build),
+  admin POST /api/admin/market/refresh + GET /api/admin/market?date= (fs, fresh).
+- Display: day page strip `red 20:30 HKT` (red=--color-down, orange=--color-warn, orange dimmer), homepage
+  one-liner `market open — red 20:30 HKT`, admin Day workspace market card + ↻ refresh.
+- Risks: FF rate-limit (cache/backoff, fallback TV-only verified:false); TradingView 403 without Origin header.
+
+### Roadmap (after Phase 2)
+Period report pages from data (weekly/monthly/quarterly/h1/h2/y1/y2); existing /review idea + MEMORY open
+items (Cloudflare port, Safari/iOS polish, CSV import, account stage auto-transitions).
+
+### Gotchas
+- Do NOT run seed-review.mjs against the live tree (clears content dirs).
+- Generated graphics via sharp/librsvg (scripts/lib/brand.mjs) — not headless Chromium.
+- deploy.sh re-creates the autosave cron; seed.mjs is idempotent (no clobber).
+- VPS can't resolve 1ed.ge — curl --resolve 1ed.ge:443:104.21.7.179.
