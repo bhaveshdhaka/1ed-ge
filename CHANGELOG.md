@@ -26,8 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Public day URLs are now `dd-mon-yyyy`** — every `/day/<iso>` link repointed
   (home, journal, rss, performance, tracker, admin preview, day nav, RebuildBar,
-  day workspace "view live"). Old `/journal/<id>` post pages 301-redirect to the
-  unified day page (SSR route; invalid slugs 404).
+  day workspace "view live"). The old `/journal/<id>` post pages are gone (the
+  site isn't launched yet — no redirects, no legacy routes).
 - **Tracker last-7 grid** — only days with a record link to `/day/<fmt>`; the
   rest render dimmed non-links (no more 404 hops).
 

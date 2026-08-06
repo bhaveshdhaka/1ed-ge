@@ -121,8 +121,9 @@ deployed in this session; the autosave cron is active again.
 ## Session log (recent)
 
 - 2026-08-06 — **Phase 1 shipped.** Unified `/day/<dd-mon-yyyy>` (days ∪ journal ∪
-  coach; reflection + coach sections, hairline empty states), journal posts
-  301 → day pages, fmtDay URLs everywhere, client-side journal search (inline
+  coach; reflection + coach sections, hairline empty states), fmtDay URLs
+  everywhere (no redirect routes — site not launched, old `/journal/<id>` /
+  `/day/<iso>` URLs simply don't exist), client-side journal search (inline
   JSON index, ranked, `/`/`Esc`, sticky month chips, back-to-top),
   `src/lib/market.ts` (●/◐/✕) on day pages + homepage. Typechecked, built,
   deployed, verified live.
@@ -178,13 +179,13 @@ deployed in this session; the autosave cron is active again.
 
 Phase 1 is DONE, deployed, and verified live: unified `/day/<dd-mon-yyyy>`
 page (days ∪ journal ∪ coach in one page with reflection + coach sections),
-`src/lib/dates.ts` (fmtDay/parseDay), journal posts 301-redirect
-`/journal/<iso>` → `/day/<fmt>` (SSR, invalid slugs 404), every `/day/<iso>`
-link repointed, tracker last-7 dims non-record days, journal search is now a
-client-side inline-index filter (ranked, `/` focus, `Esc` clear, sticky month
-chips, back-to-top), `/api/journal/search` deleted, and `src/lib/market.ts`
-(US holidays via observed-day shift + Easter, early closes) with ●/◐/✕ markers
-on day pages + homepage.
+`src/lib/dates.ts` (fmtDay/parseDay), no redirect routes at all (site not
+launched — old `/journal/<id>` and `/day/<iso>` URLs simply 404), every
+`/day/<iso>` link repointed, tracker last-7 dims non-record days, journal
+search is a client-side inline-index filter (ranked, `/` focus, `Esc` clear,
+sticky month chips, back-to-top), `/api/journal/search` deleted, and
+`src/lib/market.ts` (US holidays via observed-day shift + Easter, early
+closes) with ●/◐/✕ markers on day pages + homepage.
 
 ### Phase 2 — USD red/orange news in HKT (double-verified; USD only, red primary / orange secondary)
 - Source A: FF CDN JSON https://nfs.faireconomy.media/ff_calendar_thisweek.json
