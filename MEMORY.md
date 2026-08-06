@@ -129,6 +129,26 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-06 — **P1 shipped: Day Cockpit Shell + IA.** The day page is the
+  cockpit: 24h HKT timeline (session bands + hazard dots + now-marker) in the
+  ambient strip, left rail (rules/quotes/habits/self-talk/coach), center
+  writing surface, right rail (extract drop + today record). Homepage = today;
+  nav 9→6; `/tracker`+`/trends` merged into `/performance` and deleted. Muted
+  sage/clay palette (WCAG-AA), mono-only type (Newsreader dropped). New
+  `rules`+`quotes` collections, `cockpit.json`, `lib/timeline.ts`. Executed
+  via subagent-driven dev (8 tasks, reviewed; final review found a blank
+  WritingDoc — lowercase `journalContent` renders a literal element, fixed via
+  uppercase alias — plus 3 a11y contrast fixes). Test suite green 68/68;
+  fixed a stale SSR-journal-search e2e (search is client-side now).
+- 2026-08-06 — **Design spec approved: the Day Cockpit** (docs/superpowers/
+  specs/2026-08-06-day-cockpit-design.md). One page you live in: writing, not
+  chat (Ghost rhythm but mono/hacker type); AI refine→approve loop (submit 🤖
+  publish 🌐); screenshots are ingest-only (ephemeral extract, never saved);
+  habits are ticked (never screenshot-fed), AI may infer from a relevant shot;
+  coach speaks at boundaries (pre-market line, end-of-day debrief on the day
+  page, chat invoked inline from a sidebar link — not a separate page);
+  hazard = 6px clay dot that pulses only inside the 30-min window, never the
+  word "red", no cards. Files-as-db confirmed right for single-user.
 - 2026-08-06 — **P3 + P4 + holiday refinements.** Statement-driven accounts:
   paste a prop-firm statement screenshot in admin → AI proposes firm/size/
   equity/buffer/stage/payout/note → confirm → apply (stage appended to

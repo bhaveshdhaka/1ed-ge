@@ -6,6 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (P1 — Day Cockpit Shell + IA)
+- **The day page is now the cockpit** — `/` and `/day/<date>` render a
+  three-column command center: ambient top strip with a **24h HKT timeline**
+  (session bands for CME/TSE/LSE/NYSE, now-marker, hazard dots), a left rail
+  (rules · quotes · habits · self-talk · coach link), a center **writing
+  surface** (title, data cells, prose, flat-line), and a right rail (extract
+  drop zone · today's record · hazard line). Zero-JS, server-rendered.
+- **Muted palette + mono-only type** — bright green/red → muted sage/clay;
+  Newsreader dropped; JetBrains Mono everywhere. WCAG-AA contrast verified.
+- **Homepage = today** — the dashboard salad is gone; `/` is the cockpit for
+  the current day.
+- **Nav 9 → 6** — `today · journal · calendar · performance · accounts ·
+  about`. `/tracker` + `/trends` merged into `/performance`, pages deleted.
+- **New content collections** `rules` + `quotes` (left-rail grounding) and a
+  `cockpit.json` config (self-talk).
+- **New timeline lib** `src/lib/timeline.ts` — pure 24h HKT ruler builder from
+  the sessions engine.
+- **Hazard dots** — 6px clay dots at event times (dim; the 30-minute pulse
+  arrives with the live layer, P2).
+- Test suite green: 68/68 e2e (fixed a stale SSR-journal-search test to match
+  the client-side search), a11y 0 violations, `astro check` 0 errors.
+
 ### Added
 - **Statement-driven accounts (P3)** — paste a prop-firm statement screenshot in
   the admin → AI (vision) proposes `firm / size / equity / buffer / stage /
