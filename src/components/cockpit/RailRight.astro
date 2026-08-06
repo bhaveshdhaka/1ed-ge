@@ -1,7 +1,7 @@
 ---
 import type { HazardDot } from '../../lib/timeline'
 interface Props {
-  d: { mood?: number; sleep?: { hours?: number }; device?: { iphoneHours?: number; socialHours?: number }; trades?: unknown[] } | null
+  d: { mood?: number; sleep?: { hours?: number }; device?: { iphoneHours?: number; socialHours?: number; macHours?: number }; trades?: unknown[] } | null
   hazards: HazardDot[]
 }
 const { d, hazards } = Astro.props
@@ -14,6 +14,7 @@ const sumR = trades.reduce((s: number, t: any) => s + (t.points / (t.riskPoints 
   <div class="ck-kv"><span>mood</span><b>{d?.mood ? `${d.mood}/5` : '—'}</b></div>
   <div class="ck-kv"><span>sleep</span><b>{d?.sleep?.hours !== undefined ? `${d.sleep.hours}h` : '—'}</b></div>
   <div class="ck-kv"><span>screen</span><b>{d?.device?.iphoneHours !== undefined ? `${d.device.iphoneHours}h` : '—'}</b></div>
+  <div class="ck-kv"><span>mac</span><b>{d?.device?.macHours !== undefined ? `${d.device.macHours}h` : '—'}</b></div>
   <div class="ck-kv"><span>trades</span><b>{trades.length}</b></div>
   <div class="ck-kv"><span>R</span><b class="sage">{sumR ? `${sumR > 0 ? '+' : ''}${sumR.toFixed(2)}` : '—'}</b></div>
   {hazards.length > 0 && (
