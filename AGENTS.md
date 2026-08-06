@@ -70,8 +70,9 @@ wait". Default is commit + deploy + verify.
 
 ```
 astro.config.mjs            static output + node adapter; SSR routes opt out per-file
-src/content.config.ts            collections: accounts, days, payouts, coach, journal, habits, market-news
+src/content.config.ts            collections: accounts, days, payouts, coach, journal, habits, brief, market-news
 src/content/days/<date>.md  THE daily record — mood, sleep, habits, device, trades+executions
+src/content/brief/          per-day pre-market brief (AI-written prose from verified data)
 src/content/market-news/    per-day USD red/orange events (HKT times), fetched deterministically
 src/content/accounts/       account lifecycle instances (eval → buffer → payout …)
 src/content/payouts/        payout records (per account)
@@ -85,6 +86,7 @@ src/lib/habits.ts           streak + heatmap computation
 src/lib/market.ts               deterministic US bank holidays + early closes; marketDay/marketMarker/openCloseTimes/marketSchedule
 src/lib/sessions.ts             DST-aware CME/TSE/LSE/NYSE sessions in HKT + holiday sets (JP/UK/US); marketEvents()/todayHkt()
 src/lib/market-news.ts          fs read/write of market-news day files (admin + fetch)
+src/lib/brief.ts                deterministic pre-market snapshot builder (sessions+news+last day) + brief fs I/O
 src/lib/changes.ts          pending-changes store (/tmp/1edge-pending.json) + rebuild history
 src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), readScreenshot,
                              readScreenTime, coachReply, assist

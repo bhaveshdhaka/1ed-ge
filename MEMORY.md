@@ -111,9 +111,12 @@ deployed in this session; the autosave cron is active again.
 - [x] **Market widget** — DONE. `MarketWidget.astro` + `src/lib/sessions.ts`
       (CME maintenance halt, TSE, LSE, NYSE, US holidays, DST via Intl) on the
       homepage + day pages + `/calendar` week view. News is zero-inference
-      (verbatim rows + `[TV]`/`[FF]` + `✦` verified, no merging). Remaining
-      niceties: Japan substitute-holiday edge cases, full UK holiday shift rules,
-      countdowns on `/calendar` per-day rows (widget covers today only).
+      (verbatim rows + `[TV]`/`[FF]` + `✦` verified, no merging). JP/UK holiday
+      rules (substitute-holiday chains, weekend shifts) done.
+- [x] **Statement-driven accounts (P3)** + **daily brief (P4)** — DONE. Paste a
+      statement screenshot → AI proposes → confirm → apply (stage history +
+      auto payout). Admin Overview generates the pre-market brief from verified
+      data into `src/content/brief/`, public on homepage + day page.
 - [ ] Move to Cloudflare Pages + CDN (all content file-based → ports cleanly).
 - [ ] **Safari/iOS/iPhone polish:** viewport-fit + apple metas + tap-highlight
       already in. Next: safe-area insets, bigger touch targets, `@supports
@@ -126,6 +129,15 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-06 — **P3 + P4 + holiday refinements.** Statement-driven accounts:
+  paste a prop-firm statement screenshot in admin → AI proposes firm/size/
+  equity/buffer/stage/payout/note → confirm → apply (stage appended to
+  lifecycle, payout auto-logged). Daily pre-market brief: admin Overview "AI
+  draft" builds a deterministic snapshot (sessions + red/orange news + last
+  day R/mood/sleep) and the LLM writes prose only — saved to
+  `src/content/brief/<date>.md`, public on homepage + day page. Japan
+  substitute-holiday chains + UK shifts verified. Typechecked, built, deployed,
+  verified live.
 - 2026-08-06 — **Market widget v2 + context-aware markers.** Rewrote the widget
   as a session ticker: mono-only type (the header was an `h2` → Newsreader serif,
   that was the "MARKET different font" bug), flags 🇺🇸🇯🇵🇬🇧 + 📈 futures,

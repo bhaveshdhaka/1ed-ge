@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Statement-driven accounts (P3)** — paste a prop-firm statement screenshot in
+  the admin → AI (vision) proposes `firm / size / equity / buffer / stage /
+  payout / note`, you review in a confirm panel, then "apply" writes it: fills
+  the account, appends a stage change to its lifecycle history, and logs any
+  detected payout. No manual trade typing — matches the screenshot-first rule.
+- **Daily pre-market brief (P4)** — the admin Overview has a "daily brief" card:
+  "AI draft" builds a deterministic snapshot (today's sessions + red/orange news
+  with HKT times + your most recent day's R/mood/sleep) and the LLM writes a
+  ~120-word brief from it — the AI only writes prose, every number is verified.
+  Save stores `src/content/brief/<date>.md`; rendered on the homepage and the
+  day page. Public pages show it only when a brief exists for that date.
+- **Holiday refinements** — Japan substitute-holiday rule now handles chains
+  (e.g. Golden Week May 3 Sunday → May 6), verified across 2026–2028; UK
+  Christmas/Boxing weekend shifts verified.
+
+### Added
 - **Market widget v2 (session ticker)** — redesigned as a professional market
   box: mono typography (kills the serif `h2` bug), per-market **flags**
   (🇺🇸 🇯🇵 🇬🇧, 📈 futures), **HH:MM:SS countdowns ticking every second**

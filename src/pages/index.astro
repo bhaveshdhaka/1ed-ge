@@ -8,13 +8,14 @@ import { fmtDay } from '../lib/dates'
 import { marketMarker } from '../lib/market'
 import MarketWidget from '../components/MarketWidget.astro'
 
-const [accounts, days, journal, habits, payouts, news] = await Promise.all([
+const [accounts, days, journal, habits, payouts, news, briefs] = await Promise.all([
   getCollection('accounts'),
   getCollection('days'),
   getCollection('journal'),
   getCollection('habits'),
   getCollection('payouts'),
   getCollection('market-news'),
+  getCollection('brief'),
 ])
 
 const stats = buildStats(days, accounts, payouts)
@@ -30,6 +31,13 @@ if (latestJournal) {
 }
 
 const latestDay = [...days].sort((a, b) => b.data.date.localeCompare(a.data.date))[0]
+const briefToday = briefs.find((b) => b.data.date === today)
+let briefContent: { Content: any } | null = null
+if (briefToday) {
+  try {
+    briefContent = await render(briefToday)
+  } catch {}
+}
 const mk = marketMarker(today)
 const newsToday = news.find((n) => n.data.date === today)
 const firstRedToday = newsToday?.data.red[0]
@@ -133,6 +141,14 @@ const live = (n: number | null, suffix = '') => {
     <div class="max-w-3xl">
       <MarketWidget />
     </div>
+    {briefToday && briefContent && (
+      <div class="mt-6 max-w-3xl border border-line bg-panel/50 px-4 py-3">
+        <div class="text-[13px] text-dim">/ brief · {fmtDay(briefToday.data.date)}</div>
+        <div class="prose mt-2 [&>*]:text-[13px]">
+          <briefContent.Content />
+        </div>
+      </div>
+    )}
   </section>
 
   <section class="border-t border-line bg-panel/40">

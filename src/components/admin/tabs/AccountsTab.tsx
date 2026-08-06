@@ -1,6 +1,21 @@
 import { useCallback, useEffect, useState } from 'react'
-import { api, todayStr, notifyChanged } from '../api'
+import { api, todayStr, notifyChanged, fileToDataUrl, uploadDataUrl } from '../api'
 import { Card, Button, Field, TextInput, NumInput, Select } from '../ui'
+import { ImageDropZone } from '../ImageDropZone'
+
+interface StatementRead {
+  accountId: string | null
+  firm: string | null
+  size: number | null
+  sizeLabel: string | null
+  equity: number | null
+  netPnl: number | null
+  buffer: number | null
+  stage: 'eval' | 'buffer' | 'payout' | 'failed' | 'paused' | null
+  payout: number | null
+  note: string | null
+  confident: boolean
+}
 
 interface AccountRow {
   file?: string
@@ -34,6 +49,10 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
   const [adding, setAdding] = useState(false)
   const [newAcc, setNewAcc] = useState({ firm: 'Lucid', size: '50000', id: '' })
   const [payout, setPayout] = useState({ date: todayStr(), account: '', amount: '', status: 'paid', note: '' })
+  const [stmtBusy, setStmtBusy] = useState(false)
+  const [proposal, setProposal] = useState<StatementRead | null>(null)
+  const [proposalImage, setProposalImage] = useState<string | null>(null)
+  const [applyTo, setApplyTo] = useState('')
 
   const load = useCallback(async () => {
     try {
@@ -150,6 +169,93 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
     }
   }
 
+  const onStmtFiles = async (files: File[]) => {
+    const f = files[0]
+    if (!f) return
+    setStmtBusy(true)
+    try {
+      const dataUrl = await fileToDataUrl(f)
+      const url = await uploadDataUrl(dataUrl, f.name)
+      setProposalImage(url)
+      const res = await api<{ result: StatementRead }>('/api/admin/ai', {
+        method: 'POST',
+        body: { action: 'statement', image: url },
+      })
+      setProposal(res.result)
+      setApplyTo(res.result.accountId && accounts.some((a) => a.id === res.result.accountId) ? res.result.accountId : accounts[0]?.id ?? res.result.accountId ?? '')
+      notify(res.result.confident ? 'statement read — review before applying' : 'statement read — low confidence, check the numbers', !res.result.confident)
+    } catch (e) {
+      notify(e instanceof Error ? e.message : 'statement read failed', false)
+    } finally {
+      setStmtBusy(false)
+    }
+  }
+
+  const applyProposal = async () => {
+    if (!proposal) return
+    const target = applyTo.trim()
+    if (!target) return notify('pick which account to apply this to', false)
+    const existing = accounts.find((a) => a.id === target)
+    try {
+      if (existing) {
+        const stages = [...existing.stages]
+        if (proposal.stage && proposal.stage !== existing.stage && stages[stages.length - 1]?.stage !== proposal.stage) {
+          stages.push({ stage: proposal.stage, from: todayStr(), note: 'from statement' })
+        }
+        await api('/api/admin/accounts', {
+          method: 'POST',
+          body: {
+            action: 'save',
+            ...existing,
+            firm: proposal.firm || existing.firm,
+            size: proposal.size || existing.size,
+            sizeLabel: proposal.sizeLabel || existing.sizeLabel,
+            stage: proposal.stage || existing.stage,
+            stages,
+            note: [existing.note, proposal.note].filter(Boolean).join(' · ') || undefined,
+          },
+        })
+        if (proposal.payout) {
+          await api('/api/admin/accounts', {
+            method: 'POST',
+            body: { action: 'payout', date: todayStr(), account: target, amount: proposal.payout, status: 'paid', note: 'auto from statement' },
+          })
+        }
+        notify('applied from statement — queued for rebuild')
+      } else {
+        const size = proposal.size || 50000
+        const stage = proposal.stage || 'eval'
+        await api('/api/admin/accounts', {
+          method: 'POST',
+          body: {
+            action: 'save',
+            id: target,
+            firm: proposal.firm || 'Lucid',
+            size,
+            sizeLabel: proposal.sizeLabel || `${Math.round(size / 1000)}k`,
+            drawdownLimit: size >= 50000 ? 2000 : 1000,
+            riskPerTrade: 200,
+            stage,
+            stages: [{ stage, from: todayStr(), note: 'from statement' }],
+            note: proposal.note || undefined,
+          },
+        })
+        notify(`account ${target} created from statement — queued for rebuild`)
+      }
+      notifyChanged()
+      await load()
+      setProposal(null)
+      setProposalImage(null)
+    } catch (e) {
+      notify(e instanceof Error ? e.message : 'apply failed', false)
+    }
+  }
+
+  const cancelProposal = () => {
+    setProposal(null)
+    setProposalImage(null)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -166,6 +272,51 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
           <Button size="sm" onClick={() => setAdding(true)}>+ new account</Button>
         )}
       </div>
+
+      <Card title="read a statement screenshot" actions={<span className="text-[11px] text-faint">{stmtBusy ? 'reading…' : 'AI proposes · you confirm'}</span>}>
+        {!proposal ? (
+          <ImageDropZone onFiles={onStmtFiles} label={stmtBusy ? 'reading the statement…' : 'paste a prop-firm statement screenshot (equity / buffer / payouts)'} />
+        ) : (
+          <div className="grid gap-4 md:grid-cols-[140px_1fr]">
+            {proposalImage && (
+              <a href={proposalImage} target="_blank" className="block border border-line bg-bg">
+                <img src={proposalImage} alt="statement" className="w-full" />
+              </a>
+            )}
+            <div>
+              {!proposal.confident && (
+                <p className="mb-2 border border-warn/40 bg-warn/10 px-2 py-1 text-[12px] text-warn">
+                  low confidence — check the numbers before applying
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-2 text-[13px] md:grid-cols-3">
+                <div className="kv"><span className="text-dim">firm</span><span className="text-ink">{proposal.firm ?? '—'}</span></div>
+                <div className="kv"><span className="text-dim">size</span><span className="text-ink">{proposal.sizeLabel ?? proposal.size ?? '—'}</span></div>
+                <div className="kv"><span className="text-dim">equity</span><span className="text-ink">{proposal.equity !== null ? `$${proposal.equity.toLocaleString()}` : '—'}</span></div>
+                <div className="kv"><span className="text-dim">net pnl</span><span className={proposal.netPnl !== null && proposal.netPnl < 0 ? 'text-down' : 'text-up'}>{proposal.netPnl !== null ? `${proposal.netPnl >= 0 ? '+' : ''}$${proposal.netPnl.toLocaleString()}` : '—'}</span></div>
+                <div className="kv"><span className="text-dim">buffer left</span><span className="text-ink">{proposal.buffer !== null ? `$${proposal.buffer.toLocaleString()}` : '—'}</span></div>
+                <div className="kv"><span className="text-dim">stage</span><span className="text-ink">{proposal.stage ?? '—'}</span></div>
+              </div>
+              {proposal.payout && (
+                <p className="mt-2 text-[12px] text-up">payout detected: +${proposal.payout.toLocaleString()} — a payout record will be added</p>
+              )}
+              {proposal.note && <p className="mt-2 text-[12px] text-dim">{proposal.note}</p>}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Field label="apply to">
+                  <Select value={applyTo} onChange={(e) => setApplyTo(e.target.value)} className="w-44">
+                    {accounts.map((a) => <option key={a.id} value={a.id}>{a.id}</option>)}
+                    {!accounts.some((a) => a.id === applyTo) && applyTo && <option value={applyTo}>{applyTo} (new)</option>}
+                  </Select>
+                </Field>
+                <div className="ml-auto flex items-center gap-2">
+                  <Button size="sm" onClick={cancelProposal}>cancel</Button>
+                  <Button size="sm" variant="primary" onClick={applyProposal}>apply to account</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {accounts.map((a) => (

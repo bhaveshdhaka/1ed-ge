@@ -256,6 +256,69 @@ export interface ScreenTimeRead {
   note: string | null
 }
 
+export interface StatementRead {
+  accountId: string | null
+  firm: string | null
+  size: number | null
+  sizeLabel: string | null
+  equity: number | null
+  netPnl: number | null
+  buffer: number | null
+  stage: 'eval' | 'buffer' | 'payout' | 'failed' | 'paused' | null
+  payout: number | null
+  note: string | null
+  confident: boolean
+}
+
+export async function readStatement(dataUrl: string): Promise<StatementRead> {
+  const system = `You read a prop-firm account statement / dashboard screenshot (TakeProfitTrader, Lucid, TopStep, etc.).
+Account stages: "eval" (evaluation), "buffer" (passed / in buffer), "payout" (profitable, taking payouts), "failed" (blown), "paused".
+Extract from the screenshot:
+- accountId: suggest an id like "lucid-50k-a" or "tpt-25k-b" from firm + account size + a suffix letter. null if you cannot tell the firm.
+- firm: normalize firm names: "takeprofittrader" -> "tpt", "lucid" -> "lucid".
+- size: account size in dollars (e.g. 50000, 25000). null if not visible.
+- sizeLabel: e.g. "50k", "25k".
+- equity: current account equity / balance if shown.
+- netPnl: net profit or loss shown, else derive from equity vs starting balance if both visible.
+- buffer: drawdown buffer remaining in dollars if shown.
+- stage: infer from context — "eval" during evaluation, "buffer" once passed, "payout" if a payout was taken / is available, "failed" if blown.
+- payout: a payout amount if one is visible (e.g. a recent payout row). null otherwise.
+- note: one honest line on what the statement shows.
+- confident: true ONLY if you could actually read the numbers; false if unclear or not a statement.
+Output ONLY valid JSON with exactly those keys. Use null when unknown.`
+
+  const rawJson = await orChat(
+    [
+      { role: 'system', content: system },
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: 'Read this prop-firm account statement screenshot:' },
+          { type: 'image_url', image_url: { url: dataUrl } },
+        ],
+      },
+    ],
+    env.modelVision(),
+    true,
+    1200,
+  )
+  const p = tryJson<Partial<StatementRead>>(rawJson) ?? {}
+  const stage = p.stage === 'eval' || p.stage === 'buffer' || p.stage === 'payout' || p.stage === 'failed' || p.stage === 'paused' ? p.stage : null
+  return {
+    accountId: typeof p.accountId === 'string' ? p.accountId : null,
+    firm: typeof p.firm === 'string' ? p.firm : null,
+    size: num(p.size),
+    sizeLabel: typeof p.sizeLabel === 'string' ? p.sizeLabel : null,
+    equity: num(p.equity),
+    netPnl: num(p.netPnl),
+    buffer: num(p.buffer),
+    stage,
+    payout: num(p.payout),
+    note: typeof p.note === 'string' ? p.note : null,
+    confident: p.confident === true,
+  }
+}
+
 export async function readScreenTime(dataUrl: string): Promise<ScreenTimeRead> {
   const system = `You read screen-time / app-usage screenshots (iPhone Screen Time or MacOS Screen Time reports).
 Extract:
@@ -363,6 +426,22 @@ Rules:
     env.modelAssist(),
     false,
     900,
+  )
+  return raw.trim().replace(/^```(?:markdown)?\s*|\s*```$/g, '').trim()
+}
+
+export async function dailyBrief(snapshot: string): Promise<string> {
+  const system = `You write the daily pre-market brief for 1ed.ge, a trader's public journal on the road to a hedge fund. R is the centerpiece.
+Write ONE short markdown brief (~100-140 words) covering: today's market sessions, the key red/orange USD events with their HKT times, and the trading context from the most recent day.
+Tone: plain, honest, focused, zero hype. Ground EVERYTHING in the data you're given — never invent numbers, events, times or prices. Mention the red/orange events by name and HKT time exactly as given. One short intro line, a line on the day's shape, a line on the red events, a closing line. No headings, no lists, no emojis.`
+  const raw = await orChat(
+    [
+      { role: 'system', content: system },
+      { role: 'user', content: `Pre-market data snapshot:\n\n${snapshot.slice(0, 6000)}` },
+    ],
+    env.modelAssist(),
+    false,
+    700,
   )
   return raw.trim().replace(/^```(?:markdown)?\s*|\s*```$/g, '').trim()
 }

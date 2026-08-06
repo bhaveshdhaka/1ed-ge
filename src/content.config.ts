@@ -99,6 +99,13 @@ const coach = defineCollection({
   }),
 })
 
+const brief = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/brief' }),
+  schema: z.object({
+    date: z.string(),
+  }),
+})
+
 const journal = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/journal' }),
   schema: z.object({
@@ -142,4 +149,4 @@ const habits = defineCollection({
   }),
 })
 
-export const collections = { accounts, days, payouts, coach, journal, habits, 'market-news': marketNews }
+export const collections = { accounts, days, payouts, coach, journal, habits, brief, 'market-news': marketNews }

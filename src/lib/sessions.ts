@@ -79,9 +79,21 @@ export function japanHolidays(year: number): string[] {
   out.push(nthWeekday(year, 9, 1, 2)) // Sports Day — 2nd Mon Oct
   out.push(new Date(year, 10, 3)) // Culture Day
   out.push(new Date(year, 10, 23)) // Labor Thanksgiving Day
-  // substitute holiday: a national holiday on Sunday → the next day is off
-  for (const d of out) if (d.getDay() === 0) out.push(addDays(d, 1))
-  return [...new Set(out.map(isoFromDate))]
+  // substitute holiday: a national holiday on Sunday → the next day that is
+  // itself not already a holiday/weekend becomes a holiday (chains handled).
+  const base = [...out]
+  const holidaysSet = new Set(base.map(isoFromDate))
+  const added: string[] = []
+  for (const d of base) {
+    if (d.getDay() === 0) {
+      let sub = addDays(d, 1)
+      while (holidaysSet.has(isoFromDate(sub)) || sub.getDay() === 0 || sub.getDay() === 6) {
+        sub = addDays(sub, 1)
+      }
+      added.push(isoFromDate(sub))
+    }
+  }
+  return [...new Set([...holidaysSet, ...added])]
 }
 
 /* ------------------------------------------------------------------ */

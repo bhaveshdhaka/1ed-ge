@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api'
-import { Card, Button, Stat } from '../ui'
+import { Card, Button, Stat, inputCls } from '../ui'
 import type { Tab } from '../AdminApp'
 
 interface Status {
@@ -23,6 +23,19 @@ export function OverviewTab({
   const [status, setStatus] = useState<Status | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [rebuilding, setRebuilding] = useState(false)
+  const [briefDraft, setBriefDraft] = useState('')
+  const [briefBusy, setBriefBusy] = useState(false)
+
+  const loadBrief = useCallback(async () => {
+    try {
+      const res = await api<{ brief: { date: string; body: string } | null }>('/api/admin/brief')
+      setBriefDraft(res.brief?.body ?? '')
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    loadBrief()
+  }, [loadBrief])
 
   const load = useCallback(async () => {
     try {
@@ -50,6 +63,32 @@ export function OverviewTab({
     setRebuilding(false)
     setTimeout(load, 500)
   }, [load, notify])
+
+  const genBrief = async () => {
+    setBriefBusy(true)
+    try {
+      const res = await api<{ result: string }>('/api/admin/ai', {
+        method: 'POST',
+        body: { action: 'brief', date: status?.today },
+      })
+      setBriefDraft(res.result)
+      notify('brief drafted — review and save')
+    } catch (e) {
+      notify(e instanceof Error ? e.message : 'brief failed', false)
+    }
+    setBriefBusy(false)
+  }
+
+  const saveBrief = async () => {
+    if (!status || !briefDraft.trim()) return
+    try {
+      await api('/api/admin/brief', { method: 'POST', body: { date: status.today, text: briefDraft } })
+      notify('brief saved — queued for rebuild')
+      loadBrief()
+    } catch (e) {
+      notify(e instanceof Error ? e.message : 'save failed', false)
+    }
+  }
 
   if (error) {
     return (
@@ -144,6 +183,37 @@ export function OverviewTab({
           </div>
         </Card>
       </div>
+
+      <Card
+        title="daily brief"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={genBrief} disabled={briefBusy}>
+              {briefBusy ? 'writing…' : 'AI draft'}
+            </Button>
+            <Button size="sm" variant="primary" onClick={saveBrief} disabled={!briefDraft.trim()}>
+              save
+            </Button>
+          </div>
+        }
+      >
+        {briefDraft.trim() ? (
+          <textarea
+            value={briefDraft}
+            onChange={(e) => setBriefDraft(e.target.value)}
+            rows={7}
+            className={`${inputCls} w-full resize-y`}
+            aria-label="daily brief"
+          />
+        ) : (
+          <p className="text-[13px] text-faint">
+            no brief for today yet — “AI draft” writes a short pre-market brief from today’s sessions, the
+            red/orange events, and your most recent day. the numbers come from verified data; the AI only
+            writes the prose.
+          </p>
+        )}
+        <p className="mt-2 text-[11px] text-faint">public on the homepage + day page once rebuilt</p>
+      </Card>
 
       <Card title="system">
         <div className="grid gap-2 text-[13px] md:grid-cols-3">
