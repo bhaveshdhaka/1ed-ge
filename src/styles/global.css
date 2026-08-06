@@ -1,5 +1,4 @@
 @import '@fontsource-variable/jetbrains-mono';
-@import '@fontsource-variable/newsreader';
 @import '@fontsource-variable/syne';
 @import 'tailwindcss';
 
@@ -16,11 +15,13 @@
   --color-soft: #a2a2aa;
   --color-dim: #8a8a92;
   --color-faint: #7e7e86;
-  --color-up: #4ade80;
-  --color-down: #f87171;
+  --color-up: #6ea88a;
+  --color-down: #c2725e;
   --color-accent: #7dd3fc;
-  --color-warn: #fbbf24;
+  --color-warn: #d9a441;
   --color-purp: #c4b5fd;
+  --color-sage: #6ea88a;
+  --color-clay: #b06a5e;
 }
 
 @layer base {
@@ -167,7 +168,6 @@
 
 /* ---- theme: summit (the one skin) ---- */
 [data-theme='summit'] {
-  --font-display: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
   --color-bg: #07080c;
   --color-panel: #0d0f16;
   --color-raise: #12141d;
@@ -178,9 +178,9 @@
   --color-dim: #8b93a6;
   --color-faint: #7d859a;
   --color-accent: #8ab4ff;
-  --color-up: #4ade80;
-  --color-down: #f87171;
-  --color-warn: #fbbf24;
+  --color-up: #6ea88a;
+  --color-down: #c2725e;
+  --color-warn: #d9a441;
   --color-purp: #c4b5fd;
   --glow: rgba(138, 180, 255, 0.35);
   --accent2: #a9c8ff;
