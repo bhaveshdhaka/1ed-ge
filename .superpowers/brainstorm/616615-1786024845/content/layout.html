@@ -1,0 +1,156 @@
+<h2>The Day Cockpit — how do you want it laid out?</h2>
+<p class="subtitle">This is the page you live in all day. Three directions for structuring it. Click one to select.</p>
+
+<style>
+  .dock {
+    background: #0a0a0c;
+    border: 1px solid #232327;
+    border-radius: 10px;
+    overflow: hidden;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #d4d4d8;
+    font-size: 11px;
+    line-height: 1.5;
+    margin: 0 auto 1rem;
+    max-width: 680px;
+  }
+  .dock .win { display: flex; gap: 4px; padding: 6px 10px; border-bottom: 1px solid #1a1a1e; background: #0e0e11; }
+  .dock .win i { width: 7px; height: 7px; border-radius: 50%; display: block; }
+  .dock .win i:nth-child(1){background:#f87171}.dock .win i:nth-child(2){background:#fbbf24}.dock .win i:nth-child(3){background:#4ade80}
+  .amb { background:#101014; border-bottom:1px solid #1a1a1e; padding: 7px 12px; display:flex; flex-wrap:wrap; gap:6px 14px; color:#a1a1aa; font-size:10.5px; }
+  .amb b { color:#e4e4e7; font-weight:600; }
+  .amb .up { color:#4ade80; } .amb .warn { color:#fbbf24; } .amb .red { color:#f87171; }
+  .amb .pill { border:1px solid #2a2a30; border-radius:3px; padding:0 5px; }
+  .amb .pill.hazard { border-color:#7f1d1d; background:#1a0e0e; color:#f87171; }
+  .feed { padding: 10px 14px 8px; }
+  .post { border-left: 2px solid #2a2a30; padding: 4px 0 4px 10px; margin-bottom: 8px; }
+  .post .t { color:#71717a; font-size:10px; }
+  .post .img { height: 46px; margin-top:5px; background: repeating-linear-gradient(45deg,#151518,#151518 6px,#121215 6px,#121215 12px); border:1px solid #1e1e22; border-radius:4px; }
+  .sys { border:1px solid #232327; background:#101014; border-left:2px solid #fbbf24; border-radius:4px; padding:5px 10px; margin-bottom:8px; color:#a1a1aa; }
+  .sys b{color:#fbbf24}
+  .comp { border-top:1px solid #1a1a1e; background:#0e0e11; padding: 8px 12px; display:flex; gap:8px; align-items:center; }
+  .comp .in { flex:1; border:1px solid #232327; background:#0a0a0c; border-radius:4px; padding:5px 8px; color:#71717a; }
+  .comp .btn { border:1px solid #2a2a30; border-radius:4px; padding:4px 8px; color:#d4d4d8; }
+  .comp .btn.grn { border-color:#14532d; background:#0d1a12; color:#4ade80; }
+  .cols { display:flex; min-height: 200px; }
+  .rail { width: 128px; background:#0d0d10; border-right:1px solid #1a1a1e; padding: 8px 10px; flex-shrink:0; }
+  .rail .lab { font-size:9px; letter-spacing:.08em; color:#52525b; margin:8px 0 4px; text-transform:uppercase; }
+  .rail .item { font-size:10px; color:#a1a1aa; padding:2px 0; }
+  .rail .item.done { color:#4ade80; }
+  .mid { flex:1; min-width:0; }
+  .rrail { width: 132px; background:#0d0d10; border-left:1px solid #1a1a1e; padding: 8px 10px; flex-shrink:0; }
+  .rrail .lab { font-size:9px; letter-spacing:.08em; color:#52525b; margin:8px 0 4px; text-transform:uppercase; }
+  .kv { display:flex; justify-content:space-between; font-size:10px; color:#a1a1aa; }
+  .kv b { color:#e4e4e7; font-weight:600; }
+  .hazard { border:1px solid #7f1d1d; background:#1a0e0e; border-radius:4px; padding:5px 8px; margin-top:6px; font-size:10px; color:#f87171; }
+  .optdesc { max-width: 680px; margin: 0 auto 1.75rem; color: var(--text-secondary); font-size: 0.9rem; }
+</style>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>The Feed — pure focus</h3>
+      <p>One column. Thin ambient strip pinned on top, the stream and composer are the whole page. Reminders drop in as system messages in the stream.</p>
+    </div>
+  </div>
+</div>
+<div class="dock">
+  <div class="win"><i></i><i></i><i></i></div>
+  <div class="amb">
+    <span>● <b>CME open</b> closes in 6h 12m</span>
+    <span class="warn">LSE opens in 41m</span>
+    <span class="pill hazard">red 20:30 · flat 20:15–20:45</span>
+    <span>day <b>12/730</b></span>
+  </div>
+  <div class="feed">
+    <div class="post"><span class="t">09:42 · thought</span><div>LSE open in 18m. Taking the last partial off MNQ — not getting caught in that London move.</div></div>
+    <div class="post"><span class="t">09:20 · chart</span><div>Friday HTF range — levels I'm watching for Monday.</div><div class="img"></div></div>
+    <div class="sys"><b>rule check</b> · no trades in the 15 min news window · next red 20:30 hkt</div>
+    <div class="post"><span class="t">08:50 · thought</span><div>Woke up flat but sharp. Sleep 6.5h. Stick to the plan, no revenge trades.</div></div>
+  </div>
+  <div class="comp"><div class="in">what's on your mind…</div><div class="btn">extract</div><div class="btn grn">post</div></div>
+</div>
+<p class="optdesc">Strongest zen. Zero clutter — but ambient info is thin, and rules/habits live behind the stream, not beside it.</p>
+
+<div class="options">
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>The Cockpit — everything at a glance</h3>
+      <p>Three rails. Left: your rules, affirmations, habits checklist. Center: stream + composer. Right: market context, hazard timeline, today's record.</p>
+    </div>
+  </div>
+</div>
+<div class="dock">
+  <div class="win"><i></i><i></i><i></i></div>
+  <div class="cols">
+    <div class="rail">
+      <div class="lab">rules</div>
+      <div class="item">never add to a loser</div>
+      <div class="item">flat 15m before red</div>
+      <div class="item">1R max risk / setup</div>
+      <div class="lab">habits</div>
+      <div class="item done">✓ quiet time</div>
+      <div class="item done">✓ write</div>
+      <div class="item">○ work out</div>
+      <div class="lab">self-talk</div>
+      <div class="item">"the edge is all we need"</div>
+    </div>
+    <div class="mid">
+      <div class="amb" style="border-bottom:none;border-left:1px solid #1a1a1e">
+        <span>● <b>CME open</b> 6h 12m</span>
+        <span class="warn">LSE opens in 41m</span>
+        <span class="pill hazard">red 20:30</span>
+      </div>
+      <div class="feed">
+        <div class="post"><span class="t">09:42 · thought</span><div>Taking the last partial off MNQ. Not getting caught in that London move.</div></div>
+        <div class="post"><span class="t">09:20 · chart</span><div>Friday HTF range.</div><div class="img"></div></div>
+        <div class="post"><span class="t">08:50 · thought</span><div>Stick to the plan, no revenge trades.</div></div>
+      </div>
+      <div class="comp"><div class="in">what's on your mind…</div><div class="btn">extract</div><div class="btn grn">post</div></div>
+    </div>
+    <div class="rrail">
+      <div class="lab">market today</div>
+      <div class="kv"><span>NYSE</span><b>21:30→04:00</b></div>
+      <div class="kv"><span>LSE</span><b>15:00→23:30</b></div>
+      <div class="kv"><span>CME</span><b>06:00→05:00</b></div>
+      <div class="hazard">20:30 red · flat 20:15–20:45</div>
+      <div class="lab">today</div>
+      <div class="kv"><span>mood</span><b>3/5</b></div>
+      <div class="kv"><span>sleep</span><b>6.5h</b></div>
+      <div class="kv"><span>screen</span><b>4.2h</b></div>
+      <div class="kv"><span>R</span><b class="up" style="color:#4ade80">+0.8</b></div>
+    </div>
+  </div>
+</div>
+<p class="optdesc">The power cockpit — every ambient input is always visible. Richer, but denser; needs careful design to stay calm and not become a dashboard salad.</p>
+
+<div class="options">
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Banner + Focus — ambient when it matters</h3>
+      <p>A slim always-visible hazard banner (the two numbers that matter: next session open + next red), a focused feed, and nudges that surface on demand or at the exact moment they matter.</p>
+    </div>
+  </div>
+</div>
+<div class="dock">
+  <div class="win"><i></i><i></i><i></i></div>
+  <div class="amb">
+    <span>● <b>CME open</b></span>
+    <span class="warn">LSE opens in 41m</span>
+    <span class="pill hazard">red 20:30 · flat 20:15–20:45</span>
+    <span class="pill">rules</span>
+  </div>
+  <div class="feed">
+    <div class="post"><span class="t">09:42 · thought</span><div>Taking the last partial off MNQ. Not getting caught in that London move.</div></div>
+    <div class="post"><span class="t">09:20 · chart</span><div>Friday HTF range.</div><div class="img"></div></div>
+    <div class="sys"><b>LSE opens in 5m</b> · you're flat · planned to sit out the open</div>
+    <div class="post"><span class="t">08:50 · thought</span><div>Stick to the plan, no revenge trades.</div></div>
+  </div>
+  <div class="comp"><div class="in">what's on your mind…</div><div class="btn">extract</div><div class="btn grn">post</div></div>
+</div>
+<p class="optdesc">Zen focus with a smart ambient layer — the banner never leaves, and the nudges only appear when they're actually relevant (5m before London open, 15m before red, habit time).</p>
+
+<p class="subtitle" style="margin-top:1.5rem">Which structure feels like home? (You can also tell me in the terminal — e.g. "B but move habits to the right".)</p>
