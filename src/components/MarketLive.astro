@@ -17,10 +17,10 @@ const schedule = {
     let S = { holidays: [], early: [] }
     try { S = JSON.parse(el.textContent || '{}') } catch {}
 
-    const fmtDur = (sec) => {
-      const h = Math.floor(sec / 3600)
-      const m = Math.floor((sec % 3600) / 60)
-      return (h ? h + 'h ' : '') + m + 'm'
+    const p = (n) => String(n).padStart(2, '0')
+    const fmtHMS = (sec) => {
+      const s = Math.max(0, Math.round(sec))
+      return p(Math.floor(s / 3600)) + ':' + p(Math.floor((s % 3600) / 60)) + ':' + p(s % 60)
     }
 
     const etNow = () => {
@@ -53,11 +53,8 @@ const schedule = {
       const early = (S.early || []).includes(n.iso)
       const open = 9.5 * 3600
       const close = early ? 13 * 3600 : 16 * 3600
-      if (n.sec < open) return apply('✕ closed — opens in ' + fmtDur(open - n.sec), 'var(--color-down)')
-      if (n.sec < close) {
-        const left = fmtDur(close - n.sec)
-        return apply(early ? '◐ open · half day — closes in ' + left : '● open — closes in ' + left, 'var(--color-up)')
-      }
+      if (n.sec < open) return apply('✕ closed · opens in ' + fmtHMS(open - n.sec), 'var(--color-down)')
+      if (n.sec < close) return apply((early ? '◐ open' : '● open') + ' · ' + fmtHMS(close - n.sec), 'var(--color-up)')
       return apply('✕ closed', 'var(--color-down)')
     }
 

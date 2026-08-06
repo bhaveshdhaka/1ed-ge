@@ -57,3 +57,38 @@ export function writeNews(day: MarketNewsDay) {
   })
   fs.writeFileSync(path.join(DIR, `${day.date}.md`), out)
 }
+
+/** Relevant emoji for a news title (e.g. 🛢️ crude oil, 🛒 inflation/CPI). */
+const EMOJI_RULES: [RegExp, string][] = [
+  [/inflation|cpi|ppi|deflator|price index|core/i, '🛒'],
+  [/crude|oil|gasoline|eia|api|natural gas|ng stocks/i, '🛢️'],
+  [/payroll|nonfarm|employment change|jobless|claims|jolts/i, '💼'],
+  [/unemployment rate/i, '👥'],
+  [/fed|fomc|powell|speech|speaks|testimon/i, '🗣️'],
+  [/gdp|industrial/i, '🏭'],
+  [/retail sales|consumer spending|household/i, '🛍️'],
+  [/housing|home sales|building permits|mortgage|naHB/i, '🏠'],
+  [/pmi|ism|manufacturing|services/i, '🏭'],
+  [/sentiment|uom|u\. of m|confidence/i, '💬'],
+  [/treasury|auction|budget|debt/i, '🏦'],
+  [/trade|import|export|balance/i, '⚖️'],
+  [/income|spending|savings/i, '💵'],
+]
+
+export function newsEmoji(title: string): string {
+  for (const [re, emoji] of EMOJI_RULES) {
+    if (re.test(title)) return emoji
+  }
+  return ''
+}
+
+/** Collapse consecutive events that share the same HKT time into one row. */
+export function groupNewsByTime(items: NewsItem[]): { time: string; titles: string[] }[] {
+  const out: { time: string; titles: string[] }[] = []
+  for (const it of items) {
+    const last = out[out.length - 1]
+    if (last && last.time === it.time) last.titles.push(it.title)
+    else out.push({ time: it.time, titles: [it.title] })
+  }
+  return out
+}

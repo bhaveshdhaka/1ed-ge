@@ -64,7 +64,7 @@ export function MarketCard() {
   return (
     <Card
       title={`market · ${today || '—'}`}
-      actions={<span data-mkt-live className="text-[12px] text-dim">—</span>}
+      actions={<span data-mkt-live className="text-[12px] text-dim tabular-nums">—</span>}
     >
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
         {red.map((n) => (

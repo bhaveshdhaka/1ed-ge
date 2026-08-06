@@ -1,5 +1,4 @@
 import { addDays, easterSunday, isoFromDate, lastWeekday, marketDay, nthWeekday } from './market'
-
 export type MarketKey = 'cme' | 'tse' | 'lse' | 'nyse'
 
 export interface MarketEvent {
@@ -171,4 +170,58 @@ export function marketEvents(startHkt: string, days: number): MarketEvent[] {
   }
 
   return out.sort((a, b) => a.hkt.localeCompare(b.hkt))
+}
+
+/* ------------------------------------------------------------------ */
+/* Context-aware day marker.                                           */
+/*  - today: LIVE marker (data-mkt-live drives the ticking countdown)  */
+/*  - other dates: scheduled presentation — hollow ○ + session window, */
+/*    never a green "● open" (which would imply it's open right now).  */
+/* ------------------------------------------------------------------ */
+
+export interface DayMarker {
+  glyph: string
+  text: string
+  cls: 'text-up' | 'text-warn' | 'text-down' | 'text-dim'
+  live: boolean
+}
+
+export function scheduledDayMarker(iso: string): DayMarker {
+  const m = marketDay(iso)
+  if (m.status === 'closed') return { glyph: '✕', text: `closed · ${m.label}`, cls: 'text-down', live: false }
+  if (m.status === 'early') return { glyph: '◐', text: 'early close 1:00pm et', cls: 'text-warn', live: false }
+  if (iso === todayHkt()) return { glyph: '●', text: 'open', cls: 'text-up', live: true }
+  const evs = marketEvents(iso, 1)
+  const open = evs.find((e) => e.market === 'nyse' && e.type === 'open' && e.hkt.slice(0, 10) === iso)
+  const close = open ? evs.find((e) => e.market === 'nyse' && e.type === 'close' && e.hkt > open.hkt) : undefined
+  const win = open && close ? `${open.hkt.slice(11, 16)}→${close.hkt.slice(11, 16)} hkt` : ''
+  return { glyph: '○', text: win ? `open ${win}` : 'open', cls: 'text-dim', live: false }
+}
+
+/** Compact per-market session window for a date (HKT), e.g. NYSE "21:30→04:00". */
+export function daySessionWindows(iso: string): Record<MarketKey, string> {
+  const evs = marketEvents(iso, 1)
+  const t = (h: string) => h.slice(11, 16)
+  const day = (h: string) => h.slice(0, 10)
+  const first = (market: MarketKey, type: string) => evs.find((e) => e.market === market && e.type === type && day(e.hkt) === iso)
+  const after = (market: MarketKey, type: string, afterHkt: string) =>
+    evs.find((e) => e.market === market && e.type === type && e.hkt > afterHkt)
+
+  const nyseOpen = first('nyse', 'open')
+  const nyseClose = nyseOpen ? after('nyse', 'close', nyseOpen.hkt) : undefined
+  const nyse = nyseOpen ? `${t(nyseOpen.hkt)}→${nyseClose ? t(nyseClose.hkt) : '—'}` : '—'
+
+  const tseOpen = first('tse', 'open')
+  const tseCloses = tseOpen ? evs.filter((e) => e.market === 'tse' && e.type === 'close' && e.hkt > tseOpen.hkt) : []
+  const tse = tseOpen ? `${t(tseOpen.hkt)}–${t(tseCloses[tseCloses.length - 1]?.hkt ?? '—')}` : '—'
+
+  const lseOpen = first('lse', 'open')
+  const lseClose = lseOpen ? after('lse', 'close', lseOpen.hkt) : undefined
+  const lse = lseOpen ? `${t(lseOpen.hkt)}→${lseClose ? t(lseClose.hkt) : '—'}` : '—'
+
+  const cmeHalt = first('cme', 'halt')
+  const cmeResume = cmeHalt ? after('cme', 'resume', cmeHalt.hkt) : undefined
+  const cme = cmeHalt && cmeResume ? `halt ${t(cmeHalt.hkt)}–${t(cmeResume.hkt)}` : '~24h'
+
+  return { nyse, tse, lse, cme }
 }

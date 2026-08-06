@@ -2,8 +2,8 @@
 import Base from '../layouts/Base.astro'
 import MarketWidget from '../components/MarketWidget.astro'
 import { getCollection } from 'astro:content'
-import { marketEvents, todayHkt, addDaysIso } from '../lib/sessions'
-import { marketMarker } from '../lib/market'
+import { marketEvents, todayHkt, addDaysIso, scheduledDayMarker, daySessionWindows } from '../lib/sessions'
+import { groupNewsByTime, newsEmoji } from '../lib/market-news'
 import { fmtDay } from '../lib/dates'
 
 const today = todayHkt()
@@ -19,34 +19,26 @@ for (const e of events) {
   evByDay.get(d)!.push(e)
 }
 
-const marketLabel: Record<string, string> = { cme: 'MNQ futures', nyse: 'New York', tse: 'Tokyo', lse: 'London' }
-const typeLabel: Record<string, string> = { open: 'open', close: 'close', halt: 'halt', resume: 'resume' }
-const t = (hkt: string) => hkt.slice(11, 16)
-const dLabel = (d: string) => {
-  const diff = Math.round((Date.parse(d + 'T00:00+08:00') - Date.parse(today + 'T00:00+08:00')) / 86400000)
-  return diff === 0 ? '' : diff > 0 ? `+${diff}d` : `${diff}d`
-}
-
 const rowsByDay = days.map((d) => {
-  const mk = marketMarker(d)
-  const evs = evByDay.get(d) ?? []
+  const dm = scheduledDayMarker(d)
+  const wins = daySessionWindows(d)
   const n = newsByDate.get(d)
-  const red = n?.red ?? []
-  const orange = n?.orange ?? []
-  const sessions = (['cme', 'nyse', 'tse', 'lse'] as const)
-    .map((m) => {
-      const list = evs.filter((e) => e.market === m)
-      return {
-        label: marketLabel[m],
-        parts: list.map((e) => `${t(e.hkt)}${dLabel(e.hkt.slice(0, 10))} ${typeLabel[e.type] ?? ''}${e.label ? ` (${e.label})` : ''}`),
-      }
-    })
-    .filter((s) => s.parts.length > 0)
-  return { d, fmt: fmtDay(d), mk, red, orange, sessions }
+  const redGroups = groupNewsByTime(n?.red ?? [])
+  const orangeGroups = groupNewsByTime(n?.orange ?? [])
+  return {
+    d,
+    fmt: fmtDay(d),
+    dm,
+    wins,
+    redGroups,
+    orangeGroups,
+    redFirst: redGroups[0],
+    orangeFirst: orangeGroups[0],
+  }
 })
 ---
 
-<Base title="calendar — 1ed.ge" description="This week's USD market events and session times in HKT — red/orange news, CME/TSE/LSE/NYSE opens and closes, deterministic and verified.">
+<Base title="calendar — 1ed.ge" description="The next week in HKT: USD red/orange events, session times, and market status — deterministic, DST-aware, zero-inference.">
   <section class="shell pt-12 pb-20">
     <div class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl">/ calendar</h1>
@@ -62,36 +54,38 @@ const rowsByDay = days.map((d) => {
         <div class="panel p-4">
           <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
             <span class="text-[15px] text-ink">{row.fmt}</span>
-            <span class:list={['text-[12px]', row.mk.status === 'open' ? 'text-up' : row.mk.status === 'early' ? 'text-warn' : 'text-down']}>
-              {row.mk.glyph} {row.mk.text}
+            <span class:list={['text-[12px] tabular-nums', row.dm.cls]} data-mkt-live={row.dm.live ? true : undefined}>
+              {row.dm.glyph} {row.dm.text}
             </span>
-            {row.red.length > 0 && <span class="text-[12px] text-down">red {row.red[0].time} hkt</span>}
-            {row.orange.length > 0 && <span class="text-[12px] opacity-70 text-warn">orange {row.orange[0].time} hkt</span>}
+            {row.redFirst && <span class="text-[12px] text-down">red {row.redFirst.time}</span>}
+            {!row.redFirst && row.orangeFirst && <span class="text-[12px] opacity-70 text-warn">orange {row.orangeFirst.time}</span>}
           </div>
-          <div class="mt-3 grid gap-px border border-line bg-line md:grid-cols-4">
-            {row.sessions.map((s) => (
-              <div class="bg-bg p-3">
-                <div class="text-[10px] uppercase tracking-widest text-dim">{s.label}</div>
-                <div class="mt-1 text-[12px] text-soft">
-                  {s.parts.map((p) => (
-                    <div>{p}</div>
-                  ))}
+
+          <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t border-line/50 pt-2 text-[12px] text-dim">
+            <span class="flex items-center gap-1.5"><span>🇺🇸</span><span class="tabular-nums">{row.wins.nyse}</span></span>
+            <span class="flex items-center gap-1.5"><span>🇯🇵</span><span class="tabular-nums">{row.wins.tse}</span></span>
+            <span class="flex items-center gap-1.5"><span>🇬🇧</span><span class="tabular-nums">{row.wins.lse}</span></span>
+            <span class="flex items-center gap-1.5"><span>📈</span><span class="tabular-nums">{row.wins.cme}</span></span>
+          </div>
+
+          {(row.redGroups.length > 0 || row.orangeGroups.length > 0) && (
+            <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2 text-[13px]">
+              {row.redGroups.map((g) => (
+                <div class="flex items-baseline gap-3">
+                  <span class="w-20 shrink-0 text-right text-[12px] tabular-nums text-down">{newsEmoji(g.titles[0])} {g.time}</span>
+                  <span class="text-down">{g.titles.join(' · ')}</span>
                 </div>
-              </div>
-            ))}
-          </div>
-          {(row.red.length > 0 || row.orange.length > 0) && (
-            <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[13px]">
-              {row.red.map((x) => (
-                <span class="text-down">red {x.time} hkt — {x.title} <span class="text-[10px] text-faint">[{x.source ?? ''}{x.verified ? ' ✦' : ''}]</span></span>
               ))}
-              {row.orange.map((x) => (
-                <span class="opacity-70 text-warn">orange {x.time} hkt — {x.title} <span class="text-[10px] text-faint">[{x.source ?? ''}{x.verified ? ' ✦' : ''}]</span></span>
+              {row.orangeGroups.map((g) => (
+                <div class="flex items-baseline gap-3">
+                  <span class="w-20 shrink-0 text-right text-[12px] tabular-nums opacity-70 text-warn">{newsEmoji(g.titles[0])} {g.time}</span>
+                  <span class="opacity-70 text-warn">{g.titles.join(' · ')}</span>
+                </div>
               ))}
             </div>
           )}
-          {row.sessions.length === 0 && row.red.length === 0 && row.orange.length === 0 && (
-            <p class="mt-2 text-[12px] text-faint">—</p>
+          {row.redGroups.length === 0 && row.orangeGroups.length === 0 && (
+            <p class="mt-2 border-t border-line/50 pt-2 text-[12px] text-faint">no major USD news · {row.dm.text}</p>
           )}
         </div>
       ))}

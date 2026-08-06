@@ -126,6 +126,17 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-06 — **Market widget v2 + context-aware markers.** Rewrote the widget
+  as a session ticker: mono-only type (the header was an `h2` → Newsreader serif,
+  that was the "MARKET different font" bug), flags 🇺🇸🇯🇵🇬🇧 + 📈 futures,
+  live **HH:MM:SS** countdowns (MarketLive now ticks seconds site-wide too),
+  rows re-sort live by next HKT event, and a 00–24 HKT day-timeline with a
+  moving now-marker. Market markers are now **context-aware**:
+  `scheduledDayMarker()` → green ● only when actually open (today); other dates
+  show `○ open 21:30→04:00 hkt` / `✕ closed · holiday`. News is de-noised:
+  same-time events collapse to one row + per-type emoji (`newsEmoji`/`
+  groupNewsByTime`). /calendar day cards lead with news, clean session chips,
+  no +1d noise. Typechecked, built, deployed, verified live.
 - 2026-08-06 — **Dashboard shipped: market widget + week calendar.** New
   `src/lib/sessions.ts` — deterministic, DST-aware CME/TSE/LSE/NYSE session
   times in HKT (CME maintenance halt 05:00–06:00 summer / 06:00–07:00 winter,

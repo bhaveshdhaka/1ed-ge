@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Market widget v2 (session ticker)** — redesigned as a professional market
+  box: mono typography (kills the serif `h2` bug), per-market **flags**
+  (🇺🇸 🇯🇵 🇬🇧, 📈 futures), **HH:MM:SS countdowns ticking every second**
+  (`tabular-nums`, no jitter), rows **re-sorted live by next event time in
+  HKT**, and a **day timeline** bar (00–24 HKT with per-market session spans +
+  a moving "now" marker). Labels only say `to close / to open / to reopen` —
+  no "maintenance halt" text. All times HKT, DST-aware.
+- **Context-aware market markers** — the green ● open now appears **only when
+  the market is actually open now**. Other dates show a scheduled indicator
+  (`○ open 21:30→04:00 hkt` for a future trading day, `✕ closed · holiday/
+  weekend`, `◐ early close`), so future day pages / calendar rows never fake a
+  live "open". `src/lib/sessions.ts` `scheduledDayMarker()`.
+- **News de-noised** — same-time events **collapse into one row** (e.g.
+  `🛒 20:30 · Inflation Rate YoY · Core Inflation MoM`), each row gets a
+  relevant **emoji** per release type (🛒 CPI/inflation, 🛢️ crude/EIA,
+  💼 jobs/payrolls, 🗣️ Fed, 🏠 housing, 🛍️ retail, …). `newsEmoji()` +
+  `groupNewsByTime()` in `src/lib/market-news.ts`.
+- **Calendar cleaned up** — day cards now lead with the news (grouped, emojis),
+  a compact session-window line (`🇺🇸 21:30→04:00 · 🇯🇵 08:00–14:00 · …`) via
+  `daySessionWindows()`, and no `+1d`/verbose event rows.
 - **Market widget (one-glance market box)** — `src/components/MarketWidget.astro`,
   embeddable anywhere (homepage, day pages, calendar, admin-ready). Shows live
   US status + countdown, per-market sessions with live countdowns, and today's

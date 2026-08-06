@@ -2,7 +2,8 @@
 import Base from '../../layouts/Base.astro'
 import { getCollection, render } from 'astro:content'
 import { fmtDay } from '../../lib/dates'
-import { marketMarker } from '../../lib/market'
+import { scheduledDayMarker } from '../../lib/sessions'
+import { groupNewsByTime, newsEmoji } from '../../lib/market-news'
 import MarketWidget from '../../components/MarketWidget.astro'
 
 export async function getStaticPaths() {
@@ -33,6 +34,8 @@ const entry = days.find((d) => d.data.date === iso) ?? null
 const journalFor = journal.find((j) => j.data.date === iso) ?? null
 const coachFor = coach.find((c) => c.data.date === iso) ?? null
 const newsFor = news.find((n) => n.data.date === iso)
+const dayRedGroups = newsFor ? groupNewsByTime(newsFor.data.red) : []
+const dayOrangeGroups = newsFor ? groupNewsByTime(newsFor.data.orange) : []
 
 const accMap = new Map(accounts.map((a) => [a.data.id, a.data]))
 const dayIdx = allDates.indexOf(iso)
@@ -47,14 +50,18 @@ const moodLabel = d?.mood ? `${d.mood}/5` : '—'
 const trades = d?.trades ?? []
 const sumR = trades.reduce((s, t) => s + (t.points / (t.riskPoints ?? (t.stop !== undefined ? Math.abs(t.entry - t.stop) : 1))), 0)
 const totalPts = trades.reduce((s, t) => s + t.points, 0)
-const mk = marketMarker(iso)
+const dm = scheduledDayMarker(iso)
 
 let Reflection: any = null
 let Coaching: any = null
-if (journalFor) ({ Content: Reflection } = await render(journalFor))
-if (coachFor) ({ Content: Coaching } = await render(coachFor))
-
-const statusClass = mk.status === 'open' ? 'text-up' : mk.status === 'early' ? 'text-warn' : 'text-down'
+if (journalFor) {
+  const r = await render(journalFor)
+  Reflection = r.Content
+}
+if (coachFor) {
+  const r = await render(coachFor)
+  Coaching = r.Content
+}
 ---
 
 <Base
@@ -70,8 +77,8 @@ const statusClass = mk.status === 'open' ? 'text-up' : mk.status === 'early' ? '
 
     <header class="mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">
       <h1 class="text-2xl">day {fmtDay(iso)}</h1>
-      <span class:list={['text-[13px]', statusClass]} data-mkt-live>
-        {mk.glyph} {mk.text}
+      <span class:list={['text-[13px] tabular-nums', dm.cls]} data-mkt-live={dm.live ? true : undefined}>
+        {dm.glyph} {dm.text}
       </span>
       <span class="text-[13px] text-dim">
         {trades.length} trades · {sumR > 0 ? '+' : ''}{sumR.toFixed(2)}R · {totalPts >= 0 ? '+' : ''}{totalPts}pts
@@ -100,25 +107,29 @@ const statusClass = mk.status === 'open' ? 'text-up' : mk.status === 'early' ? '
       <MarketWidget news={false} />
     </div>
 
-    {newsFor && (newsFor.data.red.length > 0 || newsFor.data.orange.length > 0) && (
+    {newsFor && (dayRedGroups.length > 0 || dayOrangeGroups.length > 0) && (
       <details class="group mt-6 border border-line bg-panel/50 px-4 py-3" open>
-        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 text-[12px]">
-          <span class="text-[10px] uppercase tracking-widest text-dim">
-            USD news · HKT
-            <span class="ml-2 normal-case tracking-normal text-faint">
-              {newsFor.data.red.length > 0 && `red ${newsFor.data.red[0].time}`}
-              {newsFor.data.red.length > 0 && newsFor.data.orange.length > 0 && ' · '}
-              {newsFor.data.orange.length > 0 && `orange ${newsFor.data.orange[0].time}`}
-            </span>
+        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 text-[13px]">
+          <span class="flex items-center gap-2 text-dim">
+            <span>USD news</span>
+            {dayRedGroups.length > 0 && <span class="text-down">{newsEmoji(dayRedGroups[0].titles[0])} red {dayRedGroups[0].time}</span>}
+            {dayRedGroups.length > 0 && dayOrangeGroups.length > 0 && <span class="text-faint">·</span>}
+            {dayOrangeGroups.length > 0 && <span class="opacity-70 text-warn">{newsEmoji(dayOrangeGroups[0].titles[0])} orange {dayOrangeGroups[0].time}</span>}
           </span>
           <span class="text-dim transition-transform group-open:rotate-180">▾</span>
         </summary>
-        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-line/50 pt-2 text-[13px]">
-          {newsFor.data.red.map((n) => (
-            <span class="text-down">red {n.time} hkt — {n.title} <span class="text-[10px] text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span></span>
+        <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2 text-[13px]">
+          {dayRedGroups.map((g) => (
+            <div class="flex items-baseline gap-3">
+              <span class="w-20 shrink-0 text-right text-[12px] tabular-nums text-down">{newsEmoji(g.titles[0])} {g.time}</span>
+              <span class="text-down">{g.titles.join(' · ')}</span>
+            </div>
           ))}
-          {newsFor.data.orange.map((n) => (
-            <span class="opacity-70 text-warn">orange {n.time} hkt — {n.title} <span class="text-[10px] text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span></span>
+          {dayOrangeGroups.map((g) => (
+            <div class="flex items-baseline gap-3">
+              <span class="w-20 shrink-0 text-right text-[12px] tabular-nums opacity-70 text-warn">{newsEmoji(g.titles[0])} {g.time}</span>
+              <span class="opacity-70 text-warn">{g.titles.join(' · ')}</span>
+            </div>
           ))}
         </div>
       </details>
