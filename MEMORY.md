@@ -129,6 +129,31 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-06 — **Ingest feature (PDF/CSV) — designed, not built. Next agent owns it.** The owner wants
+  a **daily drag-and-drop ritual**: throw trade screenshots / CSVs / PDFs into the cockpit drop zone,
+  the AI parses + dedupes, **the owner approves every trade** before it lands (day records + accounts).
+  Demo validated with the owner's real Tradovate exports (still in `/tmp/opencode/import-demo/`):
+  - **Owner's real accounts: 2 × Lucid 50k** (Tradovate ids `LTE05061295040002`, `LTE05061295040003`).
+    Trade: MNQ scalps, up to 25 contracts, ~30 per-fill "trades" per account / day, 80% win, ~$306 net/day each.
+  - **Tradovate exports have NO firm/size/equity** — only platform account id + fills + P&L. The platform
+    account id (`LTE…`) is the ONLY join key to internal accounts. Full design rules in
+    `docs/superpowers/specs/2026-08-06-ingest-pdf-csv-design.md`.
+  - Files: Performance CSV/PDF (per-fill trades, NO account id) + Orders CSV/PDF (account id, order fills).
+    Must cross-reference fill IDs to attribute Performance→account. Dedup per-account (CSV+PDF of same
+    account = same data; two accounts copy-trading must NOT collapse). Group per-fill → position/idea
+    (~30 fills ≈ 4 ideas) or the journal will look like overtrading.
+  - Pipeline rules decided: platform-id → internal-id **alias map** (owner confirms once, then auto);
+    propose+confirm for unknown accounts; approve-every-trade; source files ephemeral (like screenshots).
+  - PDF reading on the box needs **poppler-utils** (installed on the host for the demo; the Dockerfile
+    must add `apk add poppler-utils` for the real pipeline). Vision (Qwen2.5-VL) on rendered pages is
+    the proven path for statement reading; CSV → deterministic parse + LLM column-maps to trade schema.
+  - **Live/late context for the next agent:** only the account list in admin is truth; the owner has
+    "currently 2 lucid 50k accounts". Do not re-litigate the design with the owner — execute it.
+- 2026-08-06 — **Day page de-dup fix (committed 319b0ee, NOT yet deployed).** The cockpit was bolted on
+  top of the old page → same data 2-3×. Removed the legacy stats grid + `/ reflection` section (cockpit
+  WritingDoc now owns journal + mood/sleep/screen/mac/summary/tags); author-only UI (extract zone,
+  "draft · saved · synced") hidden from the public render (committed 3cb38ce, deployed). **Deploy needed:
+  `bash scripts/deploy.sh` + curl-verify** — this commit is not live yet.
 - 2026-08-06 — **P1 shipped: Day Cockpit Shell + IA.** The day page is the
   cockpit: 24h HKT timeline (session bands + hazard dots + now-marker) in the
   ambient strip, left rail (rules/quotes/habits/self-talk/coach), center
