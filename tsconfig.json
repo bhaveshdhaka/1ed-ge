@@ -17,6 +17,7 @@
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react",
+    "resolveJsonModule": true,
     "types": ["node"]
   }
 }

@@ -7,7 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Mobile nav** — zero-JS hamburger menu on phones replaces the horizontally-scrolling link row; 44px tap targets everywhere (coarse-pointer media query).
+- **Theme system** — a `src/config/site.json` file + `[data-theme]` CSS-variable
+  overrides re-skin the whole site at build. Three themes, all JetBrains Mono,
+  all CSS-only / zero-JS / reduced-motion safe:
+  - **summit** (default) — twinkling starfield + faint mountain-ridge silhouette
+    with a breathing peak glow; ice-blue accent; logo `1` is a gradient **peak**
+    that rises from a ridge-line on load and glows on hover.
+  - **aurora** — slow-drifting violet/cyan nebula fields; logo `1` with a flowing
+    gradient + breathing halo and a periodic wordmark sheen.
+  - **mono** — hairline dot-grid + vignette; logo `1` is a stroke that draws
+    itself once; a 1px underline extends on hover. No glow.
+- **Admin "design" tab** — three cards with live iframe previews (new SSR route
+  `/admin/<secret>/preview/theme/<name>`) and an **apply** button that writes the
+  config and queues a rebuild. Admin itself stays plain/functional.
+- **Hero entrance** — a soft 0.7s fade + 6px rise on the homepage hero.
+
+### Changed
+- Nav/admin logo is now a shared `Brand.astro` (per-theme mark); `ThemeBackground.astro`
+  renders the per-theme layers in `Base.astro`. Admin keeps a static plain wordmark.
+- `theme-color` meta follows the summit palette.
+- tsconfig: `resolveJsonModule` for `src/config/site.json`.
 - **Day X/730 counter** on the homepage with a progress bar.
 - **Journal search + month grouping** — `/journal` is now server-rendered with `?q=` full-text search (title/summary/tags/body/date), a date-jump input, sticky month headers, and a month quick-nav.
 - **Prev/next day navigation** on public `/day/[date]` with a "day N of M" indicator.

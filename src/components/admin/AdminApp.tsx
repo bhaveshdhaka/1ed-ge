@@ -6,8 +6,9 @@ import { DayWorkspace } from './tabs/DayWorkspace'
 import { AccountsTab } from './tabs/AccountsTab'
 import { CoachTab } from './tabs/CoachTab'
 import { MediaTab } from './tabs/MediaTab'
+import { DesignTab } from './tabs/DesignTab'
 
-export type Tab = 'overview' | 'day' | 'accounts' | 'coach' | 'media'
+export type Tab = 'overview' | 'day' | 'accounts' | 'coach' | 'media' | 'design'
 
 const TABS: { id: Tab; label: string; key: string }[] = [
   { id: 'overview', label: 'overview', key: '1' },
@@ -15,10 +16,11 @@ const TABS: { id: Tab; label: string; key: string }[] = [
   { id: 'accounts', label: 'accounts', key: '3' },
   { id: 'coach', label: 'coach', key: '4' },
   { id: 'media', label: 'media', key: '5' },
+  { id: 'design', label: 'design', key: '6' },
 ]
 
 const SHORTCUTS: { keys: string; desc: string }[] = [
-  { keys: '1 … 5', desc: 'switch tabs' },
+  { keys: '1 … 6', desc: 'switch tabs' },
   { keys: '⌘S / Ctrl+S', desc: 'save the day' },
   { keys: '⌘⇧S / Ctrl+Shift+S', desc: 'save & rebuild' },
   { keys: '⌘← / ⌘→', desc: 'previous / next day' },
@@ -119,11 +121,8 @@ export default function AdminApp({ secret }: { secret: string }) {
     <div className="min-h-screen bg-bg">
       <header className="border-b border-line">
         <div className="shell flex flex-wrap items-center justify-between gap-3 py-3 md:py-4">
-          <a href="/" target="_blank" className="group flex h-11 items-center text-[15px] font-semibold">
-            <span className="brand">
-              <span className="brand-one">1</span><span className="brand-word">edge</span>
-              <span className="brand-edge" aria-hidden="true"></span>
-            </span>
+          <a href="/" target="_blank" className="flex h-11 items-center text-[15px] font-semibold text-ink">
+            <span className="text-accent">1</span>edge
             <span className="ml-2 text-[11px] font-normal uppercase tracking-widest text-faint">admin</span>
           </a>
           <nav className="flex flex-wrap items-center gap-1">
@@ -159,6 +158,7 @@ export default function AdminApp({ secret }: { secret: string }) {
         {tab === 'accounts' && <AccountsTab notify={notify} />}
         {tab === 'coach' && <CoachTab notify={notify} />}
         {tab === 'media' && <MediaTab notify={notify} />}
+        {tab === 'design' && <DesignTab notify={notify} />}
       </main>
 
       {toast && (

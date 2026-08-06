@@ -162,7 +162,199 @@
   }
 }
 
-/* ---- brand "1edge" ---- */
+/* ---- themes: token overrides (utilities use var(--color-*) so these re-skin the site) ---- */
+[data-theme='summit'] {
+  --color-bg: #07080c;
+  --color-panel: #0d0f16;
+  --color-raise: #12141d;
+  --color-line: #1c2030;
+  --color-line2: #2a2f42;
+  --color-ink: #dfe4ee;
+  --color-soft: #aab2c6;
+  --color-dim: #8b93a6;
+  --color-faint: #7d859a;
+  --color-accent: #8ab4ff;
+  --color-up: #4ade80;
+  --color-down: #f87171;
+  --color-warn: #fbbf24;
+  --color-purp: #c4b5fd;
+  --glow: rgba(138, 180, 255, 0.35);
+  --accent2: #8ab4ff;
+}
+[data-theme='aurora'] {
+  --color-bg: #0a0812;
+  --color-panel: #120e1e;
+  --color-raise: #18122a;
+  --color-line: #241d3a;
+  --color-line2: #322a4e;
+  --color-ink: #e8e2f5;
+  --color-soft: #b9b0d6;
+  --color-dim: #9790b4;
+  --color-faint: #8b84a6;
+  --color-accent: #c4b5fd;
+  --color-up: #4ade80;
+  --color-down: #f87171;
+  --color-warn: #fbbf24;
+  --color-purp: #67e8f9;
+  --glow: rgba(196, 181, 253, 0.4);
+  --accent2: #67e8f9;
+}
+[data-theme='mono'] {
+  --color-bg: #0a0a0c;
+  --color-panel: #111114;
+  --color-raise: #17171c;
+  --color-line: #26262c;
+  --color-line2: #33333b;
+  --color-ink: #e6e6e6;
+  --color-soft: #b3b3b8;
+  --color-dim: #8f8f96;
+  --color-faint: #83838a;
+  --color-accent: #e8e8e8;
+  --color-up: #4ade80;
+  --color-down: #f87171;
+  --color-warn: #fbbf24;
+  --color-purp: #9db2cc;
+  --glow: rgba(255, 255, 255, 0.12);
+  --accent2: #e8e8e8;
+}
+
+/* ---- theme background layers (fixed, decorative, zero-JS) ---- */
+.theme-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* summit: starfield + mountain ridge */
+.tb-stars {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-repeat: repeat;
+}
+.tb-stars-a {
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(234, 244, 255, 0.9), transparent 60%),
+    radial-gradient(1px 1px at 33% 8%, rgba(234, 244, 255, 0.6), transparent 60%),
+    radial-gradient(1.5px 1.5px at 51% 31%, rgba(234, 244, 255, 0.8), transparent 60%),
+    radial-gradient(1px 1px at 68% 14%, rgba(234, 244, 255, 0.5), transparent 60%),
+    radial-gradient(1.5px 1.5px at 84% 27%, rgba(234, 244, 255, 0.85), transparent 60%),
+    radial-gradient(1px 1px at 23% 47%, rgba(234, 244, 255, 0.55), transparent 60%),
+    radial-gradient(1px 1px at 60% 52%, rgba(234, 244, 255, 0.65), transparent 60%),
+    radial-gradient(1.5px 1.5px at 91% 46%, rgba(234, 244, 255, 0.7), transparent 60%);
+  background-size: 360px 360px;
+  animation: tb-twinkle 6s ease-in-out infinite;
+}
+.tb-stars-b {
+  background-image:
+    radial-gradient(1px 1px at 22% 16%, rgba(160, 190, 255, 0.7), transparent 60%),
+    radial-gradient(1px 1px at 45% 36%, rgba(160, 190, 255, 0.5), transparent 60%),
+    radial-gradient(1px 1px at 73% 22%, rgba(160, 190, 255, 0.65), transparent 60%),
+    radial-gradient(1.5px 1.5px at 38% 55%, rgba(160, 190, 255, 0.5), transparent 60%),
+    radial-gradient(1px 1px at 81% 61%, rgba(160, 190, 255, 0.6), transparent 60%),
+    radial-gradient(1px 1px at 8% 40%, rgba(160, 190, 255, 0.45), transparent 60%);
+  background-size: 300px 300px;
+  animation: tb-twinkle 7.5s ease-in-out -3s infinite;
+}
+@keyframes tb-twinkle {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.tb-mountain {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 36vh;
+}
+.tb-peak-glow {
+  animation: edge-glow 5s ease-in-out 1.5s infinite;
+}
+
+/* aurora: slow-drifting nebula fields */
+.tb-aurora {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.45;
+}
+.tb-aurora-a {
+  width: 58vw;
+  height: 58vw;
+  left: -14%;
+  top: -12%;
+  background: radial-gradient(circle, rgba(196, 181, 253, 0.55), transparent 62%);
+  animation: tb-drift-a 95s ease-in-out infinite alternate;
+}
+.tb-aurora-b {
+  width: 52vw;
+  height: 52vw;
+  right: -14%;
+  bottom: -14%;
+  background: radial-gradient(circle, rgba(103, 232, 249, 0.5), transparent 62%);
+  animation: tb-drift-b 120s ease-in-out infinite alternate;
+}
+.tb-aurora-c {
+  width: 40vw;
+  height: 40vw;
+  left: 52%;
+  top: 38%;
+  background: radial-gradient(circle, rgba(240, 171, 252, 0.42), transparent 62%);
+  animation: tb-drift-c 80s ease-in-out infinite alternate;
+}
+@keyframes tb-drift-a {
+  to {
+    transform: translate(9vw, 6vh) scale(1.12);
+  }
+}
+@keyframes tb-drift-b {
+  to {
+    transform: translate(-8vw, -5vh) scale(1.1);
+  }
+}
+@keyframes tb-drift-c {
+  to {
+    transform: translate(-6vw, 7vh) scale(1.08);
+  }
+}
+
+/* mono: hairline dot grid + vignette (static) */
+.tb-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.tb-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 18%, transparent 50%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* ---- hero entrance ---- */
+.hero-fade {
+  animation: hero-fade-in 0.7s cubic-bezier(0.22, 0.68, 0.2, 1) both;
+}
+@keyframes hero-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- brand "1edge" (per-theme marks) ---- */
 .brand {
   position: relative;
   display: inline-flex;
@@ -171,57 +363,126 @@
   font-size: 17px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  animation: brand-in 0.7s cubic-bezier(0.22, 0.68, 0.2, 1) both;
 }
-.brand-one {
-  color: #7dd3fc;
-  position: relative;
+.brand-mark {
+  flex: none;
+  width: 0.64em;
+  height: 1.06em;
+  margin-right: 0.08em;
+  overflow: visible;
 }
-.brand-one::before {
-  content: '';
-  position: absolute;
-  left: -3px;
-  right: -3px;
-  top: -2px;
-  bottom: -2px;
-  background: radial-gradient(ellipse at center, rgba(125, 211, 252, 0.25), transparent 70%);
-  filter: blur(3px);
-  animation: edge-glow 5.5s ease-in-out infinite;
-  pointer-events: none;
+.brand-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .brand-word {
-  color: #d8d8dc;
+  color: var(--color-ink);
 }
 .brand-edge {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 8px;
+  bottom: 9px;
   height: 2px;
-  background: linear-gradient(90deg, rgba(125, 211, 252, 0), #7dd3fc 28%, #4ade80 72%, rgba(74, 222, 128, 0));
+  pointer-events: none;
+}
+
+/* summit: peak rises, tip breathes, ridge draws */
+[data-theme='summit'] .brand-mark {
+  animation: brand-rise 0.85s cubic-bezier(0.22, 0.68, 0.2, 1) 0.12s both;
+}
+[data-theme='summit'] .brand-edge {
+  background: linear-gradient(90deg, transparent, var(--color-accent) 30%, var(--color-up) 75%, transparent);
   background-size: 220% 100%;
   background-position: 0% 0;
   transform: scaleX(0);
   transform-origin: left center;
   opacity: 0;
   animation:
-    edge-line-in 0.9s cubic-bezier(0.22, 0.68, 0.2, 1) 0.3s forwards,
-    edge-shimmer 6.5s ease-in-out 1.4s infinite;
+    edge-line-in 1s cubic-bezier(0.22, 0.68, 0.2, 1) 0.4s forwards,
+    edge-shimmer 6s ease-in-out 1.6s infinite;
 }
-.group:hover .brand-one {
-  text-shadow: 0 0 14px rgba(125, 211, 252, 0.55);
+[data-theme='summit'] .group:hover .brand-edge {
+  filter: drop-shadow(0 0 5px var(--glow));
 }
-.group:hover .brand-edge {
-  filter: drop-shadow(0 0 6px rgba(125, 211, 252, 0.85));
+[data-theme='summit'] .brand-tip {
+  animation: edge-glow 4.2s ease-in-out 1s infinite;
 }
-@keyframes brand-in {
+[data-theme='summit'] .group:hover .brand-tip {
+  opacity: 1;
+}
+
+/* aurora: breathing halo + gradient edge */
+[data-theme='aurora'] .brand-mark {
+  filter: drop-shadow(0 0 7px var(--glow));
+  animation:
+    brand-fade 0.8s ease 0.15s both,
+    edge-glow 5.5s ease-in-out 0.9s infinite;
+}
+[data-theme='aurora'] .brand-edge {
+  background: linear-gradient(90deg, transparent, var(--color-accent) 30%, var(--accent2) 75%, transparent);
+  background-size: 220% 100%;
+  background-position: 0% 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  animation:
+    edge-line-in 1s cubic-bezier(0.22, 0.68, 0.2, 1) 0.3s forwards,
+    edge-shimmer 7s linear 1.5s infinite;
+}
+[data-theme='aurora'] .group:hover .brand-mark {
+  filter: drop-shadow(0 0 12px var(--glow));
+}
+
+/* mono: hairline draws once, underline extends on hover */
+[data-theme='mono'] .brand-mark {
+  opacity: 0;
+  animation: brand-hair 0.9s cubic-bezier(0.6, 0, 0.2, 1) 0.15s forwards;
+}
+[data-theme='mono'] .brand-mark svg {
+  transform-origin: 50% 0;
+}
+[data-theme='mono'] .brand-edge {
+  background: var(--color-ink);
+  height: 1px;
+  bottom: 10px;
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.22, 0.68, 0.2, 1), opacity 0.3s;
+}
+[data-theme='mono'] .group:hover .brand-edge {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+@keyframes brand-rise {
   from {
     opacity: 0;
-    transform: translateY(3px);
+    transform: translateY(5px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
+  }
+}
+@keyframes brand-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes brand-hair {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
   }
 }
 @keyframes edge-line-in {
@@ -250,26 +511,39 @@
     opacity: 1;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .brand,
-  .brand-one::before,
-  .brand-edge {
+  [data-theme] .brand-mark,
+  [data-theme='summit'] .brand-edge,
+  [data-theme='aurora'] .brand-edge,
+  .tb-stars-a,
+  .tb-stars-b,
+  .tb-aurora-a,
+  .tb-aurora-b,
+  .tb-aurora-c,
+  .tb-peak-glow,
+  .hero-fade {
     animation: none;
   }
-  .brand {
+  [data-theme] .brand-mark {
     opacity: 1;
-    transform: none;
   }
-  .brand-edge {
+  [data-theme='summit'] .brand-edge,
+  [data-theme='aurora'] .brand-edge {
     transform: scaleX(1);
     opacity: 1;
     background-position: 100% 0;
   }
-  .group:hover .brand-one {
-    text-shadow: none;
+  [data-theme='mono'] .brand-edge {
+    transition: none;
   }
-  .group:hover .brand-edge {
-    filter: none;
+  [data-theme] .brand-tip {
+    animation: none;
+    opacity: 0.8;
+  }
+  .hero-fade {
+    opacity: 1;
+    transform: none;
   }
 }
 

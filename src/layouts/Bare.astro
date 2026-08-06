@@ -1,15 +1,17 @@
 ---
 import '../styles/global.css'
+import ThemeBackground from '../components/ThemeBackground.astro'
 
 interface Props {
   title?: string
+  theme?: string
 }
 
-const { title = '1ed.ge' } = Astro.props
+const { title = '1ed.ge', theme } = Astro.props
 ---
 
 <!doctype html>
-<html lang="en" class="bg-bg">
+<html lang="en" class="bg-bg" data-theme={theme}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,6 +21,7 @@ const { title = '1ed.ge' } = Astro.props
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   </head>
   <body class="crt min-h-screen">
+    {theme && <ThemeBackground theme={theme} />}
     <slot />
   </body>
 </html>

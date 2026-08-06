@@ -1,0 +1,40 @@
+---
+import site from '../config/site.json'
+const theme = site.theme as string
+---
+
+<a href="/" aria-label="1edge — home" class="group brand">
+  <span class="brand-mark" aria-hidden="true">
+    {theme === 'summit' && (
+      <svg viewBox="0 0 22 34">
+        <defs>
+          <linearGradient id="brand-summit" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stop-color="#1e2a44" />
+            <stop offset="0.55" stop-color="#4a6cae" />
+            <stop offset="1" stop-color="#eaf4ff" />
+          </linearGradient>
+        </defs>
+        <path class="brand-tip" d="M11 2 L20.5 32 L1.5 32 Z" fill="url(#brand-summit)" />
+        <circle class="brand-tip" cx="11" cy="6" r="1.6" fill="#eaf4ff" />
+      </svg>
+    )}
+    {theme === 'aurora' && (
+      <svg viewBox="0 0 22 34">
+        <defs>
+          <linearGradient id="brand-aurora" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#67e8f9" />
+            <stop offset="1" stop-color="#c4b5fd" />
+          </linearGradient>
+        </defs>
+        <rect x="6.5" y="2" width="9" height="30" rx="4.5" fill="url(#brand-aurora)" />
+      </svg>
+    )}
+    {theme === 'mono' && (
+      <svg viewBox="0 0 22 34">
+        <path d="M11 2 V32" stroke="#e6e6e6" stroke-width="1.6" fill="none" />
+      </svg>
+    )}
+  </span>
+  <span class="brand-word">edge</span>
+  <span class="brand-edge" aria-hidden="true"></span>
+</a>

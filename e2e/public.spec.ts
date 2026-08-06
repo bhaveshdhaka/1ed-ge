@@ -20,6 +20,16 @@ test.describe('home', () => {
     const scripts = await page.locator('script[src]').count()
     expect(scripts).toBe(0)
   })
+
+  test('summit theme is applied (data-theme + background + peak brand)', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'summit')
+    await expect(page.locator('.theme-bg')).toHaveCount(1)
+    await expect(page.locator('.tb-stars')).toHaveCount(2)
+    await expect(page.locator('.tb-mountain')).toHaveCount(1)
+    await expect(page.locator('.brand-mark')).toBeVisible()
+    await expect(page.locator('.hero-fade').first()).toBeVisible()
+  })
 })
 
 test.describe('navigation', () => {
