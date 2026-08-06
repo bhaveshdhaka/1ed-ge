@@ -1,5 +1,6 @@
 ---
 import { fmtDay } from '../../lib/dates'
+import { todayHkt } from '../../lib/sessions'
 interface Props {
   iso: string
   d: { mood?: number; sleep?: { hours?: number }; device?: { iphoneHours?: number }; trades?: unknown[] } | null
@@ -9,6 +10,7 @@ interface Props {
 }
 const { iso, d, journalContent, journalMeta, flatLine } = Astro.props
 const JournalBody = journalContent
+const isToday = iso === todayHkt()
 const trades = d?.trades ?? []
 const sumR = trades.reduce((s: number, t: any) => s + (t.points / (t.riskPoints ?? (t.stop !== undefined ? Math.abs(t.entry - t.stop) : 1))), 0)
 const cells = [
@@ -21,8 +23,8 @@ const cells = [
 
 <section class="ck-mid" data-doc>
   <div class="flex items-center gap-3 border-b border-line px-5 py-2 text-[11px] text-faint">
-    <span>{fmtDay(iso)} · draft</span>
-    <span class="ml-auto text-[11px]">saved · synced</span>
+    <span>{fmtDay(iso)}</span>
+    <span class="ml-auto text-[11px] text-sage">{isToday ? '● live · public' : 'logged · public'}</span>
   </div>
   <div class="mx-auto w-full max-w-[540px] px-6 py-8">
     {journalMeta?.day && <h1 class="text-[19px] text-ink">{journalMeta.day}</h1>}

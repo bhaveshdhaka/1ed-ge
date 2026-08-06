@@ -10,8 +10,6 @@ const sumR = trades.reduce((s: number, t: any) => s + (t.points / (t.riskPoints 
 ---
 
 <aside class="ck-rail ck-rail-r hidden md:block" data-rail-r>
-  <div class="ck-lab">extract</div>
-  <div class="ck-drop">▣ drop screenshots here — trades · screen time · sleep. data only, auto-discarded.</div>
   <div class="ck-lab">today</div>
   <div class="ck-kv"><span>mood</span><b>{d?.mood ? `${d.mood}/5` : '—'}</b></div>
   <div class="ck-kv"><span>sleep</span><b>{d?.sleep?.hours !== undefined ? `${d.sleep.hours}h` : '—'}</b></div>
