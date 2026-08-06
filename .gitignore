@@ -12,3 +12,6 @@ dist/
 playwright-report/
 test-results/
 .lighthouseci/
+
+# brainstorm scratch (visual companion mockups)
+.superpowers/
