@@ -11,6 +11,54 @@ servers do NOT count as "done". Workflow: typecheck → commit → `bash
 scripts/deploy.sh` → poll until live → curl-verify the changed bits. Kill test
 servers when finished.
 
+## HANDOFF — next agent, my shortcomings this session (read first)
+
+The owner asked the previous agent to document its shortcomings so you don't
+repeat them. The owner was frustrated with the previous agent's behavior. Be
+deliberate, not reactive; verify before claiming; always ask "who is each UI
+surface for?". Concrete failures to avoid:
+
+1. **Reactive patching, not holistic review.** When flagged ("why is the
+   extract box on the public homepage?"), the agent fixed one box instead of
+   reviewing the whole day page. The real issue was data duplicated 2–3×
+   across the cockpit and the legacy sections below it. Fix the class of
+   problem, not the instance.
+2. **Commit messages must match the actual diff.** Commit `319b0ee` claimed
+   "drop legacy stats grid + / reflection" but only the stats grid was removed;
+   the reflection removal had to be redone in `52b3ca8`. Check `git diff`
+   before writing the message.
+3. **Upload server shipped with a client/server path mismatch.** The drag-drop
+   page POSTed to `/upload` but the server only accepted `/TOKEN/upload` — the
+   owner's first uploads failed silently (403). The agent tested the curl path
+   but not the browser client path. Test the layer the user actually uses.
+4. **`pkill -f '<pattern>'` self-match.** Running `pkill -f upload-server.mjs`
+   from a shell whose own command line contains that pattern kills the shell
+   itself (tool hangs/times out). Use stored PIDs (`pkill -F pidfile`) or a
+   pattern that cannot match the invoking command. Also avoid `&`/`nohup`
+   patterns that hang the shell tool.
+5. **Author-only vs public UI.** Public pages render author-only UI if you
+   mirror the cockpit blindly. The extract drop zone, "draft · saved ·
+   synced", and the composer are for the owner only (auth-gated in P3). Public
+   gets `{date} · ● live/logged · public`.
+6. **Stop when told to stop.** The owner said "wrap up" and the agent kept
+   committing/deploying. When the owner wants out, freeze the tree and hand off.
+7. **Answer from the data, don't ask.** The agent asked which prop firm the
+   Tradovate accounts belong to; the owner's statement "2 lucid 50k accounts"
+   + the internal account list is the answer. Only ask when the data cannot
+   answer.
+8. **Repo state at handoff:** live = author-only UI fix (`3cb38ce`) + day-page
+   de-dup stats-grid removal (`319b0ee`). Committed, NOT deployed =
+   `52b3ca8` (removes the legacy `/ reflection` section — the live day page
+   still shows it). **Ask the owner** whether to deploy it, keep it un-deployed,
+   or revert the whole day-page de-dup. Do not deploy or revert without asking.
+9. **The ingest feature is designed, not built.** See
+   `docs/superpowers/specs/2026-08-06-ingest-pdf-csv-design.md`. The owner
+   wants it executed, not re-designed. Do NOT re-litigate the design with the
+   owner.
+10. **Demo artifacts:** the owner's real Tradovate exports are in
+    `/tmp/opencode/import-demo/` (evidence for the ingest build). The upload
+    server is stopped; the files are untouched.
+
 ## OPEN STATE (2026-08-06) — SHIPPING WITH FILLER DATA
 
 The review is done and the generated data ships live **as the site's content**
@@ -149,11 +197,12 @@ deployed in this session; the autosave cron is active again.
     the proven path for statement reading; CSV → deterministic parse + LLM column-maps to trade schema.
   - **Live/late context for the next agent:** only the account list in admin is truth; the owner has
     "currently 2 lucid 50k accounts". Do not re-litigate the design with the owner — execute it.
-- 2026-08-06 — **Day page de-dup fix (committed 319b0ee, NOT yet deployed).** The cockpit was bolted on
-  top of the old page → same data 2-3×. Removed the legacy stats grid + `/ reflection` section (cockpit
-  WritingDoc now owns journal + mood/sleep/screen/mac/summary/tags); author-only UI (extract zone,
-  "draft · saved · synced") hidden from the public render (committed 3cb38ce, deployed). **Deploy needed:
-  `bash scripts/deploy.sh` + curl-verify** — this commit is not live yet.
+- 2026-08-06 — **Day page de-dup fix.** Removed the legacy stats grid
+  (committed 319b0ee, deployed); removed the legacy `/ reflection` section
+  (committed 52b3ca8, NOT deployed). Cockpit WritingDoc now owns journal +
+  mood/sleep/screen/mac/summary/tags. Author-only UI (extract zone,
+  "draft · saved · synced") hidden from the public render (committed 3cb38ce,
+  deployed). Deploy status for 52b3ca8 is the owner's call — see HANDOFF §8.
 - 2026-08-06 — **P1 shipped: Day Cockpit Shell + IA.** The day page is the
   cockpit: 24h HKT timeline (session bands + hazard dots + now-marker) in the
   ambient strip, left rail (rules/quotes/habits/self-talk/coach), center
