@@ -18,3 +18,8 @@ export function parseDay(slug: string): string | null {
 export function isIsoDay(s: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(s)
 }
+
+const PROJECT_START = new Date('2026-08-05T00:00:00Z')
+export function projectDayNumber(): number {
+  return Math.min(730, Math.max(1, Math.floor((Date.now() - PROJECT_START.getTime()) / 86400000) + 1))
+}
