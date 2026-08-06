@@ -8,9 +8,11 @@ trailing: true
 contract: "MNQ"
 pointsValue: 2
 riskPerTrade: 200
-stage: "eval"
+stage: "buffer"
 stages:
   - stage: "eval"
     from: "2026-08-05"
+  - stage: "buffer"
+    from: "2026-11-04"
+    note: "consistent small size"
 ---
-

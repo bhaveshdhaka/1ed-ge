@@ -8,9 +8,12 @@ trailing: true
 contract: "MNQ"
 pointsValue: 2
 riskPerTrade: 200
-stage: "eval"
+stage: "failed"
 stages:
   - stage: "eval"
     from: "2026-08-05"
+  - stage: "failed"
+    from: "2026-12-05"
+    to: "2026-12-05"
+    note: "drawdown breach — forced entries during a losing week"
 ---
-

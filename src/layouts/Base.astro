@@ -2,7 +2,6 @@
 import '../styles/global.css'
 import Nav from '../components/Nav.astro'
 import ThemeBackground from '../components/ThemeBackground.astro'
-import site from '../config/site.json'
 
 interface Props {
   title?: string
@@ -18,7 +17,7 @@ const {
   noindex = false,
 } = Astro.props
 
-const theme = site.theme
+const theme = 'summit'
 const SITE = 'https://1ed.ge'
 const canonical = new URL(Astro.url.pathname, SITE)
 ---
@@ -64,7 +63,7 @@ const canonical = new URL(Astro.url.pathname, SITE)
     </script>
   </head>
   <body class="crt flex min-h-screen flex-col">
-    <ThemeBackground theme={theme} />
+    <ThemeBackground />
     <Nav />
     <main class="flex-1">
       <slot />

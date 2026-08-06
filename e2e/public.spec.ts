@@ -27,7 +27,7 @@ test.describe('home', () => {
     await expect(page.locator('.theme-bg')).toHaveCount(1)
     await expect(page.locator('.tb-stars')).toHaveCount(2)
     await expect(page.locator('.tb-mountain')).toHaveCount(1)
-    await expect(page.locator('.brand-mark')).toBeVisible()
+    await expect(page.locator('.brand-word')).toBeVisible()
     await expect(page.locator('.hero-fade').first()).toBeVisible()
   })
 })

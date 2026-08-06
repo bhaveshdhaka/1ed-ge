@@ -13,24 +13,8 @@ for (const d of days) {
   if ((d.data.trades ?? []).length) tradeCount.set(d.data.date, d.data.trades!.length)
 }
 
-let filtered = journal
-if (q) {
-  filtered = journal.filter((j) => {
-    const hay = [
-      j.data.date,
-      j.data.day ?? '',
-      j.data.summary ?? '',
-      (j.data.tags ?? []).join(' '),
-      j.body ?? '',
-    ]
-      .join(' ')
-      .toLowerCase()
-    return hay.includes(q)
-  })
-}
-
 const groups: { month: string; entries: typeof journal }[] = []
-for (const j of filtered) {
+for (const j of journal) {
   const m = j.data.date.slice(0, 7)
   const last = groups[groups.length - 1]
   if (last && last.month === m) last.entries.push(j)
@@ -45,26 +29,36 @@ const monthLabel = (m: string) => {
 const ordered: typeof journal = []
 for (const g of groups) ordered.push(...g.entries)
 const numById = new Map(ordered.map((j, i) => [j.id, i]))
+const serverCount = q
+  ? journal.filter((j) => {
+      const hay = [j.data.date, j.data.day ?? '', j.data.summary ?? '', (j.data.tags ?? []).join(' '), j.body ?? '']
+        .join(' ')
+        .toLowerCase()
+      return hay.includes(q)
+    }).length
+  : journal.length
 ---
 
 <Base title="journal — 1ed.ge" description="The daily trading journal — the thinking, the sessions, the misses, the lessons. Everything public.">
   <section class="shell pt-12 pb-20">
     <div class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl">/ journal</h1>
-      <span class="text-[12px] text-faint">
-        {q ? `${filtered.length} of ${journal.length} entries` : `${journal.length} entries`}
+      <span id="journal-count" class="text-[12px] text-faint">
+        {q ? `${serverCount} of ${journal.length} entries` : `${journal.length} entries`}
       </span>
     </div>
 
     <div class="mt-8 flex max-w-3xl flex-col gap-3">
-      <form method="get" action="/journal" class="flex gap-2">
+      <form method="get" action="/journal" class="flex gap-2" role="search">
         <input
           type="search"
           name="q"
+          id="journal-q"
           value={q}
           placeholder="search title, tags, text, date (yyyy-mm-dd)…"
           class="input flex-1"
           aria-label="search journal"
+          autocomplete="off"
         />
         <button type="submit" class="btn shrink-0">search</button>
         {q && (
@@ -91,14 +85,14 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
       </div>
     )}
 
-    <div class="mt-10 max-w-3xl">
+    <div id="journal-list" class="mt-10 max-w-3xl">
       {groups.map((g) => (
-        <div id={`m-${g.month}`} class="scroll-mt-28">
+        <div id={`m-${g.month}`} data-month={g.month} class="scroll-mt-28">
           <div class="sticky top-[76px] z-10 -mx-1 bg-bg/95 px-1 py-1 text-[11px] uppercase tracking-widest text-dim backdrop-blur md:top-[84px]">
-            {monthLabel(g.month)} <span class="text-faint">· {g.entries.length}</span>
+            {monthLabel(g.month)} <span class="text-faint">· <span data-month-count>{g.entries.length}</span></span>
           </div>
           {g.entries.map((j) => (
-            <a href={`/journal/${j.id}`} class="group block border-b border-line/70 py-6 first:pt-4">
+            <a href={`/journal/${j.id}`} data-jid={j.id} class="group block border-b border-line/70 py-6 first:pt-4">
               <div class="flex items-baseline justify-between gap-4">
                 <div class="flex items-baseline gap-3">
                   <span class="text-[12px] text-faint">{String(journal.length - (numById.get(j.id) ?? 0)).padStart(2, '0')}</span>
@@ -121,9 +115,66 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
       {journal.length === 0 && (
         <p class="text-[13px] text-faint">no entries yet — the journal starts when the trading does.</p>
       )}
-      {journal.length > 0 && filtered.length === 0 && (
+      {journal.length > 0 && q && serverCount === 0 && (
         <p class="text-[13px] text-faint">no entries match “{q}”.</p>
       )}
     </div>
   </section>
 </Base>
+
+<script is:inline>
+  (() => {
+    const input = document.getElementById('journal-q')
+    const count = document.getElementById('journal-count')
+    const list = document.getElementById('journal-list')
+    if (!input || !list) return
+    const entries = Array.from(list.querySelectorAll('[data-jid]'))
+    const months = Array.from(list.querySelectorAll('[data-month]'))
+    let timer = null
+    let inflight = 0
+
+    const apply = async (term) => {
+      if (!term) {
+        for (const e of entries) e.style.display = ''
+        for (const m of months) m.style.display = ''
+        if (count) count.textContent = entries.length + ' entries'
+        return
+      }
+      const seq = ++inflight
+      try {
+        const res = await fetch('/api/journal/search?q=' + encodeURIComponent(term))
+        const data = await res.json()
+        if (seq !== inflight) return
+        const ids = new Set(data.ids)
+        let visible = 0
+        for (const e of entries) {
+          const on = ids.has(e.dataset.jid)
+          e.style.display = on ? '' : 'none'
+          if (on) visible++
+        }
+        for (const m of months) {
+          const any = m.querySelectorAll('[data-jid]')
+          let hasVisible = false
+          for (const e of any) {
+            if (e.style.display !== 'none') { hasVisible = true; break }
+          }
+          m.style.display = hasVisible ? '' : 'none'
+          const c = m.querySelector('[data-month-count]')
+          if (c && hasVisible) c.textContent = visibleCount(m)
+        }
+        if (count) count.textContent = visible + ' of ' + data.total + ' entries'
+      } catch { /* keep current state on network error */ }
+    }
+
+    const visibleCount = (m) => Array.from(m.querySelectorAll('[data-jid]')).filter((e) => e.style.display !== 'none').length
+
+    input.addEventListener('input', () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => apply(input.value.trim().toLowerCase()), 120)
+    })
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); apply(input.value.trim().toLowerCase()) }
+    })
+    if (input.value.trim()) apply(input.value.trim().toLowerCase())
+  })()
+</script>

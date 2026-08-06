@@ -78,7 +78,7 @@ test.describe('day workspace save flow', () => {
   })
 })
 
-test.describe('accounts stepper + coach + media + design', () => {
+test.describe('accounts stepper + coach + media', () => {
   test('accounts lifecycle stepper renders', async ({ page }) => {
     await gotoAdmin(page)
     await page.keyboard.press('3')
@@ -98,30 +98,5 @@ test.describe('accounts stepper + coach + media + design', () => {
     await gotoAdmin(page)
     await page.keyboard.press('5')
     await expect(page.locator('input[placeholder="search by filename…"]')).toBeVisible()
-  })
-
-  test('design tab shows 3 theme previews and apply queues a rebuild', async ({ page }) => {
-    await gotoAdmin(page)
-    await page.keyboard.press('6')
-    await expect(page.locator('h1:has-text("/ design")')).toBeVisible()
-    await expect(page.locator('iframe[title="summit theme preview"]')).toBeVisible()
-    await expect(page.locator('iframe[title="aurora theme preview"]')).toBeVisible()
-    await expect(page.locator('iframe[title="mono theme preview"]')).toBeVisible()
-
-    // ensure we start from summit so the aurora apply is enabled (a previous partial run
-    // can leave site.json on another theme)
-    const summitBtn = page.locator('button[data-theme="summit"]')
-    if (await summitBtn.isEnabled()) {
-      await summitBtn.click()
-      await expect(page.locator('text=theme → summit').first()).toBeVisible({ timeout: 15000 })
-    }
-
-    // apply aurora, then reset to summit so the repo config is unchanged
-    await page.locator('button[data-theme="aurora"]').click()
-    await expect(page.locator('text=theme → aurora').first()).toBeVisible({ timeout: 15000 })
-    await expect(page.locator('text=1 draft change — not published').first()).toBeVisible({ timeout: 15000 })
-
-    await page.locator('button[data-theme="summit"]').click()
-    await expect(page.locator('text=theme → summit').first()).toBeVisible({ timeout: 15000 })
   })
 })

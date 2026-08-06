@@ -11,27 +11,36 @@ servers do NOT count as "done". Workflow: typecheck → commit → `bash
 scripts/deploy.sh` → poll until live → curl-verify the changed bits. Kill test
 servers when finished.
 
-## OPEN STATE (2026-08-06) — REVIEW DATA ACTIVE, DO NOT DEPLOY
+## OPEN STATE (2026-08-06) — SHIPPING WITH FILLER DATA
 
-The working tree is intentionally dirty with **generated review data** the owner
-is reviewing. The autosave cron is **paused** (`/etc/cron.d/1edge-backup.paused`)
-so it can't commit the ~900 generated files. Do NOT `git add -A`, `deploy.sh`,
-or restore the cron until the owner says the review is done and next steps.
+The review is done and the generated data ships live **as the site's content**
+(owner decision — "keep the review data filler"). All of it is committed and
+deployed in this session; the autosave cron is active again.
 
-- `scripts/seed-review.mjs` generates: 730 day records, ~800 trades, ~155
+- `scripts/seed-review.mjs` generated: 730 day records, ~800 trades, ~155
   journal posts (long+short, non-lorem), 24 coach convos, 8 payouts, 6 accounts
-  (lifecycle incl. 1 failed). Deterministic PRNG; outputs run `npm run build`.
-- Local review servers: summit `:4323`, aurora `:4324`, mono `:4325`
-  (`dist/`, `/tmp/opencode/dist-aurora/`, `/tmp/opencode/dist-mono/`). The
-  `dist/` in-tree is the review build — never deploy it as-is.
-- Real feature in the dirty tree (safe to keep): **search-as-you-type on
-  /journal** — `src/pages/api/journal/search.ts` (new) + inline debounced
-  filter in `src/pages/journal/index.astro`. Zero external script resources.
-- Live site (`1ed.ge`) is UNAFFECTED — still the real, clean build from
-  `8f5ab69`.
+  (lifecycle incl. 1 failed). It CLEARS `src/content/{days,journal,payouts,
+  coach,accounts}` on run — do not run it against the live tree.
+- **Summit is the only theme.** aurora/mono, the admin design tab, the theme API,
+  and the theme-preview route are deleted. `src/lib/site.ts` gone; layouts hardcode
+  `data-theme="summit"`. `src/config/site.json` is inert (no importers).
+- Real feature shipped in the same merge: **search-as-you-type on /journal** —
+  `src/pages/api/journal/search.ts` + inline debounced filter in
+  `src/pages/journal/index.astro`. Zero external script resources.
+- Live site (`1ed.ge`) now runs the final summit build with filler content.
+- Local review servers: summit `:4323` (in-tree `dist/`), aurora/mono removed.
 
 ## Decisions
 
+- **Brand = one fixed wordmark (v06 "baseline tape"), not per-theme marks.** Font-only
+  lockup: JetBrains Mono **1** + Syne **edge** + trailing soft `_`, pure monochrome, tape-scan
+  sheen + underscore flash/pulse. Same on all themes; nav 18px → 22px; admin header matches.
+  Fonts: `@fontsource-variable/syne` added (space-grotesk + sora were tried for logo
+  concepts then removed).
+- **Generated graphics rasterize via sharp/librsvg, NOT headless Chromium screenshots.**
+  The headless Chromium on this VPS mis-rasterizes large text (glyphs painted ~3.7x or
+  fragmented). `scripts/lib/brand.mjs` builds SVG with embedded fonts → sharp PNG. Drives
+  `favicon.svg` (vector, embedded fonts — doubles as the master logo), PWA icons, og.png.
 - **R is the centerpiece.** Risk-based metrics everywhere; `R = points / riskPoints`.
 - **Everything public except the admin.** The 2-year proof is the product.
 - **The day record is the spine.** `days/<date>.md` holds mood, sleep, habits,
@@ -111,6 +120,15 @@ or restore the cron until the owner says the review is done and next steps.
 
 ## Session log (recent)
 
+- 2026-08-06 — **Shipped.** Collapsed to summit-only (deleted aurora/mono, the admin
+  design tab, theme API, theme-preview route, `lib/site.ts`), merged everything
+  (review filler + brand + journal search) to main, deployed to 1ed.ge, autosave
+  cron re-created by deploy.sh. Filler data is live by owner decision.
+- 2026-08-06 — Brand finalized as **v06 baseline tape** (mono `1` + Syne `edge` + soft `_`,
+  tape scan). Applied everywhere: Brand.astro (theme-independent), nav 18→22px, admin header,
+  favicon.svg (vector), PWA icons, og.png. Raster pipeline switched from headless Chromium to
+  sharp/librsvg (Chromium mis-rasterizes large text on this box). Restored the summit review
+  server on :4323 after an accidental pkill (serves the rebuilt in-tree dist/ — same review data).
 - 2026-08-05 — Rebrand to **1edge** (no TLD): gradient "1" + soft glow + gradient
   edge-line that draws in on load, shimmers subtly, glows on hover (pure CSS,
   reduced-motion safe). Dropped the blinking `▋` cursor everywhere; hero prompt is
