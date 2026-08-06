@@ -19,6 +19,9 @@ whole trading day:
 - **Everything public, nothing accidental** — typed thoughts and extracted data
   both go through AI prep + your approval. Screenshots are ingest-only: data is
   pulled, the image is discarded.
+- **A coach that speaks at boundaries** — a pre-market line, an end-of-day
+  debrief on the day page, and on-demand chat. Silent during the session. Every
+  word evidence-grounded, never fluffy.
 
 This is the "one-stop shop": the page you keep open in a docked PWA all day and
 on your phone, for every trading-related need.
@@ -117,7 +120,34 @@ correct → data folds into the day record → **the image is discarded**.
   analysis — persist to `public/media/<date>/`, auto-optimized (sharp → webp),
   embedded with an auto-written SEO alt + caption.
 
-## 5. Live mechanics
+## 5. The coach — speaks at boundaries
+
+The coach's value is **timing and specificity**, not frequency. A coach that
+chatters mid-session is noise; one that only answers when asked is a search box.
+
+- **Speaks at natural boundaries, silent in the session:**
+  - **Pre-market line** — folded into the day's brief (e.g. *"You were flat into
+    CPI yesterday — today NFP 20:30, same flat rule, two clean process days."*).
+  - **End-of-day debrief on the day page** — a compact "coach's debrief" below
+    the document: the day vs. your rules, specific moments, encouragement tied
+    to evidence.
+  - **On demand** — the existing `/coach` conversation, now context-aware
+    (reads the day record + stream + trends).
+  - **During the live session: silent.** At most a tiny hairline "coach has an
+    observation" marker to peek at or ignore. Never a pop-up, never an
+    interruption. The cockpit stays zen.
+- **Anti-fluff rule (hard requirement):** every coach message must cite
+  evidence — a specific day, trade, rule, or line from the stream. Praise only
+  when specific (*"you took the partial at exactly the level you wrote down at
+  08:50"*). Pattern claims only when real (backed by `trends.ts`). No "great
+  job" without a reason. If it has nothing specific, it stays quiet.
+  Disingenuous is a feature-killer — this is enforced in the prompt, not a vibe.
+- **Where it lives:** the debrief renders on the day page (part of the day's
+  story); the full conversation archive stays at `/coach`, linked from the day
+  page — not in the top nav. Storage reuses the existing per-day
+  `coach/<date>.md` files.
+
+## 6. Live mechanics
 
 - The day page becomes **SSR** (`prerender = false`). First load = fully
   server-rendered HTML (SEO + instant). Then a **~1KB deferred poller** appends
@@ -137,17 +167,18 @@ correct → data folds into the day record → **the image is discarded**.
   remains for structured-data correction, accounts, coach, media management,
   brief, and rebuild — the management layer, not the daily home.
 
-## 6. IA consolidation
+## 7. IA consolidation
 
 - `/` = **today** (the cockpit for the current day). The day page is the
   centerpiece; the homepage stops being a dashboard salad.
 - Nav shrinks from 9 to ~5: `today · journal · calendar · performance ·
   accounts` (+ about). `/performance`, `/tracker`, `/trends` merge into one
   analytics destination.
-- The market widget, brief, day record, journal, and coach all hang off the day
-  page rather than competing as separate top-level worlds.
+- The market widget, brief, day record, journal, and the coach's day-page
+  debrief all hang off the day page rather than competing as separate top-level
+  worlds. The `/coach` conversation archive is linked from the day page.
 
-## 7. Phasing
+## 8. Phasing
 
 Each phase ships, deploys, and is verified live on 1ed.ge independently.
 
@@ -156,15 +187,17 @@ Each phase ships, deploys, and is verified live on 1ed.ge independently.
   analytics merge, mono-only typography. Zero-JS.
 - **P2 · Live layer** — SSR day page, journal-as-live-document, ~1KB poller,
   secret-keyed write API, ticking timeline + `next` line + countdown tooltips,
-  hazard pulse timing (30-min window).
+  hazard pulse timing (30-min window), coach-debrief section rendered on the
+  day page (reads existing `coach/<date>.md`).
 - **P3 · AI loop + extract** — refine/approve pipeline (submit/publish/
   shorter/discard/custom), ephemeral screenshot ingest (two tracks), pending→
-  confirmed data cells, autosave.
+  confirmed data cells, autosave, auto-generation of the pre-market coach line +
+  end-of-day debrief with the anti-fluff evidence rule.
 - **P4 · Polish + bloat + PWA** — visual polish from approved mockups, fix the
   268KB journal index, drop unused fonts, Lighthouse + SEO sweep, mobile rail
   behavior, PWA install experience.
 
-## 8. Constraints & non-goals
+## 9. Constraints & non-goals
 
 - **Single user.** No multi-user anything. One writer (you), secret-keyed.
 - **Everything public except the admin.** Approval is the only guard between
@@ -178,7 +211,7 @@ Each phase ships, deploys, and is verified live on 1ed.ge independently.
 - **No CSV, no manual trade entry.** Trades come from screenshots only.
 - **PWA-friendly** — docked app on desktop, full-screen on mobile.
 
-## 9. Success criteria
+## 10. Success criteria
 
 - The cockpit is the only page you need open on a trading day (desktop + phone).
 - A thought goes from raw typing to published-on-the-day in a few taps, with no
@@ -186,5 +219,8 @@ Each phase ships, deploys, and is verified live on 1ed.ge independently.
 - A trade screenshot → approved structured trade in under a minute, image gone.
 - You always know: next event countdown, whether you're flat, what data is
   still pending.
+- The coach's debrief lands on the day page at day's end, cites specific
+  evidence, and never produces a fluff line you'd feel embarrassed to read
+  back.
 - Public pages stay sub-100KB HTML, zero third-party JS, Lighthouse ≥0.95.
 - Nav is ≤6 destinations, no overlapping analytics pages.
