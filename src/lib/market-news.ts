@@ -7,6 +7,8 @@ export interface NewsItem {
   time: string
   currency: string
   title: string
+  source?: 'TV' | 'FF'
+  verified?: boolean
 }
 
 export interface MarketNewsDay {

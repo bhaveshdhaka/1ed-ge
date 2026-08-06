@@ -76,10 +76,12 @@ async function fetchFaireconomy() {
 }
 
 function merge(tv, ff) {
+  // Zero-inference: every event displays verbatim from its own source, labeled.
+  // The other source only contributes a "verified" badge (same ±2min UTC slot).
   const near = (a, b) => Math.abs(a.ms - b.ms) <= VERIFY_WINDOW_MS
-  const primary = tv.map((e) => ({ ...e, verified: ff.some((f) => near(f, e)) }))
-  const extras = ff.filter((f) => !tv.some((t) => near(t, f))).map((f) => ({ ...f, verified: false }))
-  return [...primary, ...extras]
+  const tvRows = tv.map((e) => ({ ms: e.ms, level: e.level, title: e.title, source: 'TV', verified: ff.some((f) => near(f, e)) }))
+  const ffRows = ff.map((e) => ({ ms: e.ms, level: e.level, title: e.title, source: 'FF', verified: tv.some((t) => near(t, e)) }))
+  return [...tvRows, ...ffRows]
 }
 
 function writeDays(merged, cachedAt) {
@@ -88,7 +90,7 @@ function writeDays(merged, cachedAt) {
     const day = isoDay(e.ms)
     if (!byDay.has(day)) byDay.set(day, { red: [], orange: [], anyVerified: false })
     const bucket = byDay.get(day)
-    bucket[e.level].push({ time: hktTime(e.ms), currency: 'USD', title: e.title })
+    bucket[e.level].push({ time: hktTime(e.ms), currency: 'USD', title: e.title, source: e.source, verified: e.verified })
     if (e.verified) bucket.anyVerified = true
   }
 
@@ -104,7 +106,9 @@ function writeDays(merged, cachedAt) {
         lines.push(`${key}: []`)
       } else {
         lines.push(`${key}:`)
-        for (const ev of list) lines.push(`  - time: ${yq(ev.time)}\n    title: ${yq(ev.title)}`)
+        for (const ev of list) {
+          lines.push(`  - time: ${yq(ev.time)}\n    title: ${yq(ev.title)}\n    source: ${yq(ev.source)}\n    verified: ${ev.verified ? 'true' : 'false'}`)
+        }
       }
     }
     lines.push('---', '')
@@ -158,7 +162,7 @@ async function main() {
   const unverified = merged.filter((e) => !e.verified)
   if (unverified.length) {
     console.error(`market-news: ${unverified.length} unverified (single source):`)
-    for (const e of unverified) console.error(`  ${e.src} ${isoDay(e.ms)} ${hktTime(e.ms)} ${e.level} ${e.title}`)
+    for (const e of unverified) console.error(`  ${e.source} ${isoDay(e.ms)} ${hktTime(e.ms)} ${e.level} ${e.title}`)
   }
 
   if (!noBuild) {

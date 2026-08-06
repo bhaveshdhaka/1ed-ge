@@ -1,0 +1,186 @@
+---
+import { getCollection } from 'astro:content'
+import { marketEvents, todayHkt } from '../lib/sessions'
+import type { MarketEvent } from '../lib/sessions'
+import { marketMarker } from '../lib/market'
+
+interface Props {
+  news?: boolean
+}
+
+const { news: showNews = true } = Astro.props
+const today = todayHkt()
+const events = marketEvents(today, 3)
+const news = showNews ? await getCollection('market-news') : []
+const newsToday = news.find((n) => n.data.date === today)
+const mk = marketMarker(today)
+
+const todayEvents = events.filter((e) => e.hkt.slice(0, 10) === today)
+const t = (e?: MarketEvent) => (e ? e.hkt.slice(11, 16) : '—')
+const dLabel = (e: MarketEvent) => {
+  const d = e.hkt.slice(0, 10)
+  if (d === today) return ''
+  const diff = Math.round((Date.parse(d + 'T00:00+08:00') - Date.parse(today + 'T00:00+08:00')) / 86400000)
+  return `+${diff}d `
+}
+
+const cmeHalt = todayEvents.find((e) => e.market === 'cme' && e.type === 'halt')
+const cmeClose = todayEvents.find((e) => e.market === 'cme' && e.type === 'close')
+const cmeResume = todayEvents.find((e) => e.market === 'cme' && e.type === 'resume')
+const cmeToday = cmeHalt && cmeResume
+  ? `halt ${t(cmeHalt)}–${t(cmeResume)} hkt`
+  : cmeClose
+    ? (() => {
+        const reopen = events.find((e) => e.market === 'cme' && e.type === 'open' && e.hkt > cmeClose.hkt)
+        return `weekend close ${t(cmeClose)} hkt${reopen ? ` · reopens ${dLabel(reopen)}${t(reopen)}` : ''}`
+      })()
+    : '—'
+
+const nyseOpen = todayEvents.find((e) => e.market === 'nyse' && e.type === 'open')
+const nyseClose = todayEvents.find((e) => e.market === 'nyse' && e.type === 'close')
+const nyseToday = nyseOpen && nyseClose ? `${t(nyseOpen)} → ${dLabel(nyseClose)}${t(nyseClose)} hkt` : '—'
+
+const tseEvents = todayEvents.filter((e) => e.market === 'tse')
+const tseToday = tseEvents.length === 4
+  ? `${t(tseEvents[0])}–${t(tseEvents[1])} · lunch · ${t(tseEvents[2])}–${t(tseEvents[3])} hkt`
+  : '—'
+
+const lseOpen = todayEvents.find((e) => e.market === 'lse' && e.type === 'open')
+const lseClose = todayEvents.find((e) => e.market === 'lse' && e.type === 'close')
+const lseToday = lseOpen && lseClose ? `${t(lseOpen)} → ${dLabel(lseClose)}${t(lseClose)} hkt` : '—'
+---
+
+<section class="panel p-4">
+  <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+    <h2 class="text-[13px] uppercase tracking-widest text-soft">market · {today}</h2>
+    <span data-mkt-live class="text-[12px]" style={`color:${mk.status === 'open' ? 'var(--color-up)' : mk.status === 'early' ? 'var(--color-warn)' : 'var(--color-down)'}`}>
+      {mk.glyph} {mk.text}
+    </span>
+  </div>
+
+  <div class="mt-2 divide-y divide-line/60 border-t border-line/60">
+    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 py-2">
+      <div>
+        <div class="text-[13px] text-ink">MNQ futures · Globex</div>
+        <div class="text-[11px] text-faint">{cmeToday}</div>
+      </div>
+      <span data-session="cme" class="text-[12px] text-dim">—</span>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 py-2">
+      <div>
+        <div class="text-[13px] text-ink">New York · NYSE</div>
+        <div class="text-[11px] text-faint">{nyseToday}</div>
+      </div>
+      <span data-session="nyse" class="text-[12px] text-dim">—</span>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 py-2">
+      <div>
+        <div class="text-[13px] text-ink">Tokyo · TSE</div>
+        <div class="text-[11px] text-faint">{tseToday}</div>
+      </div>
+      <span data-session="tse" class="text-[12px] text-dim">—</span>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-0.5 py-2">
+      <div>
+        <div class="text-[13px] text-ink">London · LSE</div>
+        <div class="text-[11px] text-faint">{lseToday}</div>
+      </div>
+      <span data-session="lse" class="text-[12px] text-dim">—</span>
+    </div>
+  </div>
+
+  {showNews && (
+    <details class="group mt-3 border-t border-line/60 pt-2">
+      <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 text-[12px]">
+        <span>
+          <span class="uppercase tracking-widest text-faint">USD news · HKT</span>
+          {newsToday && newsToday.data.red.length > 0 && (
+            <span class="ml-2 text-down">red {newsToday.data.red[0].time}</span>
+          )}
+          {newsToday && newsToday.data.red.length === 0 && newsToday.data.orange.length > 0 && (
+            <span class="ml-2 opacity-70 text-warn">orange {newsToday.data.orange[0].time}</span>
+          )}
+        </span>
+        <span class="text-dim transition-transform group-open:rotate-180">▾</span>
+      </summary>
+      <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-line/50 pt-2 text-[13px]">
+        {newsToday?.data.red.map((n) => (
+          <span class="text-down">red {n.time} hkt — {n.title} <span class="text-[10px] text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span></span>
+        ))}
+        {newsToday?.data.orange.map((n) => (
+          <span class="opacity-70 text-warn">orange {n.time} hkt — {n.title} <span class="text-[10px] text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span></span>
+        ))}
+        {(!newsToday || (newsToday.data.red.length === 0 && newsToday.data.orange.length === 0)) && (
+          <span class="text-[12px] text-faint">no major USD news for today.</span>
+        )}
+      </div>
+    </details>
+  )}
+
+  <p class="mt-3 border-t border-line/60 pt-2 text-[10px] uppercase tracking-widest text-faint">
+    all times HKT · DST-aware · {events.length} events in the next 3 days
+  </p>
+</section>
+
+<script type="application/json" id="mkt-sessions" set:html={JSON.stringify(events).replace(/</g, '\\u003c')} is:inline></script>
+
+<script is:inline>
+  (() => {
+    const el = document.getElementById('mkt-sessions')
+    if (!el) return
+    let EVENTS = []
+    try { EVENTS = JSON.parse(el.textContent || '[]') } catch {}
+    const byMarket = {}
+    for (const e of EVENTS) (byMarket[e.market] = byMarket[e.market] || []).push(e)
+
+    const fmtDur = (sec) => {
+      const s = Math.max(0, Math.floor(sec))
+      const h = Math.floor(s / 3600)
+      const m = Math.floor((s % 3600) / 60)
+      return (h ? h + 'h ' : '') + m + 'm'
+    }
+    const nowHkt = () => new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 16) + '+08:00'
+    const isOpenType = (type) => type === 'open' || type === 'resume'
+
+    const render = () => {
+      const now = nowHkt()
+      for (const row of document.querySelectorAll('[data-session]')) {
+        const market = row.getAttribute('data-session')
+        const list = byMarket[market] || []
+        let prev = null
+        let next = null
+        for (const e of list) {
+          if (e.hkt <= now) prev = e
+          else { next = e; break }
+        }
+        const open = prev ? isOpenType(prev.type) : false
+        if (!next) {
+          if (prev) {
+            row.textContent = open ? '● open' : '✕ closed'
+            row.style.color = open ? 'var(--color-up)' : 'var(--color-down)'
+          }
+          continue
+        }
+        const sec = (Date.parse(next.hkt) - Date.now()) / 1000
+        const isClose = next.type === 'close' || next.type === 'halt'
+        let text
+        let color
+        if (prev && prev.type === 'halt') {
+          text = '◐ halted — reopens in ' + fmtDur(sec)
+          color = 'var(--color-warn)'
+        } else if (open) {
+          text = '● open — ' + (isClose ? 'closes in ' : 'opens in ') + fmtDur(sec)
+          color = 'var(--color-up)'
+        } else {
+          text = '✕ closed — ' + (isClose ? 'closes in ' : 'opens in ') + fmtDur(sec)
+          color = 'var(--color-down)'
+        }
+        row.textContent = text
+        row.style.color = color
+      }
+    }
+
+    render()
+    setInterval(render, 1000)
+  })()
+</script>

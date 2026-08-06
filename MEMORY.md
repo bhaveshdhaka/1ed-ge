@@ -108,16 +108,12 @@ deployed in this session; the autosave cron is active again.
 
 ## Open items / roadmap
 
-- [ ] **Market widget (modular, owner-requested)** — one reusable box with all
-      market times in one place, embeddable on the homepage + day pages +
-      anywhere. Shows: US index futures (MNQ/Globex) 24h/5d session with the
-      ~1h daily maintenance close (4–5pm CT = 05–06am HKT in summer / 06–07am
-      HKT in winter — DST-shifted), Asia/Japan (TSE 08:00–14:00 HKT, lunch
-      10:30–11:30 HKT), London (LSE ~16:00 HKT open, ~23:30/00:30 HKT close,
-      BST/GMT), NYSE (21:30 HKT open, 04:00/05:00 HKT close), US bank holidays
-      + early closes, countdown to next close, and red/orange news with HKT
-      times. DST via `Intl` (America/New_York, America/Chicago, Europe/London;
-      Japan has none). Reuses `market.ts` schedule + `market-news` files.
+- [x] **Market widget** — DONE. `MarketWidget.astro` + `src/lib/sessions.ts`
+      (CME maintenance halt, TSE, LSE, NYSE, US holidays, DST via Intl) on the
+      homepage + day pages + `/calendar` week view. News is zero-inference
+      (verbatim rows + `[TV]`/`[FF]` + `✦` verified, no merging). Remaining
+      niceties: Japan substitute-holiday edge cases, full UK holiday shift rules,
+      countdowns on `/calendar` per-day rows (widget covers today only).
 - [ ] Move to Cloudflare Pages + CDN (all content file-based → ports cleanly).
 - [ ] **Safari/iOS/iPhone polish:** viewport-fit + apple metas + tap-highlight
       already in. Next: safe-area insets, bigger touch targets, `@supports
@@ -130,6 +126,14 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-06 — **Dashboard shipped: market widget + week calendar.** New
+  `src/lib/sessions.ts` — deterministic, DST-aware CME/TSE/LSE/NYSE session
+  times in HKT (CME maintenance halt 05:00–06:00 summer / 06:00–07:00 winter,
+  NYSE/TSE/LSE with DST via Intl, JP/UK holidays). `MarketWidget.astro`
+  (status + per-market live countdowns + news) embedded on homepage + day pages;
+  new `/calendar` week view (nav [02]); news switched to **zero-inference**
+  (every row verbatim + `[TV]`/`[FF]` badge + `✦` when both sources confirm;
+  no merging). Typechecked, built, deployed, verified live.
 - 2026-08-06 — **Phase 2 shipped: live market status + USD news.** Every page
   footer + homepage + day pages + admin show a live countdown (● open — closes in
   3h 12m, half-day 1:00pm ET) from a deterministic US-holiday schedule

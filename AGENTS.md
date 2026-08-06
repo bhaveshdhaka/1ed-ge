@@ -83,6 +83,7 @@ src/lib/stats.ts            R/pnl/equity/drawdown engine (idea + per-account via
 src/lib/trends.ts           rolling windows + correlations (sleep/mood/habits/screen/session/setup)
 src/lib/habits.ts           streak + heatmap computation
 src/lib/market.ts               deterministic US bank holidays + early closes; marketDay/marketMarker/openCloseTimes/marketSchedule
+src/lib/sessions.ts             DST-aware CME/TSE/LSE/NYSE sessions in HKT + holiday sets (JP/UK/US); marketEvents()/todayHkt()
 src/lib/market-news.ts          fs read/write of market-news day files (admin + fetch)
 src/lib/changes.ts          pending-changes store (/tmp/1edge-pending.json) + rebuild history
 src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), readScreenshot,
@@ -90,7 +91,8 @@ src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), 
 src/lib/auth.ts             admin secret check + JSON responses
 src/lib/env.ts              .env access (ADMIN_SECRET, OPENROUTER_API_KEY, models)
 src/components/MarketLive.astro   mkt-data JSON + inline live countdown script (Base + Bare layouts)
-src/pages/                  public pages: / /journal /performance /tracker /trends
+src/components/MarketWidget.astro one-glance market box: status + sessions countdowns + news (homepage/day/calendar)
+src/pages/                  public pages: / /journal /calendar /performance /tracker /trends
                              /accounts /coach /about /day/[date] + rss + sitemap
 src/pages/admin/[secret]/   private admin (SSR), renders the React app
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
@@ -147,10 +149,12 @@ trades:                      # one idea, executions per account
 - **Payouts** reduce an account's equity (net P&L = gross − payouts), so
   drawdown/buffer math stays honest.
 - **Market news** = per-HKT-day files (`market-news/<date>.md`) with `red[]` /
-  `orange[]` USD events `{time: "20:30", title}` (HKT times). Fetched
-  deterministically (no AI) by `scripts/market-news-fetch.mjs` — TradingView
-  primary (importance 1→red, 0→orange) + Faireconomy cross-verify (±2min UTC);
-  `verified` = present in both sources. 8h cron + deploy + admin refresh.
+  `orange[]` USD events `{time: "20:30", title, source, verified}` (HKT times).
+  Fetched deterministically (no AI) by `scripts/market-news-fetch.mjs` —
+  TradingView primary (importance 1→red, 0→orange) + Faireconomy cross-verify
+  (±2min UTC); `verified` = present in both sources. **Zero-inference:** rows are
+  verbatim from their source (`TV`/`FF` badge), never merged/re-leveled. 8h cron
+  + deploy + admin refresh.
 
 ## Admin + publish flow (important)
 

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Market widget (one-glance market box)** — `src/components/MarketWidget.astro`,
+  embeddable anywhere (homepage, day pages, calendar, admin-ready). Shows live
+  US status + countdown, per-market sessions with live countdowns, and today's
+  news. All times HKT, DST-aware.
+- **Session engine (`src/lib/sessions.ts`)** — deterministic CME/TSE/LSE/NYSE
+  session times in HKT with full DST handling via `Intl`:
+  - CME futures daily maintenance halt 05:00–06:00 HKT (summer) / 06:00–07:00
+    (winter), weekend close + Sunday reopen.
+  - NYSE 21:30→04:00+1 (EDT) / 22:30→05:00+1 (EST); half-day close 13:00 ET.
+  - TSE 08:00–10:30 · 11:30–14:00 HKT (lunch break), Japan holidays.
+  - LSE 15:00→23:30 (BST) / 16:00→00:30+1 (GMT), UK bank holidays.
+  Verified against DST transition dates (Jan/Oct/Mar) and weekend breaks.
+- **Week-view `/calendar`** — the next 8 days in HKT: session times per market,
+  market status marker, and red/orange news. Linked in the nav ([02]).
+- **Zero-inference news rule** — every news row now displays verbatim from the
+  source that reported it, labeled `[TV]` / `[FF]`, with `✦` when the other
+  source independently confirms the same time-slot (±2 min). No level/title
+  merging — if the sources disagree you see both rows. Applies to the day page
+  strip, the widget, the calendar, and the admin market card.
 - **Live market status with countdown** — every public page footer, the homepage
   and day pages (and the admin) show the US market state in real time:
   `● open — closes in 3h 12m` / `✕ closed · holiday/weekend`, half-day close at

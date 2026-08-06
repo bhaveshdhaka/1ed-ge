@@ -115,6 +115,8 @@ const newsEvent = z.object({
   time: z.string(),
   currency: z.string().default('USD'),
   title: z.string(),
+  source: z.enum(['TV', 'FF']).optional(),
+  verified: z.boolean().default(false),
 })
 
 const newsList = z.preprocess((v) => (v == null ? [] : v), z.array(newsEvent))

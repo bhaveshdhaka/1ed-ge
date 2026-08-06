@@ -6,6 +6,7 @@ import { buildStats, fmtPnl } from '../lib/stats'
 import { buildHabitStats, todayKey } from '../lib/habits'
 import { fmtDay } from '../lib/dates'
 import { marketMarker } from '../lib/market'
+import MarketWidget from '../components/MarketWidget.astro'
 
 const [accounts, days, journal, habits, payouts, news] = await Promise.all([
   getCollection('accounts'),
@@ -35,7 +36,6 @@ const firstRedToday = newsToday?.data.red[0]
 const nextRed = [...news]
   .sort((a, b) => a.data.date.localeCompare(b.data.date))
   .find((n) => n.data.date >= today && n.data.red.length > 0)
-const newsDayForHome = firstRedToday ? newsToday : nextRed ?? null
 const doneToday = habitStats.filter((h) => h.doneToday === true).length
 const totalHabits = habitStats.length
 const journalDays = new Set(journal.map((j) => j.data.date)).size
@@ -127,30 +127,12 @@ const live = (n: number | null, suffix = '') => {
       )}
       <span class="text-faint">status: public</span>
     </div>
+  </section>
 
-    {newsDayForHome && (
-      <details class="group mt-4 max-w-3xl border border-line bg-panel/40 px-4 py-2">
-        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 text-[12px]">
-          <span>
-            <span class="text-down">
-              {firstRedToday
-                ? `red ${firstRedToday.time} hkt`
-                : `next red ${fmtDay(nextRed!.data.date)} ${nextRed!.data.red[0].time} hkt`}
-            </span>
-            <span class="ml-2 text-faint">USD news · HKT</span>
-          </span>
-          <span class="text-dim transition-transform group-open:rotate-180">▾</span>
-        </summary>
-        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-line/50 pt-2 text-[13px]">
-          {newsDayForHome.data.red.map((n) => (
-            <span class="text-down">red {n.time} hkt — {n.title}</span>
-          ))}
-          {newsDayForHome.data.orange.map((n) => (
-            <span class="opacity-70 text-warn">orange {n.time} hkt — {n.title}</span>
-          ))}
-        </div>
-      </details>
-    )}
+  <section class="shell pb-14">
+    <div class="max-w-3xl">
+      <MarketWidget />
+    </div>
   </section>
 
   <section class="border-t border-line bg-panel/40">
@@ -202,21 +184,21 @@ const live = (n: number | null, suffix = '') => {
     <h2 class="mt-14 text-lg">/ go deeper</h2>
     <div class="mt-6 grid gap-4 md:grid-cols-3">
       <a href="/trends" class="panel group p-6 transition-colors hover:border-accent">
-        <div class="text-[12px] text-dim">[04]</div>
+        <div class="text-[12px] text-dim">[05]</div>
         <div class="mt-3 text-[15px] text-ink group-hover:text-accent">trends</div>
         <p class="mt-2 text-[13px] leading-relaxed text-dim">
           how sleep, mood, habits and screen time move the R. the patterns, in public.
         </p>
       </a>
       <a href="/accounts" class="panel group p-6 transition-colors hover:border-accent">
-        <div class="text-[12px] text-dim">[05]</div>
+        <div class="text-[12px] text-dim">[06]</div>
         <div class="mt-3 text-[15px] text-ink group-hover:text-accent">accounts</div>
         <p class="mt-2 text-[13px] leading-relaxed text-dim">
           every prop account live — stage, buffer, payouts. what i have right now.
         </p>
       </a>
       <a href="/coach" class="panel group p-6 transition-colors hover:border-accent">
-        <div class="text-[12px] text-dim">[06]</div>
+        <div class="text-[12px] text-dim">[07]</div>
         <div class="mt-3 text-[15px] text-ink group-hover:text-accent">coach</div>
         <p class="mt-2 text-[13px] leading-relaxed text-dim">
           f-R-iend reading the numbers and calling it straight. no sugar-coating.

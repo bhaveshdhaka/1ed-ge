@@ -5,6 +5,8 @@ import { Card, Button } from './ui'
 interface NewsItem {
   time: string
   title: string
+  source?: string
+  verified?: boolean
 }
 interface NewsDay {
   date: string
@@ -67,12 +69,12 @@ export function MarketCard() {
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
         {red.map((n) => (
           <span key={'r' + n.time + n.title} className="text-[13px] text-down">
-            red {n.time} hkt — {n.title}
+            red {n.time} hkt — {n.title} <span className="text-[10px] text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span>
           </span>
         ))}
         {orange.map((n) => (
           <span key={'o' + n.time + n.title} className="text-[13px] opacity-70 text-warn">
-            orange {n.time} hkt — {n.title}
+            orange {n.time} hkt — {n.title} <span className="text-[10px] text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span>
           </span>
         ))}
         {red.length === 0 && orange.length === 0 && (

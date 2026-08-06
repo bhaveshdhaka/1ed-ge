@@ -11,12 +11,14 @@ function isoFromDate(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
+export { isoFromDate }
 
 function addDays(d: Date, n: number): Date {
   const x = new Date(d)
   x.setDate(x.getDate() + n)
   return x
 }
+export { addDays }
 
 function easterSunday(year: number): Date {
   const a = year % 19
@@ -47,6 +49,7 @@ function lastWeekday(year: number, month: number, weekday: number): Date {
   const diff = (last.getDay() - weekday + 7) % 7
   return addDays(last, -diff)
 }
+export { easterSunday, nthWeekday, lastWeekday }
 
 /** NYSE/CME observed-day shift: Saturday → Friday before, Sunday → Monday after. */
 function observed(d: Date): Date {
