@@ -195,17 +195,15 @@ export function projectDayNumber(): number {
 ```ts
 import { test, expect } from '@playwright/test'
 
-test.describe('timeline', () => {
-  test('buildTimeline band slicing is correct (pure unit)', async () => {
-    // e2e can't import TS directly; this asserts the rendered day timeline
-    // instead (see Task 4). Placeholder for the ruler assertions.
-    await page_goto('/day/13-aug-2026') // eslint-disable-line
+test.describe('cockpit', () => {
+  test('day page timeline exists', async ({ page }) => {
+    await page.goto('/day/13-aug-2026')
     await expect(page.locator('[data-timeline]')).toHaveCount(1)
   })
 })
 ```
 
-Note: this file will be fully fleshed out in Task 4. For now it exists so Task 4's component test is the real gate. Run `npx playwright test e2e/cockpit.spec.ts` and expect FAIL (page 404).
+Note: this file is fleshed out with rail/doc assertions in Task 4. Here it only asserts the timeline exists — run `npx playwright test e2e/cockpit.spec.ts` and expect FAIL (the day page has no `[data-timeline]` yet).
 
 - [ ] **Step 3: Implement `src/lib/timeline.ts`**
 
@@ -513,6 +511,8 @@ const nowLabel = data.nowLeft !== null ? new Date(Date.now() + 8 * 3600 * 1000).
 ```astro
 ---
 import type { CollectionEntry } from 'astro:content'
+import cockpitConfig from '../../config/cockpit.json'
+
 interface Props {
   rules: CollectionEntry<'rules'>[]
   quotes: CollectionEntry<'quotes'>[]
@@ -520,7 +520,7 @@ interface Props {
   dayHabits: Record<string, boolean> | undefined
 }
 const { rules, quotes, habits, dayHabits } = Astro.props
-const selftalk = (await import('../../config/cockpit.json')).default.selfTalk
+const selftalk = cockpitConfig.selfTalk
 ---
 
 <aside class="ck-rail ck-rail-l hidden md:block" data-rail-l>
@@ -545,7 +545,7 @@ const selftalk = (await import('../../config/cockpit.json')).default.selfTalk
 
 (P1 links to `/coach`; P3 replaces this with the inline docked chat panel invoked from this link.)
 
-Note: `await import('../../config/cockpit.json')` is not valid in Astro frontmatter directly — instead use a static import at the top: `import cockpitConfig from '../../config/cockpit.json'` and `const selftalk = cockpitConfig.selfTalk`.
+(Static JSON import via Astro frontmatter — JSON imports are supported natively.)
 
 - [ ] **Step 6: Implement `RailRight.astro`**
 
@@ -711,12 +711,27 @@ import { getCollection, render } from 'astro:content'
 import { fmtDay } from '../../lib/dates'
 import { groupNewsByTime, newsEmoji } from '../../lib/market-news'
 import Cockpit from './Cockpit.astro'
-import { buildStats } from '../../lib/stats'
 
 interface Props { iso: string; allDates: string[] }
 const { iso, allDates } = Astro.props
-// … the existing getCollection calls, entry/journalFor/coachFor/newsFor/briefFor,
-// accMap, prevIso/nextIso, d, dayHabits, trades, sumR, dm, rendered Content … from the current page
+const [accounts, journal, coach, habits, news, briefs, rules, quotes] = await Promise.all([
+  getCollection('accounts'),
+  getCollection('journal'),
+  getCollection('coach'),
+  getCollection('habits'),
+  getCollection('market-news'),
+  getCollection('brief'),
+  getCollection('rules'),
+  getCollection('quotes'),
+])
+// keep the rest of the current day page data-gathering: days collection, entry,
+// journalFor/coachFor/newsFor/briefFor, dayRedGroups/dayOrangeGroups, accMap,
+// dayIdx, prevIso/nextIso, d, dayHabits, sleep, device, moodLabel, trades, sumR,
+// totalPts, dm, and the rendered Reflection/Coaching/Brief components.
+const [days] = await Promise.all([getCollection('days')])
+const entry = days.find((x) => x.data.date === iso) ?? null
+const d = entry?.data ?? null
+// …(copy the remaining lines verbatim from the current day/[date].astro)…
 ```
 
 The render output (replacing the old `<article>` shell header):
