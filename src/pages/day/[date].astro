@@ -1,67 +1,92 @@
 ---
 import Base from '../../layouts/Base.astro'
-import { getCollection } from 'astro:content'
+import { getCollection, render } from 'astro:content'
+import { fmtDay } from '../../lib/dates'
+import { marketMarker } from '../../lib/market'
 
 export async function getStaticPaths() {
-  const days = await getCollection('days')
-  return days.map((d) => ({ params: { date: d.data.date }, props: { entry: d } }))
+  const [days, journal, coach] = await Promise.all([
+    getCollection('days'),
+    getCollection('journal'),
+    getCollection('coach'),
+  ])
+  const dates = new Set<string>()
+  for (const c of [...days, ...journal, ...coach]) dates.add(c.data.date)
+  const allDates = [...dates].sort()
+  return allDates.map((iso) => ({
+    params: { date: fmtDay(iso) },
+    props: { iso, allDates },
+  }))
 }
 
-const { entry } = Astro.props
-const [accounts, journal, allDaysCollection] = await Promise.all([
+const { iso, allDates } = Astro.props
+const [days, accounts, journal, coach, habits] = await Promise.all([
+  getCollection('days'),
   getCollection('accounts'),
   getCollection('journal'),
-  getCollection('days'),
+  getCollection('coach'),
+  getCollection('habits'),
 ])
-const journalFor = journal.find((j) => j.data.date === entry.data.date)
+const entry = days.find((d) => d.data.date === iso) ?? null
+const journalFor = journal.find((j) => j.data.date === iso) ?? null
+const coachFor = coach.find((c) => c.data.date === iso) ?? null
+
 const accMap = new Map(accounts.map((a) => [a.data.id, a.data]))
-const allDays = [...allDaysCollection].sort((a, b) => a.data.date.localeCompare(b.data.date))
-const dayIdx = allDays.findIndex((d) => d.data.date === entry.data.date)
-const prevDay = dayIdx > 0 ? allDays[dayIdx - 1] : null
-const nextDay = dayIdx >= 0 && dayIdx < allDays.length - 1 ? allDays[dayIdx + 1] : null
+const dayIdx = allDates.indexOf(iso)
+const prevIso = dayIdx > 0 ? allDates[dayIdx - 1] : null
+const nextIso = dayIdx >= 0 && dayIdx < allDates.length - 1 ? allDates[dayIdx + 1] : null
 
-const d = entry.data
-const habits = await getCollection('habits')
-const dayHabits = d.habits ?? {}
+const d = entry?.data ?? null
+const dayHabits = d?.habits ?? {}
+const sleep = d?.sleep
+const device = d?.device
+const moodLabel = d?.mood ? `${d.mood}/5` : '—'
+const trades = d?.trades ?? []
+const sumR = trades.reduce((s, t) => s + (t.points / (t.riskPoints ?? (t.stop !== undefined ? Math.abs(t.entry - t.stop) : 1))), 0)
+const totalPts = trades.reduce((s, t) => s + t.points, 0)
+const mk = marketMarker(iso)
 
-const sleep = d.sleep
-const device = d.device
-const moodLabel = d.mood ? `${d.mood}/5` : '—'
-const sumR = (d.trades ?? []).reduce((s, t) => s + (t.points / (t.riskPoints ?? (t.stop !== undefined ? Math.abs(t.entry - t.stop) : 1))), 0)
-const totalPts = (d.trades ?? []).reduce((s, t) => s + t.points, 0)
+let Reflection: any = null
+let Coaching: any = null
+if (journalFor) ({ Content: Reflection } = await render(journalFor))
+if (coachFor) ({ Content: Coaching } = await render(coachFor))
+
+const statusClass = mk.status === 'open' ? 'text-up' : mk.status === 'early' ? 'text-warn' : 'text-down'
 ---
 
 <Base
-  title={`day ${entry.data.date} — 1ed.ge`}
-  description={`${entry.data.date} — mood ${moodLabel}, ${d.trades.length} trades, ${sumR >= 0 ? '+' : ''}${sumR.toFixed(2)}R. Everything public.`}
+  title={`day ${fmtDay(iso)} — 1ed.ge`}
+  description={`${fmtDay(iso)} — mood ${moodLabel}, ${trades.length} trades, ${sumR >= 0 ? '+' : ''}${sumR.toFixed(2)}R. Everything public.`}
 >
   <article class="shell max-w-4xl pt-12 pb-20">
-    <a href="/journal" class="text-[12px] text-dim transition-colors hover:text-ink">← /journal</a>
+    <nav class="flex items-center justify-between text-[12px]">
+      <a href="/journal" class="text-dim transition-colors hover:text-ink">← /journal</a>
+      <span class="text-faint">all sessions</span>
+      <a href="/coach" class="text-dim transition-colors hover:text-ink">/coach →</a>
+    </nav>
 
     <header class="mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-      <h1 class="text-2xl">day {entry.data.date}</h1>
-      <span class="text-[13px] text-dim">
-        {d.trades.length} trades · {sumR > 0 ? '+' : ''}{sumR.toFixed(2)}R · {totalPts >= 0 ? '+' : ''}{totalPts}pts
+      <h1 class="text-2xl">day {fmtDay(iso)}</h1>
+      <span class:list={['text-[13px]', statusClass]}>
+        {mk.glyph} {mk.text}
       </span>
-      {journalFor && (
-        <a href={`/journal/${journalFor.id}`} class="ml-auto text-[13px] text-accent hover:text-ink">
-          journal for this day →
-        </a>
-      )}
+      <span class="text-[13px] text-dim">
+        {trades.length} trades · {sumR > 0 ? '+' : ''}{sumR.toFixed(2)}R · {totalPts >= 0 ? '+' : ''}{totalPts}pts
+      </span>
     </header>
 
     <nav class="mt-4 flex items-center justify-between gap-3 text-[12px]">
-      {prevDay ? (
-        <a href={`/day/${prevDay.data.date}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">
-          ← {prevDay.data.date}
+      {prevIso ? (
+        <a href={`/day/${fmtDay(prevIso)}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">
+          ← {fmtDay(prevIso)}
         </a>
       ) : (
         <span class="text-faint">← older</span>
       )}
-      <span class="text-faint">day {dayIdx + 1} of {allDays.length}</span>
-      {nextDay ? (
-        <a href={`/day/${nextDay.data.date}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">
-          {nextDay.data.date} →
+      <span class="text-faint">day {dayIdx + 1} of {allDates.length}</span>
+      {nextIso ? (
+        <a href={`/day/${fmtDay(nextIso)}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">
+          {fmtDay(nextIso)} →
         </a>
       ) : (
         <span class="text-faint">newer →</span>
@@ -89,19 +114,21 @@ const totalPts = (d.trades ?? []).reduce((s, t) => s + t.points, 0)
       </div>
     </div>
 
-    <div class="mt-10">
-      <h2 class="text-lg">/ habits</h2>
-      <div class="mt-3 flex flex-wrap gap-2">
-        {habits.map((h) => {
-          const done = dayHabits[h.id] === true
-          return (
-            <span class="flex items-center gap-2 border px-3 py-1.5 text-[13px]" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
-              {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
-            </span>
-          )
-        })}
+    {d && (
+      <div class="mt-10">
+        <h2 class="text-lg">/ habits</h2>
+        <div class="mt-3 flex flex-wrap gap-2">
+          {habits.map((h) => {
+            const done = dayHabits[h.id] === true
+            return (
+              <span class="flex items-center gap-2 border px-3 py-1.5 text-[13px]" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
+                {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
+              </span>
+            )
+          })}
+        </div>
       </div>
-    </div>
+    )}
 
     {device && (device.screenshots?.length ?? 0) > 0 && (
       <div class="mt-10">
@@ -119,11 +146,11 @@ const totalPts = (d.trades ?? []).reduce((s, t) => s + t.points, 0)
 
     <div class="mt-10">
       <h2 class="text-lg">/ trades</h2>
-      {(d.trades ?? []).length === 0 ? (
+      {trades.length === 0 ? (
         <p class="mt-3 text-[13px] text-faint">no trades logged this day.</p>
       ) : (
         <div class="mt-4 space-y-4">
-          {(d.trades ?? []).map((t, i) => {
+          {trades.map((t, i) => {
             const risk = t.riskPoints ?? (t.stop !== undefined ? Math.abs(t.entry - t.stop) : 1)
             const R = t.points / risk
             const ex = t.executions ?? []
@@ -169,6 +196,42 @@ const totalPts = (d.trades ?? []).reduce((s, t) => s + t.points, 0)
             )
           })}
         </div>
+      )}
+    </div>
+
+    <div class="mt-10 border-t border-line pt-8">
+      <h2 class="text-lg">/ reflection</h2>
+      {journalFor && Reflection ? (
+        <article class="mt-4 max-w-3xl">
+          <div class="flex flex-wrap items-center gap-3 text-[12px] text-dim">
+            {journalFor.data.day && <span class="text-ink">{journalFor.data.day}</span>}
+            <span>{fmtDay(journalFor.data.date)}</span>
+            {journalFor.data.tags?.map((t) => <span class="tag">#{t}</span>)}
+          </div>
+          {journalFor.data.summary && <p class="mt-2 text-[13px] text-dim">{journalFor.data.summary}</p>}
+          <div class="prose mt-6">
+            <Reflection />
+          </div>
+        </article>
+      ) : (
+        <p class="mt-3 border-t border-line/40 pt-3 text-[13px] text-faint">no journal entry this day.</p>
+      )}
+    </div>
+
+    <div class="mt-10 border-t border-line pt-8">
+      <h2 class="text-lg">/ coach</h2>
+      {coachFor && Coaching ? (
+        <article class="mt-4 max-w-3xl border-l-2 border-line2 pl-6">
+          <div class="flex flex-wrap items-center gap-3 text-[12px] text-dim">
+            <span>{fmtDay(coachFor.data.date)}</span>
+            {coachFor.data.summary && <span class="text-soft">{coachFor.data.summary}</span>}
+          </div>
+          <div class="prose mt-4">
+            <Coaching />
+          </div>
+        </article>
+      ) : (
+        <p class="mt-3 border-t border-line/40 pt-3 text-[13px] text-faint">no coaching session this day.</p>
       )}
     </div>
   </article>

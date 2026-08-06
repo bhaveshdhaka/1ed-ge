@@ -1,17 +1,50 @@
 ---
-export const prerender = false
 import Base from '../../layouts/Base.astro'
 import { getCollection } from 'astro:content'
-
-const q = (Astro.url.searchParams.get('q') ?? '').trim().toLowerCase()
+import type { CollectionEntry } from 'astro:content'
+import { fmtDay } from '../../lib/dates'
 
 const journal = (await getCollection('journal')).sort((a, b) => b.data.date.localeCompare(a.data.date))
 const days = await getCollection('days')
 const dayByDate = new Map(days.map((d) => [d.data.date, d.data]))
-const tradeCount = new Map<string, number>()
-for (const d of days) {
-  if ((d.data.trades ?? []).length) tradeCount.set(d.data.date, d.data.trades!.length)
+
+const monthLabel = (m: string) => {
+  const [y, mo] = m.split('-')
+  const names = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+  return `${names[parseInt(mo, 10) - 1]} ${y}`
 }
+
+const dayText = (d: CollectionEntry<'days'>['data'] | undefined) => {
+  if (!d) return ''
+  const p: string[] = []
+  if (d.mood) p.push(`mood ${d.mood}/5`)
+  if (d.sleep?.hours !== undefined) p.push(`sleep ${d.sleep.hours}h quality ${d.sleep.quality ?? ''}/5`)
+  if (d.device) {
+    p.push(`phone screen ${d.device.iphoneHours ?? ''}h social ${d.device.socialHours ?? ''}h mac ${d.device.macHours ?? ''}h`)
+    if (d.device.notes) p.push(d.device.notes)
+  }
+  for (const t of d.trades ?? []) {
+    p.push(`${t.market} ${t.direction} ${t.session ?? ''} ${t.setup ?? ''} entry ${t.entry} exit ${t.exit} stop ${t.stop ?? ''} points ${t.points} risk ${t.riskPoints ?? ''}`)
+    if (t.note) p.push(t.note)
+    for (const e of t.executions ?? []) p.push(`account ${e.account} size ${e.size ?? 1}`)
+  }
+  return p.join(' ')
+}
+
+const index = journal.map((j) => {
+  const day = dayByDate.get(j.data.date)
+  return {
+    id: j.id,
+    date: j.data.date,
+    title: j.data.day ?? j.data.date,
+    summary: j.data.summary ?? '',
+    tags: j.data.tags ?? [],
+    trades: (day?.trades ?? []).length,
+    mood: day?.mood ?? null,
+    meta: [j.data.date, j.data.summary ?? '', (j.data.tags ?? []).join(' '), dayText(day)].join(' '),
+    body: j.body ?? '',
+  }
+})
 
 const groups: { month: string; entries: typeof journal }[] = []
 for (const j of journal) {
@@ -21,78 +54,54 @@ for (const j of journal) {
   else groups.push({ month: m, entries: [j] })
 }
 
-const monthLabel = (m: string) => {
-  const [y, mo] = m.split('-')
-  const names = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-  return `${names[parseInt(mo, 10) - 1]} ${y}`
-}
 const ordered: typeof journal = []
 for (const g of groups) ordered.push(...g.entries)
 const numById = new Map(ordered.map((j, i) => [j.id, i]))
-const serverCount = q
-  ? journal.filter((j) => {
-      const hay = [j.data.date, j.data.day ?? '', j.data.summary ?? '', (j.data.tags ?? []).join(' '), j.body ?? '']
-        .join(' ')
-        .toLowerCase()
-      return hay.includes(q)
-    }).length
-  : journal.length
 ---
 
 <Base title="journal — 1ed.ge" description="The daily trading journal — the thinking, the sessions, the misses, the lessons. Everything public.">
   <section class="shell pt-12 pb-20">
     <div class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl">/ journal</h1>
-      <span id="journal-count" class="text-[12px] text-faint">
-        {q ? `${serverCount} of ${journal.length} entries` : `${journal.length} entries`}
-      </span>
+      <span id="journal-count" class="text-[12px] text-faint">{journal.length} entries</span>
     </div>
 
     <div class="mt-8 flex max-w-3xl flex-col gap-3">
-      <form method="get" action="/journal" class="flex gap-2" role="search">
+      <form class="flex gap-2" role="search" onsubmit="return false">
         <input
           type="search"
-          name="q"
           id="journal-q"
-          value={q}
-          placeholder="search title, tags, text, date (yyyy-mm-dd)…"
+          placeholder="search title, tags, text, date…  ( / to focus )"
           class="input flex-1"
           aria-label="search journal"
           autocomplete="off"
         />
-        <button type="submit" class="btn shrink-0">search</button>
-        {q && (
-          <a href="/journal" class="btn shrink-0">clear</a>
-        )}
+        <button type="button" id="search-clear" class="btn shrink-0 hidden">clear</button>
       </form>
       <label class="flex items-center gap-2 text-[12px] text-dim">
         <span class="text-faint">jump to day:</span>
-        <input
-          type="date"
-          class="input w-40"
-          onchange={`const v=this.value; if(v) location.href='/day/'+v`}
-        />
+        <input type="date" class="input w-40" onchange="window.__jumpDay && window.__jumpDay(this.value)" />
       </label>
     </div>
 
-    {groups.length > 1 && (
-      <div class="mt-6 flex flex-wrap gap-1.5">
+    <div id="month-strip" class="sticky top-0 z-10 mt-6 -mx-1 overflow-x-auto border-b border-line bg-bg/95 px-1 py-2 backdrop-blur">
+      <div class="flex gap-1.5">
         {groups.map((g) => (
-          <a href={`#m-${g.month}`} class="tag transition-colors hover:border-accent hover:text-accent">
+          <a href={`#m-${g.month}`} class="tag shrink-0 transition-colors hover:border-accent hover:text-accent">
             {monthLabel(g.month)}
           </a>
         ))}
       </div>
-    )}
+    </div>
 
     <div id="journal-list" class="mt-10 max-w-3xl">
       {groups.map((g) => (
-        <div id={`m-${g.month}`} data-month={g.month} class="scroll-mt-28">
-          <div class="sticky top-[76px] z-10 -mx-1 bg-bg/95 px-1 py-1 text-[11px] uppercase tracking-widest text-dim backdrop-blur md:top-[84px]">
-            {monthLabel(g.month)} <span class="text-faint">· <span data-month-count>{g.entries.length}</span></span>
+        <div id={`m-${g.month}`} class="scroll-mt-16">
+          <div class="-mx-1 px-1 py-1 text-[11px] uppercase tracking-widest text-dim">
+            {monthLabel(g.month)} <span class="text-faint">· {g.entries.length}</span>
           </div>
           {g.entries.map((j) => (
-            <a href={`/journal/${j.id}`} data-jid={j.id} class="group block border-b border-line/70 py-6 first:pt-4">
+            <a href={`/day/${fmtDay(j.data.date)}`} class="group block border-b border-line/70 py-6 first:pt-4">
               <div class="flex items-baseline justify-between gap-4">
                 <div class="flex items-baseline gap-3">
                   <span class="text-[12px] text-faint">{String(journal.length - (numById.get(j.id) ?? 0)).padStart(2, '0')}</span>
@@ -102,8 +111,8 @@ const serverCount = q
               </div>
               {j.data.summary && <p class="mt-2 text-[13px] leading-relaxed text-dim">{j.data.summary}</p>}
               <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-                {(tradeCount.get(j.data.date) ?? 0) > 0 && (
-                  <span class="tag text-up">{tradeCount.get(j.data.date)} trades</span>
+                {(dayByDate.get(j.data.date)?.trades?.length ?? 0) > 0 && (
+                  <span class="tag text-up">{dayByDate.get(j.data.date)!.trades!.length} trades</span>
                 )}
                 {dayByDate.get(j.data.date)?.mood && <span class="tag">mood {dayByDate.get(j.data.date)!.mood}/5</span>}
                 {j.data.tags?.map((t) => <span class="tag">#{t}</span>)}
@@ -115,66 +124,121 @@ const serverCount = q
       {journal.length === 0 && (
         <p class="text-[13px] text-faint">no entries yet — the journal starts when the trading does.</p>
       )}
-      {journal.length > 0 && q && serverCount === 0 && (
-        <p class="text-[13px] text-faint">no entries match “{q}”.</p>
-      )}
     </div>
+
+    <div id="search-results" class="mt-10 max-w-3xl hidden"></div>
+
+    <button id="back-top" class="fixed bottom-6 right-6 z-20 hidden h-10 w-10 items-center justify-center border border-line bg-panel text-dim transition-colors hover:border-accent hover:text-ink" aria-label="back to top">
+      ↑
+    </button>
   </section>
 </Base>
+
+<script type="application/json" id="journal-index" set:html={JSON.stringify(index).replace(/</g, '\\u003c')} is:inline></script>
 
 <script is:inline>
   (() => {
     const input = document.getElementById('journal-q')
+    const clearBtn = document.getElementById('search-clear')
     const count = document.getElementById('journal-count')
     const list = document.getElementById('journal-list')
-    if (!input || !list) return
-    const entries = Array.from(list.querySelectorAll('[data-jid]'))
-    const months = Array.from(list.querySelectorAll('[data-month]'))
-    let timer = null
-    let inflight = 0
+    const strip = document.getElementById('month-strip')
+    const results = document.getElementById('search-results')
+    const backTop = document.getElementById('back-top')
+    if (!input || !results || !count) return
 
-    const apply = async (term) => {
-      if (!term) {
-        for (const e of entries) e.style.display = ''
-        for (const m of months) m.style.display = ''
-        if (count) count.textContent = entries.length + ' entries'
-        return
-      }
-      const seq = ++inflight
-      try {
-        const res = await fetch('/api/journal/search?q=' + encodeURIComponent(term))
-        const data = await res.json()
-        if (seq !== inflight) return
-        const ids = new Set(data.ids)
-        let visible = 0
-        for (const e of entries) {
-          const on = ids.has(e.dataset.jid)
-          e.style.display = on ? '' : 'none'
-          if (on) visible++
-        }
-        for (const m of months) {
-          const any = m.querySelectorAll('[data-jid]')
-          let hasVisible = false
-          for (const e of any) {
-            if (e.style.display !== 'none') { hasVisible = true; break }
-          }
-          m.style.display = hasVisible ? '' : 'none'
-          const c = m.querySelector('[data-month-count]')
-          if (c && hasVisible) c.textContent = visibleCount(m)
-        }
-        if (count) count.textContent = visible + ' of ' + data.total + ' entries'
-      } catch { /* keep current state on network error */ }
+    let index = []
+    const indexEl = document.getElementById('journal-index')
+    try { index = JSON.parse(indexEl.textContent || '[]') } catch {}
+
+    const MON = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+    const fmt = (iso) => { const [y, m, d] = iso.split('-'); return d + '-' + MON[+m - 1] + '-' + y }
+    window.__jumpDay = (v) => { if (v) location.href = '/day/' + fmt(v) }
+
+    const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+    const tokenize = (t) => t.trim().toLowerCase().split(/\s+/).filter(Boolean)
+    const hasDigit = /[0-9]/
+    const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const matchTok = (field, tok) => {
+      const f = ' ' + String(field).toLowerCase()
+      if (hasDigit.test(tok)) return f.includes(tok)
+      return new RegExp('(^|[^a-z0-9])' + escRe(tok)).test(f)
     }
 
-    const visibleCount = (m) => Array.from(m.querySelectorAll('[data-jid]')).filter((e) => e.style.display !== 'none').length
+    const search = (term) => {
+      const toks = tokenize(term)
+      if (!toks.length) return []
+      const out = []
+      for (const e of index) {
+        let ok = true
+        let score = 0
+        for (const tok of toks) {
+          const t = matchTok(e.title, tok)
+          const m = matchTok(e.meta, tok)
+          const b = matchTok(e.body, tok)
+          if (!(t || m || b)) { ok = false; break }
+          score += (t ? 3 : 0) + (m ? 2 : 0) + (b ? 1 : 0)
+        }
+        if (ok) out.push({ e, score })
+      }
+      out.sort((a, b) => b.score - a.score || b.e.date.localeCompare(a.e.date))
+      return out.map((r) => r.e)
+    }
 
-    input.addEventListener('input', () => {
-      clearTimeout(timer)
-      timer = setTimeout(() => apply(input.value.trim().toLowerCase()), 120)
-    })
+    const item = (e, i) => `
+      <a href="/day/${fmt(e.date)}" class="group block border-b border-line/70 py-6">
+        <div class="flex items-baseline justify-between gap-4">
+          <div class="flex items-baseline gap-3">
+            <span class="text-[12px] text-faint">${String(i + 1).padStart(2, '0')}</span>
+            <span class="text-[15px] text-ink group-hover:text-accent">${escHtml(e.title)}</span>
+          </div>
+          <span class="shrink-0 text-[12px] text-dim">${escHtml(e.date)}</span>
+        </div>
+        ${e.summary ? `<p class="mt-2 text-[13px] leading-relaxed text-dim">${escHtml(e.summary)}</p>` : ''}
+        <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+          ${e.trades > 0 ? '<span class="tag text-up">' + e.trades + ' trades</span>' : ''}
+          ${e.mood ? '<span class="tag">mood ' + e.mood + '/5</span>' : ''}
+          ${(e.tags || []).map((t) => '<span class="tag">#' + escHtml(t) + '</span>').join('')}
+        </div>
+      </a>`
+
+    const apply = (term) => {
+      const active = term.trim().length > 0
+      if (list) list.style.display = active ? 'none' : ''
+      if (strip) strip.style.display = active ? 'none' : ''
+      results.classList.toggle('hidden', !active)
+      if (clearBtn) clearBtn.classList.toggle('hidden', !active)
+      if (!active) {
+        results.innerHTML = ''
+        count.textContent = index.length + ' entries'
+        return
+      }
+      const hits = search(term)
+      if (hits.length) {
+        results.innerHTML = hits.map((e, i) => item(e, i)).join('')
+      } else {
+        results.innerHTML = '<p class="text-[13px] text-faint">no entries match &ldquo;' + escHtml(term.trim()) + '&rdquo;.</p>'
+      }
+      count.textContent = hits.length + ' of ' + index.length + ' entries'
+    }
+
+    input.addEventListener('input', () => apply(input.value))
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); apply(input.value.trim().toLowerCase()) }
+      if (e.key === 'Enter') { e.preventDefault(); apply(input.value) }
+      if (e.key === 'Escape') { input.value = ''; apply(''); input.blur() }
     })
-    if (input.value.trim()) apply(input.value.trim().toLowerCase())
+    if (clearBtn) clearBtn.addEventListener('click', () => { input.value = ''; apply(''); input.focus() })
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== '/' && e.key !== 'Escape') return
+      const t = e.target
+      const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)
+      if (e.key === '/' && !typing) { e.preventDefault(); input.focus(); input.select() }
+    })
+
+    window.addEventListener('scroll', () => {
+      if (backTop) backTop.classList.toggle('hidden', window.scrollY <= 400)
+    }, { passive: true })
+    if (backTop) backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }))
   })()
 </script>

@@ -120,6 +120,12 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-06 — **Phase 1 shipped.** Unified `/day/<dd-mon-yyyy>` (days ∪ journal ∪
+  coach; reflection + coach sections, hairline empty states), journal posts
+  301 → day pages, fmtDay URLs everywhere, client-side journal search (inline
+  JSON index, ranked, `/`/`Esc`, sticky month chips, back-to-top),
+  `src/lib/market.ts` (●/◐/✕) on day pages + homepage. Typechecked, built,
+  deployed, verified live.
 - 2026-08-06 — **Shipped.** Collapsed to summit-only (deleted aurora/mono, the admin
   design tab, theme API, theme-preview route, `lib/site.ts`), merged everything
   (review filler + brand + journal search) to main, deployed to 1ed.ge, autosave
@@ -168,30 +174,17 @@ deployed in this session; the autosave cron is active again.
 - 2026-08-05 — v0.1: full site + admin + AI pipeline, deployed on VPS
   (docker + nginx), domain live on Cloudflare (Flexible SSL).
 
-## PENDING — Handoff: Phase 1 + Phase 2 (agreed, not yet built)
+## PENDING — Handoff: Phase 2 (Phase 1 shipped, live)
 
-Owner approved a two-phase batch; build Phase 1 first, then Phase 2, in a fresh
-session (this context was full). Live state safe: main @ d94ae34 + 327ec8d, tree
-clean, site 200, cron active.
-
-### Phase 1 — unified day page + /journal UX + market status
-1. `src/lib/dates.ts` (new): fmtDay('2028-08-03') → '03-aug-2028' (lowercase month); parseDay reverse.
-2. `src/pages/day/[date].astro`: getStaticPaths = days ∪ journal ∪ coach; slug = dd-mon-yyyy, props carry ISO.
-   Sections: data → habits → screen proof → trades → /reflection → /coach, hairline empty states
-   ("no journal entry/coaching session this day"). Breadcrumbs ←/journal · all sessions →/coach. fmtDay everywhere.
-3. `src/pages/journal/[...slug].astro` → prerender=false + Astro.redirect('/day/'+fmtDay(slug), 301).
-4. Repoint every /day/${iso} → /day/${fmtDay}: index.astro, journal/index.astro (+date-jump), rss.xml.ts,
-   performance.astro, tracker.astro, DayWorkspace.tsx, RebuildBar.tsx, admin preview/[date].astro.
-5. tracker.astro last-7: only link days with records; others dimmed non-links (fixes the 404).
-6. journal/index.astro: inline JSON search index (per post {id,title,meta,body}; meta incl. linked day-record
-   text; bodies ~54KB total — cheap). Client filter: tokenize AND + word-boundary prefix, digit→substring;
-   score title+3/meta+2/body+1; flat ranked clone-list while searching; / focuses, Esc clears.
-   Sticky month-chip strip (top:0, h-scroll); back-to-top ↑ button (fades after 400px).
-   Delete src/pages/api/journal/search.ts (dead).
-7. `src/lib/market.ts` (new, deterministic): US holidays (observed-day shift + Good Friday via Easter),
-   early closes (day after Thanksgiving, Dec 24, Dec 31 → 1:15pm CT), weekends. Markers on day page + homepage:
-   ● open / ◐ early close / ✕ closed · holiday.
-8. Docs: CHANGELOG + MEMORY. Verify: typecheck → build → deploy.sh → live verify → commit.
+Phase 1 is DONE, deployed, and verified live: unified `/day/<dd-mon-yyyy>`
+page (days ∪ journal ∪ coach in one page with reflection + coach sections),
+`src/lib/dates.ts` (fmtDay/parseDay), journal posts 301-redirect
+`/journal/<iso>` → `/day/<fmt>` (SSR, invalid slugs 404), every `/day/<iso>`
+link repointed, tracker last-7 dims non-record days, journal search is now a
+client-side inline-index filter (ranked, `/` focus, `Esc` clear, sticky month
+chips, back-to-top), `/api/journal/search` deleted, and `src/lib/market.ts`
+(US holidays via observed-day shift + Easter, early closes) with ●/◐/✕ markers
+on day pages + homepage.
 
 ### Phase 2 — USD red/orange news in HKT (double-verified; USD only, red primary / orange secondary)
 - Source A: FF CDN JSON https://nfs.faireconomy.media/ff_calendar_thisweek.json

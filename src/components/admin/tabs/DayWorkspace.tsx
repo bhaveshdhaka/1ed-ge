@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, getSecret, fetchRebuildState, bus } from '../api'
+import { fmtDay } from '../../../lib/dates'
 import { Card, Button, Field, TextInput, NumInput, TextArea, Select } from '../ui'
 import { ImageDropZone } from '../ImageDropZone'
 import { JournalEditor } from '../JournalEditor'
@@ -594,7 +595,7 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {hasDayRecord && (
-            <a href={`/day/${date}`} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-[12px] text-accent transition-colors hover:border-accent">
+            <a href={`/day/${fmtDay(date)}`} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-[12px] text-accent transition-colors hover:border-accent">
               view live →
             </a>
           )}

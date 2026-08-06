@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { bus, fetchRebuildState, triggerRebuild, type PendingChange, type RebuildRecord } from './api'
+import { fmtDay } from '../../lib/dates'
 
 function dateFromLabel(label: string): string | null {
   const m = label.match(/\d{4}-\d{2}-\d{2}/)
@@ -52,7 +53,7 @@ export function RebuildBar() {
     const date = latest.applied.map(dateFromLabel).find(Boolean)
     setFlash({
       msg: `${n} change${n === 1 ? '' : 's'} live`,
-      link: date ? `/day/${date}` : undefined,
+      link: date ? `/day/${fmtDay(date)}` : undefined,
     })
     const t = setTimeout(() => setFlash(null), 8000)
     return () => clearTimeout(t)

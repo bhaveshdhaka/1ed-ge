@@ -4,6 +4,8 @@ import { getCollection } from 'astro:content'
 import { render } from 'astro:content'
 import { buildStats, fmtPnl } from '../lib/stats'
 import { buildHabitStats, todayKey } from '../lib/habits'
+import { fmtDay } from '../lib/dates'
+import { marketMarker } from '../lib/market'
 
 const [accounts, days, journal, habits, payouts] = await Promise.all([
   getCollection('accounts'),
@@ -26,6 +28,7 @@ if (latestJournal) {
 }
 
 const latestDay = [...days].sort((a, b) => b.data.date.localeCompare(a.data.date))[0]
+const mk = marketMarker(today)
 const doneToday = habitStats.filter((h) => h.doneToday === true).length
 const totalHabits = habitStats.length
 const journalDays = new Set(journal.map((j) => j.data.date)).size
@@ -106,6 +109,9 @@ const live = (n: number | null, suffix = '') => {
       </span>
       <span>journal days: {journalDays}</span>
       <span>today: {today}</span>
+      <span>
+        market: <span class={mk.status === 'open' ? 'text-up' : mk.status === 'early' ? 'text-warn' : 'text-down'}>{mk.glyph} {mk.text}</span>
+      </span>
       <span class="text-faint">status: public</span>
     </div>
   </section>
@@ -122,12 +128,12 @@ const live = (n: number | null, suffix = '') => {
             <span>{latestJournal.data.date}</span>
             {latestJournal.data.day && <span class="text-ink">{latestJournal.data.day}</span>}
             {latestJournal.data.tags?.map((t) => <span class="tag">#{t}</span>)}
-            <a href={`/day/${latestJournal.data.date}`} class="ml-auto text-accent hover:text-ink">structured day →</a>
+            <a href={`/day/${fmtDay(latestJournal.data.date)}`} class="ml-auto text-accent hover:text-ink">structured day →</a>
           </div>
           <div class="prose mt-4 line-clamp-[8] [&>*]:text-[14px]">
             <latestContent.Content />
           </div>
-          <a href={`/journal/${latestJournal.id}`} class="btn mt-6">read full entry</a>
+          <a href={`/day/${fmtDay(latestJournal.data.date)}`} class="btn mt-6">read full entry</a>
         </article>
       ) : (
         <p class="text-[13px] text-faint">no journal entries yet.</p>
@@ -139,13 +145,13 @@ const live = (n: number | null, suffix = '') => {
     <div class="mb-6 flex items-baseline justify-between">
       <h2 class="text-lg">/ latest day</h2>
       {latestDay && (
-        <a href={`/day/${latestDay.data.date}`} class="text-[13px] text-dim transition-colors hover:text-ink">all days →</a>
+        <a href={`/day/${fmtDay(latestDay.data.date)}`} class="text-[13px] text-dim transition-colors hover:text-ink">all days →</a>
       )}
     </div>
     {latestDay ? (
       <div class="panel max-w-3xl p-6">
         <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[13px]">
-          <a href={`/day/${latestDay.data.date}`} class="text-[15px] text-ink hover:text-accent">{latestDay.data.date}</a>
+          <a href={`/day/${fmtDay(latestDay.data.date)}`} class="text-[15px] text-ink hover:text-accent">{fmtDay(latestDay.data.date)}</a>
           <span class="text-dim">{latestDay.data.trades?.length ?? 0} trades</span>
           <span class="text-dim">mood {latestDay.data.mood ?? '—'}/5</span>
           <span class="text-dim">sleep {latestDay.data.sleep?.hours ?? '—'}h</span>

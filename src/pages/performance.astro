@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
 import { buildStats, fmtPnl, fmtPts } from '../lib/stats'
+import { fmtDay } from '../lib/dates'
 import EquityCurve from '../components/EquityCurve.astro'
 import RHistogram from '../components/RHistogram.astro'
 
@@ -146,7 +147,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
         <tbody>
           {recent.map((t) => (
             <tr>
-              <td class="td text-dim"><a class="hover:text-accent" href={`/day/${t.day}`}>{t.day}</a></td>
+              <td class="td text-dim"><a class="hover:text-accent" href={`/day/${fmtDay(t.day)}`}>{fmtDay(t.day)}</a></td>
               <td class="td">
                 <span class={t.direction === 'long' ? 'num-up' : 'num-down'}>{t.direction === 'long' ? '▲ L' : '▼ S'}</span>
               </td>

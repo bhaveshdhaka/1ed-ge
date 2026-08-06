@@ -2,11 +2,13 @@
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
 import { buildHabitStats } from '../lib/habits'
+import { fmtDay } from '../lib/dates'
 import Heatmap from '../components/Heatmap.astro'
 
 const [habits, days] = await Promise.all([getCollection('habits'), getCollection('days')])
 const stats = buildHabitStats(habits, days)
 const doneToday = stats.filter((h) => h.doneToday === true).length
+const recordDates = new Set(days.map((d) => d.data.date))
 
 const wd = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
@@ -18,7 +20,7 @@ const last7 = stats.length
     }).map((d) => {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
       const done = stats.filter((h) => h.heatmap.find((x) => x.date === key)?.value === true).length
-      return { key, done, total: stats.length, label: wd[d.getDay()] }
+      return { key, done, total: stats.length, label: wd[d.getDay()], hasRecord: recordDates.has(key) }
     })
   : []
 ---
@@ -35,14 +37,21 @@ const last7 = stats.length
     </div>
 
     <div class="mt-8 grid grid-cols-7 gap-1">
-      {last7.map((d) => (
-        <a href={`/day/${d.key}`} class="panel p-3 text-center transition-colors hover:border-accent">
-          <div class="text-[10px] uppercase tracking-widest text-dim">{d.label}</div>
-          <div class:list={['mt-1 text-[15px]', d.done === d.total ? 'text-up' : 'text-ink']}>
-            {d.done}/{d.total}
+      {last7.map((d) =>
+        d.hasRecord ? (
+          <a href={`/day/${fmtDay(d.key)}`} class="panel p-3 text-center transition-colors hover:border-accent" aria-label={`day ${fmtDay(d.key)}`}>
+            <div class="text-[10px] uppercase tracking-widest text-dim">{d.label}</div>
+            <div class:list={['mt-1 text-[15px]', d.done === d.total ? 'text-up' : 'text-ink']}>
+              {d.done}/{d.total}
+            </div>
+          </a>
+        ) : (
+          <div class="panel p-3 text-center opacity-40" aria-disabled="true">
+            <div class="text-[10px] uppercase tracking-widest text-faint">{d.label}</div>
+            <div class="mt-1 text-[15px] text-faint">—</div>
           </div>
-        </a>
-      ))}
+        ),
+      )}
     </div>
 
     <div class="mt-10 grid gap-10 lg:grid-cols-2">

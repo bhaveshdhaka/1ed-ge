@@ -6,6 +6,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Unified day page** — `/day/<dd-mon-yyyy>` is now one page per date covering
+  every kind of content (days ∪ journal ∪ coach): data → habits → screen proof →
+  trades → /reflection → /coach, with hairline empty states ("no journal entry /
+  no coaching session this day") and `← /journal · /coach →` breadcrumbs.
+- **US market status** (`src/lib/market.ts`) — deterministic holidays (observed
+  day shifts, Good Friday via Easter), early closes, weekends. Day pages + the
+  homepage show `● open / ◐ early close / ✕ closed · holiday`.
+- **Journal search rewritten client-side** — `/journal` embeds an inline JSON
+  index (title/meta incl. linked day-record text/body) and filters instantly:
+  tokenize AND with word-boundary prefix, digit→substring, ranked
+  title+3/meta+2/body+1, flat clone-list while searching. `/` focuses, `Esc`
+  clears. Sticky month-chip strip (h-scroll) + back-to-top ↑ after 400px.
+  The old `/api/journal/search` endpoint is deleted.
+- **`src/lib/dates.ts`** — `fmtDay('2026-08-03') → '03-aug-2026'`, `parseDay`
+  reverse, `isIsoDay`.
+
+### Changed
+- **Public day URLs are now `dd-mon-yyyy`** — every `/day/<iso>` link repointed
+  (home, journal, rss, performance, tracker, admin preview, day nav, RebuildBar,
+  day workspace "view live"). Old `/journal/<id>` post pages 301-redirect to the
+  unified day page (SSR route; invalid slugs 404).
+- **Tracker last-7 grid** — only days with a record link to `/day/<fmt>`; the
+  rest render dimmed non-links (no more 404 hops).
+
 ### Changed
 - **Brand: one fixed wordmark instead of per-theme marks.** The logo is now a
   font-only lockup — JetBrains Mono **1** + Syne **edge** + trailing soft `_`,
