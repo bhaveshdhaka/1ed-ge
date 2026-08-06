@@ -11,6 +11,25 @@ servers do NOT count as "done". Workflow: typecheck → commit → `bash
 scripts/deploy.sh` → poll until live → curl-verify the changed bits. Kill test
 servers when finished.
 
+## OPEN STATE (2026-08-06) — REVIEW DATA ACTIVE, DO NOT DEPLOY
+
+The working tree is intentionally dirty with **generated review data** the owner
+is reviewing. The autosave cron is **paused** (`/etc/cron.d/1edge-backup.paused`)
+so it can't commit the ~900 generated files. Do NOT `git add -A`, `deploy.sh`,
+or restore the cron until the owner says the review is done and next steps.
+
+- `scripts/seed-review.mjs` generates: 730 day records, ~800 trades, ~155
+  journal posts (long+short, non-lorem), 24 coach convos, 8 payouts, 6 accounts
+  (lifecycle incl. 1 failed). Deterministic PRNG; outputs run `npm run build`.
+- Local review servers: summit `:4323`, aurora `:4324`, mono `:4325`
+  (`dist/`, `/tmp/opencode/dist-aurora/`, `/tmp/opencode/dist-mono/`). The
+  `dist/` in-tree is the review build — never deploy it as-is.
+- Real feature in the dirty tree (safe to keep): **search-as-you-type on
+  /journal** — `src/pages/api/journal/search.ts` (new) + inline debounced
+  filter in `src/pages/journal/index.astro`. Zero external script resources.
+- Live site (`1ed.ge`) is UNAFFECTED — still the real, clean build from
+  `8f5ab69`.
+
 ## Decisions
 
 - **R is the centerpiece.** Risk-based metrics everywhere; `R = points / riskPoints`.
