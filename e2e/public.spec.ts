@@ -72,16 +72,13 @@ test.describe('journal', () => {
 test.describe('performance', () => {
   test('sticky section nav anchors exist', async ({ page }) => {
     await page.goto('/performance')
-    for (const id of ['#stats', '#charts', '#accounts', '#recent']) {
+    for (const id of ['#stats', '#charts', '#accounts', '#recent', '#habits', '#trends']) {
       await expect(page.locator(`a[href="${id}"]`)).toBeVisible()
     }
   })
-})
 
-test.describe('tracker', () => {
-  test('habit heatmaps render', async ({ page }) => {
-    await page.goto('/tracker')
-    // heatmap SVGs specifically — the nav brand + theme background also render SVGs
-    await expect(page.locator('.overflow-x-auto svg')).toHaveCount(6)
+  test('habit heatmaps render on the merged page', async ({ page }) => {
+    await page.goto('/performance')
+    await expect(page.locator('#habits ~ div svg').first()).toBeVisible()
   })
 })

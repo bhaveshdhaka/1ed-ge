@@ -2,16 +2,23 @@
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
 import { buildStats, fmtPnl, fmtPts } from '../lib/stats'
+import { buildHabitStats } from '../lib/habits'
+import { buildTrends } from '../lib/trends'
 import { fmtDay } from '../lib/dates'
 import EquityCurve from '../components/EquityCurve.astro'
 import RHistogram from '../components/RHistogram.astro'
+import Heatmap from '../components/Heatmap.astro'
+import CorrTable from '../components/CorrTable.astro'
 
-const [accounts, days, payouts] = await Promise.all([
+const [accounts, days, payouts, habits] = await Promise.all([
   getCollection('accounts'),
   getCollection('days'),
   getCollection('payouts'),
+  getCollection('habits'),
 ])
 const { trades, perAccount, overall, payoutTotal, sumPnl } = buildStats(days, accounts, payouts)
+const habitStats = buildHabitStats(habits, days)
+const trends = buildTrends(days, accounts)
 const s = overall
 
 const cards = [
@@ -48,6 +55,8 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
           ['charts', 'charts'],
           ['accounts', 'accounts'],
           ['recent trades', 'recent'],
+          ['habits', 'habits'],
+          ['trends', 'trends'],
         ].map(([label, id]) => (
           <a href={`#${id}`} class="flex h-8 items-center whitespace-nowrap px-2 text-dim transition-colors hover:text-ink">
             {label}
@@ -173,5 +182,64 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
         </tbody>
       </table>
     </div>
+
+    <h2 id="habits" class="mt-14 scroll-mt-28 text-lg">/ habits</h2>
+    <div class="mt-4 grid gap-10 lg:grid-cols-2">
+      {habitStats.map((h) => (
+        <div class="panel p-5">
+          <div class="flex items-baseline justify-between">
+            <div class="flex items-baseline gap-2"><span class="text-[15px] text-ink">{h.emoji ?? '·'} {h.name}</span></div>
+            <span class="text-[11px] uppercase tracking-widest text-faint">streak</span>
+          </div>
+          <div class="mt-1 flex items-baseline gap-4">
+            <span class="text-2xl" style={`color:${h.color}`}>{h.currentStreak}<span class="text-sm text-dim">d</span></span>
+            <div class="text-[12px] text-dim">best {h.bestStreak}d · 30d {h.pct30 === null ? '—' : h.pct30.toFixed(0) + '%'} · all {h.pctAll === null ? '—' : h.pctAll.toFixed(0) + '%'}</div>
+          </div>
+          <div class="mt-5"><Heatmap data={h.heatmap} color={h.color} name={h.name} /></div>
+        </div>
+      ))}
+    </div>
+
+    <h2 id="trends" class="mt-14 scroll-mt-28 text-lg">/ trends</h2>
+    <div class="mt-4 overflow-x-auto panel" tabindex="0">
+      <table class="w-full min-w-[720px] border-collapse">
+        <thead>
+          <tr><th class="th">window</th><th class="th text-right">days</th><th class="th text-right">trades</th><th class="th text-right">win%</th><th class="th text-right">sum R</th><th class="th text-right">avg R</th><th class="th text-right">$ pnl</th></tr>
+        </thead>
+        <tbody>
+          {trends.windows.map((w) => (
+            <tr>
+              <td class="td text-ink">{w.label}</td>
+              <td class="td text-right">{w.days}</td>
+              <td class="td text-right">{w.trades}</td>
+              <td class="td text-right">{w.winRate === null ? '—' : w.winRate.toFixed(1) + '%'}</td>
+              <td class="td text-right text-dim">{w.sumR > 0 ? '+' : ''}{w.sumR.toFixed(2)}</td>
+              <td class:list={['td text-right', w.avgR > 0 ? 'num-up' : w.avgR < 0 ? 'num-down' : '']}>{w.avgR > 0 ? '+' : ''}{w.avgR.toFixed(2)}R</td>
+              <td class:list={['td text-right', w.sumPnl >= 0 ? 'num-up' : 'num-down']}>{w.sumPnl >= 0 ? '+' : ''}${Math.round(w.sumPnl).toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-10 grid gap-10 lg:grid-cols-2">
+      <div><h2 class="text-lg">/ R by sleep</h2><div class="mt-4 panel"><CorrTable label="bucket" rows={trends.correlations.sleep} /></div></div>
+      <div><h2 class="text-lg">/ R by mood</h2><div class="mt-4 panel"><CorrTable label="bucket" rows={trends.correlations.mood} /></div></div>
+      <div><h2 class="text-lg">/ R by habits</h2><div class="mt-4 panel"><CorrTable label="bucket" rows={trends.correlations.habits} /></div></div>
+      <div><h2 class="text-lg">/ R by screen</h2><div class="mt-4 panel"><CorrTable label="bucket" rows={trends.correlations.screen} /></div></div>
+      <div><h2 class="text-lg">/ R by session</h2><div class="mt-4 panel"><CorrTable label="session" rows={trends.correlations.session} /></div></div>
+      <div><h2 class="text-lg">/ R by setup</h2><div class="mt-4 panel"><CorrTable label="setup" rows={trends.correlations.setup} /></div></div>
+    </div>
+
+    {trends.flags.length > 0 && (
+      <div class="mt-14">
+        <h2 class="text-lg">/ observations</h2>
+        <ul class="mt-4 space-y-2">
+          {trends.flags.map((f) => (
+            <li class="flex gap-3 border-b border-line/60 pb-2 text-[13px] text-soft"><span class="text-faint">›</span><span>{f}</span></li>
+          ))}
+        </ul>
+      </div>
+    )}
   </section>
 </Base>
