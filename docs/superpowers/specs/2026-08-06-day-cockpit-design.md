@@ -80,6 +80,13 @@ hairline borders). **No bright red/green anywhere.**
     dot + text line, identical treatment to `CME open`.
 - **Left rail:** rules (the currently-relevant rule highlights warm), a rotating
   quote with tiny position dots + ↻ control, habits checklist, self-talk.
+  **Habits are ticked, not screenshot-fed** — you mark each one ("did i eat
+  clean", "quiet time", "write") with a tap. No screenshot needed for food or
+  habits. Ticks are private during the day, confirmed at **sign-off**, then
+  public in the day record (`days/<date>.md > habits`). You can add and refine
+  habits any time (the `habits` collection already supports this). If you *do*
+  share a relevant screenshot (workout, sleep), the AI infers the habit status
+  and offers it for your confirmation — inference proposes, you decide.
 - **Right rail:** the **extract drop zone** (small dashed box — trades /
   screen-time / sleep screenshots, data only, auto-discarded), today's record
   (mood/sleep/screen/trades/R), and the hazard line.
@@ -109,8 +116,14 @@ this:
    the world within seconds (SSR reads fs directly — **no rebuild mid-session**).
 
 The same loop drives **screenshots**: drop into the extract zone → AI OCRs and
-proposes structured data (trades, screen-time, sleep, workout) → you approve or
-correct → data folds into the day record → **the image is discarded**.
+proposes structured data (trades, screen-time, sleep, workout, and **habit
+status when the screenshot relates to one**) → you approve or correct → data
+folds into the day record → **the image is discarded**.
+
+**Sign-off:** at the end of the day you tick any remaining habits, approve the
+day's synthesis (data cells all confirmed), and sign off — the day record and
+journal are then finalized and the coach's debrief is generated. Sign-off is
+the daily ritual that closes the cockpit; before it, everything is a draft.
 
 **Screenshot types:**
 - **Ephemeral track** (extract zone): trades/PnL, screen-time, sleep, workouts —
