@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Live market status with countdown** — every public page footer, the homepage
+  and day pages (and the admin) show the US market state in real time:
+  `● open — closes in 3h 12m` / `✕ closed · holiday/weekend`, half-day close at
+  1:00pm ET. The countdown ticks client-side from a deterministic US-bank-holiday
+  + early-close schedule (`src/lib/market.ts` `marketSchedule()`), the same
+  rules the static ●/◐/✕ markers use.
+- **USD news calendar (red/orange) in HKT** — `src/content/market-news/<date>.md`
+  holds high-impact (red) and medium (orange) USD events with HKT times.
+  Primary source: TradingView economic calendar (importance `1`→red, `0`→orange);
+  secondary: Faireconomy this-week JSON. An event is `verified` only when the
+  other source has a match in the same ±2min UTC bucket. Fully deterministic —
+  no AI in the data pipeline. Day pages show a `USD news · HKT` strip, the
+  homepage shows today's first red event, and the admin day workspace has a
+  market card with `↻ refresh news` (`POST /api/admin/market` runs fetch+rebuild).
+- **`scripts/market-news-fetch.mjs`** — fetches both sources, merges, writes the
+  day files, prunes older than 14 days, rebuilds. Runs on deploy and via an
+  **8h cron** (`docker exec 1edge-site …`).
 - **Unified day page** — `/day/<dd-mon-yyyy>` is now one page per date covering
   every kind of content (days ∪ journal ∪ coach): data → habits → screen proof →
   trades → /reflection → /coach, with hairline empty states ("no journal entry /

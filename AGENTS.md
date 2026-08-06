@@ -70,8 +70,9 @@ wait". Default is commit + deploy + verify.
 
 ```
 astro.config.mjs            static output + node adapter; SSR routes opt out per-file
-src/content.config.ts       collections: accounts, days, payouts, coach, journal, habits
+src/content.config.ts            collections: accounts, days, payouts, coach, journal, habits, market-news
 src/content/days/<date>.md  THE daily record — mood, sleep, habits, device, trades+executions
+src/content/market-news/    per-day USD red/orange events (HKT times), fetched deterministically
 src/content/accounts/       account lifecycle instances (eval → buffer → payout …)
 src/content/payouts/        payout records (per account)
 src/content/coach/          f-R-iend conversations (public on /coach)
@@ -81,15 +82,19 @@ src/lib/content.ts          fs + gray-matter helpers for admin file I/O
 src/lib/stats.ts            R/pnl/equity/drawdown engine (idea + per-account via executions)
 src/lib/trends.ts           rolling windows + correlations (sleep/mood/habits/screen/session/setup)
 src/lib/habits.ts           streak + heatmap computation
+src/lib/market.ts               deterministic US bank holidays + early closes; marketDay/marketMarker/openCloseTimes/marketSchedule
+src/lib/market-news.ts          fs read/write of market-news day files (admin + fetch)
 src/lib/changes.ts          pending-changes store (/tmp/1edge-pending.json) + rebuild history
 src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), readScreenshot,
                              readScreenTime, coachReply, assist
 src/lib/auth.ts             admin secret check + JSON responses
 src/lib/env.ts              .env access (ADMIN_SECRET, OPENROUTER_API_KEY, models)
+src/components/MarketLive.astro   mkt-data JSON + inline live countdown script (Base + Bare layouts)
 src/pages/                  public pages: / /journal /performance /tracker /trends
                              /accounts /coach /about /day/[date] + rss + sitemap
 src/pages/admin/[secret]/   private admin (SSR), renders the React app
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
+src/pages/api/admin/market.ts    USD news GET + refresh (spawns market-news-fetch.mjs)
 src/pages/media/[...file].ts SSR media file server (uploads in public/media)
 src/components/admin/*      React admin (Day / Accounts / Coach / Media / Overview)
 src/components/admin/tabs/DayWorkspace.tsx  the single "day" screen: capture → evidence-first
@@ -141,6 +146,11 @@ trades:                      # one idea, executions per account
   old ones stay forever.
 - **Payouts** reduce an account's equity (net P&L = gross − payouts), so
   drawdown/buffer math stays honest.
+- **Market news** = per-HKT-day files (`market-news/<date>.md`) with `red[]` /
+  `orange[]` USD events `{time: "20:30", title}` (HKT times). Fetched
+  deterministically (no AI) by `scripts/market-news-fetch.mjs` — TradingView
+  primary (importance 1→red, 0→orange) + Faireconomy cross-verify (±2min UTC);
+  `verified` = present in both sources. 8h cron + deploy + admin refresh.
 
 ## Admin + publish flow (important)
 

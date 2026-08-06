@@ -120,6 +120,14 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-06 — **Phase 2 shipped: live market status + USD news.** Every page
+  footer + homepage + day pages + admin show a live countdown (● open — closes in
+  3h 12m, half-day 1:00pm ET) from a deterministic US-holiday schedule
+  (`marketSchedule()`); `src/content/market-news/<date>.md` holds red/orange USD
+  events in HKT — TradingView primary (importance 1→red, 0→orange) + FF
+  cross-verify (±2min UTC bucket), zero AI. Day-page strip, homepage one-liner,
+  admin market card with ↻ refresh (`POST /api/admin/market`). 8h cron via
+  `docker exec 1edge-site`. Typechecked, built, deployed, verified live.
 - 2026-08-06 — **Phase 1 shipped.** Unified `/day/<dd-mon-yyyy>` (days ∪ journal ∪
   coach; reflection + coach sections, hairline empty states), fmtDay URLs
   everywhere (no redirect routes — site not launched, old `/journal/<id>` /
@@ -175,32 +183,26 @@ deployed in this session; the autosave cron is active again.
 - 2026-08-05 — v0.1: full site + admin + AI pipeline, deployed on VPS
   (docker + nginx), domain live on Cloudflare (Flexible SSL).
 
-## PENDING — Handoff: Phase 2 (Phase 1 shipped, live)
+## PENDING — Handoff: DONE (Phase 1 + Phase 2 shipped, live)
 
-Phase 1 is DONE, deployed, and verified live: unified `/day/<dd-mon-yyyy>`
-page (days ∪ journal ∪ coach in one page with reflection + coach sections),
-`src/lib/dates.ts` (fmtDay/parseDay), no redirect routes at all (site not
-launched — old `/journal/<id>` and `/day/<iso>` URLs simply 404), every
-`/day/<iso>` link repointed, tracker last-7 dims non-record days, journal
-search is a client-side inline-index filter (ranked, `/` focus, `Esc` clear,
-sticky month chips, back-to-top), `/api/journal/search` deleted, and
-`src/lib/market.ts` (US holidays via observed-day shift + Easter, early
-closes) with ●/◐/✕ markers on day pages + homepage.
+Both phases are DONE, deployed, and verified live:
 
-### Phase 2 — USD red/orange news in HKT (double-verified; USD only, red primary / orange secondary)
-- Source A: FF CDN JSON https://nfs.faireconomy.media/ff_calendar_thisweek.json
-  (country USD, impact High→red / Medium→orange; ISO dates carry explicit offset; this-week only).
-- Source B: TradingView API https://economic-calendar.tradingview.com/events?from&to
-  with headers Origin: https://in.tradingview.com + browser UA + Accept: application/json. VERIFIED 200.
-  Its importance encoding (0/1/-1) is unreliable → FF defines the level; TradingView confirms each event
-  exists at matching UTC time (title + ±1min) → verified flag. Events in both = verified:true; else false+logged.
-- HKT = UTC+8 (no DST). New market-news content collection (src/content/market-news/<date>.md:
-  date, verified, cachedAt, red[], orange[] of {time HKT, currency, title}).
-- scripts/market-news-fetch.mjs (no scraping) → writes files; runs on deploy, ~6h cron (fetch + npm run build),
-  admin POST /api/admin/market/refresh + GET /api/admin/market?date= (fs, fresh).
-- Display: day page strip `red 20:30 HKT` (red=--color-down, orange=--color-warn, orange dimmer), homepage
-  one-liner `market open — red 20:30 HKT`, admin Day workspace market card + ↻ refresh.
-- Risks: FF rate-limit (cache/backoff, fallback TV-only verified:false); TradingView 403 without Origin header.
+**Phase 1** — unified `/day/<dd-mon-yyyy>` (days ∪ journal ∪ coach in one page
+with reflection + coach sections), `src/lib/dates.ts` (fmtDay/parseDay), no
+redirect routes (site not launched), every `/day/<iso>` link repointed, tracker
+last-7 dims non-record days, client-side inline-index journal search (ranked,
+`/` focus, `Esc` clear, sticky month chips, back-to-top),
+`/api/journal/search` deleted.
+
+**Phase 2** — live market status with a real-time countdown on every page footer,
+homepage + day pages + admin (● open / ◐ early close / ✕ closed · holiday,
+half-day close 1:00pm ET), driven by `src/lib/market.ts` `marketSchedule()`
+(US bank holidays + early closes). USD news calendar
+(`src/content/market-news/<date>.md`, red/orange, HKT times) from
+`scripts/market-news-fetch.mjs` — TradingView primary (importance 1→red,
+0→orange) + Faireconomy cross-verify (±2min UTC), zero AI. Day-page strip,
+homepage one-liner, admin market card + `POST /api/admin/market` refresh.
+8h cron (`docker exec 1edge-site …`) + on-deploy fetch. See CHANGELOG.
 
 ### Roadmap (after Phase 2)
 Period report pages from data (weekly/monthly/quarterly/h1/h2/y1/y2); existing /review idea + MEMORY open
