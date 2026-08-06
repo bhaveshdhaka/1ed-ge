@@ -32,6 +32,10 @@ const latestDay = [...days].sort((a, b) => b.data.date.localeCompare(a.data.date
 const mk = marketMarker(today)
 const newsToday = news.find((n) => n.data.date === today)
 const firstRedToday = newsToday?.data.red[0]
+const nextRed = [...news]
+  .sort((a, b) => a.data.date.localeCompare(b.data.date))
+  .find((n) => n.data.date >= today && n.data.red.length > 0)
+const newsDayForHome = firstRedToday ? newsToday : nextRed ?? null
 const doneToday = habitStats.filter((h) => h.doneToday === true).length
 const totalHabits = habitStats.length
 const journalDays = new Set(journal.map((j) => j.data.date)).size
@@ -118,8 +122,35 @@ const live = (n: number | null, suffix = '') => {
       {firstRedToday && (
         <span class="text-down">red {firstRedToday.time} hkt</span>
       )}
+      {!firstRedToday && nextRed && (
+        <span class="text-down">next red {fmtDay(nextRed.data.date)} {nextRed.data.red[0].time} hkt</span>
+      )}
       <span class="text-faint">status: public</span>
     </div>
+
+    {newsDayForHome && (
+      <details class="group mt-4 max-w-3xl border border-line bg-panel/40 px-4 py-2">
+        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 text-[12px]">
+          <span>
+            <span class="text-down">
+              {firstRedToday
+                ? `red ${firstRedToday.time} hkt`
+                : `next red ${fmtDay(nextRed!.data.date)} ${nextRed!.data.red[0].time} hkt`}
+            </span>
+            <span class="ml-2 text-faint">USD news · HKT</span>
+          </span>
+          <span class="text-dim transition-transform group-open:rotate-180">▾</span>
+        </summary>
+        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-line/50 pt-2 text-[13px]">
+          {newsDayForHome.data.red.map((n) => (
+            <span class="text-down">red {n.time} hkt — {n.title}</span>
+          ))}
+          {newsDayForHome.data.orange.map((n) => (
+            <span class="opacity-70 text-warn">orange {n.time} hkt — {n.title}</span>
+          ))}
+        </div>
+      </details>
+    )}
   </section>
 
   <section class="border-t border-line bg-panel/40">
