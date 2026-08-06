@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const PUBLIC_ROUTES = ['/', '/journal', '/performance', '/tracker', '/trends', '/accounts', '/coach', '/about']
+const PUBLIC_ROUTES = ['/', '/journal', '/calendar', '/performance', '/accounts', '/coach', '/about']
 
 for (const route of PUBLIC_ROUTES) {
   test(`public route ${route} returns 200`, async ({ page }) => {
@@ -32,12 +32,14 @@ test.describe('home', () => {
 })
 
 test.describe('navigation', () => {
-  test('desktop nav shows all 8 links', async ({ page }) => {
+  test('desktop nav shows the 6 destinations', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 })
     await page.goto('/')
-    for (const label of ['journal', 'performance', 'tracker', 'trends', 'accounts', 'coach', 'about']) {
-      await expect(page.locator(`header nav a[href="/${label}"]`).or(page.locator(`nav a[href="/${label}"]`)).first()).toBeVisible()
+    for (const [label, href] of [['today', '/'], ['journal', '/journal'], ['calendar', '/calendar'], ['performance', '/performance'], ['accounts', '/accounts'], ['about', '/about']]) {
+      await expect(page.locator(`nav a[href="${href}"]`).first()).toBeVisible()
     }
+    await expect(page.locator('nav a[href="/tracker"]')).toHaveCount(0)
+    await expect(page.locator('nav a[href="/trends"]')).toHaveCount(0)
   })
 
   test('mobile shows hamburger and menu opens without JS bundle', async ({ page }) => {
