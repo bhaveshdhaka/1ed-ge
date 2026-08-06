@@ -8,6 +8,7 @@ interface Props {
   flatLine: string | null
 }
 const { iso, d, journalContent, journalMeta, flatLine } = Astro.props
+const JournalBody = journalContent
 const trades = d?.trades ?? []
 const sumR = trades.reduce((s: number, t: any) => s + (t.points / (t.riskPoints ?? (t.stop !== undefined ? Math.abs(t.entry - t.stop) : 1))), 0)
 const cells = [
@@ -25,6 +26,7 @@ const cells = [
   </div>
   <div class="mx-auto w-full max-w-[540px] px-6 py-8">
     {journalMeta?.day && <h1 class="text-[19px] text-ink">{journalMeta.day}</h1>}
+    {!journalMeta?.day && <h1 class="text-[19px] text-ink">{fmtDay(iso)}</h1>}
     <div class="mt-2 mb-6 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
       {cells.map((c) => (
         <span class:list={[c.ok ? 'text-dim' : 'text-faint border-b border-dashed border-line2']}>
@@ -33,8 +35,8 @@ const cells = [
       ))}
     </div>
     <div class="text-[14px] leading-[1.75] text-soft">
-      {journalContent ? (
-        <journalContent />
+      {JournalBody ? (
+        <JournalBody />
       ) : (
         <p class="text-faint">no journal entry this day.</p>
       )}

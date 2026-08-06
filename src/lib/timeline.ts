@@ -33,13 +33,16 @@ export function pctOfDay(hhmm: string): number {
 
 const DAY = 1440
 
+/** Absolute minutes of an HKT instant since `iso` 00:00 HKT. */
+function absMins(iso: string, hkt: string): number {
+  const base = Date.parse(iso + 'T00:00:00+08:00')
+  const day = Date.parse(hkt.slice(0, 10) + 'T00:00:00+08:00')
+  return (day - base) / 60000 + minsHM(hkt.slice(11, 16))
+}
+
 /** Events → per-market [start, end] windows in absolute minutes since `iso` 00:00 HKT. */
 function windows(iso: string, evs: MarketEvent[]): Map<MarketKey, Array<[number, number]>> {
-  const iso0 = Date.parse(iso + 'T00:00:00+08:00')
-  const absMin = (hkt: string) => {
-    const day = Date.parse(hkt.slice(0, 10) + 'T00:00:00+08:00')
-    return (day - iso0) / 60000 + minsHM(hkt.slice(11, 16))
-  }
+  const absMin = (hkt: string) => absMins(iso, hkt)
   const openAt = new Map<MarketKey, number>()
   const out = new Map<MarketKey, Array<[number, number]>>()
   const push = (m: MarketKey, s: number, e: number) => {
@@ -99,17 +102,17 @@ export function buildTimeline(
   let next: NextEvent | null = null
   if (now) {
     const d = new Date(Date.now() + 8 * 3600 * 1000)
-    const nowMins = d.getUTCHours() * 60 + d.getUTCMinutes()
+    const nowAbs = d.getUTCHours() * 60 + d.getUTCMinutes()
     const mk = (label: string, m: number) => {
-      if (m <= nowMins) return
-      const mins = m - nowMins
+      if (m <= nowAbs) return
+      const mins = m - nowAbs
       const when = mins < 60 ? `in ${mins}m` : `in ${Math.floor(mins / 60)}h ${mins % 60}m`
       if (!next || m < nextM) { next = { label, when }; nextM = m }
     }
     let nextM = Infinity
     for (const e of evs) {
       if (e.hkt.slice(0, 10) === iso || Date.parse(e.hkt.slice(0, 10) + 'T00:00:00+08:00') - Date.parse(iso + 'T00:00:00+08:00') === 86400000) {
-        mk(marketLabel(e), minsHM(e.hkt.slice(11, 16)))
+        mk(marketLabel(e), absMins(iso, e.hkt))
       }
     }
     for (const h of hazards) mk(`${h.title} · ${h.time}`, minsHM(h.time))

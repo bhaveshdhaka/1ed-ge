@@ -47,20 +47,22 @@ const active = sorted.filter((a) => a.active)
           </tr>
         </thead>
         <tbody>
-          {sorted.map((a) => (
-            <tr class:list={[!a.active && 'opacity-50']}>
+          {sorted.map((a) => {
+            const muted = !a.active
+            return (
+            <tr>
               <td class="td">
-                <div class="text-ink">{a.firm}</div>
+                <div class:list={[muted ? 'text-faint' : 'text-ink']}>{a.firm}</div>
                 <div class="text-[11px] text-faint">{a.id}</div>
               </td>
               <td class="td"><span class={stageColor[a.stage] ?? ''}>{a.stage}</span></td>
               <td class="td text-right text-dim">{a.sizeLabel}</td>
               <td class="td text-right text-dim">${a.drawdownLimit.toLocaleString()}</td>
-              <td class="td text-right">{a.trades}</td>
-              <td class="td text-right num-up">{fmtPnl(a.grossPnl)}</td>
+              <td class="td text-right" class:list={[muted && 'text-faint']}>{a.trades}</td>
+              <td class="td text-right" class:list={[muted ? 'text-faint' : 'num-up']}>{fmtPnl(a.grossPnl)}</td>
               <td class="td text-right text-dim">{a.payouts ? fmtPnl(-a.payouts) : '—'}</td>
-              <td class="td text-right num-up">{fmtPnl(a.netPnl)}</td>
-              <td class="td text-right num-up">{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
+              <td class="td text-right" class:list={[muted ? 'text-faint' : 'num-up']}>{fmtPnl(a.netPnl)}</td>
+              <td class="td text-right" class:list={[muted ? 'text-faint' : 'num-up']}>{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
               <td class="td">
                 <div class="flex items-center justify-end gap-2">
                   <div class="h-1.5 w-20 bg-raise">
@@ -70,7 +72,8 @@ const active = sorted.filter((a) => a.active)
                 </div>
               </td>
             </tr>
-          ))}
+            )
+          })}
           {sorted.length === 0 && (
             <tr><td class="td text-faint" colspan="10">no accounts yet</td></tr>
           )}

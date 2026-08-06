@@ -73,7 +73,7 @@ export function MarketCard() {
           </span>
         ))}
         {orange.map((n) => (
-          <span key={'o' + n.time + n.title} className="text-[13px] opacity-70 text-warn">
+          <span key={'o' + n.time + n.title} className="text-[13px] text-warn">
             orange {n.time} hkt — {n.title} <span className="text-[10px] text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span>
           </span>
         ))}
