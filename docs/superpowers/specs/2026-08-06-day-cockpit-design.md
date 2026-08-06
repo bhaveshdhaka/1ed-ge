@@ -144,8 +144,11 @@ chatters mid-session is noise; one that only answers when asked is a search box.
   - **End-of-day debrief on the day page** — a compact "coach's debrief" below
     the document: the day vs. your rules, specific moments, encouragement tied
     to evidence.
-  - **On demand** — the existing `/coach` conversation, now context-aware
-    (reads the day record + stream + trends).
+  - **On demand** — the coach chat is **invoked inline from the cockpit** (a
+    `coach` link in the left rail opens a docked console panel — mono, like
+    summoning the coach for a session; never a floating bubble). The chat is
+    context-aware (reads the day record + stream + trends). The `/coach` page
+    remains the public archive of those conversations.
   - **During the live session: silent.** At most a tiny hairline "coach has an
     observation" marker to peek at or ignore. Never a pop-up, never an
     interruption. The cockpit stays zen.
@@ -156,9 +159,10 @@ chatters mid-session is noise; one that only answers when asked is a search box.
   job" without a reason. If it has nothing specific, it stays quiet.
   Disingenuous is a feature-killer — this is enforced in the prompt, not a vibe.
 - **Where it lives:** the debrief renders on the day page (part of the day's
-  story); the full conversation archive stays at `/coach`, linked from the day
-  page — not in the top nav. Storage reuses the existing per-day
-  `coach/<date>.md` files.
+  story); the **chat is invoked from a sidebar link in the cockpit** (docked
+  console panel, not a separate page, not floating); the `/coach` conversation
+  archive stays public and is linked from the chat panel. Storage reuses the
+  existing per-day `coach/<date>.md` files.
 
 ## 6. Live mechanics
 
@@ -189,7 +193,8 @@ chatters mid-session is noise; one that only answers when asked is a search box.
   analytics destination.
 - The market widget, brief, day record, journal, and the coach's day-page
   debrief all hang off the day page rather than competing as separate top-level
-  worlds. The `/coach` conversation archive is linked from the day page.
+  worlds. The coach chat is invoked from the cockpit sidebar; the `/coach`
+  conversation archive is linked from the chat panel.
 
 ## 8. Phasing
 
