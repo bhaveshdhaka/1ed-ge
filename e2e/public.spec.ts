@@ -53,11 +53,11 @@ test.describe('navigation', () => {
 })
 
 test.describe('journal', () => {
-  test('SSR search filters entries via ?q=', async ({ page }) => {
-    await page.goto('/journal?q=beginning')
-    await expect(page.locator('text=Day Zero').first()).toBeVisible()
-    const count = await page.locator('text=/\\d+ of \\d+ entries/').count()
-    expect(count).toBeGreaterThan(0)
+  test('client-side search filters entries via the input', async ({ page }) => {
+    await page.goto('/journal')
+    await page.locator('#journal-q').fill('beginning')
+    await expect(page.locator('#search-results').locator('text=Day Zero').first()).toBeVisible()
+    await expect(page.locator('#journal-count')).toHaveText(/\d+ of \d+ entries/)
   })
 
   test('date jump input present', async ({ page }) => {
