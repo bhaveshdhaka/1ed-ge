@@ -1,0 +1,32 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import cockpitConfig from '../../config/cockpit.json'
+
+interface Props {
+  rules: CollectionEntry<'rules'>[]
+  quotes: CollectionEntry<'quotes'>[]
+  habits: CollectionEntry<'habits'>[]
+  dayHabits: Record<string, boolean> | undefined
+}
+const { rules, quotes, habits, dayHabits } = Astro.props
+const selftalk = cockpitConfig.selfTalk
+---
+
+<aside class="ck-rail ck-rail-l hidden md:block" data-rail-l>
+  <div class="ck-lab">rules</div>
+  {rules.map((r) => <div class="ck-item">{r.data.title}</div>)}
+  <div class="ck-lab">quote</div>
+  {quotes[0] && (
+    <div class="ck-quote">"{quotes[0].data.text}"<span class="a">{quotes[0].data.author ? '— ' + quotes[0].data.author : ''}</span></div>
+  )}
+  <div class="ck-lab">habits</div>
+  {habits.map((h) => (
+    <div class:list={['ck-item', dayHabits?.[h.id] === true && 'done']}>
+      {dayHabits?.[h.id] === true ? '✓ ' : '○ '}{h.data.name}
+    </div>
+  ))}
+  <div class="ck-lab">self-talk</div>
+  <div class="ck-item">"{selftalk}"</div>
+  <div class="ck-lab">coach</div>
+  <div class="ck-item"><a href="/coach" class="transition-colors hover:text-accent">coach ▸</a></div>
+</aside>

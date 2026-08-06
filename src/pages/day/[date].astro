@@ -5,6 +5,7 @@ import { fmtDay } from '../../lib/dates'
 import { scheduledDayMarker } from '../../lib/sessions'
 import { groupNewsByTime, newsEmoji } from '../../lib/market-news'
 import MarketWidget from '../../components/MarketWidget.astro'
+import Cockpit from '../../components/cockpit/Cockpit.astro'
 
 export async function getStaticPaths() {
   const [days, journal, coach] = await Promise.all([
@@ -22,7 +23,7 @@ export async function getStaticPaths() {
 }
 
 const { iso, allDates } = Astro.props
-const [days, accounts, journal, coach, habits, news, briefs] = await Promise.all([
+const [days, accounts, journal, coach, habits, news, briefs, rules, quotes] = await Promise.all([
   getCollection('days'),
   getCollection('accounts'),
   getCollection('journal'),
@@ -30,6 +31,8 @@ const [days, accounts, journal, coach, habits, news, briefs] = await Promise.all
   getCollection('habits'),
   getCollection('market-news'),
   getCollection('brief'),
+  getCollection('rules'),
+  getCollection('quotes'),
 ])
 const entry = days.find((d) => d.data.date === iso) ?? null
 const journalFor = journal.find((j) => j.data.date === iso) ?? null
@@ -76,6 +79,20 @@ if (briefFor) {
   description={`${fmtDay(iso)} — mood ${moodLabel}, ${trades.length} trades, ${sumR >= 0 ? '+' : ''}${sumR.toFixed(2)}R. Everything public.`}
 >
   <article class="shell max-w-4xl pt-12 pb-20">
+    <div class="mb-6">
+      <Cockpit
+        iso={iso}
+        d={d}
+        journalContent={Reflection ?? null}
+        journalMeta={journalFor?.data ?? null}
+        habits={habits}
+        rules={rules}
+        quotes={quotes}
+        newsFor={newsFor ?? null}
+        flatLine={null}
+      />
+    </div>
+
     <nav class="flex items-center justify-between text-[12px]">
       <a href="/journal" class="text-dim transition-colors hover:text-ink">← /journal</a>
       <span class="text-faint">all sessions</span>
