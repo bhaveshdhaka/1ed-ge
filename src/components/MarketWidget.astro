@@ -6,6 +6,7 @@ import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../l
 import type { StripPayload } from '../lib/strip'
 import type { MarketKey } from '../lib/sessions'
 import { marketMarker } from '../lib/market'
+import { groupNewsHeadlines } from '../lib/market-news'
 import NewsBlock from './NewsBlock.astro'
 
 interface Props {
@@ -47,16 +48,13 @@ const clsClass = (cls: string) =>
 const nowHktBuild = new Date(Date.now() + 8 * 3600 * 1000)
 const nowFracBuild = (nowHktBuild.getUTCHours() + nowHktBuild.getUTCMinutes() / 60) / 24 * 100
 
-const evDots = [
-  ...red.map((n) => ({ ...n, kind: 'red' as const })),
-  ...orange.map((n) => ({ ...n, kind: 'orange' as const })),
-].map((n) => {
-  const [h, m] = n.time.split(':').map(Number)
+const evDots = groupNewsHeadlines(red, orange).map((g) => {
+  const [h, m] = g.time.split(':').map(Number)
   return {
     at: Date.parse(`${today}T00:00:00+08:00`) + (h * 60 + m) * 60000,
-    kind: n.kind,
+    kind: g.kind,
     pct: ((h + m / 60) / 24) * 100,
-    title: n.title,
+    title: g.title,
   }
 })
 ---

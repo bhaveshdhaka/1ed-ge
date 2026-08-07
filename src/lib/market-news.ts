@@ -85,6 +85,42 @@ export function newsEmoji(title: string): string {
   return EMOJI_FALLBACK
 }
 
+export interface NewsGroup {
+  time: string
+  kind: 'red' | 'orange'
+  title: string
+  source?: 'TV' | 'FF'
+  verified?: boolean
+  rest: NewsItem[]
+}
+
+/** Per unique HKT time: the most important event (first red, else first orange) + the rest. */
+export function groupNewsHeadlines(red: NewsItem[], orange: NewsItem[]): NewsGroup[] {
+  const byTime = new Map<string, (NewsItem & { kind: 'red' | 'orange' })[]>()
+  for (const n of [
+    ...red.map((r) => ({ ...r, kind: 'red' as const })),
+    ...orange.map((o) => ({ ...o, kind: 'orange' as const })),
+  ]) {
+    const arr = byTime.get(n.time) ?? []
+    arr.push(n)
+    byTime.set(n.time, arr)
+  }
+  return [...byTime.keys()]
+    .sort()
+    .map((t) => {
+      const all = byTime.get(t)!
+      const rep = all.find((n) => n.kind === 'red') ?? all[0]
+      return {
+        time: t,
+        kind: rep.kind,
+        title: rep.title,
+        source: rep.source,
+        verified: rep.verified,
+        rest: all.filter((n) => n !== rep),
+      }
+    })
+}
+
 /** Collapse consecutive events that share the same HKT time into one row. */
 export function groupNewsByTime(items: NewsItem[]): { time: string; titles: string[] }[] {
   const out: { time: string; titles: string[] }[] = []
