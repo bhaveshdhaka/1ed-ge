@@ -488,7 +488,7 @@ T('screentime', 'the screen time war', 'social hours are the silent tax on focus
 {{r}}R today, which is secondary. The real win was noticing I reached for my phone during a slow stretch and there was nothing to open.`)
 
 T('payout', 'payout day', 'the buffer paid. first of many.',
-  ['payout', 'accounts', 'milestone'], `Logged my first payout today — {{account}}, \${{amount}}. It's not a huge number, but it's the first time the process paid cash out of the account instead of just producing a prettier curve.
+  ['payout', 'accounts', 'milestone'], `Logged a payout today — {{account}}, \${{amount}}. It's not a huge number, but it's the process paying cash out of the account instead of just producing a prettier curve.
 
 The rule that got me here is boring: fixed risk per trade, only A setups, log everything. The payout is what happens when you stop treating green days as permission to get greedy.
 
