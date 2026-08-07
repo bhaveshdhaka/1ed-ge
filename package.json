@@ -15,7 +15,8 @@
     "test:a11y": "playwright test e2e/a11y.spec.ts",
     "test:lhci": "lhci autorun --config=lighthouserc.cjs",
     "test:perf": "playwright test e2e/public.spec.ts",
-    "test": "npm run typecheck && npm run test:e2e && npm run test:lhci"
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "test:full": "npm run typecheck && npm run test:e2e && npm run test:lhci"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",
@@ -58,6 +59,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "tsx": "^4.23.11",
     "typescript": "^5.7.0"
   }
 }
