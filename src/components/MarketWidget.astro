@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
 import { todayHkt, daySessionWindows } from '../lib/sessions'
+import { fmtDayW } from '../lib/dates'
 import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
 import type { MarketKey } from '../lib/sessions'
@@ -24,8 +25,7 @@ const now = payload.now
 const wins = daySessionWindows(today)
 const mk = marketMarker(today)
 
-const MON = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-const prettyDate = `${parseInt(today.slice(8, 10), 10)} ${MON[parseInt(today.slice(5, 7), 10) - 1]} ${today.slice(0, 4)}`
+const prettyDate = fmtDayW(today)
 
 const markets: { key: MarketKey; flag: string; name: string; window: string }[] = [
   { key: 'cme', flag: '📈', name: 'CME Globex', window: wins.cme },
@@ -46,6 +46,19 @@ const clsClass = (cls: string) =>
 
 const nowHktBuild = new Date(Date.now() + 8 * 3600 * 1000)
 const nowFracBuild = (nowHktBuild.getUTCHours() + nowHktBuild.getUTCMinutes() / 60) / 24 * 100
+
+const evDots = [
+  ...red.map((n) => ({ ...n, kind: 'red' as const })),
+  ...orange.map((n) => ({ ...n, kind: 'orange' as const })),
+].map((n) => {
+  const [h, m] = n.time.split(':').map(Number)
+  return {
+    at: Date.parse(`${today}T00:00:00+08:00`) + (h * 60 + m) * 60000,
+    kind: n.kind,
+    pct: ((h + m / 60) / 24) * 100,
+    title: n.title,
+  }
+})
 ---
 
 <section class="panel p-4">
@@ -59,24 +72,46 @@ const nowFracBuild = (nowHktBuild.getUTCHours() + nowHktBuild.getUTCMinutes() / 
     </span>
   </div>
 
-  <div class="mt-3">
-    <div class="relative h-px bg-line">
-      <div class="now-dot" data-now-marker style={`left:${nowFracBuild}%`} title="now (HKT)"></div>
-    </div>
-    <div class="mt-1 flex justify-between text-2xs text-faint tabular-nums">
-      <span>00</span>
-      <span class="hidden lg:inline">02</span>
-      <span class="hidden sm:inline">04</span>
-      <span>06</span>
-      <span class="hidden sm:inline">08</span>
-      <span class="hidden lg:inline">10</span>
-      <span>12</span>
-      <span class="hidden lg:inline">14</span>
-      <span class="hidden sm:inline">16</span>
-      <span>18</span>
-      <span class="hidden sm:inline">20</span>
-      <span class="hidden lg:inline">22</span>
-      <span>24</span>
+  <div class="mt-3" data-rail>
+    <div class="relative h-5">
+      {/* event severity dots on the rail */}
+      {evDots.map((d) => (
+        <span
+          data-ev-at={d.at}
+          class:list={['absolute top-1 z-[5] h-1.5 w-1.5 -translate-x-1/2 rounded-full', d.kind === 'red' ? 'bg-down' : 'bg-warn']}
+          style={`left:${d.pct}%`}
+          title={d.title}
+        ></span>
+      ))}
+
+      {/* now-marker: live clock + hairline + caret — no green dot */}
+      <div class="absolute top-0 z-10 -translate-x-1/2" data-now-marker style={`left:${nowFracBuild}%`} title="now (HKT)">
+        <div class="flex -translate-y-full flex-col items-center">
+          <span data-now-clock class="mb-1 whitespace-nowrap rounded-sm border border-accent/40 bg-bg px-1.5 py-0.5 text-2xs tabular-nums text-accent shadow-sm">--:--:--</span>
+          <span class="h-2 w-px bg-accent"></span>
+        </div>
+        <span class="absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-4 border-t-[6px] border-x-transparent border-t-accent"></span>
+      </div>
+
+      {/* the rail: hour tick markings on the line */}
+      <div class="absolute bottom-0 left-0 right-0 flex items-end">
+        <div class="absolute bottom-0 left-0 right-0 h-px bg-line"></div>
+        {Array.from({ length: 25 }, (_, i) => {
+          const major = i % 6 === 0
+          return (
+            <div class="flex flex-1 flex-col items-center">
+              <span
+                class:list={[
+                  'w-px',
+                  major ? 'h-3 bg-line2' : 'h-1.5 bg-line',
+                  !major && i % 2 !== 0 ? 'hidden lg:block' : !major && i % 2 === 0 ? 'hidden sm:block' : '',
+                ]}
+              ></span>
+              {major && <span class="mt-0.5 text-2xs tabular-nums text-faint">{String(i).padStart(2, '0')}</span>}
+            </div>
+          )
+        })}
+      </div>
     </div>
   </div>
 
@@ -157,8 +192,8 @@ const nowFracBuild = (nowHktBuild.getUTCHours() + nowHktBuild.getUTCMinutes() / 
       const s = Math.floor(sec % 60)
       if (d > 0) return h > 0 ? d + 'd ' + h + 'h' : d + 'd'
       if (h > 0) return m > 0 ? h + 'h ' + m + 'm' : h + 'h'
-      if (m > 0) return m + 'm'
-      return s + 's'
+      if (m >= 15) return m + 'm'
+      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
     }
     const segAt = (segs, now) => {
       for (const s of segs) if (now >= s.at && now < s.until) return s
@@ -233,11 +268,24 @@ const nowFracBuild = (nowHktBuild.getUTCHours() + nowHktBuild.getUTCMinutes() / 
         }
       }
 
+      const hk = new Date(Date.now() + 8 * 3600 * 1000)
       if (nowMarker) {
-        const hh = now.getUTCHours() + 8
-        const mm = now.getUTCMinutes()
-        const hk = hh >= 24 ? hh - 24 : hh
-        nowMarker.style.left = ((hk + mm / 60) / 24) * 100 + '%'
+        nowMarker.style.left = ((hk.getUTCHours() + hk.getUTCMinutes() / 60) / 24) * 100 + '%'
+      }
+      const clockEl = document.querySelector('[data-now-clock]')
+      if (clockEl) {
+        clockEl.textContent = p(hk.getUTCHours()) + ':' + p(hk.getUTCMinutes()) + ':' + p(hk.getUTCSeconds())
+      }
+      for (const dot of document.querySelectorAll('[data-ev-at]')) {
+        const at = Number(dot.getAttribute('data-ev-at'))
+        if (at <= now) {
+          dot.classList.add('opacity-40')
+          dot.classList.remove('animate-pulse')
+        } else {
+          dot.classList.remove('opacity-40')
+          if (at - now < 15 * 60 * 1000) dot.classList.add('animate-pulse')
+          else dot.classList.remove('animate-pulse')
+        }
       }
     }
 
