@@ -4,7 +4,7 @@
 
 **Owner decisions locked in:** now-marker = caret + live clock; severity dots ON the
 chronograph rail; news icons = completed emoji set + generic fallback (no Lucide
-migration); day header = 3-letter weekday, **no comma**: `mon 07-aug-2026`; day
+migration); day header = 3-letter weekday + **pipe separator**: `mon | 07-aug-2026`; day
 panel = separate panel below the market widget.
 
 ---
@@ -105,8 +105,8 @@ server payload already carries the countdown target; the inline copies stay
 ## 4. Homepage — day header + "the day" panel
 
 - **3-letter weekday on day labels:** add `fmtDayW(iso)` (or extend a display
-  helper) in `src/lib/dates.ts` → `mon 07-aug-2026` (no comma). Use it on the
-  homepage `/ today` header, the `/stream` "today so far" header, day-page day
+  helper) in `src/lib/dates.ts` → `mon | 07-aug-2026` (3-letter weekday, pipe
+  separator, no comma). Use it on the homepage `/ today` header, the `/stream` "today so far" header, day-page day
   headers, and the MarketWidget header date (replacing the current non-padded
   `prettyDate` "7 aug 2026"). URL slugs keep `fmtDay` (`07-aug-2026`) — slugs
   never change. Compact inline links (MomentCard day links) keep `fmtDay`.
