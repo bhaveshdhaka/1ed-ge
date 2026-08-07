@@ -226,6 +226,7 @@ export function DayWorkspace({
   const publishMoment = (i: number) => {
     const m = draftMoments[i]
     if (m.type === 'trade' && m.tradeIdx === '') return notify('pick a trade for this moment', false)
+    if (m.type === 'media' && !m.media.trim()) return notify('add a media url first', false)
     if (!m.text.trim() && m.type !== 'trade' && m.type !== 'media') return notify('write the moment text first', false)
     setStream((s) => [...s, m])
     setDraftMoments((ms) => ms.filter((_, j) => j !== i))
@@ -316,7 +317,7 @@ export function DayWorkspace({
       if (j.summary) setSummary(String(j.summary))
       if (Array.isArray(j.tags) && j.tags.length) setTags(j.tags.join(', '))
       if (j.draft) {
-        setContent((c) => (c && c.trim() ? c : String(j.draft)))
+        setReflection((r) => (r && r.trim() ? r : String(j.draft)))
       }
     }
     markDirty()
@@ -1089,9 +1090,13 @@ export function DayWorkspace({
                                   {trades.map((_, ti) => <option key={ti} value={ti}>trade {ti + 1}</option>)}
                                 </Select>
                               </Field>
+                            ) : m.type === 'media' ? (
+                              <Field label="media url">
+                                <TextInput value={m.media} onChange={(e) => setMoment(i, { media: e.target.value })} placeholder="/media/2026-08-07/….webp" />
+                              </Field>
                             ) : (
-                              <Field label={m.type === 'quote' ? 'text (the quote)' : m.type === 'media' ? 'media url' : 'text'}>
-                                <TextInput value={m.text} onChange={(e) => setMoment(i, { text: e.target.value })} placeholder={m.type === 'media' ? '/media/2026-08-07/….webp' : 'what you want to say'} />
+                              <Field label={m.type === 'quote' ? 'text (the quote)' : 'text'}>
+                                <TextInput value={m.text} onChange={(e) => setMoment(i, { text: e.target.value })} placeholder="what you want to say" />
                               </Field>
                             )}
                           </div>
