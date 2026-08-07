@@ -91,7 +91,7 @@ export interface NewsGroup {
   title: string
   source?: 'TV' | 'FF'
   verified?: boolean
-  rest: NewsItem[]
+  rest: (NewsItem & { kind: 'red' | 'orange' })[]
 }
 
 /** Per unique HKT time: the most important event (first red, else first orange) + the rest. */
