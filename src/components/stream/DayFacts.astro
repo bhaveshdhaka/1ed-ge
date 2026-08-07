@@ -1,0 +1,30 @@
+---
+/**
+ * DayFacts.astro — the public facts strip (mood/sleep/screen/habits/trades/R).
+ * Zero-JS. Value cells, tokenized; up/down color only for R.
+ */
+import type { FactCell } from '../../lib/stream'
+
+interface Props {
+  cells: FactCell[]
+  class?: string
+}
+
+const { cells, class: cls = '' } = Astro.props
+---
+
+<div class={`flex flex-wrap gap-px border border-line bg-line ${cls}`}>
+  {cells.map((c) => (
+    <div class="flex min-w-[86px] flex-1 flex-col gap-1 bg-panel px-3 py-2">
+      <span class="text-2xs uppercase tracking-widest text-faint">{c.label}</span>
+      <span
+        class:list={[
+          'text-sm font-semibold tabular-nums',
+          c.ok ? (c.up === true ? 'text-up' : c.up === false ? 'text-down' : 'text-ink') : 'text-faint',
+        ]}
+      >
+        {c.ok ? c.value : '—'}
+      </span>
+    </div>
+  ))}
+</div>

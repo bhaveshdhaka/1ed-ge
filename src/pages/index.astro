@@ -1,23 +1,82 @@
 ---
-import CockpitPage from '../components/cockpit/CockpitPage.astro'
+import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
 import { todayHkt } from '../lib/sessions'
 import { fmtDay } from '../lib/dates'
+import { resolveMoments, dayFacts } from '../lib/stream'
+import type { DayData } from '../lib/stream'
+import MomentCard from '../components/stream/MomentCard.astro'
+import DayFacts from '../components/stream/DayFacts.astro'
 
-const [days, journal, coach] = await Promise.all([
-  getCollection('days'),
-  getCollection('journal'),
-  getCollection('coach'),
-])
-const dates = new Set<string>()
-for (const c of [...days, ...journal, ...coach]) dates.add(c.data.date)
-const allDates = [...dates].sort()
+export const prerender = false
+
 const iso = todayHkt()
-const existing = allDates.includes(iso)
-const cockpitDates = existing ? allDates : [...allDates, iso].sort()
-const todayIdx = cockpitDates.indexOf(iso)
-const prevIso = todayIdx > 0 ? cockpitDates[todayIdx - 1] : null
-const nextIso = todayIdx >= 0 && todayIdx < cockpitDates.length - 1 ? cockpitDates[todayIdx + 1] : null
+const [dayEntries, habitEntries] = await Promise.all([getCollection('days'), getCollection('habits')])
+
+const byDate = new Map(dayEntries.map((d) => [d.data.date, d.data as DayData]))
+const today: DayData | null = byDate.get(iso) ?? null
+const moments = today ? resolveMoments(today) : []
+
+const activeHabits = habitEntries.filter((h) => h.data.active).length
+
+const dataDays = dayEntries
+  .filter((d) => (d.data as DayData).trades.length > 0 || ((d.data as DayData).stream?.length ?? 0) > 0)
+  .sort((a, b) => b.data.date.localeCompare(a.data.date))
+const latestIso = dataDays.length ? dataDays[0].data.date : null
+
+const latestMoments = latestIso && latestIso !== iso ? resolveMoments(byDate.get(latestIso) as DayData).slice(-3) : []
+const cells = dayFacts(today, activeHabits)
 ---
 
-<CockpitPage iso={iso} allDates={cockpitDates} />
+<Base
+  title="1ed.ge — a public trading journal"
+  description="Two years, everything public. Every trade, every account, every R — the misses included. R is the only metric that matters."
+>
+  <section class="shell pt-12 pb-10">
+    <h1 class="max-w-3xl text-3xl font-semibold leading-tight text-ink md:text-4xl">
+      1edge — a public trading journal.
+    </h1>
+    <p class="mt-4 max-w-2xl text-base leading-relaxed text-soft">
+      Two years, everything public. Every trade, every account, every R — live and uncensored,
+      the misses included. <span class="text-up">R</span> is points risked vs points made; it is the
+      only metric that matters.
+    </p>
+  </section>
+
+  <section class="shell pb-6">
+    <div class="flex items-baseline justify-between gap-3">
+      <h2 class="text-lg text-ink">/ today <span class="text-faint">· {fmtDay(iso)}</span></h2>
+      {latestIso && latestIso !== iso && (
+        <a href={`/day/${fmtDay(latestIso)}`} class="text-2xs text-dim transition-colors hover:text-accent">
+          last logged day {fmtDay(latestIso)} →
+        </a>
+      )}
+    </div>
+
+    <div class="mt-4">
+      <DayFacts cells={cells} />
+    </div>
+  </section>
+
+  <section class="shell pb-20">
+    <h2 class="text-lg text-ink">/ today's stream</h2>
+
+    {moments.length > 0 ? (
+      <div class="mt-4 flex max-w-2xl flex-col gap-3">
+        {moments.map((m) => <MomentCard moment={m} />)}
+      </div>
+    ) : (
+      <div class="mt-4 max-w-2xl border border-dashed border-line2 px-4 py-6">
+        <p class="text-[13px] text-faint">no stream yet today — nothing logged.</p>
+        {latestIso && latestMoments.length > 0 && (
+          <div class="mt-5">
+            <p class="mb-3 text-2xs uppercase tracking-widest text-dim">latest from {fmtDay(latestIso)}</p>
+            <div class="flex flex-col gap-3">
+              {latestMoments.map((m) => <MomentCard moment={m} showDay />)}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  </section>
+</Base>

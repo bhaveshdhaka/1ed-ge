@@ -1,0 +1,68 @@
+---
+/**
+ * MomentCard.astro — one published stream moment. Zero-JS.
+ * Renders text/quote/trade-card/media uniformly with the shared ResolvedMoment shape.
+ */
+import { momentMeta } from '../../lib/stream'
+import { fmtDay } from '../../lib/dates'
+import type { ResolvedMoment } from '../../lib/stream'
+
+interface Props {
+  moment: ResolvedMoment
+  showDay?: boolean
+  class?: string
+}
+
+const { moment, showDay = false, class: cls = '' } = Astro.props
+const meta = momentMeta(moment.type)
+const isTrade = moment.type === 'trade' && moment.trade !== null
+const isQuote = moment.type === 'quote'
+const R = moment.trade?.R ?? 0
+---
+
+<div class={`border border-line bg-panel ${cls}`}>
+  <div class="flex items-center gap-3 border-b border-line/60 px-4 py-2 text-2xs text-faint">
+    <span class="tabular-nums text-dim">{moment.at} hkt</span>
+    <span class="uppercase tracking-widest">{meta.label}</span>
+    {showDay && (
+      <a href={`/day/${fmtDay(moment.iso)}`} class="ml-auto transition-colors hover:text-accent">
+        {fmtDay(moment.iso)}
+      </a>
+    )}
+  </div>
+
+  {isTrade && moment.trade && (
+    <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 pt-3 text-[13px]">
+      <span class={moment.trade.direction === 'long' ? 'text-up' : 'text-down'}>
+        {moment.trade.direction === 'long' ? '▲' : '▼'} {moment.trade.market}
+      </span>
+      <span class="text-faint">{moment.trade.session ?? '—'} · {moment.trade.model ?? moment.trade.setup ?? 'no model'}</span>
+      <span class:list={['ml-auto font-semibold tabular-nums', R > 0 ? 'text-up' : R < 0 ? 'text-down' : 'text-dim']}>
+        {R > 0 ? '+' : ''}{R.toFixed(2)}R
+      </span>
+    </div>
+  )}
+
+  {isQuote ? (
+    <div class="px-4 py-3">
+      <p class="text-quote leading-snug text-soft">"{moment.text ?? ''}"</p>
+      {moment.author && <p class="mt-1 text-2xs text-faint">— {moment.author}</p>}
+    </div>
+  ) : (
+    <div class="px-4 py-3">
+      {moment.text && <p class="text-[13px] leading-relaxed text-soft">{moment.text}</p>}
+      {isTrade && !moment.text && moment.trade && (
+        <p class="text-2xs text-faint">
+          {moment.trade.entry} → {moment.trade.exit}
+          {moment.trade.stop ? ` · stop ${moment.trade.stop}` : ''}
+          {moment.trade.points >= 0 ? ` · +${moment.trade.points}` : ` · ${moment.trade.points}`} pts
+        </p>
+      )}
+      {moment.type === 'media' && moment.media && (
+        <a href={moment.media} target="_blank" class="mt-2 block border border-line transition-colors hover:border-accent">
+          <img src={moment.media} alt={`media moment ${moment.at}`} loading="lazy" class="w-full" />
+        </a>
+      )}
+    </div>
+  )}
+</div>
