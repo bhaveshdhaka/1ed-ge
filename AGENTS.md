@@ -83,19 +83,23 @@ src/lib/content.ts          fs + gray-matter helpers for admin file I/O
 src/lib/stats.ts            R/pnl/equity/drawdown engine (idea + per-account via executions)
 src/lib/trends.ts           rolling windows + correlations (sleep/mood/habits/screen/session/setup)
 src/lib/habits.ts           streak + heatmap computation
-src/lib/market.ts               deterministic US bank holidays + early closes; marketDay/marketMarker/openCloseTimes/marketSchedule
-src/lib/sessions.ts             DST-aware CME/TSE/LSE/NYSE sessions in HKT + holiday sets (JP/UK/US); marketEvents()/todayHkt()
+src/lib/market.ts           NYSE cash calendar + CME equity-futures calendar (cmeDay — THE master clock)
+src/lib/sessions.ts         CME 23h day + NYSE/TSE/LSE bands in HKT; DST/holidays; marketEvents/scheduledDayMarker
 src/lib/market-news.ts          fs read/write of market-news day files (admin + fetch)
 src/lib/brief.ts                deterministic pre-market snapshot builder (sessions+news+last day) + brief fs I/O
 src/lib/changes.ts          pending-changes store (/tmp/1edge-pending.json) + rebuild history
+src/lib/stream.ts           published-moment helpers: resolveMoments/flattenStream/dayFacts/momentMeta
+src/lib/live.ts             admin-heartbeat read/write (/tmp/1edge-live.json, 5-min live window)
 src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), readScreenshot,
                              readScreenTime, coachReply, assist
 src/lib/auth.ts             admin secret check + JSON responses
 src/lib/env.ts              .env access (ADMIN_SECRET, OPENROUTER_API_KEY, models)
-src/components/MarketLive.astro   mkt-data JSON + inline live countdown script (Base + Bare layouts)
-src/components/MarketWidget.astro one-glance market box: status + sessions countdowns + news (homepage/day/calendar)
-src/pages/                  public pages: / /journal /calendar /performance /tracker /trends
+src/components/MarketLive.astro   CME-event JSON + inline live countdown script (Base + Bare layouts)
+src/components/MarketWidget.astro one-glance market box: CME-framed status + session countdowns + news
+src/components/stream/      public stream components (MomentCard, DayFacts) — zero JS
+src/pages/                  public pages: / /stream /journal /calendar /performance /tracker /trends
                              /accounts /coach /about /day/[date] + rss + sitemap
+                             (/ + /stream are SSR — prerender = false)
 src/pages/admin/[secret]/   private admin (SSR), renders the React app
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/api/admin/market.ts    USD news GET + refresh (spawns market-news-fetch.mjs)
@@ -122,7 +126,7 @@ screen time, and trades all align to a date:
 date: "2026-08-05"
 mood: 3                      # 1-5
 sleep: { hours: 6.5, quality: 3 }
-habits: { quiet-time: true, ... }
+habits: { quiet-time: true, read: 30 }   # habits v2: bool or count
 device:                      # screen-time (iPhone/Mac), fully public + linked
   iphoneHours: 5.2
   socialHours: 2.4
@@ -134,20 +138,33 @@ trades:                      # one idea, executions per account
     direction: long
     session: ny-am
     setup: ORB
+    model: orb-drive          # NEW — trading-model tag
     entry: 20800.5
     stop: 20795
     exit: 20812.5
     points: 12               # signed; computed if absent
     riskPoints: 5.5          # computed = |entry - stop| if absent
+    commentary: "..."        # NEW — approved published commentary
     executions: [{ account: lucid-50k-a, size: 1 }, { account: tpt-25k-a }]
+stream:                      # NEW — approved, ordered public moments
+  - at: "08:30"
+    type: pre-market         # pre-market | post-market | trade | note | quote | media
+    text: "news tonight — flat 15 before"
+draft:                       # NEW — private, NEVER rendered publicly
+  reflection: "..."          # unpublished reflection
+  moments: []                # unpublished draft moments
 ```
 
 - **R** is computed, never stored: `R = points / riskPoints` (price-based,
   identical across executions). Per-account `$ pnl = points × pointsValue × size`
   (MNQ `pointsValue` = 2).
-- **Accounts** = lifecycle instances: `stage` in `eval | buffer | payout |
-  failed | paused`, with a `stages[]` history. Failures spawn a new instance;
-  old ones stay forever.
+- **Accounts** = lifecycle instances: `stage` in `eval | funded | buffer |
+  payout | failed | paused`, with a `stages[]` history. Failures spawn a new
+  instance; old ones stay forever.
+- **Trading models** = `models/` collection (name, premise, rules, status,
+  order). Every trade may carry a `model` tag. Public `/models` page renders
+  models + rules + their trades. Rules are owner-authored only — never AI
+  gyaan.
 - **Payouts** reduce an account's equity (net P&L = gross − payouts), so
   drawdown/buffer math stays honest.
 - **Market news** = per-HKT-day files (`market-news/<date>.md`) with `red[]` /
@@ -193,6 +210,16 @@ optional title/summary/tags/featuredImage.
 
 ## Conventions & rules
 
+- **CME futures is the master clock.** Day status ("open"/"early"/"closed")
+  comes from `cmeDay()` — CME equity-index-futures calendar, US-centric. CME is
+  totally closed on NYD/Good Friday/Juneteenth/July4/Thanksgiving/Christmas +
+  weekends; MLK/Presidents/Memorial/Labor are normal CME days. CME early-close
+  days (day after Thanksgiving, Christmas Eve, New Year's Eve) = `1:15pm ct`.
+  **If CME is totally closed for a day, EVERYTHING is closed** — NYSE/TSE/LSE
+  session bands are suppressed too (no exchange trades CME futures then). On
+  CME early-close days the cash bands still render. `marketDay()` (NYSE cash)
+  is used only for the NYSE band itself. Never present "NYSE open" as "market
+  open" — the market is CME.
 - **Everything public except the admin.** Never weaken this. No cherry-picking.
 - **Never commit secrets.** `.env` (ADMIN_SECRET, OPENROUTER_API_KEY) is
   gitignored. `.env.example` documents the shape.

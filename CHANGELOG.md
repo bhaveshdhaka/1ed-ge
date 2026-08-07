@@ -6,6 +6,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Stream System — Phase 3: Public surfaces, first chunks)
+- **Homepage de-cockpitted** — `/` is now an SSR page: permanent intro hero
+  (what this is, R is the only metric, everything public) + today's facts strip
+  + today's published stream. The cockpit mirror (rails, static quotes,
+  self-talk) no longer renders publicly.
+- **`/stream` added** — SSR rolling feed of all published moments, latest-first
+  across days, zero-JS `?type=` category filter, "today so far" digest, live
+  moniker (admin heartbeat). New nav entry `[01] stream`.
+- **Stream primitives** — `src/lib/stream.ts` (`resolveMoments`/`flattenStream`/
+  `dayFacts`/`momentMeta`) + zero-JS `src/components/stream/{MomentCard,DayFacts}`.
+- **Live presence** — `src/lib/live.ts` reads the admin heartbeat
+  (`/tmp/1edge-live.json`, 5-min window); `/stream` and `/` show trader-live state.
+
+### Changed (Stream System — CME is the master clock)
+- **Day status now follows CME equity-index futures, not NYSE cash.** New
+  `cmeDay()` in `src/lib/market.ts` — the US-centric CME calendar (totally
+  closed only on New Year's, Good Friday, Juneteenth, July 4, Thanksgiving,
+  Christmas + weekends; MLK/Presidents/Memorial/Labor are normal CME days).
+  `scheduledDayMarker`/`marketMarker` are CME-based; CME early-close days
+  (day after Thanksgiving, Christmas Eve, New Year's Eve) read `1:15pm ct`.
+- **CME closed ⇒ everything closed.** `marketEvents` suppresses NYSE/TSE/LSE
+  session bands entirely on CME-total-close days; cash bands still render on
+  CME early-close days.
+- **Footer live ticker** (`MarketLive.astro`) is driven by the CME event stream
+  (open/halt/reopen), not the NYSE 9:30–16:00 ET session.
+
 ### Added (Stream System — Phase 1: Data model + credible review data)
 - **Content schema extended** (`content.config.ts`): day records gain `stream: []`
   (approved moments: `pre-market|post-market|trade|note|quote|media` with `at`/

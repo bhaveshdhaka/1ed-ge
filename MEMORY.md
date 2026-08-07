@@ -11,6 +11,68 @@ servers do NOT count as "done". Workflow: typecheck → commit → `bash
 scripts/deploy.sh` → poll until live → curl-verify the changed bits. Kill test
 servers when finished.
 
+## HANDOFF — next agent, the market/homepage work (read first)
+
+**State: working tree clean, all committed + deployed + verified live.**
+Live: homepage de-cockpitted, `/stream`, `/calendar` — all CME-futures-framed.
+
+**This session shipped (commits):**
+- `90283c0` — homepage de-cockpit: `/` = SSR hero + today facts + today's stream.
+  Killed the cockpit mirror (rails/quotes/self-talk) from `/`. New `src/lib/stream.ts`
+  (`resolveMoments`, `flattenStream`, `dayFacts`, `momentMeta`),
+  `src/components/stream/{MomentCard,DayFacts}.astro`.
+- `c5bb0bc` — `/stream` SSR rolling feed + `?type=` filter + today-so-far +
+  live moniker. New `src/lib/live.ts` (`readLiveState` reads
+  `/tmp/1edge-live.json`, 5-min window). Nav `[01] stream`.
+- `03c7673` — **CME is the master clock.** `cmeDay()` in `src/lib/market.ts`
+  (CME equity-futures calendar: closed only NYD/Good Fri/Juneteenth/July4/
+  Thanksgiving/Xmas + weekends; MLK/Presidents/Memorial/Labor are normal CME
+  days). `scheduledDayMarker` + `marketMarker` CME-based; early-close copy = `1:15pm ct`.
+- `4f88e91` — **CME closed ⇒ everything closed.** `marketEvents` suppresses
+  NYSE/TSE/LSE bands entirely on CME-total-close days; cash bands still render on
+  CME early-close days. `MarketLive.astro` footer now CME-event-driven.
+
+**Domain model (owner-confirmed, DO NOT re-litigate):** CME futures is the only
+clock. If CME is totally closed for the day, EVERYTHING is closed (no TSE/LSE/
+NYSE bands — they can't trade CME futures). Only two states to track: CME
+**early-close** days (`1:15pm ct`, cash exchanges still trade) and CME
+**total-close** holidays. TSE/LSE/NYSE are informational bands on CME-trading days.
+
+**PENDING chunk (owner wants this done — design already approved):**
+homepage market strip. Owner's words: *"on the home page show which market is
+open right now and the bar of where we are in the day — not a full fledged
+calendar but a bar ... something i can expand if i need more ... i must know what
+session is on right now, what news is, how far red or orange ... and below that
+if the trader is live or what is streaming."* Homepage = hero → **market strip**
+(which session is on now + 24h bar + news with time-to-event, expandable) →
+**trader-live + today's stream**.
+1. `src/lib/market-news.ts`: add `newsHeadline(red, orange)` → first red (else orange) `{time, title, kind}`.
+2. New `src/components/NewsBlock.astro` (zero-JS, shared): **one row per event** — colored
+   severity dot (NO words "red"/"orange"), time, full title, `[TV]`/`[FF]`, `✦` verified.
+3. `src/components/MarketWidget.astro`: windows via `daySessionWindows(today)` — fixes TSE
+   showing `08:00–10:30` (lunch break; should be `08:00–14:00`) + CME hardcoded `~24h`
+   (→ `halt 05:00–06:00`/`~23h`); explicit live "now" line; expandable `<details>` for
+   countdown rows + NewsBlock; labels with target time (`closes 14:00`).
+4. `src/components/MarketLive.astro`: descriptive footer — `● MNQ open · halt in 17:21:04` /
+   `◐ MNQ maintenance · resumes in 00:12:00` / `✕ MNQ closed · reopens in 1d 03:00`.
+5. `src/pages/index.astro`: embed `<MarketWidget />` under hero + trader-live moniker
+   (`readLiveState()`) on `/ today's stream`.
+6. `src/pages/calendar.astro` + `src/components/cockpit/CockpitPage.astro` (still live until
+   day-page chunk): swap `red {time}`/`orange {time}` + crude lists for `newsHeadline` + `NewsBlock`.
+Ship: typecheck → build → commit (`feat:`) → deploy → verify live. Then pause.
+
+**Roadmap after:** day-page posterized archive (then delete `src/components/cockpit/`),
+`/models`, `/journal` on primitives, Phase 2 admin rework, Phase 4 remediation
+(money-color bugs, path traversal, rebuild mutex, tests, docs).
+
+**Gotchas:** SSR `/` + `/stream` read content from server start — deploy restarts, so
+rebuild alone won't update them (deploy+verify mandatory). `npm run build` clears
+`node_modules/.astro` — keep it. Autosave cron commits every 30 min and may sweep your
+changes up with content — verify your diff landed, don't fight it. `pkill -F pidfile`
+(never `pkill -f pattern`). No parallel agents/builds (race on `node_modules/.astro`).
+
+---
+
 ## HANDOFF — next agent, my shortcomings this session (read first)
 
 The owner asked the previous agent to document its shortcomings so you don't
@@ -177,6 +239,19 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-07 — **Stream System public surfaces + CME master-clock, live.**
+  (a) **Homepage de-cockpitted**: `/` = SSR intro hero + today facts + today's
+  stream; the cockpit mirror (rails, buffet/collier quotes, self-talk) is gone
+  from public. New `src/lib/stream.ts` + `components/stream/{MomentCard,DayFacts}`.
+  (b) **`/stream`** SSR rolling feed, `?type=` filter, today-so-far, live moniker.
+  (c) **CME = master clock**: `cmeDay()` — US-centric futures calendar (closed only
+  NYD/GoodFri/Juneteenth/July4/Thanksgiving/Xmas + weekends); MLK/Presidents/
+  Memorial/Labor are normal CME days. `scheduledDayMarker`/`marketMarker`/footer
+  ticker all CME-based; early-close copy `1:15pm ct`. **CME closed ⇒ everything
+  closed**: NYSE/TSE/LSE bands suppressed on CME-total-close days; cash bands
+  still render on CME early-close days. Verified live: Thanksgiving all-bands
+  closed, Black Friday `◐ early close 1:15pm ct` + bands, Labor Day `○ open`.
+  Commits `90283c0` `c5bb0bc` `03c7673` `4f88e91`, all deployed + verified.
 - 2026-08-07 — **Stream System, Phase 1 shipped (data model + credible review data).**
   Content schema extended: day records gain `stream: []` (approved moments:
   pre-market/post-market/trade/note/quote/media) + `draft:` (private, never
