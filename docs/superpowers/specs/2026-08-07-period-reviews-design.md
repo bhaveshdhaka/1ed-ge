@@ -190,3 +190,39 @@ reflection, the AI writes the numbers.
 - Email/notification of the weekly review.
 - `/all` (lifetime view) — the engine handles it later as a one-line addition.
 - The `ingest` feature (separate approved plan — queued behind this).
+
+## 7. Reflection habit + public accountability (owner-locked, 2026-08-07)
+
+The owner's nightly ritual: a short end-of-day reflection (how the day went, plan/outlook
+for the next day, lessons learned) — a WRITING HABIT, not trade logging. The system holds
+him publicly accountable, gently.
+
+- **Day reflection is REQUIRED every Mon–Fri, even on zero-trade days.** It is the day's
+  journal post (the day screen's "publish reflection" → `journal/<date>.mdx`). Sat/Sun are
+  relaxed — no day reflection due; the only weekend obligation is the week review.
+- **Grace: strict 3 hours after midnight HKT.** Day X's reflection is due by 03:00 HKT on
+  day X+1. No more. After that it counts as pending.
+- **Period reflections** (week/month/quarter/half/year) = the review notes
+  (`reviews/<type>-<anchor>.md`). A COMPLETED period with no note is pending after its
+  grace (week due Mon 03:00 HKT after the Mon–Fri week; month/quarter/etc. due 3h after
+  the period ends).
+- **The accountability engine** (`src/lib/accountability.ts`, pure + tested):
+  `accountabilityStatus(days, journalDates, reviews, now)` → `{ pendingDays, pendingPeriods }`
+  where `pendingDays` = count of Mon–Fri days past their grace with no journal post, and
+  `pendingPeriods` = completed periods past grace with no review note. Facts only.
+- **Homepage nudge — ONE compact line** in the live-moniker zone: online → "trader is
+  live"; offline → "offline · last seen N days ago" (durable last-online stamp, gitignored
+  state file in the bind-mounted media dir — /tmp resets on restart and would lie); plus
+  the pending line when due ("trader has 2 days' pending end of day review · week 31
+  reflection missing"). Not acrimonious.
+- **zen.** The private admin area is renamed **zen** — URL `/zen/<secret>` (was
+  `/admin/<secret>`; redirect the old path), UI labels say zen, and **zen shows the same
+  pending reminders** (so the nudge greets him on login, not just on the public homepage).
+  The internal API paths (`/api/admin/*`) stay as-is (private, not user-facing).
+
+## Out of scope (v1) — amended again
+
+- Fortnight cadence (owner decision: skip — the engine makes it a one-line add later).
+- Email/notification of the weekly review.
+- `/all` (lifetime view).
+- The `ingest` feature (separate approved plan — queued behind this).
