@@ -14,20 +14,31 @@ interface ExecForm { account: string; size: string }
 interface TradeForm {
   market: string; session: string; direction: 'long' | 'short'; setup: string
   entry: string; stop: string; target: string; exit: string; riskPoints: string; points: string
-  confidence: string; note: string; screenshots: string[]; executions: ExecForm[]
+  confidence: string; note: string; model: string; commentary: string
+  screenshots: string[]; executions: ExecForm[]
+}
+
+interface MomentForm {
+  at: string; type: string; text: string; tradeIdx: string; author: string; media: string
 }
 
 const emptyTrade = (): TradeForm => ({
   market: 'MNQ', session: '', direction: 'long', setup: '',
   entry: '', stop: '', target: '', exit: '', riskPoints: '', points: '',
-  confidence: '', note: '', screenshots: [], executions: [],
+  confidence: '', note: '', model: '', commentary: '', screenshots: [], executions: [],
 })
 
 function dayKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => void }) {
+export function DayWorkspace({
+  notify,
+  onDirtyChange,
+}: {
+  notify: (m: string, ok?: boolean) => void
+  onDirtyChange?: (dirty: boolean) => void
+}) {
   const [date, setDate] = useState(todayStr())
   const [daysList, setDaysList] = useState<DayListItem[]>([])
   const [accounts, setAccounts] = useState<AccRow[]>([])
@@ -49,6 +60,10 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
   const [tags, setTags] = useState('')
   const [featuredImage, setFeaturedImage] = useState('')
   const [content, setContent] = useState('')
+  const [models, setModels] = useState<{ slug: string; name: string }[]>([])
+  const [reflection, setReflection] = useState('')
+  const [draftMoments, setDraftMoments] = useState<MomentForm[]>([])
+  const [stream, setStream] = useState<MomentForm[]>([])
 
   const [dayText, setDayText] = useState('')
   const [dayImages, setDayImages] = useState<DayImage[]>([])
@@ -66,7 +81,15 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
   const [draftBusy, setDraftBusy] = useState(false)
   const debRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
-  const markDirty = () => setDirty(true)
+  const markDirty = () => {
+    setDirty(true)
+    onDirtyChange?.(true)
+  }
+
+  const clearDirty = () => {
+    setDirty(false)
+    onDirtyChange?.(false)
+  }
 
   const load = useCallback(
     async (d: string) => {
@@ -75,11 +98,12 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
       setExpandedTrade(null)
       setExpandAll(false)
       try {
-        const res = await api<{ day: any; accounts: AccRow[]; habits: HabitDef[] }>(
+        const res = await api<{ day: any; accounts: AccRow[]; habits: HabitDef[]; models: { slug: string; name: string }[] }>(
           `/api/admin/days?date=${encodeURIComponent(d)}`,
         )
         setAccounts(res.accounts)
         setHabitDefs(res.habits)
+        setModels(res.models ?? [])
         const day = res.day
         setMood(day?.mood ? String(day.mood) : '')
         setSleepHours(day?.sleep?.hours !== undefined ? String(day.sleep.hours) : '')
@@ -90,6 +114,9 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
         setMacHours(day?.device?.macHours !== undefined ? String(day.device.macHours) : '')
         setDeviceNotes(day?.device?.notes ?? '')
         setDeviceScreens(day?.device?.screenshots ?? [])
+        setReflection(String(day?.draft?.reflection ?? ''))
+        setDraftMoments((day?.draft?.moments ?? []).map(toMomentForm))
+        setStream((day?.stream ?? []).map(toMomentForm))
         setTrades((day?.trades ?? []).map((t: any) => ({
           market: String(t.market ?? 'MNQ'),
           session: String(t.session ?? ''),
@@ -103,6 +130,8 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
           points: String(t.points ?? ''),
           confidence: String(t.confidence ?? ''),
           note: String(t.note ?? ''),
+          model: String(t.model ?? ''),
+          commentary: String(t.commentary ?? ''),
           screenshots: t.screenshots ?? [],
           executions: (t.executions ?? []).map((e: any) => ({
             account: String(e.account ?? ''),
@@ -121,8 +150,10 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
         setTags(Array.isArray(j?.data?.tags) ? j.data.tags.join(', ') : '')
         setFeaturedImage(String(j?.data?.featuredImage ?? ''))
         setContent(j?.content ?? '')
+        // seed the draft from the published body when no draft exists yet
+        setReflection((r) => (r ? r : j?.content ?? ''))
 
-        setDirty(false)
+        clearDirty()
       } catch (e) {
         notify(e instanceof Error ? e.message : 'load failed', false)
       }
@@ -170,6 +201,53 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
   const setTrade = (i: number, patch: Partial<TradeForm>) => {
     setTrades((ts) => ts.map((t, j) => (j === i ? { ...t, ...patch } : t)))
     markDirty()
+  }
+
+  const toMomentForm = (m: any): MomentForm => ({
+    at: String(m?.at ?? ''),
+    type: String(m?.type ?? 'note'),
+    text: String(m?.text ?? ''),
+    tradeIdx: m?.tradeIdx != null ? String(m.tradeIdx) : '',
+    author: String(m?.author ?? ''),
+    media: String(m?.media ?? ''),
+  })
+  const momentPayload = (m: MomentForm) => ({
+    at: m.at || '00:00',
+    type: m.type,
+    ...(m.text.trim() ? { text: m.text.trim() } : {}),
+    ...(m.type === 'trade' && m.tradeIdx !== '' ? { tradeIdx: parseInt(m.tradeIdx, 10) } : {}),
+    ...(m.author.trim() ? { author: m.author.trim() } : {}),
+    ...(m.media.trim() ? { media: m.media.trim() } : {}),
+  })
+  const setMoment = (i: number, patch: Partial<MomentForm>) => {
+    setDraftMoments((ms) => ms.map((m, j) => (j === i ? { ...m, ...patch } : m)))
+    markDirty()
+  }
+  const publishMoment = (i: number) => {
+    const m = draftMoments[i]
+    if (m.type === 'trade' && m.tradeIdx === '') return notify('pick a trade for this moment', false)
+    if (!m.text.trim() && m.type !== 'trade' && m.type !== 'media') return notify('write the moment text first', false)
+    setStream((s) => [...s, m])
+    setDraftMoments((ms) => ms.filter((_, j) => j !== i))
+    markDirty()
+  }
+  const unstreamMoment = (i: number) => {
+    setStream((s) => s.filter((_, j) => j !== i))
+    markDirty()
+  }
+  const polishMoment = async (i: number) => {
+    const m = draftMoments[i]
+    if (!m.text.trim()) return notify('write something to polish first', false)
+    try {
+      const res = await api<{ result: string }>('/api/admin/ai', {
+        method: 'POST',
+        body: { action: 'assist', kind: 'polish', text: m.text },
+      })
+      setMoment(i, { text: res.result })
+      notify('polished — review it, then publish')
+    } catch (e) {
+      notify(e instanceof Error ? e.message : 'polish failed', false)
+    }
   }
 
   const selectDate = (d: string) => {
@@ -230,26 +308,7 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
     const devUrls = (r.deviceScreens ?? []).map((i: number) => imgs[i]?.url).filter(Boolean)
     if (devUrls.length) setDeviceScreens((s) => [...new Set([...s, ...devUrls])])
     if (Array.isArray(r.trades) && r.trades.length) {
-      setTrades(
-        r.trades.map((t: any) => ({
-          market: String(t.market ?? 'MNQ'),
-          session: String(t.session ?? ''),
-          direction: t.direction === 'short' ? ('short' as const) : ('long' as const),
-          setup: String(t.setup ?? ''),
-          entry: t.entry != null ? String(t.entry) : '',
-          stop: t.stop != null ? String(t.stop) : '',
-          target: t.target != null ? String(t.target) : '',
-          exit: t.exit != null ? String(t.exit) : '',
-          riskPoints: t.riskPoints != null ? String(t.riskPoints) : '',
-          points: t.points != null ? String(t.points) : '',
-          confidence: t.confidence ? String(t.confidence) : '',
-          note: String(t.note ?? ''),
-          screenshots: (t.screenshotIndices ?? []).map((i: number) => imgs[i]?.url).filter(Boolean),
-          executions: Array.isArray(t.accounts) && t.accounts.length
-            ? t.accounts.map((a: string) => ({ account: a, size: '' }))
-            : [],
-        })),
-      )
+      setTrades((existing) => mergeStructured(existing, r.trades, imgs))
     }
     const j = r.journal
     if (j) {
@@ -260,8 +319,49 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
         setContent((c) => (c && c.trim() ? c : String(j.draft)))
       }
     }
-    setDirty(true)
+    markDirty()
     setTimeout(autoFeatured, 0)
+  }
+
+  const mergeStructured = (existing: TradeForm[], incoming: any[], imgs: DayImage[]): TradeForm[] => {
+    const toForm = (t: any): TradeForm => ({
+      market: String(t.market ?? 'MNQ'),
+      session: String(t.session ?? ''),
+      direction: t.direction === 'short' ? ('short' as const) : ('long' as const),
+      setup: String(t.setup ?? ''),
+      entry: t.entry != null ? String(t.entry) : '',
+      stop: t.stop != null ? String(t.stop) : '',
+      target: t.target != null ? String(t.target) : '',
+      exit: t.exit != null ? String(t.exit) : '',
+      riskPoints: t.riskPoints != null ? String(t.riskPoints) : '',
+      points: t.points != null ? String(t.points) : '',
+      confidence: t.confidence ? String(t.confidence) : '',
+      note: String(t.note ?? ''),
+      model: String(t.model ?? ''),
+      commentary: String(t.commentary ?? ''),
+      screenshots: (t.screenshotIndices ?? []).map((i: number) => imgs[i]?.url).filter(Boolean),
+      executions: Array.isArray(t.accounts) && t.accounts.length
+        ? t.accounts.map((a: string) => ({ account: a, size: '' }))
+        : [],
+    })
+    const incomingForms = incoming.map(toForm)
+    const freshUrls = new Set(incomingForms.flatMap((t) => t.screenshots))
+    // keep trades this run did not touch (no screenshot from this paste)
+    const kept = existing.filter((t) => !t.screenshots.some((u) => freshUrls.has(u)))
+    const out: TradeForm[] = [...kept]
+    for (const inc of incomingForms) {
+      if (inc.screenshots.length) {
+        const idx = out.findIndex((t) => t.screenshots.some((u) => inc.screenshots.includes(u)))
+        if (idx >= 0) {
+          out[idx] = { ...inc, screenshots: [...new Set([...out[idx].screenshots, ...inc.screenshots])] }
+        } else {
+          out.push(inc)
+        }
+      } else {
+        out.push(inc)
+      }
+    }
+    return out
   }
 
   const runStructure = async (imgs?: DayImage[]) => {
@@ -308,14 +408,14 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
     ].filter(Boolean).join('\n')
 
   const runDraft = async () => {
-    if (content.trim() && !confirm('replace the current reflection with a fresh AI draft?')) return
+    if (reflection.trim() && !confirm('replace the current reflection draft with a fresh AI draft?')) return
     setDraftBusy(true)
     try {
       const res = await api<{ result: string }>('/api/admin/ai', {
         method: 'POST',
         body: { action: 'draft', text: daySnapshot() },
       })
-      setContent(res.result)
+      setReflection(res.result)
       markDirty()
       notify('draft written — edit it, then save')
     } catch (e) {
@@ -361,24 +461,19 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
               .filter((e) => e.account)
               .map((e) => ({ account: e.account, size: e.size !== '' ? parseInt(e.size, 10) : undefined })),
           })),
+          stream: stream.map(momentPayload),
+          ...(draftMoments.length || reflection.trim()
+            ? {
+                draft: {
+                  ...(reflection.trim() ? { reflection: reflection.trim() } : {}),
+                  ...(draftMoments.length ? { moments: draftMoments.map(momentPayload) } : {}),
+                },
+              }
+            : {}),
         },
       })
 
-      if (title.trim() || summary.trim() || tags.trim() || content.trim() || featuredImage) {
-        await api('/api/admin/journal', {
-          method: 'POST',
-          body: {
-            date,
-            day: title.trim() || undefined,
-            summary: summary.trim() || undefined,
-            tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-            featuredImage: featuredImage.trim() || undefined,
-            content,
-          },
-        })
-      }
-
-      setDirty(false)
+      clearDirty()
       notifyChanged()
       if (rebuild) {
         try {
@@ -395,6 +490,30 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
       await refreshPending()
     } catch (e) {
       notify(e instanceof Error ? e.message : 'save failed', false)
+    }
+    setSaving(false)
+  }
+
+  const publishReflection = async () => {
+    if (!reflection.trim()) return notify('write a reflection draft first', false)
+    setSaving(true)
+    try {
+      await api('/api/admin/journal', {
+        method: 'POST',
+        body: {
+          date,
+          day: title.trim() || undefined,
+          summary: summary.trim() || undefined,
+          tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+          featuredImage: featuredImage.trim() || undefined,
+          content: reflection,
+        },
+      })
+      setContent(reflection)
+      notify('reflection published — queued for rebuild')
+      notifyChanged()
+    } catch (e) {
+      notify(e instanceof Error ? e.message : 'publish failed', false)
     }
     setSaving(false)
   }
@@ -574,6 +693,7 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
             ['capture', 'sec-capture'],
             ['day', 'sec-day'],
             ['trades', 'sec-trades'],
+            ['moments', 'sec-moments'],
             ['reflection', 'sec-reflection'],
           ].map(([label, id]) => (
             <button key={id} onClick={() => scrollTo(id)} className="h-8 whitespace-nowrap px-2 text-dim transition-colors hover:text-ink">
@@ -891,6 +1011,17 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
                                 <Field label="note" className="mt-2">
                                   <TextInput value={t.note} onChange={(e) => setTrade(ti, { note: e.target.value })} placeholder="what was the story" />
                                 </Field>
+                                <div className="mt-2 grid gap-2 md:grid-cols-2">
+                                  <Field label="model">
+                                    <Select value={t.model} onChange={(e) => setTrade(ti, { model: e.target.value })}>
+                                      <option value="">—</option>
+                                      {models.map((m) => <option key={m.slug} value={m.slug}>{m.name}</option>)}
+                                    </Select>
+                                  </Field>
+                                  <Field label="commentary (published with the trade)">
+                                    <TextInput value={t.commentary} onChange={(e) => setTrade(ti, { commentary: e.target.value })} placeholder="what made this one count" />
+                                  </Field>
+                                </div>
                                 <div className="mt-3">
                                   <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">executions (accounts)</div>
                                   <div className="space-y-2">
@@ -929,10 +1060,85 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
                 </Card>
               </div>
 
+              {/* ---------- MOMENTS (stream) ---------- */}
+              <div id="sec-moments" className="scroll-mt-20">
+                <Card
+                  title={`moments — stream (${stream.length} live · ${draftMoments.length} draft)`}
+                  actions={
+                    <Button size="sm" onClick={() => { setDraftMoments((ms) => [...ms, { at: '', type: 'note', text: '', tradeIdx: '', author: '', media: '' }]); markDirty() }}>
+                      + new moment
+                    </Button>
+                  }
+                >
+                  {draftMoments.length > 0 && (
+                    <div className="mb-4 space-y-2">
+                      <div className="text-[11px] uppercase tracking-widest text-warn">draft moments — not public</div>
+                      {draftMoments.map((m, i) => (
+                        <div key={i} className="border border-line bg-bg p-3">
+                          <div className="grid gap-2 md:grid-cols-[64px_130px_1fr]">
+                            <Field label="at (HH:MM)"><TextInput value={m.at} onChange={(e) => setMoment(i, { at: e.target.value })} placeholder="08:30" /></Field>
+                            <Field label="type">
+                              <Select value={m.type} onChange={(e) => setMoment(i, { type: e.target.value })}>
+                                {['pre-market', 'post-market', 'trade', 'note', 'quote', 'media'].map((t) => <option key={t} value={t}>{t}</option>)}
+                              </Select>
+                            </Field>
+                            {m.type === 'trade' ? (
+                              <Field label="trade">
+                                <Select value={m.tradeIdx} onChange={(e) => setMoment(i, { tradeIdx: e.target.value })}>
+                                  <option value="">—</option>
+                                  {trades.map((_, ti) => <option key={ti} value={ti}>trade {ti + 1}</option>)}
+                                </Select>
+                              </Field>
+                            ) : (
+                              <Field label={m.type === 'quote' ? 'text (the quote)' : m.type === 'media' ? 'media url' : 'text'}>
+                                <TextInput value={m.text} onChange={(e) => setMoment(i, { text: e.target.value })} placeholder={m.type === 'media' ? '/media/2026-08-07/….webp' : 'what you want to say'} />
+                              </Field>
+                            )}
+                          </div>
+                          {m.type === 'quote' && (
+                            <div className="mt-2">
+                              <Field label="author"><TextInput value={m.author} onChange={(e) => setMoment(i, { author: e.target.value })} /></Field>
+                            </div>
+                          )}
+                          <div className="mt-2 flex gap-2">
+                            <Button size="sm" variant="primary" onClick={() => publishMoment(i)}>publish →</Button>
+                            {m.text.trim() && (
+                              <Button size="sm" onClick={() => polishMoment(i)}>AI polish</Button>
+                            )}
+                            <Button size="sm" variant="danger" onClick={() => { setDraftMoments((ms) => ms.filter((_, j) => j !== i)); markDirty() }}>×</Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {stream.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-[11px] uppercase tracking-widest text-up">live moments — public after rebuild</div>
+                      {stream.map((m, i) => (
+                        <div key={i} className="flex items-center gap-3 border border-line bg-bg px-3 py-2">
+                          <span className="text-[11px] text-faint">{m.at || '--:--'}</span>
+                          <span className="text-[11px] text-dim">{m.type}</span>
+                          <span className="flex-1 text-[13px] text-ink">
+                            {m.type === 'trade'
+                              ? m.tradeIdx !== '' ? `trade ${parseInt(m.tradeIdx, 10) + 1} · ${trades[parseInt(m.tradeIdx, 10)]?.setup ?? ''}` : 'trade'
+                              : m.text}
+                            {m.author ? ` — ${m.author}` : ''}
+                          </span>
+                          <Button size="sm" variant="danger" onClick={() => unstreamMoment(i)}>×</Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {stream.length === 0 && draftMoments.length === 0 && (
+                    <p className="text-[12px] text-faint">nothing on the stream yet — add a draft moment and publish it.</p>
+                  )}
+                </Card>
+              </div>
+
               {/* ---------- REFLECTION ---------- */}
               <div id="sec-reflection" className="scroll-mt-20">
                 <Card
-                  title="reflection"
+                  title="reflection — draft (private until published)"
                   actions={
                     <div className="flex items-center gap-2">
                       <a href={previewHref} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink">
@@ -941,16 +1147,24 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
                       <Button size="sm" variant="primary" onClick={runDraft} disabled={draftBusy}>
                         {draftBusy ? 'drafting…' : 'AI draft from today'}
                       </Button>
+                      <Button size="sm" onClick={publishReflection} disabled={saving || !reflection.trim()}>
+                        {content.trim() ? 'republish reflection' : 'publish reflection'}
+                      </Button>
                     </div>
                   }
                 >
+                  {content.trim() && (
+                    <div className="mb-3 border border-line bg-bg px-3 py-2 text-[12px] text-up">
+                      ● published to /journal{content.trim() === reflection.trim() ? ' — draft matches live' : ' — draft differs, republish to overwrite'}
+                    </div>
+                  )}
                   <div className="grid gap-3 md:grid-cols-3">
                     <Field label="title"><TextInput value={title} onChange={(e) => { setTitle(e.target.value); markDirty() }} placeholder="AI suggests" /></Field>
                     <Field label="summary"><TextInput value={summary} onChange={(e) => { setSummary(e.target.value); markDirty() }} placeholder="one line" /></Field>
                     <Field label="tags (comma)"><TextInput value={tags} onChange={(e) => { setTags(e.target.value); markDirty() }} placeholder="discipline, revenge" /></Field>
                   </div>
                   <div className="mt-3">
-                    <MarkdownEditor value={content} onChange={(md) => { setContent(md); markDirty() }} label="reflection draft" />
+                    <MarkdownEditor value={reflection} onChange={(md) => { setReflection(md); markDirty() }} label="reflection draft" />
                   </div>
                   {featuredImage && (
                     <div className="mt-3 flex items-center gap-3">
