@@ -174,11 +174,11 @@ export function marketEvents(startHkt: string, days: number): MarketEvent[] {
     }
 
     if (cm.status !== 'closed' && isTradingDay(d, jpH)) {
-      // TSE (JST date = d): 09:00–11:30 lunch 12:30–15:00 — only on CME trading days
+      // TSE (JST date = d): 09:00–11:30 lunch 12:30–15:30 — only on CME trading days
       out.push({ market: 'tse', type: 'open', hkt: hktIso(wallToUTC('Asia/Tokyo', d, 9, 0)) })
       out.push({ market: 'tse', type: 'close', hkt: hktIso(wallToUTC('Asia/Tokyo', d, 11, 30)), label: 'lunch' })
       out.push({ market: 'tse', type: 'open', hkt: hktIso(wallToUTC('Asia/Tokyo', d, 12, 30)) })
-      out.push({ market: 'tse', type: 'close', hkt: hktIso(wallToUTC('Asia/Tokyo', d, 15, 0)) })
+      out.push({ market: 'tse', type: 'close', hkt: hktIso(wallToUTC('Asia/Tokyo', d, 15, 30)) })
     }
 
     if (cm.status !== 'closed' && isTradingDay(d, ukH)) {
