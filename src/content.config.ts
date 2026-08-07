@@ -193,7 +193,7 @@ const rules = defineCollection({
 })
 
 const reviews = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/reviews' }),
+  loader: glob({ pattern: ['**/*.md', '!**/*.cmp.md'], base: './src/content/reviews' }),
   schema: z.object({
     type: z.enum(['week', 'month', 'quarter', 'half', 'year']),
     anchor: z.string(),
