@@ -169,6 +169,14 @@ blown buffer → `failed`. Admin stepper shows only valid next actions. Payouts
 require `stage=payout` and `netPnl ≥ amount`. Stats engine clamps buffer/dd
 math so a blown account never reports "buffer left".
 
+### 4.7 Owner-authored content only (no AI gyaan)
+
+Rules, quotes, and self-talk are **the owner's own words** — written or curated
+from what personally resonates. AI never proposes, invents, or generates any of
+it. The AI-polish path may polish the owner's *existing* text but never author
+new rules/quotes/wisdom. The coach must never dispense inspirational gyan.
+This is a hard product rule, enforced in prompts (`ai.ts`) and the skill.
+
 ## 5. Publication pipeline
 
 - Everything written in the cockpit starts as a draft.
