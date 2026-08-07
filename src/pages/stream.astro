@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
 import { todayHkt } from '../lib/sessions'
-import { fmtDay } from '../lib/dates'
+import { fmtDay, fmtDayW } from '../lib/dates'
 import { flattenStream, resolveMoments, momentMeta, dayFacts } from '../lib/stream'
 import { readLiveState } from '../lib/live'
 import type { DayData, MomentType } from '../lib/stream'
@@ -49,7 +49,7 @@ for (const m of all) countByType.set(m.type, (countByType.get(m.type) ?? 0) + 1)
     <div class="mt-6 flex max-w-2xl flex-col gap-3">
       <div class="border border-line bg-panel px-4 py-3">
         <div class="flex items-baseline justify-between gap-3">
-          <span class="text-2xs uppercase tracking-widest text-dim">today so far · {fmtDay(iso)}</span>
+          <span class="text-2xs uppercase tracking-widest text-dim">today so far · {fmtDayW(iso)}</span>
           <a href={`/day/${fmtDay(iso)}`} class="text-2xs text-faint transition-colors hover:text-accent">day →</a>
         </div>
         <div class="mt-2">

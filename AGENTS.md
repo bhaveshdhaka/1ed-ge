@@ -98,11 +98,14 @@ src/lib/media-alt.ts        alt-text sidecar for uploaded media (public/media/al
 src/lib/auth.ts             admin secret check + JSON responses
 src/lib/env.ts              .env access (ADMIN_SECRET, OPENROUTER_API_KEY, AI_MODEL_ALT, models)
 src/components/MarketLive.astro   CME-event JSON + inline live countdown script (Base + Bare layouts)
-src/components/MarketWidget.astro one-glance market box: CME-framed status + session countdowns + news
+src/components/MarketWidget.astro one-glance market box: chronograph rail (hour ticks + event dots +
+                             live now-marker) + CME-framed status + session countdowns + news
+src/components/MarketDay.astro    homepage "the day" panel — facts + stream at a glance (SSR)
 src/components/Lightbox.astro     native <dialog> lightbox — the site's single zero-JS exception on public pages
 src/components/stream/      public stream components (MomentCard, DayFacts) — moments are trade|note|quote;
                              thumbnails with altFor() open the shared lightbox (zero JS otherwise)
-src/components/archive/DayArchive.astro  posterized day archive (facts + moments + model-tagged trades)
+src/components/archive/DayArchive.astro  posterized day archive (facts + moments + model-tagged trades);
+                             trade screenshots open the lightbox via data-lb
 src/pages/                  public pages: / /stream /journal /models /calendar /performance /tracker /trends
                              /accounts /coach /about /day/[date] + rss + sitemap
                              (/ + /stream are SSR — prerender = false)
@@ -246,6 +249,12 @@ optional title/summary/tags/featuredImage.
 - **Public pages must stay zero-JS** except the single shared `<dialog>` lightbox
   (`src/components/Lightbox.astro`, one inline script — the owner-approved
   exception). No React/JS on public routes. All charts are server-rendered SVG.
+- **News rows keep icons + past-state.** Every USD news row carries an icon
+  (emoji fallback, never bare text) and elapsed events render dimmed/struck for
+  posterity; same-time events collapse to one row with `+N more at HH:MM`. The
+  chronograph rail (hour ticks + event severity dots + caret now-marker) lives in
+  `MarketWidget.astro`. Day-facing headers display `fmtDayW` (`mon | 07-aug-2026` —
+  `src/lib/dates.ts`); `fmtDay` stays for URL slugs.
 - **Content-layer cache:** Astro stores the collection data store at
   `node_modules/.astro/`. `npm run build` clears it so deleted files actually
   disappear from the static build. Keep that `rm -rf node_modules/.astro`

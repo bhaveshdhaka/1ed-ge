@@ -14,6 +14,7 @@
     const dlg = document.getElementById('lb')
     if (!dlg) return
     const body = dlg.querySelector('.lb-body')
+    if (!body) return
     const links = Array.from(document.querySelectorAll('[data-lb]'))
     if (!links.length) return
     let group = []
@@ -32,6 +33,7 @@
     dlg.querySelector('[data-lb-prev]')?.addEventListener('click', () => show(idx - 1))
     dlg.querySelector('[data-lb-next]')?.addEventListener('click', () => show(idx + 1))
     document.addEventListener('click', (e) => {
+      if (!(e.target instanceof Element)) return
       const a = e.target.closest('[data-lb]')
       if (!a) return
       e.preventDefault()

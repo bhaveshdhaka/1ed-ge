@@ -6,6 +6,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Market chronograph — the day at a glance)
+
+- **Chronograph rail** on the market widget — a 00–24 HKT hairline day-ruler with
+  hour ticks, event-severity dots (red/orange USD news + session markers), and a
+  caret + live `HH:MM:SS` now-marker (no green dot — the marker tells time, not
+  status). The rail, dots, and past-state are server-rendered; JS only moves the
+  marker/clock and toggles dot classes.
+- **mm:ss countdowns** — under 15 minutes the widget/ticker/footer countdowns
+  switch from `12m` to `11:32` precision.
+- **Every news row is iconed** (emoji fallback when a category has none) and
+  **elapsed events are dimmed/struck** for posterity — a past-day archive renders
+  fully struck, today's page is fresh on the SSR homepage and lags only until a
+  rebuild on static pages.
+- **One representative event per time slot** — same-time news rows collapse under
+  `+N more at HH:MM` (grouped renderer keeps the severity kind).
+- **`mon | 07-aug-2026` day headers** — `fmtDayW` adds the 3-letter weekday to
+  day-facing display headers on the stream "today so far" box and the `/day`
+  archive header (URL slugs keep `fmtDay`).
+- **Homepage "the day" panel** — the day's facts + stream at a glance on `/`.
+- **Lightbox hardening** — two null guards in the shared `<dialog>` script
+  (missing `.lb-body`, non-Element click targets), and `/day` archive trade
+  screenshots now join the lightbox (`data-lb` per trade panel, `target="_blank"`
+  retained for no-JS).
+
 ### Changed (Moment images — 3-type stream + artefact-linked imagery)
 
 - **Stream moments collapse to `trade | note | quote`** — the `media` moment

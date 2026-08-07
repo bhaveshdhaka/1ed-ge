@@ -288,6 +288,25 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-07 — **Market chronograph, done (Task wave, commits to follow).**
+  Chronograph rail in `MarketWidget.astro` — 00–24 HKT hairline day-ruler with
+  hour ticks, event-severity dots (news red/orange + sessions), caret + live
+  `HH:MM:SS` now-marker (no green dot); server-rendered, JS only moves the
+  marker/clock. **mm:ss countdowns** under 15 min in widget/ticker/footer
+  (`fmtHuman` rule shared across `strip.ts` + 3 inline copies). **News rows
+  iconed + past-state** — every USD row carries an emoji-fallback icon, elapsed
+  events dim/strike for posterity (static day pages freeze `now` at build time —
+  documented limitation). Same-time events collapse to one representative row +
+  `+N more at HH:MM` (Task 7, `NewsGroup` keeps kind). **`fmtDayW`**
+  (`mon | 07-aug-2026`, `src/lib/dates.ts`) on day-facing display headers
+  (stream "today so far" + `/day` archive header; slugs keep `fmtDay`).
+  Homepage "the day" panel = `MarketDay.astro` (SSR, facts + stream).
+  **Lightbox hardening** — `if (!body) return` + `e.target instanceof Element`
+  guard in `Lightbox.astro`; `/day` archive trade screenshots join the lightbox
+  via `data-lb` (`day-<iso>-<tradeIdx>`, per-panel groups, `target="_blank"`
+  kept for no-JS). Commits: `c0fb3b1` (rail+clock) `9935c29` `347def7`
+  (news grouping) + this task (`fix(public): lightbox guards, archive trade
+  shots in lightbox, weekday day headers, docs`).
 - 2026-08-07 — **Moment images, live.** Stream moments collapse to
   `trade | note | quote` (media type + pre-market/post-market labels deleted
   everywhere: schema, `stream.ts`, admin `days.ts`, `/stream` filter, seed).

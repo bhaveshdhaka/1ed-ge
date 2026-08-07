@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro'
 import { getCollection, render } from 'astro:content'
-import { fmtDay } from '../../lib/dates'
+import { fmtDay, fmtDayW } from '../../lib/dates'
 import { scheduledDayMarker } from '../../lib/sessions'
 import { newsHeadline } from '../../lib/market-news'
 import { dayFacts, resolveMoments, ROf } from '../../lib/stream'
@@ -58,7 +58,7 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
     <header class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
       <div class="flex items-baseline gap-3 text-[13px]">
         <span class="text-ink">day</span>
-        <span class="text-faint">{fmtDay(iso)}</span>
+        <span class="text-faint">{fmtDayW(iso)}</span>
       </div>
       <span class={`text-[12px] tabular-nums ${mk.cls}`}>
         {mk.glyph} {mk.text}
@@ -97,7 +97,7 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
         <p class="mt-3 text-[13px] text-faint">no trades logged this day.</p>
       ) : (
         <div class="mt-4 space-y-4">
-          {trades.map((t) => {
+          {trades.map((t, ti) => {
             const R = ROf(t as any)
             const ex = t.executions ?? []
             const totalPnl = ex.reduce((s, e) => s + t.points * (accMap.get(e.account)?.pointsValue ?? 2) * (e.size ?? 1), 0)
@@ -134,7 +134,7 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
                 {(t.screenshots?.length ?? 0) > 0 && (
                   <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
                     {t.screenshots!.map((s) => (
-                      <a href={s} target="_blank" class="block border border-line bg-bg transition-colors hover:border-accent">
+                      <a href={s} target="_blank" rel="noopener" data-lb={`day-${iso}-${ti}`} class="block border border-line bg-bg transition-colors hover:border-accent">
                         <img src={s} alt={altFor(s)} loading="lazy" class="w-full" />
                       </a>
                     ))}
