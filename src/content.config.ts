@@ -192,6 +192,16 @@ const rules = defineCollection({
   }),
 })
 
+const reviews = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/reviews' }),
+  schema: z.object({
+    type: z.enum(['week', 'month', 'quarter', 'half', 'year']),
+    anchor: z.string(),
+    title: z.string().optional(),
+    date: z.string(),
+  }),
+})
+
 const quotes = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/quotes' }),
   schema: z.object({
@@ -200,4 +210,4 @@ const quotes = defineCollection({
   }),
 })
 
-export const collections = { accounts, days, payouts, coach, journal, habits, models, brief, 'market-news': marketNews, rules, quotes }
+export const collections = { accounts, days, payouts, coach, journal, habits, models, brief, 'market-news': marketNews, rules, quotes, reviews }

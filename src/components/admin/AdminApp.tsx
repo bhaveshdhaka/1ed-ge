@@ -7,8 +7,9 @@ import { AccountsTab } from './tabs/AccountsTab'
 import { CoachTab } from './tabs/CoachTab'
 import { MediaTab } from './tabs/MediaTab'
 import { LibraryTab } from './tabs/LibraryTab'
+import { ReviewTab } from './tabs/ReviewTab'
 
-export type Tab = 'overview' | 'day' | 'accounts' | 'coach' | 'media' | 'library'
+export type Tab = 'overview' | 'day' | 'accounts' | 'coach' | 'media' | 'library' | 'reviews'
 
 const TABS: { id: Tab; label: string; key: string }[] = [
   { id: 'overview', label: 'overview', key: '1' },
@@ -17,10 +18,11 @@ const TABS: { id: Tab; label: string; key: string }[] = [
   { id: 'coach', label: 'coach', key: '4' },
   { id: 'media', label: 'media', key: '5' },
   { id: 'library', label: 'library', key: '6' },
+  { id: 'reviews', label: 'reviews', key: '7' },
 ]
 
 const SHORTCUTS: { keys: string; desc: string }[] = [
-  { keys: '1 … 6', desc: 'switch tabs' },
+  { keys: '1 … 7', desc: 'switch tabs' },
   { keys: '⌘S / Ctrl+S', desc: 'save the day' },
   { keys: '⌘⇧S / Ctrl+Shift+S', desc: 'save & rebuild' },
   { keys: '⌘← / ⌘→', desc: 'previous / next day' },
@@ -181,6 +183,7 @@ export default function AdminApp({ secret }: { secret: string }) {
         {tab === 'coach' && <CoachTab notify={notify} />}
         {tab === 'media' && <MediaTab notify={notify} />}
         {tab === 'library' && <LibraryTab notify={notify} />}
+        {tab === 'reviews' && <ReviewTab notify={notify} />}
       </main>
 
       {toast && (
