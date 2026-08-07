@@ -177,6 +177,25 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-07 — **Stream System, Phase 1 shipped (data model + credible review data).**
+  Content schema extended: day records gain `stream: []` (approved moments:
+  pre-market/post-market/trade/note/quote/media) + `draft:` (private, never
+  rendered), trades gain `model` tags + optional `commentary`, habits v2
+  (`kind: bool|count`, `target`, `category`, `order`, `active` — 14 seeded
+  across health/trading/discipline/mind), new `models` collection with per-model
+  rules (two-level rules), account lifecycle adds `funded`
+  (`eval → funded → buffer → payout`). `scripts/seed-review.mjs` rewritten so the
+  live filler is credible: **positive edge** (expectancy +0.28R, PF 1.57, 55%
+  WR), **no trades on holidays** (verified against the site's own `marketDay()`),
+  losses honor the stop (~1R), every trade tagged with a model, journal prose
+  generated from actual day data (no "one trade"/"long"/"++" contradictions),
+  account lifecycle **derived from simulated equity** so payouts ≤ net
+  (lucid-25k-a +$3137 → $1500 paid in payout; tpt-25k-a −$1280 **failed**
+  2026-11-02 with post-mortem post), one day-zero. One execution assignment
+  drives day files + account math (single source of truth). Typechecked, built,
+  committed. **Not deployed yet in this session — deploy + verify live is the
+  next agent's first act.**
+
 - 2026-08-07 — **Stream System, Phase 0 shipped (design-system foundation).** The
   owner approved a full rebuild ("the UI has no method to the madness") around
   **shadcn/ui conventions**: Tailwind v4 `@theme` tokens in `src/styles/app.css`

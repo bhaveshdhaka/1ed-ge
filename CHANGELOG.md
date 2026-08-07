@@ -6,6 +6,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Stream System — Phase 1: Data model + credible review data)
+- **Content schema extended** (`content.config.ts`): day records gain `stream: []`
+  (approved moments: `pre-market|post-market|trade|note|quote|media` with `at`/
+  `tradeIdx`) and `draft:` (private reflection + draft moments, never rendered
+  publicly); trades gain `model` tags + optional `commentary`; `habits` accept
+  `bool|number`; new `models` collection (name/premise/rules/status/order);
+  account lifecycle adds `funded` (`eval → funded → buffer → payout`).
+- **Trading models shipped** — `src/content/models/`: orb-drive, pullback-
+  continuation, vwap-reclaim, liquidity-breakdown, each with owner-authored
+  model rules (two-level rules: overall `rules/` + per-model).
+- **Habits v2** — schema supports `kind: bool|count`, `target`, `category`,
+  `order`, `active`. 14 habits across health/trading/discipline/mind seeded
+  (count habits store numbers). Colors moved off the old bright palette.
+- **Review data regenerated** (`scripts/seed-review.mjs` rewritten) — a
+  self-consistent two-year dataset: positive edge (expectancy +0.28R, PF 1.57,
+  55% WR), **no trades on US holidays** (verified against the site's own
+  `marketDay()`), losses honor the stop (~1R, rare small slippage, wins
+  uncapped), **every trade tagged with a model**, journal prose generated from
+  actual day data (no "one trade" vs two, no "long" vs short, no `++`), account
+  lifecycle **derived from the simulated equity** so payouts can never exceed
+  net (lucid-25k-a: +$3137 gross → $1500 paid in `payout`; tpt-25k-a:
+  −$1280, **failed** 2026-11-02 with a matching post-mortem post), one day-zero
+  only. One execution assignment drives both the day files and the account
+  math (single source of truth).
+
 ### Added (Stream System — Phase 0: Design System Foundation)
 - **Tokenized design system.** `src/styles/global.css` → `src/styles/app.css`:
   summit palette moved into the Tailwind v4 `@theme` block (dead theme-override
