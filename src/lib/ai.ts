@@ -12,7 +12,7 @@ interface OrMessage {
   content: string | OrPart[]
 }
 
-async function orChat(messages: OrMessage[], model: string, json = true, maxTokens = 2500) {
+export async function orChat(messages: OrMessage[], model: string, json = true, maxTokens = 2500) {
   const key = env.openrouterKey()
   if (!key) throw new Error('OPENROUTER_API_KEY is not set')
   let res: Response

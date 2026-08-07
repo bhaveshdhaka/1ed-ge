@@ -55,7 +55,7 @@ test('renderComparisonFallback: exact deltas, trend in order, one direction bull
     assert.ok(out.includes(`- ${d.field}:`), `missing field ${d.field}`)
   }
   assert.ok(out.includes('- sumR: 16 vs 10 (+6, 60%)'), out)
-  assert.ok(out.includes('- winRate: 60% vs 50% (+10%, 20%)'), out)
+  assert.ok(out.includes('- winRate: 60% vs 50% (+10pp · 20%)'), out)
   assert.ok(out.includes('- profitFactor: 3 vs 2 (+1, 50%)'), out)
 
   // Trend series read in order, oldest → newest.

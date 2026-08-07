@@ -6,69 +6,9 @@
 // On model failure the CALLER falls back to renderComparisonFallback (pure
 // code, same bullets) so the page is never blank.
 
+import { orChat } from './ai'
 import { env } from './env'
 import { periodDelta, type PeriodStats, type TrendPoint } from './period-stats'
-
-export const DEFAULT_INGEST_MODEL = 'deepseek/deepseek-v4-flash-0731'
-
-/**
- * The ingest model — deepseek v4 flash 0731 (owner-locked). Prefers
- * `env.modelIngest()` once the ingest plan lands it; until then reads
- * `AI_MODEL_INGEST` with the deepseek default.
- */
-export function ingestModel(): string {
-  const fn = (env as { modelIngest?: () => string }).modelIngest
-  if (typeof fn === 'function') {
-    const m = fn()
-    if (m) return m
-  }
-  return process.env.AI_MODEL_INGEST ?? DEFAULT_INGEST_MODEL
-}
-
-interface ChatMessage {
-  role: 'system' | 'user'
-  content: string
-}
-
-/**
- * OpenRouter chat — local mirror of `orChat` in ./ai (module-private there).
- * Same endpoint/headers/temperature/timeout so behaviour is identical.
- */
-async function orChatLocal(messages: ChatMessage[], model: string, json: boolean, maxTokens: number): Promise<string> {
-  const key = env.openrouterKey()
-  if (!key) throw new Error('OPENROUTER_API_KEY is not set')
-  let res: Response
-  try {
-    res = await fetch(`${env.openrouterBase()}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${key}`,
-        'HTTP-Referer': env.siteUrl(),
-        'X-Title': '1ed.ge',
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.2,
-        max_tokens: maxTokens,
-        ...(json ? { response_format: { type: 'json_object' } } : {}),
-      }),
-      signal: AbortSignal.timeout(60_000),
-    })
-  } catch (e) {
-    if (e instanceof Error && e.name === 'TimeoutError') {
-      throw new Error('AI request timed out after 60s — try again')
-    }
-    throw e
-  }
-  if (!res.ok) {
-    const text = await res.text().catch(() => '')
-    throw new Error(`OpenRouter ${res.status}: ${text.slice(0, 300)}`)
-  }
-  const data = await res.json()
-  return String(data?.choices?.[0]?.message?.content ?? '')
-}
 
 // --- finite-safe formatting (never "NaN") ---
 
@@ -128,15 +68,11 @@ Rules:
  */
 export async function comparePeriods(prev: PeriodStats, cur: PeriodStats, trend: TrendPoint[]): Promise<string> {
   const input = `CURRENT period:\n${statsTable(cur)}\n\nPREVIOUS period:\n${statsTable(prev)}\n\nTREND (oldest → newest):\n${trendLines(trend)}`
-  const raw = await orChatLocal(
-    [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: input },
-    ],
-    ingestModel(),
-    false,
-    800,
-  )
+  const messages: { role: 'system' | 'user'; content: string }[] = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: input },
+  ]
+  const raw = await orChat(messages, env.modelIngest(), false, 800)
   const out = raw.trim().replace(/^```(?:markdown)?\s*/i, '').replace(/```$/, '').trim()
   if (!out) throw new Error('empty comparison from model')
   return out
@@ -151,8 +87,9 @@ export function renderComparisonFallback(prev: PeriodStats, cur: PeriodStats, tr
   const lines: string[] = []
   for (const d of periodDelta(prev, cur)) {
     if (d.field === 'winRate') {
-      // winRate renders in percent everywhere (cur/prev + delta in percentage points).
-      lines.push(`- winRate: ${formatPct(d.cur)} vs ${formatPct(d.prev)} (${signed(d.delta * 100)}%, ${formatPct(d.pct)})`)
+      // winRate renders in percent everywhere; the delta is in percentage
+      // points (pp) and the trailing figure is the relative change (%).
+      lines.push(`- winRate: ${formatPct(d.cur)} vs ${formatPct(d.prev)} (${signed(d.delta * 100)}pp · ${formatPct(d.pct)})`)
     } else {
       lines.push(`- ${d.field}: ${formatNum(d.cur)} vs ${formatNum(d.prev)} (${signed(d.delta)}, ${formatPct(d.pct)})`)
     }

@@ -8,5 +8,6 @@ export const env = {
   modelVision: () => process.env.AI_MODEL_VISION ?? 'qwen/qwen-2.5-vl-72b-instruct',
   modelAssist: () => process.env.AI_MODEL_ASSIST ?? 'deepseek/deepseek-chat',
   modelAlt: () => process.env.AI_MODEL_ALT ?? 'qwen/qwen-2.5-vl-7b-instruct',
+  modelIngest: () => process.env.AI_MODEL_INGEST ?? 'deepseek/deepseek-v4-flash-0731',
   siteUrl: () => process.env.SITE_URL ?? 'https://1ed.ge',
 }
