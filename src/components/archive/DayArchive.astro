@@ -150,8 +150,9 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
       <section class="mt-10">
         <h2 class="text-lg">/ habits</h2>
         <div class="mt-3 flex flex-wrap gap-2">
-          {habits.map((h) => {
-            const done = (d.habits ?? {})[h.id] === true
+          {activeHabits.map((h) => {
+            const val = (d.habits ?? {})[h.id]
+            const done = val === true || (typeof val === 'number' && val > 0)
             return (
               <span class="flex items-center gap-2 border px-3 py-1.5 text-[13px]" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
                 {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
