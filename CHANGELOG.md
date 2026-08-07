@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`src/lib/strip.ts`** — single source of truth for every market phrase the site
   speaks (homepage strip, footer, live ticker). Precomputes absolute-time narrative
   segments per market (CME Globex / Tokyo TSE / London LSE / New York NYSE) with
-  conversational countdown phrases (`CME Globex open · maintenance in`,
-  `Tokyo on lunch break · back in`, `London opens in`, …) plus `fmtHuman` durations
-  (`3h 12m` / `1d 03:00`). The browser only picks the segment containing "now" and
-  ticks — no phrase logic duplicated client-side.
+  conversational countdown phrases (`open · maintenance in`, `on lunch break ·
+  back in`, `is live · closing in`, `opens in`, …) plus `fmtHuman` durations
+  (`3h 12m` / `1d 03:00`). **Phrases are name-less on purpose** — the surface
+  supplies the market name so rows never read "New York · NYSE New York opens in".
+  The browser only picks the segment containing "now" and ticks — no phrase logic
+  duplicated client-side.
 - **Correct market terminology** — the market is **CME Globex** (equity-index
   futures), never "MNQ futures" as a market name (MNQ is the Micro E-mini
   Nasdaq-100 *ticker*, not a market). Widget row + footer + live ticker all say
@@ -38,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ticking countdowns + session windows from `daySessionWindows(today)` (fixes TSE
   `08:00–10:30` lunch-break window bug, CME hardcoded `~24h` → `halt 05:00–06:00`),
   next-event + speaker lines with countdowns, news in `<details>` via `NewsBlock`.
+  The stacked 24h multi-market bar + country legend are gone — replaced by a single
+  hairline day-ruler (00–24 ticks + now-marker); the rows carry all session info
+  (no legend to squint at, no repeated country names).
 - **`MarketLive.astro`** (footer/ambient live marker) now speaks the CME Globex
   narrative (`● CME Globex open · maintenance in 3h 12m` / `◐ CME Globex on
   maintenance · back in` / `✕ CME Globex closed · reopens in 1d 03:00`) from the
@@ -47,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   words "red"/"orange" in the UI; severity is shown by the dot color.
 - `MarketWidget` CME row label + legend: "MNQ futures" / "futures closed" →
   "CME Globex" / "CME Globex maintenance".
+- **TSE afternoon session corrected to 15:30 JST** (was 15:00) — the day window
+  now reads `08:00–14:30` HKT; the lunch break and resumption countdowns follow.
 
 ### Added (Stream System — Phase 3: Public surfaces, first chunks)
 - **Homepage de-cockpitted** — `/` is now an SSR page: permanent intro hero

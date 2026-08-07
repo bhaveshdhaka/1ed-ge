@@ -21,18 +21,24 @@ Live: homepage has the market narrative strip + rich footer, `/stream`,
 - **The context-aware market narrative strip (the PENDING chunk, done).** New
   `src/lib/strip.ts` is the SINGLE source of truth for every conversational market
   phrase (homepage strip, site-wide footer, live ticker) — precomputed absolute-time
-  segments per market (`CME Globex open · maintenance in`, `Tokyo on lunch break ·
-  back in`, `London opens in`, …), `fmtHuman` durations, next-event + `{Name}
-  speaking` lines (speakers matched from red/orange titles only). New
-  `MarketFooter.astro` on every public page (condensed master-line + per-band
-  transitions + news countdown + speaker, expandable `<details>` for the full
-  narrative + `NewsBlock`). `MarketWidget` reworked onto segments + `daySessionWindows`
-  (fixes TSE lunch window bug, CME `~24h` hardcode) and embedded under the `/` hero
-  with a trader-live moniker. New `NewsBlock.astro` (dot severity — NO words
-  red/orange — time, title, `[TV]`/`[FF]`, `✦`). `newsHeadline()` added. Calendar +
-  day-page news blocks swapped. **Terminology corrected:** the market is **CME
-  Globex** (equity-index futures), never "MNQ futures" — MNQ is the Micro E-mini
-  Nasdaq-100 ticker, not a market. Commit to be added below once pushed.
+  segments per market (`open · maintenance in`, `on lunch break · back in`,
+  `opens in`, …), `fmtHuman` durations, next-event + `{Name} speaking` lines
+  (speakers matched from red/orange titles only). New `MarketFooter.astro` on every
+  public page (condensed master-line + per-band transitions + news countdown +
+  speaker, expandable `<details>` for the full narrative + `NewsBlock`).
+  `MarketWidget` reworked onto segments + `daySessionWindows` and embedded under
+  the `/` hero with a trader-live moniker. New `NewsBlock.astro` (dot severity —
+  NO words red/orange — time, title, `[TV]`/`[FF]`, `✦`). `newsHeadline()` added.
+  Calendar + day-page news blocks swapped. **Terminology corrected:** the market is
+  **CME Globex** (equity-index futures), never "MNQ futures" — MNQ is the Micro
+  E-mini Nasdaq-100 ticker, not a market.
+- **Follow-up polish (2 commits, done):** (a) name-less phrases — `strip.ts`
+  phrases carry NO market name; surfaces supply it (`CME Globex ` prefix on the
+  footer master line + `MarketLive`; rows already show the name). Fixes the mobile
+  "New York · NYSE New York opens in" doubling. (b) the stacked 24h bar + country
+  legend are deleted from `MarketWidget` — replaced by a single hairline day-ruler
+  (00–24 ticks + now-marker); rows carry all session info. (c) **TSE afternoon
+  close corrected to 15:30 JST** (was 15:00) → day window now `08:00–14:30` HKT.
 - `90283c0` — homepage de-cockpit: `/` = SSR hero + today facts + today's stream.
   Killed the cockpit mirror (rails/quotes/self-talk) from `/`. New `src/lib/stream.ts`
   (`resolveMoments`, `flattenStream`, `dayFacts`, `momentMeta`),
@@ -242,6 +248,17 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-07 — **Context-aware market narrative strip, live.** New `src/lib/strip.ts`
+  = single source of every conversational market phrase (homepage `MarketWidget`,
+  site-wide `MarketFooter`, `MarketLive` ticker). Precomputed absolute-time segments
+  (`open · maintenance in`, `on lunch break · back in`, `opens in`, …) + `fmtHuman`;
+  browser only ticks. **Name-less phrases** — surfaces supply the market name (no
+  "New York · NYSE New York opens in"). **CME Globex** is the market name (MNQ is a
+  ticker, not a market). New `NewsBlock.astro` (dot severity, no words red/orange,
+  `[TV]`/`[FF]`, `✦`); `newsHeadline()`; calendar/cockpit news swapped. `MarketWidget`
+  bar+legend → single hairline day-ruler. **TSE afternoon close corrected to 15:30
+  JST** → window `08:00–14:30` HKT. Homepage: hero → strip → today → stream w/
+  trader-live moniker. Commits `0173d95` `ee854a4` `338a7b8`, deployed + verified live.
 - 2026-08-07 — **Stream System public surfaces + CME master-clock, live.**
   (a) **Homepage de-cockpitted**: `/` = SSR intro hero + today facts + today's
   stream; the cockpit mirror (rails, buffet/collier quotes, self-talk) is gone
