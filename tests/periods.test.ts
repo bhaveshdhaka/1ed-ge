@@ -2,14 +2,14 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { periodRange, periodTypeFromSlug, isoFromAnchor, periodAnchor, periodRangesBetween } from '../src/lib/periods'
 
-test('week = Mon–Sun containing the date', () => {
-  // 2026-08-07 is a Friday; Mon 03-aug → Sun 09-aug
+test('week = Mon–Fri trading week containing the date', () => {
+  // 2026-08-07 is a Friday; Mon 03-aug → Fri 07-aug
   const w = periodRange('week', '2026-08-07')
   assert.equal(w.startIso, '2026-08-03')
-  assert.equal(w.endIso, '2026-08-09')
-  assert.equal(w.label, 'week 32')          // verify: ISO week number of 2026-08-03 — adjust to the computed value
+  assert.equal(w.endIso, '2026-08-07')
+  assert.equal(w.label, 'week 32')
   assert.equal(w.anchor, '2026-32')
-  assert.equal(w.prev.endIso, '2026-08-02')
+  assert.equal(w.prev.endIso, '2026-07-31')
   assert.equal(w.next.startIso, '2026-08-10')
 })
 test('month boundaries', () => {
@@ -76,21 +76,21 @@ test('week anchor uses the ISO week year at year boundaries', () => {
   // last Mon–Wed of Dec falling in ISO week 1 of the next year
   const wDec = periodRange('week', '2025-12-29')
   assert.equal(wDec.startIso, '2025-12-29')
-  assert.equal(wDec.endIso, '2026-01-04')
+  assert.equal(wDec.endIso, '2026-01-02')
   assert.equal(wDec.anchor, '2026-01')
   assert.equal(wDec.label, 'week 1')
-  // first Fri–Sun of Jan falling in week 52/53 of the previous year
+  // first Fri of Jan falling in week 52/53 of the previous year
   const wJan = periodRange('week', '2027-01-01')
   assert.equal(wJan.startIso, '2026-12-28')
-  assert.equal(wJan.endIso, '2027-01-03')
+  assert.equal(wJan.endIso, '2027-01-01')
   assert.equal(wJan.anchor, '2026-53')
   assert.equal(wJan.label, 'week 53')
 })
 test('isoFromAnchor round-trips year-boundary weeks', () => {
-  // week 1 of 2026 = Mon 2025-12-29 .. Sun 2026-01-04
+  // week 1 of 2026 = Mon 2025-12-29 .. Fri 2026-01-02
   assert.equal(isoFromAnchor('week', '2026-01'), '2025-12-29')
   assert.equal(periodRange('week', isoFromAnchor('week', '2026-01')).anchor, '2026-01')
-  // week 53 of 2026 = Mon 2026-12-28 .. Sun 2027-01-03
+  // week 53 of 2026 = Mon 2026-12-28 .. Fri 2027-01-01
   assert.equal(isoFromAnchor('week', '2026-53'), '2026-12-28')
   assert.equal(periodRange('week', isoFromAnchor('week', '2026-53')).anchor, '2026-53')
 })

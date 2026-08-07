@@ -97,7 +97,10 @@ export function periodRange(type: PeriodType, representativeIso: string): Period
       const thu = new Date(parseIso(start).getTime() + 3 * DAY_MS)
       const isoYear = thu.getUTCFullYear()
       const weekNo = isoWeekNumber(start)
-      return base(start, addDays(start, 6), `${isoYear}-${pad(weekNo)}`, `week ${weekNo}`, weekNo)
+      // Trading week = Mon–Fri only (owner-locked): weekend day records fall
+      // outside every week and flow into month/quarter reviews. prev/next still
+      // step by 7 days so consecutive weeks tile the calendar without gaps.
+      return base(start, addDays(start, 4), `${isoYear}-${pad(weekNo)}`, `week ${weekNo}`, weekNo)
     }
     case 'month': {
       const start = `${y}-${pad(m)}-01`
