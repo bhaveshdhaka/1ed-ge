@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
       const data: Record<string, unknown> = {
         name: String(body.name ?? s),
         ...(body.premise ? { premise: String(body.premise) } : {}),
-        rules: Array.isArray(body.rules) ? body.rules.map(String).filter((r) => r.trim()) : [],
+        rules: Array.isArray(body.rules) ? body.rules.map(String).filter((r: string) => r.trim()) : [],
         status: ['active', 'paused', 'retired'].includes(String(body.status)) ? String(body.status) : 'active',
         order: Number(body.order ?? 0),
       }
