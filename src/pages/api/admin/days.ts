@@ -7,6 +7,7 @@ export const prerender = false
 
 const STAGES = ['eval', 'buffer', 'payout', 'failed', 'paused']
 const SESSIONS = ['', 'asia', 'london', 'ny-am', 'ny-pm', 'ny']
+const MOMENT_TYPES = ['pre-market', 'post-market', 'trade', 'note', 'quote', 'media']
 
 function num(v: unknown): number | null {
   const n = typeof v === 'number' ? v : typeof v === 'string' ? parseFloat(v) : NaN
@@ -37,6 +38,8 @@ function normalizeTrade(t: Record<string, any>, i: number) {
     points,
     ...(confidence !== null ? { confidence: Math.max(1, Math.min(5, confidence)) } : {}),
     ...(t.note ? { note: String(t.note) } : {}),
+    ...(typeof t.model === 'string' && t.model.trim() ? { model: String(t.model).trim() } : {}),
+    ...(typeof t.commentary === 'string' && t.commentary.trim() ? { commentary: String(t.commentary).trim() } : {}),
     screenshots: Array.isArray(t.screenshots) ? t.screenshots.filter((s: unknown) => typeof s === 'string') : [],
     executions: Array.isArray(t.executions)
       ? t.executions
@@ -48,6 +51,27 @@ function normalizeTrade(t: Record<string, any>, i: number) {
           }))
       : [],
   }
+}
+
+function normalizeMoment(m: Record<string, any>): Record<string, any> | null {
+  const type = MOMENT_TYPES.includes(String(m.type)) ? String(m.type) : ''
+  if (!type) return null
+  const at = /^\d{2}:\d{2}$/.test(String(m.at ?? '')) ? String(m.at) : '00:00'
+  const out: Record<string, any> = { at, type }
+  if (typeof m.text === 'string' && m.text.trim()) out.text = m.text.trim()
+  if (m.tradeIdx != null) {
+    const ti = Number(m.tradeIdx)
+    if (Number.isInteger(ti) && ti >= 0) out.tradeIdx = ti
+  }
+  if (typeof m.media === 'string' && m.media.trim()) out.media = m.media.trim()
+  if (typeof m.author === 'string' && m.author.trim()) out.author = m.author.trim()
+  return out
+}
+
+function normalizeMoments(v: unknown): Record<string, any>[] {
+  return Array.isArray(v)
+    ? v.map((m) => normalizeMoment(m as Record<string, any>)).filter((m): m is Record<string, any> => m !== null)
+    : []
 }
 
 export const GET: APIRoute = async ({ request }) => {
@@ -62,12 +86,16 @@ export const GET: APIRoute = async ({ request }) => {
     const data = readEntry('habits', f).data as Record<string, unknown>
     return { slug: f.replace(/\.md$/, ''), name: data.name ?? f, emoji: data.emoji ?? '', color: data.color ?? '#4ade80' }
   })
+  const models = listMds('models').map((f) => {
+    const data = readEntry('models', f).data as Record<string, unknown>
+    return { slug: f.replace(/\.md$/, ''), name: String(data.name ?? f) }
+  })
   if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
     let day: Record<string, unknown> | null = null
     if (listMds('days').includes(`${date}.md`)) {
       day = readEntry('days', `${date}.md`).data
     }
-    return json({ ok: true, day, accounts, habits })
+    return json({ ok: true, day, accounts, habits, models })
   }
   const days = listMds('days')
     .map((f) => {
@@ -75,7 +103,7 @@ export const GET: APIRoute = async ({ request }) => {
       return { file: f, date: String(data.date ?? ''), mood: data.mood ?? null, trades: (data.trades as unknown[])?.length ?? 0 }
     })
     .sort((a, b) => b.date.localeCompare(a.date))
-  return json({ ok: true, days, accounts, habits })
+  return json({ ok: true, days, accounts, habits, models })
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -95,6 +123,14 @@ export const POST: APIRoute = async ({ request }) => {
   const trades = Array.isArray(body.trades)
     ? body.trades.map(normalizeTrade).filter((t: unknown): t is NonNullable<ReturnType<typeof normalizeTrade>> => t !== null)
     : []
+
+  const stream = normalizeMoments(body.stream)
+  const draft: Record<string, unknown> = {}
+  if (typeof body.draft?.reflection === 'string' && body.draft.reflection.trim()) {
+    draft.reflection = body.draft.reflection.trim()
+  }
+  const draftMoments = normalizeMoments(body.draft?.moments)
+  if (draftMoments.length) draft.moments = draftMoments
 
   const data: Record<string, unknown> = {
     date,
@@ -122,10 +158,12 @@ export const POST: APIRoute = async ({ request }) => {
         }
       : {}),
     trades,
+    ...(stream.length ? { stream } : {}),
+    ...(Object.keys(draft).length ? { draft } : {}),
   }
 
   writeEntry('days', `${date}.md`, data, '')
-  const detail = `${trades.length} trade${trades.length === 1 ? '' : 's'}` + (mood !== null ? ` · mood ${mood}` : '') + (deviceScreens.length ? ' · screen-time' : '')
+  const detail = `${trades.length} trade${trades.length === 1 ? '' : 's'}` + (mood !== null ? ` · mood ${mood}` : '') + (deviceScreens.length ? ' · screen-time' : '') + (stream.length ? ` · ${stream.length} moment${stream.length === 1 ? '' : 's'}` : '') + (Object.keys(draft).length ? ' · draft' : '')
   addChange('day', `day ${date}`, detail)
   return json({ ok: true, file: `${date}.md`, trades: trades.length })
 }

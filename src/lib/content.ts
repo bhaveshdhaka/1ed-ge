@@ -6,7 +6,17 @@ export const ROOT = process.cwd()
 export const CONTENT = path.join(ROOT, 'src/content')
 export const MEDIA = path.join(ROOT, 'public/media')
 
-export type Kind = 'days' | 'accounts' | 'payouts' | 'coach' | 'journal' | 'habits' | 'brief'
+export type Kind =
+  | 'days'
+  | 'accounts'
+  | 'payouts'
+  | 'coach'
+  | 'journal'
+  | 'habits'
+  | 'brief'
+  | 'models'
+  | 'rules'
+  | 'quotes'
 
 const DIRS: Record<Kind, string> = {
   days: 'days',
@@ -16,6 +26,9 @@ const DIRS: Record<Kind, string> = {
   journal: 'journal',
   habits: 'habits',
   brief: 'brief',
+  models: 'models',
+  rules: 'rules',
+  quotes: 'quotes',
 }
 
 export const dirOf = (kind: Kind) => path.join(CONTENT, DIRS[kind])
