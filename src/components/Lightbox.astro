@@ -1,0 +1,47 @@
+---
+/** One native <dialog> lightbox, shared by every Base page. Zero deps. The site's single zero-JS exception. */
+---
+
+<dialog id="lb" class="lb">
+  <button type="button" data-lb-close class="lb-btn lb-close" aria-label="close">×</button>
+  <div class="lb-body"></div>
+  <button type="button" data-lb-prev class="lb-btn lb-prev" aria-label="previous">‹</button>
+  <button type="button" data-lb-next class="lb-btn lb-next" aria-label="next">›</button>
+</dialog>
+
+<script is:inline>
+  (() => {
+    const dlg = document.getElementById('lb')
+    if (!dlg) return
+    const body = dlg.querySelector('.lb-body')
+    const links = Array.from(document.querySelectorAll('[data-lb]'))
+    if (!links.length) return
+    let group: HTMLAnchorElement[] = []
+    let idx = 0
+    const show = (i: number) => {
+      idx = (i + group.length) % group.length
+      const src = group[idx].getAttribute('href') ?? ''
+      const alt = group[idx].querySelector('img')?.getAttribute('alt') ?? ''
+      body.innerHTML = ''
+      const im = new Image()
+      im.src = src
+      im.alt = alt
+      body.appendChild(im)
+    }
+    dlg.querySelector('[data-lb-close]')?.addEventListener('click', () => dlg.close())
+    dlg.querySelector('[data-lb-prev]')?.addEventListener('click', () => show(idx - 1))
+    dlg.querySelector('[data-lb-next]')?.addEventListener('click', () => show(idx + 1))
+    document.addEventListener('click', (e) => {
+      const a = (e.target as HTMLElement).closest('[data-lb]') as HTMLAnchorElement | null
+      if (!a) return
+      e.preventDefault()
+      const g = a.getAttribute('data-lb') ?? ''
+      group = links.filter((l) => l.getAttribute('data-lb') === g)
+      show(group.indexOf(a))
+      dlg.showModal()
+    })
+    dlg.addEventListener('click', (e) => {
+      if (e.target === dlg) dlg.close()
+    })
+  })()
+</script>

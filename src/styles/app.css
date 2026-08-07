@@ -447,3 +447,44 @@
 .prose td {
   @apply border border-line px-3 py-1.5 text-left;
 }
+
+/* ---- lightbox (native <dialog>, the site's single zero-JS exception) ---- */
+.lb {
+  border: 1px solid var(--color-line);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  padding: 0;
+  max-width: min(92vw, 1200px);
+  max-height: 90vh;
+}
+.lb::backdrop {
+  background: rgba(7, 8, 12, 0.85);
+}
+.lb-body img {
+  display: block;
+  max-width: min(92vw, 1200px);
+  max-height: 86vh;
+  width: auto;
+  height: auto;
+}
+.lb-btn {
+  position: absolute;
+  top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--color-line2);
+  background: var(--color-bg);
+  color: var(--color-dim);
+  font-size: 1rem;
+  cursor: pointer;
+}
+.lb-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.lb-close { right: 0.5rem; }
+.lb-prev { left: 0.5rem; top: 50%; transform: translateY(-50%); }
+.lb-next { right: 0.5rem; top: 50%; transform: translateY(-50%); }
