@@ -1,8 +1,13 @@
 ---
 import Base from '../../layouts/Base.astro'
 import { getCollection } from 'astro:content'
-import type { CollectionEntry } from 'astro:content'
 import { fmtDay } from '../../lib/dates'
+import Card from '../../components/ui/Card.astro'
+import Badge from '../../components/ui/Badge.astro'
+import Tag from '../../components/ui/Tag.astro'
+import EmptyState from '../../components/ui/EmptyState.astro'
+import Icon from '../../components/ui/Icon.astro'
+import Separator from '../../components/ui/Separator.astro'
 
 const journal = (await getCollection('journal')).sort((a, b) => b.data.date.localeCompare(a.data.date))
 const days = await getCollection('days')
@@ -14,35 +19,22 @@ const monthLabel = (m: string) => {
   return `${names[parseInt(mo, 10) - 1]} ${y}`
 }
 
-const dayText = (d: CollectionEntry<'days'>['data'] | undefined) => {
-  if (!d) return ''
-  const p: string[] = []
-  if (d.mood) p.push(`mood ${d.mood}/5`)
-  if (d.sleep?.hours !== undefined) p.push(`sleep ${d.sleep.hours}h quality ${d.sleep.quality ?? ''}/5`)
-  if (d.device) {
-    p.push(`phone screen ${d.device.iphoneHours ?? ''}h social ${d.device.socialHours ?? ''}h mac ${d.device.macHours ?? ''}h`)
-    if (d.device.notes) p.push(d.device.notes)
-  }
-  for (const t of d.trades ?? []) {
-    p.push(`${t.market} ${t.direction} ${t.session ?? ''} ${t.setup ?? ''} entry ${t.entry} exit ${t.exit} stop ${t.stop ?? ''} points ${t.points} risk ${t.riskPoints ?? ''}`)
-    if (t.note) p.push(t.note)
-    for (const e of t.executions ?? []) p.push(`account ${e.account} size ${e.size ?? 1}`)
-  }
-  return p.join(' ')
-}
+const excerpt = (body: string) => body.replace(/[#*`>\-\[\]()]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 600)
 
 const index = journal.map((j) => {
   const day = dayByDate.get(j.data.date)
+  const summary = j.data.summary ?? ''
+  const tags = j.data.tags ?? []
   return {
     id: j.id,
     date: j.data.date,
     title: j.data.day ?? j.data.date,
-    summary: j.data.summary ?? '',
-    tags: j.data.tags ?? [],
-    trades: (day?.trades ?? []).length,
+    summary,
+    tags,
     mood: day?.mood ?? null,
-    meta: [j.data.date, j.data.summary ?? '', (j.data.tags ?? []).join(' '), dayText(day)].join(' '),
-    body: j.body ?? '',
+    trades: (day?.trades ?? []).length,
+    meta: [j.data.date, j.data.day ?? '', summary, tags.join(' ')].join(' '),
+    body: excerpt(j.body ?? ''),
   }
 })
 
@@ -62,23 +54,28 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
 <Base title="journal — 1ed.ge" description="The daily trading journal — the thinking, the sessions, the misses, the lessons. Everything public.">
   <section class="shell pt-12 pb-20">
     <div class="flex flex-wrap items-baseline gap-3">
-      <h1 class="text-2xl">/ journal</h1>
-      <span id="journal-count" class="text-[12px] text-faint">{journal.length} entries</span>
+      <h1 class="text-2xl text-ink">/ journal</h1>
+      <span id="journal-count" class="text-2xs text-faint">{journal.length} entries</span>
     </div>
 
-    <div class="mt-8 flex max-w-3xl flex-col gap-3">
+    <div class="mt-8 flex max-w-2xl flex-col gap-3">
       <form class="flex gap-2" role="search" onsubmit="return false">
-        <input
-          type="search"
-          id="journal-q"
-          placeholder="search title, tags, text, date…  ( / to focus )"
-          class="input flex-1"
-          aria-label="search journal"
-          autocomplete="off"
-        />
+        <div class="relative flex-1">
+          <span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-faint">
+            <Icon name="search" size={14} />
+          </span>
+          <input
+            type="search"
+            id="journal-q"
+            placeholder="search title, tags, text, date…  ( / to focus )"
+            class="input pl-8"
+            aria-label="search journal"
+            autocomplete="off"
+          />
+        </div>
         <button type="button" id="search-clear" class="btn shrink-0 hidden">clear</button>
       </form>
-      <label class="flex items-center gap-2 text-[12px] text-dim">
+      <label class="flex items-center gap-2 text-2xs text-dim">
         <span class="text-faint">jump to day:</span>
         <input type="date" class="input w-40" onchange="window.__jumpDay && window.__jumpDay(this.value)" />
       </label>
@@ -94,39 +91,45 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
       </div>
     </div>
 
-    <div id="journal-list" class="mt-10 max-w-3xl">
-      {groups.map((g) => (
+    <div id="journal-list" class="mt-10 max-w-2xl">
+      {groups.map((g, gi) => (
         <div id={`m-${g.month}`} class="scroll-mt-16">
-          <div class="-mx-1 px-1 py-1 text-[11px] uppercase tracking-widest text-dim">
+          {gi > 0 && <Separator class="my-8" />}
+          <div class="mb-3 flex items-baseline gap-2 text-2xs uppercase tracking-widest text-dim">
             {monthLabel(g.month)} <span class="text-faint">· {g.entries.length}</span>
           </div>
-          {g.entries.map((j) => (
-            <a href={`/day/${fmtDay(j.data.date)}`} class="group block border-b border-line/70 py-6 first:pt-4">
-              <div class="flex items-baseline justify-between gap-4">
-                <div class="flex items-baseline gap-3">
-                  <span class="text-[12px] text-faint">{String(journal.length - (numById.get(j.id) ?? 0)).padStart(2, '0')}</span>
-                  <span class="text-[15px] text-ink group-hover:text-accent">{j.data.day ?? j.data.date}</span>
-                </div>
-                <span class="shrink-0 text-[12px] text-dim">{j.data.date}</span>
-              </div>
-              {j.data.summary && <p class="mt-2 text-[13px] leading-relaxed text-dim">{j.data.summary}</p>}
-              <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-                {(dayByDate.get(j.data.date)?.trades?.length ?? 0) > 0 && (
-                  <span class="tag text-up">{dayByDate.get(j.data.date)!.trades!.length} trades</span>
-                )}
-                {dayByDate.get(j.data.date)?.mood && <span class="tag">mood {dayByDate.get(j.data.date)!.mood}/5</span>}
-                {j.data.tags?.map((t) => <span class="tag">#{t}</span>)}
-              </div>
-            </a>
-          ))}
+          <div class="flex flex-col gap-3">
+            {g.entries.map((j) => {
+              const day = dayByDate.get(j.data.date)
+              const trades = (day?.trades ?? []).length
+              const mood = day?.mood ?? null
+              return (
+                <a href={`/day/${fmtDay(j.data.date)}`} class="group block">
+                  <Card pad="sm" class="transition-colors hover:border-accent">
+                    <div class="flex items-baseline justify-between gap-4">
+                      <div class="flex items-baseline gap-3">
+                        <span class="text-2xs text-faint tabular-nums">{String(journal.length - (numById.get(j.id) ?? 0)).padStart(2, '0')}</span>
+                        <span class="text-sm text-ink transition-colors group-hover:text-accent">{j.data.day ?? j.data.date}</span>
+                      </div>
+                      <span class="shrink-0 text-2xs text-dim tabular-nums">{j.data.date}</span>
+                    </div>
+                    {j.data.summary && <p class="mt-2 text-xs leading-relaxed text-dim">{j.data.summary}</p>}
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                      {trades > 0 && <Badge variant="up">{trades} trades</Badge>}
+                      {mood && <Badge>mood {mood}/5</Badge>}
+                      {j.data.tags?.map((t) => <Tag>#{t}</Tag>)}
+                    </div>
+                  </Card>
+                </a>
+              )
+            })}
+          </div>
         </div>
       ))}
-      {journal.length === 0 && (
-        <p class="text-[13px] text-faint">no entries yet — the journal starts when the trading does.</p>
-      )}
+      {journal.length === 0 && <EmptyState text="no entries yet — the journal starts when the trading does." />}
     </div>
 
-    <div id="search-results" class="mt-10 max-w-3xl hidden"></div>
+    <div id="search-results" class="mt-10 max-w-2xl hidden"></div>
 
     <button id="back-top" class="fixed bottom-6 right-6 z-20 hidden h-10 w-10 items-center justify-center border border-line bg-panel text-dim transition-colors hover:border-accent hover:text-ink" aria-label="back to top">
       ↑
@@ -189,13 +192,13 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
       <a href="/day/${fmt(e.date)}" class="group block border-b border-line/70 py-6">
         <div class="flex items-baseline justify-between gap-4">
           <div class="flex items-baseline gap-3">
-            <span class="text-[12px] text-faint">${String(i + 1).padStart(2, '0')}</span>
-            <span class="text-[15px] text-ink group-hover:text-accent">${escHtml(e.title)}</span>
+            <span class="text-2xs text-faint">${String(i + 1).padStart(2, '0')}</span>
+            <span class="text-sm text-ink group-hover:text-accent">${escHtml(e.title)}</span>
           </div>
-          <span class="shrink-0 text-[12px] text-dim">${escHtml(e.date)}</span>
+          <span class="shrink-0 text-2xs text-dim">${escHtml(e.date)}</span>
         </div>
-        ${e.summary ? `<p class="mt-2 text-[13px] leading-relaxed text-dim">${escHtml(e.summary)}</p>` : ''}
-        <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+        ${e.summary ? `<p class="mt-2 text-xs leading-relaxed text-dim">${escHtml(e.summary)}</p>` : ''}
+        <div class="mt-2 flex flex-wrap items-center gap-2">
           ${e.trades > 0 ? '<span class="tag text-up">' + e.trades + ' trades</span>' : ''}
           ${e.mood ? '<span class="tag">mood ' + e.mood + '/5</span>' : ''}
           ${(e.tags || []).map((t) => '<span class="tag">#' + escHtml(t) + '</span>').join('')}
@@ -217,7 +220,7 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
       if (hits.length) {
         results.innerHTML = hits.map((e, i) => item(e, i)).join('')
       } else {
-        results.innerHTML = '<p class="text-[13px] text-faint">no entries match &ldquo;' + escHtml(term.trim()) + '&rdquo;.</p>'
+        results.innerHTML = '<p class="text-xs text-faint">no entries match &ldquo;' + escHtml(term.trim()) + '&rdquo;.</p>'
       }
       count.textContent = hits.length + ' of ' + index.length + ' entries'
     }
