@@ -25,6 +25,7 @@ test('flatten: one trade + executions -> per-account rows', () => {
         points: 12,
         riskPoints: 5.5,
         executions: [{ account: 'lucid-50k-a', size: 1 }],
+        screenshots: [],
       },
     ]),
   ]
@@ -62,6 +63,7 @@ test('flatten: zero-risk trade -> R 0', () => {
         points: 4,
         riskPoints: 0,
         executions: [{ account: 'lucid-50k-a', size: 1 }],
+        screenshots: [],
       },
     ]),
   ]
@@ -81,6 +83,7 @@ test('flatten: stop-based risk fallback when riskPoints absent', () => {
         exit: 104,
         points: 4,
         executions: [{ account: 'lucid-50k-a', size: 1 }],
+        screenshots: [],
       },
     ]),
   ]
@@ -104,6 +107,7 @@ test('flatten: two executions on one trade -> two rows, per-account pnl', () => 
           { account: 'lucid-50k-a', size: 1 },
           { account: 'tpt-25k-a', size: 2 },
         ],
+        screenshots: [],
       },
     ]),
   ]
@@ -130,6 +134,7 @@ test('flatten: executions without an account map fall back to defaults', () => {
         points: 2,
         riskPoints: 1,
         executions: [{ account: '__unlogged__', size: 1 }],
+        screenshots: [],
       },
     ]),
   ]
