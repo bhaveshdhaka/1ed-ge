@@ -6,8 +6,9 @@ import { DayWorkspace } from './tabs/DayWorkspace'
 import { AccountsTab } from './tabs/AccountsTab'
 import { CoachTab } from './tabs/CoachTab'
 import { MediaTab } from './tabs/MediaTab'
+import { LibraryTab } from './tabs/LibraryTab'
 
-export type Tab = 'overview' | 'day' | 'accounts' | 'coach' | 'media'
+export type Tab = 'overview' | 'day' | 'accounts' | 'coach' | 'media' | 'library'
 
 const TABS: { id: Tab; label: string; key: string }[] = [
   { id: 'overview', label: 'overview', key: '1' },
@@ -15,10 +16,11 @@ const TABS: { id: Tab; label: string; key: string }[] = [
   { id: 'accounts', label: 'accounts', key: '3' },
   { id: 'coach', label: 'coach', key: '4' },
   { id: 'media', label: 'media', key: '5' },
+  { id: 'library', label: 'library', key: '6' },
 ]
 
 const SHORTCUTS: { keys: string; desc: string }[] = [
-  { keys: '1 … 5', desc: 'switch tabs' },
+  { keys: '1 … 6', desc: 'switch tabs' },
   { keys: '⌘S / Ctrl+S', desc: 'save the day' },
   { keys: '⌘⇧S / Ctrl+Shift+S', desc: 'save & rebuild' },
   { keys: '⌘← / ⌘→', desc: 'previous / next day' },
@@ -158,6 +160,7 @@ export default function AdminApp({ secret }: { secret: string }) {
         {tab === 'accounts' && <AccountsTab notify={notify} />}
         {tab === 'coach' && <CoachTab notify={notify} />}
         {tab === 'media' && <MediaTab notify={notify} />}
+        {tab === 'library' && <LibraryTab notify={notify} />}
       </main>
 
       {toast && (
