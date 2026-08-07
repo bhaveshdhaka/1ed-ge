@@ -21,14 +21,82 @@ function mulberry32(a) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
 }
-const rand = mulberry32(20260805)
+const rand = mulberry32(20260807)
 const ri = (a, b) => a + Math.floor(rand() * (b - a + 1))
 const rf = (a, b) => a + rand() * (b - a)
 const pick = (arr) => arr[Math.floor(rand() * arr.length)]
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
-const roundQ = (v) => Math.round(v * 4) / 4 // 0.25 ticks
+const roundQ = (v) => Math.round(v * 4) / 4
 const r1 = (v) => Math.round(v * 10) / 10
 const fmt = (n) => (n >= 0 ? '+' : '') + r1(n).toFixed(1)
+
+// ---------------------------------------------------------------- US market day (mirror of src/lib/market.ts — keep in sync)
+function isoFromDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+function addDays(d, n) {
+  const x = new Date(d)
+  x.setDate(x.getDate() + n)
+  return x
+}
+function easterSunday(year) {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3)
+  const h = (19 * a + b - d - g + 15) % 30
+  const i = Math.floor(c / 4), k = c % 4
+  const l = (32 + 2 * e + 2 * i - h - k) % 7
+  const m = Math.floor((a + 11 * h + 22 * l) / 451)
+  const month = Math.floor((h + l - 7 * m + 114) / 31)
+  const day = ((h + l - 7 * m + 114) % 31) + 1
+  return new Date(year, month - 1, day)
+}
+function nthWeekday(year, month, weekday, n) {
+  const first = new Date(year, month, 1)
+  const diff = (weekday - first.getDay() + 7) % 7
+  return addDays(first, diff + (n - 1) * 7)
+}
+function lastWeekday(year, month, weekday) {
+  const last = new Date(year, month + 1, 0)
+  const diff = (last.getDay() - weekday + 7) % 7
+  return addDays(last, -diff)
+}
+function observed(d) {
+  const dow = d.getDay()
+  if (dow === 6) return addDays(d, -1)
+  if (dow === 0) return addDays(d, 1)
+  return d
+}
+function holidaysForYear(year) {
+  return [
+    new Date(year, 0, 1),
+    nthWeekday(year, 0, 1, 3),
+    nthWeekday(year, 1, 1, 3),
+    addDays(easterSunday(year), -2),
+    lastWeekday(year, 4, 1),
+    new Date(year, 5, 19),
+    new Date(year, 6, 4),
+    nthWeekday(year, 8, 1, 1),
+    nthWeekday(year, 10, 4, 4),
+    new Date(year, 11, 25),
+  ].map(observed)
+}
+const earlyCloseRules = [
+  (y) => addDays(nthWeekday(y, 10, 4, 4), 1),
+  (y) => new Date(y, 11, 24),
+  (y) => new Date(y, 11, 31),
+]
+function usMarketStatus(iso) {
+  const [y, m, d] = iso.split('-').map(Number)
+  const dt = new Date(y, m - 1, d)
+  const dow = dt.getDay()
+  if (dow === 0 || dow === 6) return 'closed'
+  for (const yy of [y - 1, y, y + 1]) for (const h of holidaysForYear(yy)) if (isoFromDate(h) === iso) return 'closed'
+  for (const rule of earlyCloseRules) {
+    const e = rule(y)
+    if (isoFromDate(e) === iso && e.getDay() !== 0 && e.getDay() !== 6) return 'early'
+  }
+  return 'open'
+}
 
 // ---------------------------------------------------------------- dates
 const START = new Date('2026-08-05T00:00:00Z')
@@ -42,36 +110,43 @@ for (let i = 0; i < DAYS; i++) {
 }
 const dow = (s) => ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date(s + 'T00:00:00Z').getUTCDay()]
 const monthKey = (s) => s.slice(0, 7)
-const yearOf = (s) => s.slice(0, 4)
 
 // ---------------------------------------------------------------- market sim
-const SETUPS = ['ORB', 'pullback', 'breakdown', 'trend-continuation', 'liquidity-grab', 'opening-drive', 'vwap-reclaim']
+const SETUPS = ['ORB', 'opening-drive', 'pullback', 'trend-continuation', 'vwap-reclaim', 'breakdown', 'liquidity-grab']
 const SESSIONS = ['ny-am', 'ny-am', 'ny-am', 'ny-pm', 'ny-pm']
+const MODEL = {
+  ORB: 'orb-drive',
+  'opening-drive': 'orb-drive',
+  pullback: 'pullback-continuation',
+  'trend-continuation': 'pullback-continuation',
+  'vwap-reclaim': 'vwap-reclaim',
+  breakdown: 'liquidity-breakdown',
+  'liquidity-grab': 'liquidity-breakdown',
+}
 let basePrice = 20650
-let regime = 0 // -1..1 hidden market bias
-let form = 0 // trading form, drifts
+let regime = 0
+let form = 0
 
 function nextBasePrice() {
   regime = clamp(regime * 0.94 + rf(-0.14, 0.14), -1, 1)
   basePrice = clamp(basePrice + rf(-38, 40) + regime * 22, 19400, 22800)
 }
 
-const winMultipliers = [0.5, 0.75, 1, 1.5, 1.5, 2, 2, 2.5]
-const lossMultipliers = [1, 1, 1, 1.5, 1.5, 2, 2.5]
+const winMultipliers = [0.75, 1, 1, 1.25, 1.5, 1.5, 1.75, 2]
 
-function genTrade(dayNum) {
+function genTrade() {
   const direction = rand() < 0.5 + regime * 0.25 ? 'long' : 'short'
   const setup = pick(SETUPS)
   const session = pick(SESSIONS)
   const riskPoints = roundQ(rf(4, 12))
-  const win = rand() < 0.54 + clamp(form, -0.12, 0.12) * 0.2
+  const win = rand() < 0.56 + clamp(form, -0.12, 0.12) * 0.2
   let R
   if (win) {
     R = pick(winMultipliers)
-    if (rand() < 0.05) R = rf(3, 4.5) // occasional monster
+    if (rand() < 0.05) R = rf(2.5, 4)
   } else {
-    R = -pick(lossMultipliers)
-    if (rand() < 0.04) R = -rf(3, 4)
+    R = -r1(rf(1, 1.18))
+    if (rand() < 0.02) R = -r1(rf(1.4, 2))
   }
   const entry = roundQ(basePrice + rf(-70, 70))
   const points = roundQ(riskPoints * R)
@@ -82,6 +157,7 @@ function genTrade(dayNum) {
     session,
     direction,
     setup,
+    model: MODEL[setup] ?? 'orb-drive',
     entry,
     stop,
     exit,
@@ -110,12 +186,90 @@ const NOTES = [
   'held through the lunch chop, out on the move',
 ]
 
+const PRE_NOTES = [
+  'news at 8:30 — flat 15 before, no exceptions.',
+  'range is tight, waiting for the drive to pick a side.',
+  'plan: one opening-drive attempt, flat by 11.',
+  'slept badly, halving size today.',
+  'liquidity sweep is the priority, no fades into it.',
+  'keep it boring today. one A setup or none.',
+]
+const NOTE_MOMENTS = [
+  'gave the phone to another room for the session.',
+  'skipped the second trade — not taking the bait.',
+  'small runner, cut it at the close. fine.',
+  'took the stop on the chin and moved on.',
+  'no trades worth taking after lunch.',
+  'reviewed the tape tonight — one bad entry all week.',
+]
+const TRADE_COMMENTARY = [
+  'held the runner to the close — the plan said let it run.',
+  'booked half at 1R, walked the rest.',
+  'stop was the right call, took it without argument.',
+  'scaled in on the confirmation, kept it small.',
+  'second attempt after the sweep — that one was clean.',
+]
+const QUOTES = [
+  'fixed risk, every single time. the size is the rule, not the mood.',
+  'a loss is information, not an insult.',
+  'the trade i did not take is the one i am proudest of.',
+  'flat before news. always.',
+  'if i would not publish it, i do not do it.',
+  'small size until the process is boring.',
+  'log everything, especially the ugly.',
+  'one clean execution beats ten scrambles.',
+]
+
 // ---------------------------------------------------------------- day records
-const HABIT_KEYS = ['quiet-time', 'trade-clean', 'eat-clean', 'write', 'work-out', 'create-art']
+const HABIT_KEYS = [
+  'trade-clean', 'quiet-time', 'work-out', 'eat-clean', 'write', 'create-art',
+  'sleep', 'read', 'no-social-morning', 'review-evening', 'no-news-trades',
+  'meditate', 'plan-before-open', 'stand-up',
+]
+const COUNT_HABITS = { 'work-out': 30, sleep: 7, read: 30, meditate: 10, 'stand-up': 6 }
+
+function genHabits(mood, sleepQuality, weekend, isTradeDay) {
+  const habits = {}
+  for (const h of HABIT_KEYS) {
+    const base = 0.62 + (mood >= 4 ? 0.2 : -0.18) + (sleepQuality >= 4 ? 0.1 : 0)
+    let p = base
+    if (h === 'trade-clean') p = isTradeDay ? 0.55 + (mood >= 4 ? 0.28 : -0.15) : 0.85
+    if (h === 'quiet-time') p = weekend ? 0.5 : 0.55 + (mood >= 4 ? 0.2 : -0.15)
+    if (h === 'work-out') p = mood >= 4 ? 0.55 : 0.3
+    if (h === 'no-news-trades') p = isTradeDay ? 0.75 : 0.9
+    if (h === 'plan-before-open') p = isTradeDay ? 0.6 + (mood >= 4 ? 0.2 : -0.1) : 0.2
+    const done = rand() < clamp(p, 0.08, 0.95)
+    if (COUNT_HABITS[h] !== undefined) {
+      habits[h] = done ? Math.max(1, Math.round(COUNT_HABITS[h] * rf(0.75, 1.15))) : 0
+    } else {
+      habits[h] = done
+    }
+  }
+  return habits
+}
+
+function genStream(d, isTradeDay) {
+  const stream = []
+  if (isTradeDay && rand() < 0.3) {
+    stream.push({ at: '08:20', type: 'pre-market', text: pick(PRE_NOTES) })
+  }
+  if (isTradeDay && d.trades.length && rand() < 0.18) {
+    stream.push({ at: '11:15', type: 'trade', tradeIdx: 0, text: pick(TRADE_COMMENTARY) })
+  }
+  if (d.mood >= 4 && rand() < 0.22) {
+    stream.push({ at: '20:30', type: 'note', text: pick(NOTE_MOMENTS) })
+  }
+  if (rand() < 0.05) {
+    stream.push({ at: '21:00', type: 'quote', text: pick(QUOTES) })
+  }
+  return stream
+}
 
 function genDay(s) {
   const d = dow(s)
   const weekend = d === 'sat' || d === 'sun'
+  const status = usMarketStatus(s)
+  const isTradeDay = !weekend && status !== 'closed'
   nextBasePrice()
 
   const sleepHours = r1(weekend ? rf(5.5, 9.5) : rf(4.6, 8.6))
@@ -124,31 +278,24 @@ function genDay(s) {
   const mood = clamp(baseMood + (weekend ? ri(-1, 1) : 0), 1, 5)
   const goodDay = mood >= 4
 
-  const habits = {}
-  for (const h of HABIT_KEYS) {
-    let p = 0.62 + (goodDay ? 0.2 : -0.18) + (sleepQuality >= 4 ? 0.1 : 0)
-    if (h === 'trade-clean') p = weekend ? 0.85 : 0.5 + (mood >= 4 ? 0.28 : -0.15) + clamp(form, -0.3, 0.3)
-    if (h === 'quiet-time') p = weekend ? 0.5 : 0.55 + (goodDay ? 0.2 : -0.15)
-    if (h === 'work-out') p = goodDay ? 0.55 : 0.3
-    habits[h] = rand() < clamp(p, 0.08, 0.95)
-  }
+  const habits = genHabits(mood, sleepQuality, weekend, isTradeDay)
 
   const iphoneHours = r1(clamp(rf(1.8, 6.5) - goodDay * 1.1 + (sleepQuality <= 2 ? 1.3 : 0), 1.2, 8))
   const socialHours = r1(clamp(iphoneHours * rf(0.28, 0.5), 0.3, 4.5))
   const macHours = r1(weekend ? rf(1.5, 5) : rf(3.5, 7.5))
 
   const trades = []
-  if (!weekend) {
+  if (isTradeDay) {
     const roll = rand()
     let n
-    if (roll < 0.13) n = 0
-    else if (roll < 0.13 + 0.38) n = 1
-    else if (roll < 0.13 + 0.72) n = 2
-    else if (roll < 0.13 + 0.9) n = 3
+    if (roll < 0.15) n = 0
+    else if (roll < 0.15 + 0.4) n = 1
+    else if (roll < 0.15 + 0.7) n = 2
+    else if (roll < 0.15 + 0.88) n = 3
     else n = 4
     if (mood === 5 && rand() < 0.2) n++
     if (mood === 1 && rand() < 0.3) n = 0
-    for (let i = 0; i < n; i++) trades.push(genTrade(0))
+    for (let i = 0; i < n; i++) trades.push(genTrade())
     const won = trades.filter((t) => t.points > 0).length
     const lost = trades.length - won
     form = clamp(form * 0.82 + (trades.length ? (won - lost) / trades.length - 0.5 : 0) * 0.3 + rf(-0.06, 0.06), -0.9, 0.9)
@@ -156,7 +303,9 @@ function genDay(s) {
     form = form * 0.9 + rf(-0.03, 0.03)
   }
 
-  return { date: s, mood, sleep: { hours: sleepHours, quality: sleepQuality }, habits, device: { iphoneHours, socialHours, macHours, notes: pick(DEVICE_NOTES) }, trades }
+  const stream = genStream({ mood, trades }, isTradeDay)
+
+  return { date: s, mood, sleep: { hours: sleepHours, quality: sleepQuality }, habits, device: { iphoneHours, socialHours, macHours, notes: pick(DEVICE_NOTES) }, trades, stream }
 }
 
 const DEVICE_NOTES = [
@@ -183,8 +332,17 @@ const ACCOUNTS_EXTRA = {
   'tpt-25k-b': { firm: 'TakeProfitTrader', size: 25000, sizeLabel: '25k', drawdownLimit: 1000, riskPerTrade: 200 },
   'lucid-50k-b': { firm: 'Lucid', size: 50000, sizeLabel: '50k', drawdownLimit: 2000, riskPerTrade: 200 },
 }
+const ACCOUNT_START = {
+  'lucid-50k-a': '2026-08-05',
+  'lucid-25k-a': '2026-08-05',
+  'tpt-50k-a': '2026-08-05',
+  'tpt-25k-a': '2026-08-05',
+  'tpt-25k-b': '2026-12-06',
+  'lucid-50k-b': '2027-03-01',
+}
+const DOOM_ACCOUNT = 'tpt-25k-a'
+const DOOM_END = '2026-12-05'
 
-// which accounts are active on a given date (for executions)
 function accountsOn(date) {
   const list = ['lucid-50k-a', 'lucid-25k-a', 'tpt-50k-a']
   if (date < '2026-12-06') list.push('tpt-25k-a')
@@ -193,29 +351,83 @@ function accountsOn(date) {
   return list
 }
 
-function executionsFor(date) {
-  const accs = accountsOn(date)
-  const primary = pick(accs)
-  const size = ri(1, 2)
-  const exs = [{ account: primary, size }]
-  if (rand() < 0.35) {
-    const second = pick(accs.filter((a) => a !== primary))
-    exs.push({ account: second, size: ri(1, 2) })
+/** ONE source of truth for executions + lifecycle + payouts. */
+function simulateAccounts(days) {
+  const all = { ...ACCOUNT_BASE, ...ACCOUNTS_EXTRA }
+  const accs = Object.keys(all)
+  const net = {}, peak = {}, stage = {}, stages = {}, failed = {}, paid = {}
+  const execByDate = {}
+  const payouts = []
+  for (const a of accs) {
+    net[a] = 0; peak[a] = 0; stage[a] = 'eval'; paid[a] = 0; failed[a] = null
+    stages[a] = [{ stage: 'eval', from: ACCOUNT_START[a] }]
   }
-  return exs
-}
+  const pnl = (t, size) => t.points * 2 * size
 
-// ---------------------------------------------------------------- payouts
-const PAYOUTS = [
-  { date: '2027-01-05', account: 'lucid-50k-a', amount: 1200, note: 'first payout — 50k clears the buffer target' },
-  { date: '2027-06-18', account: 'lucid-50k-a', amount: 1500, note: 'second payout, consistent 8 weeks' },
-  { date: '2027-09-30', account: 'lucid-50k-a', amount: 1800, note: 'quarterly style, kept risk tight' },
-  { date: '2026-12-10', account: 'tpt-50k-a', amount: 600, note: 'first payout on the 50k' },
-  { date: '2027-05-21', account: 'tpt-50k-a', amount: 900, note: 'second payout after buffer rebuild' },
-  { date: '2027-03-19', account: 'lucid-25k-a', amount: 500, note: '25k hits first buffer payout' },
-  { date: '2027-08-11', account: 'lucid-25k-a', amount: 700, note: '25k payout — consistency over size' },
-  { date: '2027-11-02', account: 'tpt-25k-b', amount: 400, note: 'the rebuild pays out' },
-]
+  for (const d of days) {
+    execByDate[d.date] = []
+    if (!d.trades.length) continue
+    const active = accs.filter((a) => d.date >= ACCOUNT_START[a] && !failed[a])
+    if (!active.length) continue
+    const inDoom = d.date >= ACCOUNT_START[DOOM_ACCOUNT] && d.date <= DOOM_END
+
+    const perTrade = d.trades.map(() => [])
+    for (let i = 0; i < d.trades.length; i++) {
+      const t = d.trades[i]
+      const isLoss = t.points < 0
+      let primary, size
+      if (inDoom && isLoss && rand() < 0.8) {
+        primary = DOOM_ACCOUNT
+        size = ri(2, 3)
+      } else if (inDoom && !isLoss && rand() < 0.12) {
+        primary = DOOM_ACCOUNT
+        size = 1
+      } else {
+        primary = pick(active)
+        size = ri(1, 4)
+      }
+      const exs = [{ account: primary, size }]
+      if (rand() < 0.35) {
+        const second = pick(active.filter((a) => a !== primary))
+        if (second) exs.push({ account: second, size: ri(1, 2) })
+      }
+      perTrade[i] = exs
+      for (const ex of exs) {
+        net[ex.account] += pnl(t, ex.size)
+        peak[ex.account] = Math.max(peak[ex.account], net[ex.account])
+      }
+    }
+    execByDate[d.date] = perTrade
+
+    for (const a of active) {
+      const limit = all[a].drawdownLimit
+      if (!failed[a] && net[a] - peak[a] < -limit) {
+        failed[a] = d.date
+        stages[a].push({ stage: 'failed', from: d.date, to: d.date, note: 'drawdown breach — over-leveraged forced entries' })
+        stage[a] = 'failed'
+        continue
+      }
+      if (stage[a] === 'eval' && net[a] >= limit * 0.5) {
+        stage[a] = 'funded'
+        stages[a].push({ stage: 'funded', from: d.date, note: 'passed eval — half the drawdown limit in profit' })
+      } else if (stage[a] === 'funded' && net[a] >= limit) {
+        stage[a] = 'buffer'
+        stages[a].push({ stage: 'buffer', from: d.date, note: 'buffer built' })
+      } else if (stage[a] === 'buffer' && net[a] >= limit * 1.5) {
+        stage[a] = 'payout'
+        stages[a].push({ stage: 'payout', from: d.date, note: 'payout eligible' })
+      }
+      if (stage[a] === 'payout' && net[a] - paid[a] >= limit * 1.25) {
+        const amount = Math.round(Math.min((net[a] - paid[a] - limit) * 0.25, limit * 0.75) / 100) * 100
+        if (amount >= 250) {
+          paid[a] += amount
+          payouts.push({ date: d.date, account: a, amount, note: 'payout — buffer held' })
+        }
+      }
+    }
+  }
+  return { net, peak, stage, stages, failed, execByDate, payouts, paid }
+}
 
 // ---------------------------------------------------------------- coach
 const COACH_TOPICS = [
@@ -236,13 +448,11 @@ const COACH_REPLY = (topic) =>
   `Here’s what I see in your live data:\n\n1. **${topic}** is showing up in the numbers more than in your head. Tighten one input at a time — risk per trade stays fixed, entries only from your A list, and screen time capped before the open.\n2. **The edge is in the plan, not the P&L.** R tells the story. One clean execution is worth ten scrambles.\n\nQuestion: what’s the single most repeatable action you can take tomorrow that makes this trade run automatically?`
 
 // ---------------------------------------------------------------- journal templates
-// {{day}} {{date}} {{r}} {{trades}} {{setup}} {{mood}} {{sleep}} {{screen}} {{streak}} {{monthR}} {{account}}
 const TEMPLATES = []
-
 const T = (key, title, summary, tags, body) => TEMPLATES.push({ key, title, summary, tags, body })
 
-T('bigwin', 'the A+ setup', 'one trade, held like the plan said, banked the move.',
-  ['wins', 'process', 'or-b'], `I only needed one trade today. {{setup}} long on MNQ, entered exactly where I marked it last night, stop where it stopped making sense, and I let the runner go. Booked {{r}}R across {{trades}} executions and then I closed the platform. No trophy hunting.
+T('bigwin', 'the A+ setup', 'one setup, held like the plan said, banked the move.',
+  ['wins', 'process', 'or-b'], `The day came down to one setup — {{setup}} {{direction}} on MNQ, entered where I marked it last night, stop where it stopped making sense, and I let the runner go. Booked {{r}}R and then I closed the platform. No trophy hunting.
 
 The discipline part isn't the entry — it's the hour after, when the screen keeps begging you to take a second bite. I didn't. The day was done.
 
@@ -256,7 +466,7 @@ The tell was physical — I was still clenched from the first loss when I clicke
 {{mood}}/5 mood, {{sleep}} hours sleep. Both were already telling me not to trade. I logged it here so it costs me something to ignore next time.`)
 
 T('cleanwin', 'process day', 'unexciting, disciplined, in the black.',
-  ['process', 'wins'], `Boring day. One clean {{setup}} in the AM session, +{{r}}R, sized the same as every other day this month. Nothing heroic. That's the point — the unremarkable days are the ones that compound.
+  ['process', 'wins'], `Boring day. One clean {{setup}} in the AM session, {{r}}R, sized the same as every other day this month. Nothing heroic. That's the point — the unremarkable days are the ones that compound.
 
 R is the only number that matters and it's boring to build. Fine by me.`)
 
@@ -289,7 +499,7 @@ T('failed', 'the 25k is gone. here is what killed it', 'full honest post-mortem 
 
 What killed it wasn't one bad day — it was a week of 'just one more' trades after a drawdown started. Three of the last five losses were entries I never would have taken at the start of the run. The plan didn't fail; I stopped following it when it was uncomfortable.
 
-New instance is live ({{newAccount}}). Same rules, and this time I've written the drawdown rule in the frontmatter so the data holds me to it.`)
+New instance is live ({{newAccount}}). Same rules, and this time the drawdown rule is written in the frontmatter so the data holds me to it.`)
 
 T('drawdown', 'the bad stretch', 'a real drawdown, logged while it is happening.',
   ['drawdown', 'mental'], `Eight sessions, mostly red. The curve is doing exactly what curves do when you push a losing streak — it's finding the bottom of my patience.
@@ -298,27 +508,20 @@ The honest check: am I still taking my A setups at the same size? Yes. Am I stil
 
 The plan doesn't work only when it's comfortable. That's the whole point of writing it down.`)
 
-T('milestone', 'day one hundred', 'a hundred days public. the numbers and the truth.',
-  ['milestone', 'meta'], `100 days of this public experiment. Let me be honest about what the data says:
-
-{{r}}R cumulative, {{trades}} trades, and a win rate that's still mid-50s. I am profitable on R and I have not been consistent about it. The good months are real, the bad weeks are real, and they're all on the graph.
-
-What changed in me isn't in the numbers yet: I now know my worst trades happen on bad sleep, and my best days are the ones with the fewest clicks. The experiment is working even when the trading isn't pretty.`)
-
-T('coach', 'f-R-iend called it', 'the coach saw it in the trends before I did.',
-  ['coach', 'trends'], `Asked f-R-iend to read the last two weeks of data and it went straight at the thing I was avoiding: my screen time is up 40% and my win rate on PM sessions is the worst it's been. The correlation was sitting in the trends page the whole time.
+T('coach', 'f-R-iend called it', 'the coach saw it in the data before I did.',
+  ['coach', 'trends'], `Asked f-R-iend to read the last two weeks of data and it went straight at the thing I was avoiding: my screen time is up 40% and my win rate on PM sessions is the worst it's been. The correlation was sitting in the data the whole time.
 
 Implemented its suggestion — hard social cap before the open, no platform after 4pm. {{r}}R today on a single clean trade. Small sample, but the direction finally matches the intent.`)
 
 T('monthreview', 'month in review', 'the monthly numbers, straight from the dashboard.',
   ['review', 'stats'], `Month's end. Pulled the dashboard and this is what actually happened:
 
-{{monthR}}R for the month, {{trades}} trades, and the R-histogram is finally bell-shaped instead of a shrug. Two payout-level weeks, one revenge-trade week I'm embarrassed by, and a flat stretch where I did nothing dumb.
+{{monthR}}R for the month, and the R-histogram is finally bell-shaped instead of a shrug. Two payout-level weeks, one revenge-trade week I'm embarrassed by, and a flat stretch where I did nothing dumb.
 
 The lesson that keeps showing up: the month is decided by about four decisions. Protect those four and the rest is noise.`)
 
 T('regime', 'the market changed. i did not', 'chop week vs trend week and the setups that survived.',
-  ['market', 'adaptation'], `Last month the trend days paid the bills. This week is chop and my ORB entries are getting chewed. Same setup, wrong regime — the data on /trends shows the win rate cliff pretty clearly.
+  ['market', 'adaptation'], `Last month the trend days paid the bills. This week is chop and my ORB entries are getting chewed. Same setup, wrong regime — the win rate cliff is right there in the data.
 
 Adapted: halved size, moved to liquidity-grab fades at the edges, and only traded the first 90 minutes. It's less exciting and it's keeping me flat instead of bleeding. The market tells you when to slow down. You just have to listen before it makes you.`)
 
@@ -335,7 +538,7 @@ T('closecall', 'the close call', 'I almost revenge traded. I walked instead.',
 Logged the near-miss because near-misses are how the habit stays alive if you don't look at them. The bad version of today ends with a -2R revenge trade. The real version ends with a long walk and a clear head.`)
 
 T('sleep', 'the sleep experiment', 'seven hours for seven days. results are in.',
-  ['sleep', 'habits', 'data'], `One week of forcing 7+ hours of sleep, whatever it took. The trends page made it undeniable:
+  ['sleep', 'habits', 'data'], `One week of forcing 7+ hours of sleep, whatever it took. The data made it undeniable:
 
 Win rate on 6+ hour nights: comfortably above my average. Sub-5 hour nights: my losses cluster there, and so does my screen time. Sleep isn't a soft variable — it's the input everything else hangs off.
 
@@ -347,13 +550,6 @@ T('doubt', 'am i even good at this?', 'the honest doubt post, because the curve 
 Then I did the boring thing and checked the actual numbers — win rate, avg win R vs avg loss R, expectancy. The edge is thin and real, not thick and imagined. It only works if I keep taking the same risk and let the sample size do its job.
 
 Doubt is data too. It's the signal to re-check the plan, not to abandon it.`)
-
-T('habit30', 'thirty days of quiet time', 'the streak is real and so is the effect.',
-  ['habits', 'streak'], `30 consecutive days of quiet time — no screens, no noise, one hour before bed. Longest habit streak on the tracker.
-
-The effect shows up in the data: better sleep quality, lower social screen time, and my best month of R came in that window. One hour of nothing, every night, and it compounds harder than any setup I trade.
-
-The heatmap doesn't lie. A green cell a day is the whole strategy.`)
 
 T('weekend', 'weekend reflection', 'off the clock, thinking about the week.',
   ['reflection', 'mental'], `No trades this weekend, and the journal still gets an entry — the habit is the point, not the market.
@@ -368,7 +564,7 @@ T('book', 'notes on patience', 'what I am trying to get better at, in public.',
 It cuts my trade count in half and raises the average quality. The setup is the plan; the entry is just where the plan gets executed. When I wait for the exact one, the R takes care of itself.`)
 
 T('smallwin', 'small, real, logged', 'a quiet green day, filed honestly.',
-  ['wins', 'process'], `One trade, +{{r}}R, logged before I closed the platform. It wasn't the biggest day of the month and it doesn't need to be. The streak that matters is the process streak, and today it's still alive.`)
+  ['wins', 'process'], `One trade, {{r}}R, logged before I closed the platform. It wasn't the biggest day of the month and it doesn't need to be. The streak that matters is the process streak, and today it's still alive.`)
 
 T('smallloss', 'took the stop', 'a normal, boring loss, handled correctly.',
   ['losses', 'process'], `Stop hit, took it, moved on. {{r}}R, no second trade, no spiral. This is the loss the plan is designed for — small, defined, and forgotten by the time I write this.
@@ -380,23 +576,18 @@ T('fatigue', 'tired and still showing up', 'some days the win is just showing up
 
 The experiment's real test isn't the green days. It's whether I still log the tired, grey days. Today: logged. That counts for something.`)
 
-T('scale', 'when do i size up?', 'the honest answer about position size.',
-  ['risk', 'accounts'], `Someone would be right to ask why I'm not sizing up with a payout in the bank. The answer is the drawdown math: one bad week at double size wipes months of careful buffer building.
-
-The data on /accounts shows exactly how the buffer behaves when you respect it. I size up only when the rules say the account earned it — the rules, not my mood.`)
-
 T('edge', 'the edge is the boring part', 'R, expectancy, and why the mundane wins.',
   ['process', 'edge'], `The whole experiment is on one number: R. Points risked vs points made. Not per-trade P&L, not feelings, not the size of the green days.
 
 A thin edge, taken at fixed risk, hundreds of times, is the whole game. The exciting part of trading is the part that loses people money. The boring part — same size, same setups, log every miss — is the edge.`)
 
 T('traderow', 'read the trends, then fix the input', 'what the correlation table actually said.',
-  ['trends', 'data'], `Spent an hour on /trends reading the correlation table. The headline: my screen time and my losses are linked tighter than I wanted, and my best months all correlate with quiet time streaks.
+  ['trends', 'data'], `Spent an hour on the performance page reading the correlation table. The headline: my screen time and my losses are linked tighter than I wanted, and my best months all correlate with quiet time streaks.
 
 That's not mystical — it's the input/output table of my own behaviour. When the input is clean, the output is clean. I'm changing one input at a time and watching the correlations move.`)
 
-T('greenstreak', 'seven green', 'a week of green, held like a pro.',
-  ['wins', 'streak'], `Seven green sessions. The dangerous part is now — this is exactly where I've blown it before, by treating a streak as a license to gamble.
+T('greenstreak', 'the green streak', 'a run of green, held like a pro.',
+  ['wins', 'streak'], `A run of green sessions. The dangerous part is now — this is exactly where I've blown it before, by treating a streak as a license to gamble.
 
 Staying at the same size, same setups. The streak is a reward for the process, not a reason to abandon it.`)
 
@@ -406,7 +597,7 @@ T('liquidity', 'playing the liquidity game', 'the fades that paid this week.',
 It's not the most exciting setup but it matches my temperament. The journal shows the style that fits: entries that are mechanical, stops that are obvious, exits that are planned.`)
 
 T('firsttrade', 'trade one, logged', 'the first logged trade of the account.',
-  ['milestone'], `First trade logged on {{account}}. Small, clean, +{{r}}R, and the whole account lifecycle starts here on the page.
+  ['milestone'], `First trade logged on {{account}}. Small, clean, {{r}}R, and the whole account lifecycle starts here on the page.
 
 Every account is a story that gets told in frontmatter — stages, payouts, and the day it ends. This one begins today.`)
 
@@ -419,54 +610,55 @@ The only metric that matters here is **R** — the number of points risked vs th
 
 - **firms:** takeprofittrader, lucid
 - **instrument:** mnq
-- **accounts:** 25k (\\$1k drawdown) and 50k (\\$2k drawdown), lifecycle tracked from eval → buffer → payout
+- **accounts:** 25k (\\$1k drawdown) and 50k (\\$2k drawdown), lifecycle tracked from eval → funded → buffer → payout
 - **rule:** risk a fixed \\$ amount per trade, let R tell the story
 
 Watch me prove it — or watch me fail. Either way, it happens in public.`)
 
 // short posts
 T('short-quickloss', 'quick L', 'one line for the one that stung.', ['losses'], `{{r}}R today. Bad entry, worse timing, logged it and closed the platform. Tomorrow is a fresh sample.`)
-T('short-quickwin', 'quick W', 'quick and clean.', ['wins'], `+{{r}}R, one trade, done before lunch. The less I do on green days, the more they're worth.`)
+T('short-quickwin', 'quick W', 'quick and clean.', ['wins'], `{{r}}R, one trade, done before lunch. The less I do on green days, the more they're worth.`)
 T('short-rest', 'rest day', 'took the day off.', ['rest', 'habits'], `No trades. Full day off, phone away, sleep early. The market will still be there tomorrow, and so will I, sharper.`)
 T('short-screen', 'screen note', 'the counter keeps dropping.', ['screen-time'], `Social hours today: {{screen}}h. Down from a month ago. The phone stays in the other room during the session — that one change is carrying the week.`)
-T('short-sleep', 'sleep check', 'the trend holds.', ['sleep'], `{{sleep}} hours last night. Sub-6 nights are where my losses live; the trends page keeps reminding me.`)
+T('short-sleep', 'sleep check', 'the trend holds.', ['sleep'], `{{sleep}} hours last night. Sub-6 nights are where my losses live; the performance page keeps reminding me.`)
 T('short-mindset', 'one rule', 'the reminder post.', ['mindset'], `One rule for this week: if the setup isn't in the journal before the session, I don't take it. That's the whole plan.`)
 T('short-coach', 'coach check-in', 'brief conversation with f-R-iend.', ['coach'], `Asked f-R-iend about the losing stretch. It pointed at the same thing I already knew — the bad days follow the bad sleep. One fix at a time.`)
 
 // ---------------------------------------------------------------- pick a template per post
-function pickTemplate(d, dayNum) {
+function pickTemplate(d, dayNum, rSumByDay) {
   const mood = d.mood
   const hasTrades = d.trades.length > 0
-  const rSum = d.trades.reduce((s, t) => s + (t.points / t.riskPoints), 0)
-  const wins = d.trades.filter((t) => t.points > 0).length
   const pool = []
   if (!hasTrades) {
     pool.push('flat', 'weekend', 'short-rest')
-  } else if (rSum >= 3) {
-    pool.push('bigwin', 'greenstreak', 'traderow')
-  } else if (rSum <= -2) {
+  } else if (d.rSum >= 3) {
+    pool.push('bigwin', 'traderow')
+    if (rSumByDay[dayNum - 6] && rSumByDay[dayNum - 6].allGreen) pool.push('greenstreak')
+  } else if (d.rSum <= -2) {
     pool.push('bigloss', 'fatigue', 'doubt')
-  } else if (rSum > 0) {
+  } else if (d.rSum > 0) {
     pool.push('cleanwin', 'smallwin', 'short-quickwin', 'edge')
   } else {
     pool.push('smallloss', 'short-quickloss', 'closecall', 'overtrade')
   }
   if (mood <= 2) pool.push('lowmood', 'screentime', 'fatigue')
-  if (mood >= 4) pool.push('sleep', 'habit30', 'book')
+  if (mood >= 4) pool.push('sleep', 'book')
   if (d.sleep && d.sleep.hours < 5.5) pool.push('sleep', 'lowmood')
   return pick(pool)
 }
 
 function fillTemplate(t, d, dayNum, monthR, accountInfo) {
-  const rSum = d.trades.reduce((s, t) => s + t.points / t.riskPoints, 0)
+  const rSum = d.rSum
   const tradesN = d.trades.length
   const setup = d.trades[0]?.setup ?? 'ORB'
+  const direction = d.trades[0]?.direction ?? 'long'
   const streak = dayNum % 7 === 0 ? 'Seven days straight of the process' : 'The process streak is intact'
   const body = t.body
     .replaceAll('{{day}}', String(dayNum))
     .replaceAll('{{date}}', d.date)
     .replaceAll('{{r}}', fmt(rSum))
     .replaceAll('{{trades}}', String(tradesN))
+    .replaceAll('{{direction}}', direction)
     .replaceAll('{{setup}}', setup)
     .replaceAll('{{mood}}', String(d.mood))
     .replaceAll('{{sleep}}', String(d.sleep.hours))
@@ -475,14 +667,24 @@ function fillTemplate(t, d, dayNum, monthR, accountInfo) {
     .replaceAll('{{monthR}}', fmt(monthR))
     .replaceAll('{{account}}', accountInfo.current)
     .replaceAll('{{newAccount}}', accountInfo.next)
-    .replaceAll('{{amount}}', String(1200))
-  const title = t.title
-  const summary = t.summary
-  return { title, summary, tags: t.tags, body }
+    .replaceAll('{{amount}}', String(accountInfo.amount))
+  return { title: t.title, summary: t.summary, tags: t.tags, body }
 }
 
 // ---------------------------------------------------------------- write everything
 const days = dates.map((s, i) => genDay(s))
+
+// per-day rSum + rolling-green for gated templates
+const rSumByDay = {}
+{
+  let greenRun = 0
+  for (let i = 0; i < days.length; i++) {
+    const d = days[i]
+    d.rSum = d.trades.reduce((s, t) => s + t.points / t.riskPoints, 0)
+    greenRun = d.rSum > 0 ? greenRun + 1 : 0
+    rSumByDay[i] = { allGreen: greenRun >= 7 }
+  }
+}
 
 // month R for templates
 const monthRByKey = {}
@@ -492,44 +694,19 @@ const monthRByKey = {}
   for (const d of days) {
     const k = monthKey(d.date)
     if (k !== key) { key = k; acc = 0 }
-    acc += d.trades.reduce((s, t) => s + t.points / t.riskPoints, 0)
+    acc += d.rSum
     monthRByKey[k] = acc
   }
 }
 
-// accounts: lifecycle
-const ACCOUNT_DEFS = {
-  'lucid-50k-a': { stages: [
-    { stage: 'eval', from: '2026-08-05' },
-    { stage: 'buffer', from: '2026-09-21', note: 'cleared eval in 7 weeks, +48R' },
-  ], stage: 'buffer' },
-  'lucid-25k-a': { stages: [
-    { stage: 'eval', from: '2026-08-05' },
-    { stage: 'buffer', from: '2026-11-04', note: 'consistent small size' },
-  ], stage: 'buffer' },
-  'tpt-50k-a': { stages: [
-    { stage: 'eval', from: '2026-08-05' },
-    { stage: 'buffer', from: '2026-10-12' },
-    { stage: 'payout', from: '2026-12-10', note: 'first payout $600' },
-  ], stage: 'payout' },
-  'tpt-25k-a': { stages: [
-    { stage: 'eval', from: '2026-08-05' },
-    { stage: 'failed', from: '2026-12-05', to: '2026-12-05', note: 'drawdown breach — forced entries during a losing week' },
-  ], stage: 'failed' },
-  'tpt-25k-b': { stages: [
-    { stage: 'eval', from: '2026-12-06', note: 'rebuild after 25k-a failure' },
-    { stage: 'buffer', from: '2027-04-11' },
-  ], stage: 'buffer' },
-  'lucid-50k-b': { stages: [
-    { stage: 'eval', from: '2027-03-01', note: 'second 50k for scale' },
-    { stage: 'buffer', from: '2027-08-02' },
-  ], stage: 'buffer' },
-}
+// single simulation: executions, lifecycle, payouts — one RNG pass, fully consistent
+const sim = simulateAccounts(days)
 
 function writeAccounts() {
   const all = { ...ACCOUNT_BASE, ...ACCOUNTS_EXTRA }
   for (const [id, base] of Object.entries(all)) {
-    const def = ACCOUNT_DEFS[id] ?? { stages: [{ stage: 'eval', from: '2026-08-05' }], stage: 'eval' }
+    const st = sim.stages[id]
+    const current = st[st.length - 1].stage
     const lines = [
       `id: "${id}"`,
       `firm: "${base.firm}"`,
@@ -540,14 +717,13 @@ function writeAccounts() {
       `contract: "MNQ"`,
       `pointsValue: 2`,
       `riskPerTrade: ${base.riskPerTrade}`,
-      `stage: "${def.stage}"`,
+      `stage: "${current}"`,
       `stages:`,
-      ...def.stages.map((st) =>
-        `  - stage: "${st.stage}"\n    from: "${st.from}"${st.to ? `\n    to: "${st.to}"` : ''}${st.note ? `\n    note: "${st.note}"` : ''}`),
+      ...st.map((s) =>
+        `  - stage: "${s.stage}"\n    from: "${s.from}"${s.to ? `\n    to: "${s.to}"` : ''}${s.note ? `\n    note: "${s.note}"` : ''}`),
     ]
     fs.writeFileSync(out(`accounts/${id}.md`), ['---', ...lines, '---', ''].join('\n'))
   }
-  // remove any account files not in our set
   for (const f of fs.readdirSync(C('accounts'))) {
     const id = f.replace(/\.md$/, '')
     if (!all[id]) fs.unlinkSync(path.join(C('accounts'), f))
@@ -558,14 +734,14 @@ function writePayouts() {
   for (const f of fs.readdirSync(C('payouts')).filter((x) => x.endsWith('.md'))) {
     fs.unlinkSync(path.join(C('payouts'), f))
   }
-  PAYOUTS.forEach((p, i) => {
+  sim.payouts.forEach((p) => {
     const body = [
       '---',
       `date: "${p.date}"`,
       `account: "${p.account}"`,
       `amount: ${p.amount}`,
       `status: "paid"`,
-      p.note ? `note: "${p.note}"` : '',
+      `note: "lifecycle payout — buffer held"`,
       '---',
       '',
     ].join('\n')
@@ -577,7 +753,6 @@ function writeCoach() {
   for (const f of fs.readdirSync(C('coach')).filter((x) => x.endsWith('.md'))) {
     fs.unlinkSync(path.join(C('coach'), f))
   }
-  // 24 conversations spaced across the window
   for (let i = 0; i < 24; i++) {
     const idx = Math.floor((i + 0.5) * (DAYS / 24))
     const date = dates[idx]
@@ -604,13 +779,36 @@ function writeDays() {
     fs.unlinkSync(path.join(C('days'), f))
   }
   for (const d of days) {
-    const exs = d.trades.map((t) => {
-      const accs = executionsFor(d.date)
-      return `      - market: ${t.market}\n        session: ${t.session}\n        direction: ${t.direction}\n        setup: ${t.setup}\n        entry: ${t.entry}\n        stop: ${t.stop}\n        exit: ${t.exit}\n        riskPoints: ${t.riskPoints}\n        points: ${t.points}\n        confidence: ${t.confidence}\n        note: "${t.note}"\n        executions:\n${accs.map((a) => `          - account: ${a.account}\n            size: ${a.size}`).join('\n')}`
+    const perTrade = sim.execByDate[d.date] || []
+    const tradeLines = d.trades.map((t, i) => {
+      const exs = perTrade[i] || []
+      const exLines = exs.length
+        ? exs.map((e) => `          - account: ${e.account}\n            size: ${e.size}`).join('\n')
+        : ''
+      return [
+        `    - market: ${t.market}`,
+        `      session: ${t.session}`,
+        `      direction: ${t.direction}`,
+        `      setup: ${t.setup}`,
+        `      model: ${t.model}`,
+        `      entry: ${t.entry}`,
+        `      stop: ${t.stop}`,
+        `      exit: ${t.exit}`,
+        `      riskPoints: ${t.riskPoints}`,
+        `      points: ${t.points}`,
+        `      confidence: ${t.confidence}`,
+        `      note: "${t.note}"`,
+        exs.length ? `      executions:\n${exLines}` : '      executions: []',
+      ]
+        .filter(Boolean)
+        .join('\n')
     })
     const habitLines = Object.entries(d.habits)
       .map(([k, v]) => `  ${k}: ${v}`)
       .join('\n')
+    const streamLines = d.stream.length
+      ? 'stream:\n' + d.stream.map((m) => `  - at: "${m.at}"\n    type: ${m.type}${m.text ? `\n    text: "${m.text}"` : ''}${m.tradeIdx !== undefined ? `\n    tradeIdx: ${m.tradeIdx}` : ''}`).join('\n')
+      : 'stream: []'
     const body = [
       '---',
       `date: "${d.date}"`,
@@ -624,7 +822,8 @@ function writeDays() {
       `  macHours: ${d.device.macHours}`,
       `  notes: "${d.device.notes}"`,
       d.trades.length ? 'trades:' : 'trades: []',
-      ...exs,
+      ...tradeLines,
+      streamLines,
       '---',
       '',
     ].join('\n')
@@ -637,32 +836,35 @@ function writeJournal() {
     fs.unlinkSync(path.join(C('journal'), f))
   }
   const byDay = new Map(days.map((d) => [d.date, d]))
-  // pick ~150 post dates, weighted to interesting days, over the full window
   const postDates = new Set()
   while (postDates.size < 150) {
     const i = ri(0, DAYS - 1)
     const d = days[i]
-    const interesting =
-      d.trades.length > 0 ||
-      d.mood <= 2 ||
-      d.mood >= 4 ||
-      i % 5 === 0
+    const interesting = d.trades.length > 0 || d.mood <= 2 || d.mood >= 4 || i % 5 === 0
     if (interesting || rand() < 0.15) postDates.add(d.date)
   }
-  // force a few milestone dates
   for (const m of ['2026-08-05', '2026-11-13', '2027-01-05', '2027-08-05', '2027-12-05', '2028-08-03']) postDates.add(m)
 
+  // payout dates + the failure date always get a post
+  const payoutByDate = new Map(sim.payouts.map((p) => [p.date, p]))
+  const failedDate = sim.failed[DOOM_ACCOUNT]
+  for (const p of sim.payouts) postDates.add(p.date)
+  if (failedDate) postDates.add(failedDate)
+
   const sorted = [...postDates].sort()
-  const accountInfo = { current: 'lucid-50k-a', next: 'tpt-25k-b' }
+  const accountInfo = { current: 'lucid-50k-a', next: 'tpt-25k-b', amount: 0 }
   let i = 0
   for (const date of sorted) {
     i++
     const d = byDay.get(date)
     if (!d) continue
-    const t = date === '2026-08-05' ? 'dayzero' : pickTemplate(d, i)
+    const payout = payoutByDate.get(date)
+    const t = date === '2026-08-05' ? 'dayzero' : failedDate === date ? 'failed' : payout ? 'payout' : pickTemplate(d, i, rSumByDay)
     const tpl = TEMPLATES.find((x) => x.key === t)
     const dayNum = dates.indexOf(date) + 1
-    const filled = fillTemplate(tpl, d, dayNum, monthRByKey[monthKey(date)], accountInfo)
+    accountInfo.current = payout?.account ?? (failedDate === date ? DOOM_ACCOUNT : accountInfo.current)
+    accountInfo.amount = payout?.amount ?? 0
+    const filled = fillTemplate(tpl, d, dayNum, monthRByKey[monthKey(date)], { ...accountInfo })
     const dayLabel = dayNum === 1 ? 'Day Zero' : `Day ${dayNum}`
     const body = [
       '---',
@@ -679,7 +881,6 @@ function writeJournal() {
     ].join('\n')
     fs.writeFileSync(out(`journal/${date}.mdx`), body)
   }
-  // remove stale journal files (e.g. old 2026-08-06 test post) handled above by clearing dir
 }
 
 // ---------------------------------------------------------------- run
@@ -693,25 +894,42 @@ writeCoach()
 writeDays()
 writeJournal()
 
-const trades = days.reduce((s, d) => s + d.trades.length, 0)
-// quick stats sanity check (same R math as src/lib/stats.ts)
+const allTrades = days.reduce((s, d) => s + d.trades.length, 0)
 let sumR = 0
 let peakR = 0
 let maxDD = 0
-const all = []
-for (const d of days) for (const t of d.trades) all.push(t.points / t.riskPoints)
 let eq = 0
-for (const r of all) { eq += r; peakR = Math.max(peakR, eq); maxDD = Math.min(maxDD, eq - peakR) }
+const rs = []
+for (const d of days) for (const t of d.trades) {
+  rs.push(t.points / t.riskPoints)
+  eq += t.points / t.riskPoints
+  peakR = Math.max(peakR, eq)
+  maxDD = Math.min(maxDD, eq - peakR)
+}
 sumR = eq
-const wins = all.filter((r) => r > 0).length
-const losses = all.length - wins
-const grossW = all.filter((r) => r > 0).reduce((s, r) => s + r, 0)
-const grossL = Math.abs(all.filter((r) => r < 0).reduce((s, r) => s + r, 0))
-console.log(`  stats:       sumR ${sumR.toFixed(1)} · winRate ${((wins / all.length) * 100).toFixed(1)}% · PF ${(grossW / grossL).toFixed(2)} · maxDD ${maxDD.toFixed(1)}R · expectancy ${(sumR / all.length).toFixed(3)}R`)
+const wins = rs.filter((r) => r > 0).length
+const losses = rs.length - wins
+const grossW = rs.filter((r) => r > 0).reduce((s, r) => s + r, 0)
+const grossL = Math.abs(rs.filter((r) => r < 0).reduce((s, r) => s + r, 0))
+
+// per-account net vs payouts (from the SAME sim executions — must be coherent)
+const paidTot = {}
+for (const p of sim.payouts) paidTot[p.account] = (paidTot[p.account] || 0) + p.amount
+let coherent = true
+for (const [a, base] of Object.entries({ ...ACCOUNT_BASE, ...ACCOUNTS_EXTRA })) {
+  const netA = sim.net[a] ?? 0
+  const paid = paidTot[a] || 0
+  if (paid > Math.max(0, netA)) { coherent = false; console.log(`  !! ${a}: payouts $${paid} > gross $${Math.round(netA)}`) }
+  console.log(`  account ${a.padEnd(13)} gross $${String(Math.round(netA)).padStart(5)} · paid $${String(paid).padStart(4)} · ${sim.stages[a][sim.stages[a].length - 1].stage}`)
+}
+if (!coherent) { console.log('  ✗ PAYOUTS EXCEED NET — fix before shipping'); process.exit(1) }
+
+let holidayTrades = 0
+for (const d of days) if (d.trades.length && usMarketStatus(d.date) === 'closed') holidayTrades += d.trades.length
+
+console.log(`  stats:       sumR ${sumR.toFixed(1)} · winRate ${((wins / rs.length) * 100).toFixed(1)}% · PF ${(grossW / grossL).toFixed(2)} · maxDD ${maxDD.toFixed(1)}R · expectancy ${(sumR / rs.length).toFixed(3)}R`)
+console.log(`  holiday trades: ${holidayTrades} (must be 0)`)
+console.log(`  days:        ${days.length} · trades: ${allTrades} · journal: ${fs.readdirSync(C('journal')).length} · coach: ${fs.readdirSync(C('coach')).length} · payouts: ${sim.payouts.length} · accounts: ${fs.readdirSync(C('accounts')).length}`)
+console.log(`  payouts total: $${sim.payouts.reduce((s, p) => s + p.amount, 0)}`)
+console.log(`  failed account: ${DOOM_ACCOUNT} on ${sim.failed[DOOM_ACCOUNT] ?? 'never'}`)
 console.log('done.')
-console.log(`  days:        ${days.length}`)
-console.log(`  trades:      ${trades}`)
-console.log(`  journal:     ${fs.readdirSync(C('journal')).length} posts`)
-console.log(`  coach:       ${fs.readdirSync(C('coach')).length} conversations`)
-console.log(`  payouts:     ${fs.readdirSync(C('payouts')).length}`)
-console.log(`  accounts:    ${fs.readdirSync(C('accounts')).length}`)

@@ -8,11 +8,17 @@ trailing: true
 contract: "MNQ"
 pointsValue: 2
 riskPerTrade: 200
-stage: "buffer"
+stage: "payout"
 stages:
   - stage: "eval"
     from: "2026-12-06"
-    note: "rebuild after 25k-a failure"
+  - stage: "funded"
+    from: "2027-08-27"
+    note: "passed eval — half the drawdown limit in profit"
   - stage: "buffer"
-    from: "2027-04-11"
+    from: "2028-01-20"
+    note: "buffer built"
+  - stage: "payout"
+    from: "2028-07-20"
+    note: "payout eligible"
 ---

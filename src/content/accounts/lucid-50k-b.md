@@ -8,11 +8,11 @@ trailing: true
 contract: "MNQ"
 pointsValue: 2
 riskPerTrade: 200
-stage: "buffer"
+stage: "funded"
 stages:
   - stage: "eval"
     from: "2027-03-01"
-    note: "second 50k for scale"
-  - stage: "buffer"
-    from: "2027-08-02"
+  - stage: "funded"
+    from: "2028-03-22"
+    note: "passed eval — half the drawdown limit in profit"
 ---

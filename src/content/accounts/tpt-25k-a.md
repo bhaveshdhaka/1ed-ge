@@ -13,7 +13,7 @@ stages:
   - stage: "eval"
     from: "2026-08-05"
   - stage: "failed"
-    from: "2026-12-05"
-    to: "2026-12-05"
-    note: "drawdown breach — forced entries during a losing week"
+    from: "2026-11-02"
+    to: "2026-11-02"
+    note: "drawdown breach — over-leveraged forced entries"
 ---
