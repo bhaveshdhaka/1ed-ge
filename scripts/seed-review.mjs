@@ -251,7 +251,7 @@ function genHabits(mood, sleepQuality, weekend, isTradeDay) {
 function genStream(d, isTradeDay) {
   const stream = []
   if (isTradeDay && rand() < 0.3) {
-    stream.push({ at: '08:20', type: 'pre-market', text: pick(PRE_NOTES) })
+    stream.push({ at: '08:20', type: 'note', text: pick(PRE_NOTES) })
   }
   if (isTradeDay && d.trades.length && rand() < 0.18) {
     stream.push({ at: '11:15', type: 'trade', tradeIdx: 0, text: pick(TRADE_COMMENTARY) })

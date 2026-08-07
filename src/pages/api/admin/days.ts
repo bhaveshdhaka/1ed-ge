@@ -7,7 +7,7 @@ export const prerender = false
 
 const STAGES = ['eval', 'buffer', 'payout', 'failed', 'paused']
 const SESSIONS = ['', 'asia', 'london', 'ny-am', 'ny-pm', 'ny']
-const MOMENT_TYPES = ['pre-market', 'post-market', 'trade', 'note', 'quote', 'media']
+const MOMENT_TYPES = ['trade', 'note', 'quote']
 
 function num(v: unknown): number | null {
   const n = typeof v === 'number' ? v : typeof v === 'string' ? parseFloat(v) : NaN
@@ -63,7 +63,8 @@ function normalizeMoment(m: Record<string, any>): Record<string, any> | null {
     const ti = Number(m.tradeIdx)
     if (Number.isInteger(ti) && ti >= 0) out.tradeIdx = ti
   }
-  if (typeof m.media === 'string' && m.media.trim()) out.media = m.media.trim()
+  const images = Array.isArray(m.images) ? m.images.filter((s: unknown) => typeof s === 'string') : []
+  if (images.length) out.images = images
   if (typeof m.author === 'string' && m.author.trim()) out.author = m.author.trim()
   return out
 }

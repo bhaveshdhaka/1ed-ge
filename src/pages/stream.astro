@@ -15,7 +15,7 @@ const [dayEntries, habitEntries] = await Promise.all([getCollection('days'), get
 const days = dayEntries.map((d) => d.data as DayData)
 
 const type = (Astro.url.searchParams.get('type') ?? 'all') as MomentType | 'all'
-const TYPES: (MomentType | 'all')[] = ['all', 'pre-market', 'trade', 'note', 'quote', 'post-market', 'media']
+const TYPES: (MomentType | 'all')[] = ['all', 'trade', 'note', 'quote']
 const validType = TYPES.includes(type) ? type : 'all'
 
 const all = flattenStream(days)
@@ -34,7 +34,7 @@ for (const m of all) countByType.set(m.type, (countByType.get(m.type) ?? 0) + 1)
 
 <Base
   title="stream — 1ed.ge"
-  description="The rolling feed of published moments — pre-market, trades, notes, quotes. Everything public."
+  description="The rolling feed of published moments — trades, notes, quotes. Everything public."
 >
   <section class="shell pt-12 pb-20">
     <div class="flex flex-wrap items-baseline gap-3">

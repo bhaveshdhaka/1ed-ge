@@ -55,14 +55,14 @@ const trade = z.object({
   executions: z.array(execution).default([]),
 })
 
-const momentType = z.enum(['pre-market', 'post-market', 'trade', 'note', 'quote', 'media'])
+const momentType = z.enum(['trade', 'note', 'quote'])
 
 const moment = z.object({
   at: z.string(),
   type: momentType,
   text: z.string().optional(),
   tradeIdx: z.number().int().nonnegative().optional(),
-  media: z.string().optional(),
+  images: z.array(z.string()).default([]),
   author: z.string().optional(),
 })
 

@@ -1,11 +1,11 @@
-export type MomentType = 'pre-market' | 'post-market' | 'trade' | 'note' | 'quote' | 'media'
+export type MomentType = 'trade' | 'note' | 'quote'
 
 export interface StreamMoment {
   at: string
   type: MomentType
   text?: string
   tradeIdx?: number
-  media?: string
+  images?: string[]
   author?: string
 }
 
@@ -23,6 +23,7 @@ export interface DayTrade {
   points: number
   note?: string
   commentary?: string
+  screenshots?: string[]
   executions?: { account: string; size?: number }[]
 }
 
@@ -47,7 +48,7 @@ export interface ResolvedMoment {
   at: string
   type: MomentType
   text?: string
-  media?: string
+  images?: string[]
   author?: string
   trade: {
     R: number
@@ -61,6 +62,7 @@ export interface ResolvedMoment {
     exit: number
     stop?: number
     note?: string
+    screenshots?: string[]
   } | null
 }
 
@@ -77,15 +79,16 @@ export function ROf(t: DayTrade): number {
 export function resolveMoments(d: DayData): ResolvedMoment[] {
   const sorted = [...(d.stream ?? [])].sort((a, b) => a.at.localeCompare(b.at))
   return sorted.map((m) => {
+    const type: MomentType = m.type === 'quote' ? 'quote' : m.type === 'trade' ? 'trade' : 'note'
     const t = m.tradeIdx !== undefined ? d.trades[m.tradeIdx] : undefined
     return {
       iso: d.date,
       at: m.at,
-      type: m.type,
+      type,
       text: m.text,
-      media: m.media,
+      images: m.images,
       author: m.author,
-      trade: t
+      trade: t && type === 'trade'
         ? {
             R: ROf(t),
             direction: t.direction,
@@ -98,6 +101,7 @@ export function resolveMoments(d: DayData): ResolvedMoment[] {
             exit: t.exit,
             stop: t.stop,
             note: t.note,
+            screenshots: t.screenshots,
           }
         : null,
     }
@@ -119,18 +123,12 @@ export interface MomentMeta {
 
 export function momentMeta(type: MomentType): MomentMeta {
   switch (type) {
-    case 'pre-market':
-      return { glyph: '◐', label: 'pre-market' }
-    case 'post-market':
-      return { glyph: '◑', label: 'post-market' }
     case 'trade':
       return { glyph: '▲', label: 'trade' }
     case 'note':
       return { glyph: '·', label: 'note' }
     case 'quote':
       return { glyph: '"', label: 'quote' }
-    case 'media':
-      return { glyph: '▣', label: 'media' }
   }
 }
 
