@@ -288,6 +288,12 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-07 — **Market chronograph + overlap fix, live.** Final commits
+  `c11526f` (footer date → `fmtDayW`, correct `fmtDayW` doc example, `z-5`)
+  and `51e63cb` (clock chip gets a reserved rail lane — never overlaps the
+  header; edge-clamped; screenshot-verified at 21:45 HKT). All chronograph
+  work — rail, mm:ss countdowns, iconed + past-state + grouped news,
+  `mon | 07-aug-2026` headers, homepage "the day" panel — is live.
 - 2026-08-07 — **Market chronograph, done (Task wave, commits to follow).**
   Chronograph rail in `MarketWidget.astro` — 00–24 HKT hairline day-ruler with
   hour ticks, event-severity dots (news red/orange + sessions), caret + live
