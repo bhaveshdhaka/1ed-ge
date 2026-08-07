@@ -339,15 +339,17 @@ git commit -m "feat(periods): period engine — week/month/quarter/half/year ran
 
 ---
 
-### Task 3: Aggregation — `src/lib/period-stats.ts` + tests
+### Task 3: Week = Mon–Fri + aggregation + deltas + trend
 
 **Files:**
+- Modify: `src/lib/periods.ts` (week `endIso` = start + 4 — Mon–Fri trading week)
+- Modify: `tests/periods.test.ts` (Mon–Fri week fixtures)
 - Create: `src/lib/period-stats.ts`
 - Test: `tests/period-stats.test.ts`
 
 **Interfaces:**
-- Consumes: `PeriodRange` (Task 2); `ROf` from `./stream`; `DayData` from `./stream`.
-- Produces (Task 5 consumes):
+- Consumes: `PeriodRange` (Task 2, week amended); `ROf` from `./stream`; `DayData` from `./stream`.
+- Produces (Tasks 4b/5/5b consume):
 
 ```ts
 export interface PeriodStats {
@@ -365,26 +367,43 @@ export interface PeriodStats {
   habitAdherence: { habit: string; pct: number }[]
   avgScreenHours: number | null
 }
-export function aggregatePeriod(
-  days: DayData[],
-  range: PeriodRange,
-  ctx: { habits: { id: string; kind: 'bool' | 'count'; target?: number }[]; accounts: { id: string; pointsValue: number }[] },
-): PeriodStats
+export interface PeriodDelta { field: string; cur: number; prev: number; delta: number; pct: number | null }
+export interface TrendPoint { label: string; sumR: number; winRate: number; trades: number }
+export function aggregatePeriod(days: DayData[], range: PeriodRange, ctx: { habits: { id: string; kind: 'bool' | 'count'; target?: number }[]; accounts: { id: string; pointsValue: number }[] }): PeriodStats
+export function periodDelta(prev: PeriodStats, cur: PeriodStats): PeriodDelta[]   // numeric fields: sumR, expectancyR, winRate, profitFactor, trades, tradedDays; pct null when prev is 0
+export function trendSeries(type: PeriodType, days: DayData[], n: number, ctx: PeriodStatsCtx): TrendPoint[]  // last n periods ending at the latest in-range day
 ```
 
-- [ ] **Step 1: Implement**
+- [ ] **Step 1: Week Mon–Fri amendment (`src/lib/periods.ts` + tests)**
 
-Filter days to `startIso..endIso`. R via `ROf` per trade. `sumR` = ΣR; `expectancyR` = sumR/trades; `winRate` = R>0 / trades; `profitFactor` = grossWin / |grossLoss| (∞ when no losses and grossWin>0, 0 when no trades). `pnlByAccount`: for each trade's executions `[{account,size}]`, `$pnl = trade.points × account.pointsValue × size` (pointsValue from ctx; unknown account → skip). `modelStats`: group by `trade.model` (only tagged trades). Life metrics: averages over in-range days with values (`sleep.hours`, `mood`, `device.iphoneHours + macHours`); `habitAdherence` per active habit: bool → pct of in-range days where truthy; count → pct of days where `value >= target` (target required for count habits).
+The owner locked: **trading days are strictly Mon–Fri, no exceptions** — the week period is the Mon–Fri trading week (the Sat/Sun ritual reviews the just-completed week; weekend day records fall outside every week and flow into month/quarter reviews).
 
-- [ ] **Step 2: `tests/period-stats.test.ts`** — build small DayData fixtures (a 2-day range, trades with executions + models, one sleep/mood/screen day, bool + count habits) and assert each metric. Use `screenshots: []` on every trade fixture (the `DayTrade` type requires it — the stats test learned this the hard way).
+In `src/lib/periods.ts`'s week case change `endIso: addDays(start, 6)` → `addDays(start, 4)`. `prev`/`next` keep stepping by 7 days (unchanged). The anchor/label/ISO-year logic from Task 2's fix stays.
 
-- [ ] **Step 3: Verify** — `npm test -- tests/period-stats.test.ts` all pass.
+Update `tests/periods.test.ts` week fixtures:
+- `periodRange('week','2026-08-07')` → startIso `2026-08-03`, endIso `2026-08-07` (Fri), anchor `2026-32`, prev.endIso `2026-07-31`, next.startIso `2026-08-10`.
+- Year boundary: `periodRange('week','2025-12-29')` → startIso `2025-12-29`, endIso `2026-01-02`, anchor `2026-01`. `periodRange('week','2027-01-01')` → startIso `2026-12-28`, endIso `2027-01-01`, anchor `2026-53`.
+- `periodRangesBetween('week','2026-08-03','2026-08-20')` → exactly 3 (weeks Aug 3-7, 10-14, 17-21).
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 2: `src/lib/period-stats.ts` — `aggregatePeriod`**
+
+Filter days to `startIso..endIso`. R via `ROf` per trade. `sumR` = ΣR; `expectancyR` = sumR/trades; `winRate` = R>0 / trades; `profitFactor` = grossWin / |grossLoss| (∞ when no losses and grossWin>0, 0 when no trades). `pnlByAccount`: per execution `$pnl = trade.points × account.pointsValue × size` (pointsValue from ctx; unknown account → skip). `modelStats`: group by `trade.model` (tagged only). Life metrics: averages over in-range days with values (`sleep.hours`, `mood`, `device.iphoneHours + macHours`); `habitAdherence` per active habit: bool → pct of in-range days truthy; count → pct where `value >= target`.
+
+- [ ] **Step 3: `periodDelta` + `trendSeries`**
+
+`periodDelta(prev, cur)`: for each numeric field in `[sumR, expectancyR, winRate, profitFactor, trades, tradedDays]` → `{ field, cur, prev, delta: cur - prev, pct: prev !== 0 ? (cur - prev) / Math.abs(prev) : null }` (round pct to 3dp).
+
+`trendSeries(type, days, n, ctx)`: walk `periodRangesBetween(type, earliestDayIso, latestDayIso)` from the END (latest), take the last `n` ranges; for each, `aggregatePeriod(days, range, ctx)` → `{ label: range.label, sumR, winRate, trades }`. Returned oldest→newest.
+
+- [ ] **Step 4: `tests/period-stats.test.ts`** — DayData fixtures (a 2-day range, trades with executions + models, one sleep/mood/screen day, bool + count habits) asserting every metric + `screenshots: []` on every trade fixture (required by `DayTrade`). Add `periodDelta` tests (delta + pct, pct null on prev 0) and `trendSeries` tests (a multi-week fixture → the last n points oldest→newest).
+
+- [ ] **Step 5: Verify** — `npm test -- tests/periods.test.ts tests/period-stats.test.ts` all pass.
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add src/lib/period-stats.ts tests/period-stats.test.ts
-git commit -m "feat(periods): aggregation — R/expectancy/PF/win-rate, per-account P&L, per-model, life metrics (tested)"
+git add src/lib/periods.ts src/lib/period-stats.ts tests/periods.test.ts tests/period-stats.test.ts
+git commit -m "feat(periods): Mon-Fri trading week + aggregation (R/PF/win-rate, per-account, per-model, life) + deltas + trend (tested)"
 ```
 
 ---
@@ -417,6 +436,29 @@ git commit -m "feat(periods): aggregation — R/expectancy/PF/win-rate, per-acco
 git add src/content.config.ts src/pages/api/admin/reviews.ts src/components/admin/tabs/ReviewTab.tsx src/components/admin/AdminApp.tsx src/lib/content.ts
 git commit -m "feat(reviews): per-period review notes — collection, admin API, editor tab"
 ```
+
+---
+
+### Task 4b: AI factual comparison — generation, storage, tab button
+
+**Files:**
+- Create: `src/lib/review-compare.ts`
+- Modify: `src/content.config.ts` (reviews glob excludes `**/*.cmp.md`)
+- Modify: `src/pages/api/admin/reviews.ts` (compare action + GET returns the comparison)
+- Modify: `src/components/admin/tabs/ReviewTab.tsx` (generate button + editable comparison)
+
+**Interfaces:**
+- Consumes: `PeriodStats`/`PeriodDelta`/`TrendPoint`/`aggregatePeriod`/`periodDelta`/`trendSeries` (Task 3); `env.modelIngest()` (deepseek v4 flash 0731); `orChat` from `./ai`.
+- Produces:
+  - `comparePeriods(prev: PeriodStats, cur: PeriodStats, trend: TrendPoint[]): Promise<string>` — bullet-point markdown. The AI is a FORMATTER over verified numbers (no-gyaan): prompt = current stats + previous stats + trend series; bullet points, numbers only, deltas (WoW/MoM/QoQ/HoH/YoY), the trend read from the series, NO advice, NO speculation, NO numbers not present. Model `env.modelIngest()`, `orChat(..., json = false, maxTokens = 800)`. On failure the CALLER falls back to code-rendered bullets (`periodDelta` + `trendSeries` formatted as text) — the page is never blank.
+  - Reviews API: `POST { action: 'compare', type, anchor }` → aggregate current + prev + trend (needs the day files + the period ranges) → `comparePeriods` (with the code-rendered fallback on failure) → `writeEntry('reviews', \`${type}-${anchor}.cmp.md\`, {}, comparison)` + `addChange('review', ...)` → `{ ok, comparison }`. GET returns the `.cmp.md` body too (`comparison`).
+  - The `reviews` collection glob in `src/content.config.ts` must exclude comparison files: `glob({ pattern: ['**/*.md', '!**/*.cmp.md'], base: './src/content/reviews' })` (verify the astro glob loader supports the negation — if not, store the comparison as `.cmp.txt` and adjust the API/page reads).
+  - ReviewTab: a "generate comparison" button (busy state) → calls the compare action → fills an editable comparison field (reuse the MarkdownEditor or a plain textarea — bullets) → save persists BOTH the note (`<type>-<anchor>.md`) and the comparison (`<type>-<anchor>.cmp.md`).
+
+- [ ] **Step 1:** `src/lib/review-compare.ts` — the prompt + `comparePeriods` + the code-rendered fallback (`renderComparisonFallback(prev, cur, trend): string` exported for tests).
+- [ ] **Step 2:** reviews API compare action + GET comparison + the collection glob exclusion.
+- [ ] **Step 3:** ReviewTab generate button + editable comparison + save both.
+- [ ] **Step 4:** Read-back verify (`grep` the new pieces) — commit only the 4 files: `git commit -m "feat(reviews): AI factual comparison — deepseek v4 flash, on-demand + editable, stored .cmp.md"`
 
 ---
 
@@ -462,6 +504,24 @@ Header: `{range.label} · {fmtDayW(startIso)} → {fmtDayW(endIso)}` + prev/next
 git add src/components/period/PeriodReview.astro "src/pages/[periodType]/[[anchor]].astro" src/layouts/Base.astro
 git commit -m "feat(periods): review surface + /week /month /q1..q4 /h1..h2 /year routes + nav"
 ```
+
+---
+
+### Task 5b: /lookback — the aggregated reviews hub
+
+**Files:**
+- Create: `src/pages/lookback.astro`
+- Modify: `src/layouts/Base.astro` (nav entry `[0N] lookback` → `/lookback`)
+
+**Interfaces:**
+- Consumes: `periodRangesBetween` (Task 2), `aggregatePeriod` (Task 3), the `reviews` collection (Task 4) + `.cmp.md` bodies (Task 4b, fs read).
+- Produces: `/lookback` — the owner's aggregated archive of ALL period reviews: type filter chips (`all | week | month | quarter | half | year`, `?type=` like /stream), newest first; each row: `{label} · {fmtDayW(startIso)} → {fmtDayW(endIso)}`, headline stats (sumR, winRate, trades, tradedDays), the note snippet (first ~120 chars, when written) + the comparison snippet (first bullet, when generated), and a link to `/week/2026-32`-style anchors. Zero-JS, tokens/primitives, design system. SSR (`prerender = false` — fresh; notes/comparisons written Sat/Sun must appear immediately).
+- The nav gains the second period entry here (Task 5 added `[review]`); add `[lookback]` in this task (sequential waves avoid the Base.astro conflict).
+
+- [ ] **Step 1:** `/lookback` page — type filter, period rows (newest first) with stats + snippets + links, empty state ("no periods logged yet.").
+- [ ] **Step 2:** nav entry.
+- [ ] **Step 3:** Read-back + local smoke (`/lookback` renders with the filter chips; a period with a note shows its snippet).
+- [ ] **Step 4:** Commit: `git add src/pages/lookback.astro src/layouts/Base.astro && git commit -m "feat(periods): /lookback — aggregated reviews hub (type filter, newest first)"`
 
 ---
 
