@@ -15,6 +15,7 @@ export function RebuildBar() {
   const [flash, setFlash] = useState<{ msg: string; link?: string } | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const flashedRef = useRef<string | null>(null)
+  const last = rebuilds[0]
 
   const load = useCallback(async () => {
     try {
@@ -135,6 +136,11 @@ export function RebuildBar() {
       )}
       {expanded && (
         <div className="shell border-t border-line pb-2">
+          {last && last.ok === false && (
+            <div role="alert" className="border border-down bg-down/10 px-3 py-2 text-[12px] text-down">
+              ✗ build failed at {last.at} — {last.error ?? 'see the rebuild log'}. your changes are still pending; fix and rebuild again.
+            </div>
+          )}
           {running ? (
             <p className="py-1 text-[12px] text-faint">
               rebuilding the site — static pages update in place, no restart needed. you can keep working.

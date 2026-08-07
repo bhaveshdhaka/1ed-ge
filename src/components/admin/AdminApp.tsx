@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { setSecret, getPasteSink, bus } from './api'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { setSecret, getPasteSink, bus, api } from './api'
 import { RebuildBar } from './RebuildBar'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DayWorkspace } from './tabs/DayWorkspace'
@@ -45,6 +45,12 @@ export default function AdminApp({ secret }: { secret: string }) {
   const [tab, setTab] = useState<Tab>('overview')
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const [help, setHelp] = useState(false)
+  const [dirty, setDirty] = useState(false)
+  const dirtyRef = useRef(false)
+  const setGlobalDirty = useCallback((b: boolean) => {
+    dirtyRef.current = b
+    setDirty(b)
+  }, [])
 
   useEffect(() => {
     setSecret(secret)
@@ -64,15 +70,29 @@ export default function AdminApp({ secret }: { secret: string }) {
     return () => document.removeEventListener('paste', onPaste)
   }, [])
 
+  // heartbeat: "trader is live" on public / and /stream while the admin is open
+  useEffect(() => {
+    const beat = () => api('/api/admin/ping', { method: 'POST' }).catch(() => {})
+    beat()
+    const id = setInterval(beat, 30000)
+    return () => clearInterval(id)
+  }, [])
+
   const notify = useCallback((msg: string, ok = true) => {
     setToast({ msg, ok })
     setTimeout(() => setToast(null), 4500)
   }, [])
 
-  const go = useCallback((t: Tab) => {
-    setTab(t)
-    window.scrollTo({ top: 0 })
-  }, [])
+  const go = useCallback(
+    (t: Tab) => {
+      if (t !== 'day' && dirtyRef.current && !confirm('you have unsaved day changes — switch tabs and lose them?')) return
+      dirtyRef.current = false
+      setDirty(false)
+      setTab(t)
+      window.scrollTo({ top: 0 })
+    },
+    [],
+  )
 
   // keyboard shortcuts
   useEffect(() => {
@@ -127,7 +147,7 @@ export default function AdminApp({ secret }: { secret: string }) {
             </span>
             <span className="ml-2 text-[11px] font-normal uppercase tracking-widest text-faint">admin</span>
           </a>
-          <nav className="flex flex-wrap items-center gap-1">
+          <nav aria-label="admin tabs" className="flex flex-wrap items-center gap-1">
             {TABS.map((t) => (
               <button
                 key={t.id}
@@ -156,7 +176,7 @@ export default function AdminApp({ secret }: { secret: string }) {
 
       <main className="shell py-6 md:py-8">
         {tab === 'overview' && <OverviewTab notify={notify} go={go} />}
-        {tab === 'day' && <DayWorkspace notify={notify} />}
+        {tab === 'day' && <DayWorkspace notify={notify} onDirtyChange={setGlobalDirty} />}
         {tab === 'accounts' && <AccountsTab notify={notify} />}
         {tab === 'coach' && <CoachTab notify={notify} />}
         {tab === 'media' && <MediaTab notify={notify} />}
@@ -164,7 +184,7 @@ export default function AdminApp({ secret }: { secret: string }) {
       </main>
 
       {toast && (
-        <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 border border-line2 bg-raise px-5 py-3 text-[13px] shadow-2xl">
+        <div role="status" aria-live="polite" className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 border border-line2 bg-raise px-5 py-3 text-[13px] shadow-2xl">
           <span className={toast.ok ? 'text-up' : 'text-down'}>
             {toast.ok ? '✓' : '✗'}
           </span>{' '}

@@ -14,22 +14,31 @@ interface OrMessage {
 async function orChat(messages: OrMessage[], model: string, json = true, maxTokens = 2500) {
   const key = env.openrouterKey()
   if (!key) throw new Error('OPENROUTER_API_KEY is not set')
-  const res = await fetch(`${env.openrouterBase()}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${key}`,
-      'HTTP-Referer': env.siteUrl(),
-      'X-Title': '1ed.ge',
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: 0.2,
-      max_tokens: maxTokens,
-      ...(json ? { response_format: { type: 'json_object' } } : {}),
-    }),
-  })
+  let res: Response
+  try {
+    res = await fetch(`${env.openrouterBase()}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${key}`,
+        'HTTP-Referer': env.siteUrl(),
+        'X-Title': '1ed.ge',
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.2,
+        max_tokens: maxTokens,
+        ...(json ? { response_format: { type: 'json_object' } } : {}),
+      }),
+      signal: AbortSignal.timeout(60_000),
+    })
+  } catch (e) {
+    if (e instanceof Error && e.name === 'TimeoutError') {
+      throw new Error('AI request timed out after 60s — try again')
+    }
+    throw e
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => '')
     throw new Error(`OpenRouter ${res.status}: ${text.slice(0, 300)}`)
