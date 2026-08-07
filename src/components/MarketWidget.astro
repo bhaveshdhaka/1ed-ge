@@ -70,25 +70,23 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
     </span>
   </div>
 
-  <div class="mt-3" data-rail>
-    <div class="relative h-5">
+  <div class="mt-3 px-2" data-rail>
+    <div class="relative h-10">
       {/* event severity dots on the rail */}
       {evDots.map((d) => (
         <span
           data-ev-at={d.at}
-          class:list={['absolute top-1 z-5 h-1.5 w-1.5 -translate-x-1/2 rounded-full', d.kind === 'red' ? 'bg-down' : 'bg-warn']}
+          class:list={['absolute top-5 z-10 h-1.5 w-1.5 -translate-x-1/2 rounded-full', d.kind === 'red' ? 'bg-down' : 'bg-warn']}
           style={`left:${d.pct}%`}
           title={d.title}
         ></span>
       ))}
 
-      {/* now-marker: live clock + hairline + caret — no green dot */}
-      <div class="absolute top-0 z-10 -translate-x-1/2" data-now-marker style={`left:${nowFracBuild}%`} title="now (HKT)">
-        <div class="flex -translate-y-full flex-col items-center">
-          <span data-now-clock class="mb-1 whitespace-nowrap rounded-sm border border-accent/40 bg-bg px-1.5 py-0.5 text-2xs tabular-nums text-accent shadow-sm">--:--:--</span>
-          <span class="h-2 w-px bg-accent"></span>
-        </div>
-        <span class="absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-4 border-t-[6px] border-x-transparent border-t-accent"></span>
+      {/* now-marker: live clock + hairline + caret — chip rides inside the rail, caret sits on the rail */}
+      <div class="absolute bottom-0 z-20 flex h-10 -translate-x-1/2 flex-col items-center" data-now-marker style={`left:${nowFracBuild}%`} title="now (HKT)">
+        <span data-now-clock class="mt-1 whitespace-nowrap rounded-sm border border-accent/40 bg-bg px-1.5 py-0.5 text-2xs tabular-nums text-accent shadow-sm">--:--:--</span>
+        <span class="w-px flex-1 bg-accent/70"></span>
+        <span class="h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-accent"></span>
       </div>
 
       {/* the rail: hour tick markings on the line */}
@@ -273,6 +271,15 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
       const clockEl = document.querySelector('[data-now-clock]')
       if (clockEl) {
         clockEl.textContent = p(hk.getUTCHours()) + ':' + p(hk.getUTCMinutes()) + ':' + p(hk.getUTCSeconds())
+        if (nowMarker) {
+          const railW = nowMarker.parentElement.clientWidth
+          const chipW = clockEl.offsetWidth
+          const inset = 8
+          const markerCenter = (parseFloat(nowMarker.style.left) / 100) * railW
+          const half = chipW / 2
+          const desired = Math.max(half + inset, Math.min(markerCenter, railW - half - inset))
+          clockEl.style.transform = 'translateX(' + (desired - markerCenter) + 'px)'
+        }
       }
       for (const dot of document.querySelectorAll('[data-ev-at]')) {
         const at = Number(dot.getAttribute('data-ev-at'))
