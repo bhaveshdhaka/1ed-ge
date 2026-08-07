@@ -59,7 +59,10 @@ const cells = dayFacts(today, activeHabits)
   </section>
 
   <section class="shell pb-20">
-    <h2 class="text-lg text-ink">/ today's stream</h2>
+    <div class="flex items-baseline justify-between gap-3">
+      <h2 class="text-lg text-ink">/ today's stream</h2>
+      <a href="/stream" class="text-2xs text-dim transition-colors hover:text-accent">all stream →</a>
+    </div>
 
     {moments.length > 0 ? (
       <div class="mt-4 flex max-w-2xl flex-col gap-3">
