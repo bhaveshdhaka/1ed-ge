@@ -92,8 +92,10 @@ export function periodRange(type: PeriodType, representativeIso: string): Period
   switch (type) {
     case 'week': {
       const start = mondayOf(representativeIso)
+      const thu = new Date(parseIso(start).getTime() + 3 * DAY_MS)
+      const isoYear = thu.getUTCFullYear()
       const weekNo = isoWeekNumber(start)
-      return base(start, addDays(start, 6), `${y}-${pad(weekNo)}`, `week ${weekNo}`, weekNo)
+      return base(start, addDays(start, 6), `${isoYear}-${pad(weekNo)}`, `week ${weekNo}`, weekNo)
     }
     case 'month': {
       const start = `${y}-${pad(m)}-01`
@@ -118,6 +120,7 @@ export function periodRangesBetween(type: PeriodType, fromIso: string, toIso: st
   const out: PeriodRange[] = []
   let cur = periodRange(type, fromIso)
   let guard = 0
+  // ISO strings sort chronologically
   while (cur.startIso <= toIso && guard < 2000) {
     out.push(cur)
     cur = cur.next

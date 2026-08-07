@@ -55,6 +55,28 @@ test('isoFromAnchor round-trips', () => {
 })
 test('ranges between spans a span', () => {
   const rs = periodRangesBetween('week', '2026-08-03', '2026-08-20')
-  assert.ok(rs.length >= 2 && rs.length <= 4)
+  assert.equal(rs.length, 3)
   assert.equal(rs[0].startIso, '2026-08-03')
+})
+test('week anchor uses the ISO week year at year boundaries', () => {
+  // last Mon–Wed of Dec falling in ISO week 1 of the next year
+  const wDec = periodRange('week', '2025-12-29')
+  assert.equal(wDec.startIso, '2025-12-29')
+  assert.equal(wDec.endIso, '2026-01-04')
+  assert.equal(wDec.anchor, '2026-01')
+  assert.equal(wDec.label, 'week 1')
+  // first Fri–Sun of Jan falling in week 52/53 of the previous year
+  const wJan = periodRange('week', '2027-01-01')
+  assert.equal(wJan.startIso, '2026-12-28')
+  assert.equal(wJan.endIso, '2027-01-03')
+  assert.equal(wJan.anchor, '2026-53')
+  assert.equal(wJan.label, 'week 53')
+})
+test('isoFromAnchor round-trips year-boundary weeks', () => {
+  // week 1 of 2026 = Mon 2025-12-29 .. Sun 2026-01-04
+  assert.equal(isoFromAnchor('week', '2026-01'), '2025-12-29')
+  assert.equal(periodRange('week', isoFromAnchor('week', '2026-01')).anchor, '2026-01')
+  // week 53 of 2026 = Mon 2026-12-28 .. Sun 2027-01-03
+  assert.equal(isoFromAnchor('week', '2026-53'), '2026-12-28')
+  assert.equal(periodRange('week', isoFromAnchor('week', '2026-53')).anchor, '2026-53')
 })
