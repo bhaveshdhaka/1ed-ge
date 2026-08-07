@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
 import { todayHkt } from '../lib/sessions'
+import { fmtDayW } from '../lib/dates'
 import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
 import type { MarketKey } from '../lib/sessions'
@@ -24,8 +25,7 @@ const nextRed = nextNewsAt(payload.news, now)
 const speaker = nextSpeakerAt(payload.speaker, now)
 const redKind = nextRed?.kind === 'red'
 
-const MON = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-const prettyDate = `${parseInt(today.slice(8, 10), 10)} ${MON[parseInt(today.slice(5, 7), 10) - 1]} ${today.slice(0, 4)}`
+const prettyDate = fmtDayW(today)
 
 const clsColor = (cls: string) =>
   cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'

@@ -8,7 +8,7 @@ export function fmtDay(iso: string): string {
 
 const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 
-/** '2028-08-03' → 'fri | 03-aug-2028' — 3-letter weekday + pipe, display only. */
+/** '2028-08-03' → 'thu | 03-aug-2028' — 3-letter weekday + pipe, display only. */
 export function fmtDayW(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
   const wd = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]

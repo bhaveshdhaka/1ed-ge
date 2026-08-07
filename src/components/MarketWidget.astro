@@ -76,7 +76,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
       {evDots.map((d) => (
         <span
           data-ev-at={d.at}
-          class:list={['absolute top-1 z-[5] h-1.5 w-1.5 -translate-x-1/2 rounded-full', d.kind === 'red' ? 'bg-down' : 'bg-warn']}
+          class:list={['absolute top-1 z-5 h-1.5 w-1.5 -translate-x-1/2 rounded-full', d.kind === 'red' ? 'bg-down' : 'bg-warn']}
           style={`left:${d.pct}%`}
           title={d.title}
         ></span>
