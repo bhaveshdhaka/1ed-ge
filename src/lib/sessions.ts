@@ -1,4 +1,4 @@
-import { addDays, easterSunday, isoFromDate, lastWeekday, marketDay, nthWeekday } from './market'
+import { addDays, easterSunday, isoFromDate, lastWeekday, marketDay, cmeDay, nthWeekday } from './market'
 export type MarketKey = 'cme' | 'tse' | 'lse' | 'nyse'
 
 export interface MarketEvent {
@@ -138,9 +138,11 @@ export function marketEvents(startHkt: string, days: number): MarketEvent[] {
   for (let i = -1; i < days + 2; i++) {
     const d = addDaysIso(startHkt, i)
     const us = marketDay(d)
+    const cm = cmeDay(d)
+    const w = dow(d)
 
     if (us.status !== 'closed') {
-      // NYSE equity cash session (ET date = d)
+      // NYSE equity cash session (ET date = d) — a band on the CME clock
       out.push({ market: 'nyse', type: 'open', hkt: hktIso(wallToUTC('America/New_York', d, 9, 30)) })
       out.push({
         market: 'nyse',
@@ -148,20 +150,23 @@ export function marketEvents(startHkt: string, days: number): MarketEvent[] {
         hkt: hktIso(wallToUTC('America/New_York', d, us.status === 'early' ? 13 : 16, 0)),
         label: us.status === 'early' ? 'half day' : undefined,
       })
+    }
 
-      // CME futures daily maintenance halt (CT date = d)
-      const w = dow(d)
-      if (w === 5) {
+    // CME equity-index futures (CT date = d) — the master clock
+    if (cm.status !== 'closed') {
+      if (cm.status === 'early') {
+        out.push({ market: 'cme', type: 'close', hkt: hktIso(wallToUTC('America/Chicago', d, 13, 15)), label: 'early close' })
+      } else if (w === 5) {
         out.push({ market: 'cme', type: 'close', hkt: hktIso(wallToUTC('America/Chicago', d, 16, 0)), label: 'weekend close' })
       } else if (w !== 0 && w !== 6) {
         out.push({ market: 'cme', type: 'halt', hkt: hktIso(wallToUTC('America/Chicago', d, 16, 0)), label: 'maintenance halt' })
         out.push({ market: 'cme', type: 'resume', hkt: hktIso(wallToUTC('America/Chicago', d, 17, 0)) })
       }
     }
-    // CME reopen Sunday 5pm CT when the following Monday is a US trading day
+    // CME reopen Sunday 5pm CT when the following Monday is a CME trading day
     if (dow(d) === 0) {
       const mon = addDaysIso(d, 1)
-      if (marketDay(mon).status !== 'closed') {
+      if (cmeDay(mon).status !== 'closed') {
         out.push({ market: 'cme', type: 'open', hkt: hktIso(wallToUTC('America/Chicago', d, 17, 0)), label: 'reopen' })
       }
     }
@@ -199,15 +204,13 @@ export interface DayMarker {
 }
 
 export function scheduledDayMarker(iso: string): DayMarker {
-  const m = marketDay(iso)
+  const m = cmeDay(iso)
   if (m.status === 'closed') return { glyph: '✕', text: `closed · ${m.label}`, cls: 'text-down', live: false }
-  if (m.status === 'early') return { glyph: '◐', text: 'early close 1:00pm et', cls: 'text-warn', live: false }
+  if (m.status === 'early') return { glyph: '◐', text: 'early close 1:15pm ct', cls: 'text-warn', live: false }
   if (iso === todayHkt()) return { glyph: '●', text: 'open', cls: 'text-up', live: true }
-  const evs = marketEvents(iso, 1)
-  const open = evs.find((e) => e.market === 'nyse' && e.type === 'open' && e.hkt.slice(0, 10) === iso)
-  const close = open ? evs.find((e) => e.market === 'nyse' && e.type === 'close' && e.hkt > open.hkt) : undefined
-  const win = open && close ? `${open.hkt.slice(11, 16)}→${close.hkt.slice(11, 16)} hkt` : ''
-  return { glyph: '○', text: win ? `open ${win}` : 'open', cls: 'text-dim', live: false }
+  const cmeWin = daySessionWindows(iso).cme
+  const suffix = cmeWin.startsWith('halt') ? `${cmeWin} hkt` : cmeWin === '~23h' ? '~23h' : ''
+  return { glyph: '○', text: suffix ? `open · ${suffix}` : 'open', cls: 'text-dim', live: false }
 }
 
 /** Compact per-market session window for a date (HKT), e.g. NYSE "21:30→04:00". */
@@ -231,9 +234,17 @@ export function daySessionWindows(iso: string): Record<MarketKey, string> {
   const lseClose = lseOpen ? after('lse', 'close', lseOpen.hkt) : undefined
   const lse = lseOpen ? `${t(lseOpen.hkt)}→${lseClose ? t(lseClose.hkt) : '—'}` : '—'
 
-  const cmeHalt = first('cme', 'halt')
-  const cmeResume = cmeHalt ? after('cme', 'resume', cmeHalt.hkt) : undefined
-  const cme = cmeHalt && cmeResume ? `halt ${t(cmeHalt.hkt)}–${t(cmeResume.hkt)}` : '~24h'
+  const cm = cmeDay(iso)
+  let cme: string
+  if (cm.status === 'closed') {
+    cme = 'closed'
+  } else if (cm.status === 'early') {
+    cme = 'early close 1:15pm ct'
+  } else {
+    const cmeHalt = first('cme', 'halt')
+    const cmeResume = cmeHalt ? after('cme', 'resume', cmeHalt.hkt) : undefined
+    cme = cmeHalt && cmeResume ? `halt ${t(cmeHalt.hkt)}–${t(cmeResume.hkt)}` : '~23h'
+  }
 
   return { nyse, tse, lse, cme }
 }

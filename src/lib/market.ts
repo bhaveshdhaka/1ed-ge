@@ -80,6 +80,50 @@ const earlyCloseRules = [
   (y: number) => new Date(y, 11, 31),
 ]
 
+/* ------------------------------------------------------------------ */
+/* CME equity-index futures (MNQ) — the master clock. US-centric.      */
+/* Full trading days (23h) EXCEPT these observed holidays; NYSE closed */
+/* days like MLK/Presidents/Memorial/Labor are normal CME days.        */
+/* ------------------------------------------------------------------ */
+
+function cmeHolidaysForYear(year: number): Date[] {
+  return [
+    new Date(year, 0, 1), // New Year's
+    addDays(easterSunday(year), -2), // Good Friday
+    new Date(year, 5, 19), // Juneteenth
+    new Date(year, 6, 4), // Independence Day
+    nthWeekday(year, 10, 4, 4), // Thanksgiving
+    new Date(year, 11, 25), // Christmas
+  ].map(observed)
+}
+
+const cmeEarlyCloseRules = [
+  (y: number) => addDays(nthWeekday(y, 10, 4, 4), 1), // day after Thanksgiving
+  (y: number) => new Date(y, 11, 24), // Christmas Eve
+  (y: number) => new Date(y, 11, 31), // New Year's Eve
+]
+
+/** Deterministic CME equity-index-futures day status (master clock). */
+export function cmeDay(iso: string): MarketDay {
+  const [y, m, d] = iso.split('-').map(Number)
+  const dt = new Date(y, m - 1, d)
+  const dow = dt.getDay()
+  if (dow === 0 || dow === 6) return { status: 'closed', label: 'weekend' }
+
+  for (const yy of [y - 1, y, y + 1]) {
+    for (const h of cmeHolidaysForYear(yy)) {
+      if (isoFromDate(h) === iso) return { status: 'closed', label: 'holiday' }
+    }
+  }
+  for (const rule of cmeEarlyCloseRules) {
+    const e = rule(y)
+    if (isoFromDate(e) === iso && e.getDay() !== 0 && e.getDay() !== 6) {
+      return { status: 'early', label: 'early close' }
+    }
+  }
+  return { status: 'open', label: 'open' }
+}
+
 /** Deterministic US-market status for a calendar day. */
 export function marketDay(iso: string): MarketDay {
   const [y, m, d] = iso.split('-').map(Number)
@@ -102,7 +146,7 @@ export function marketDay(iso: string): MarketDay {
 }
 
 export function marketMarker(iso: string): { glyph: string; text: string; status: MarketStatus } {
-  const m = marketDay(iso)
+  const m = cmeDay(iso)
   if (m.status === 'open') return { glyph: '●', text: 'open', status: m.status }
   if (m.status === 'early') return { glyph: '◐', text: 'early close 1:15pm ct', status: m.status }
   return { glyph: '✕', text: `closed · ${m.label}`, status: m.status }

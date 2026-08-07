@@ -1,39 +1,27 @@
 ---
-import { marketSchedule } from '../lib/market'
+import { addDaysIso, marketEvents, todayHkt } from '../lib/sessions'
+import type { MarketEvent } from '../lib/sessions'
 
-const year = new Date().getUTCFullYear()
-const schedule = {
-  holidays: [...marketSchedule(year).holidays, ...marketSchedule(year + 1).holidays],
-  early: [...marketSchedule(year).earlyCloses, ...marketSchedule(year + 1).earlyCloses],
-}
+// CME equity-index futures (master clock) events around today, for the live footer ticker.
+const cmeEvents = marketEvents(addDaysIso(todayHkt(), -1), 4).filter((e) => e.market === 'cme')
 ---
 
-<script type="application/json" id="mkt-data" set:html={JSON.stringify(schedule).replace(/</g, '\\u003c')} is:inline></script>
+<script type="application/json" id="mkt-data" set:html={JSON.stringify(cmeEvents).replace(/</g, '\\u003c')} is:inline></script>
 
 <script is:inline>
   (() => {
     const el = document.getElementById('mkt-data')
     if (!el) return
-    let S = { holidays: [], early: [] }
-    try { S = JSON.parse(el.textContent || '{}') } catch {}
+    let EVENTS = []
+    try { EVENTS = JSON.parse(el.textContent || '[]') } catch {}
 
     const p = (n) => String(n).padStart(2, '0')
     const fmtHMS = (sec) => {
       const s = Math.max(0, Math.round(sec))
       return p(Math.floor(s / 3600)) + ':' + p(Math.floor((s % 3600) / 60)) + ':' + p(s % 60)
     }
-
-    const etNow = () => {
-      const p = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/New_York',
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
-      }).formatToParts(new Date())
-      const g = {}
-      for (const x of p) g[x.type] = x.value
-      const h = (+g.hour) % 24
-      return { iso: `${g.year}-${g.month}-${g.day}`, sec: h * 3600 + (+g.minute) * 60 + (+g.second) }
-    }
+    const nowHkt = () => new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 16) + '+08:00'
+    const isOpenType = (t) => t === 'open' || t === 'resume'
 
     const apply = (text, color) => {
       document.querySelectorAll('[data-mkt-live]').forEach((n) => {
@@ -43,19 +31,23 @@ const schedule = {
     }
 
     const tick = () => {
-      const n = etNow()
-      const [y, m, d] = n.iso.split('-').map(Number)
-      const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
-      const holiday = (S.holidays || []).includes(n.iso)
-      if (dow === 0 || dow === 6 || holiday) {
-        return apply('✕ closed · ' + (holiday ? 'holiday' : 'weekend'), 'var(--color-down)')
+      const now = nowHkt()
+      let prev = null
+      let next = null
+      for (const e of EVENTS) {
+        if (e.hkt <= now) prev = e
+        else { next = e; break }
       }
-      const early = (S.early || []).includes(n.iso)
-      const open = 9.5 * 3600
-      const close = early ? 13 * 3600 : 16 * 3600
-      if (n.sec < open) return apply('✕ closed · opens in ' + fmtHMS(open - n.sec), 'var(--color-down)')
-      if (n.sec < close) return apply((early ? '◐ open' : '● open') + ' · ' + fmtHMS(close - n.sec), 'var(--color-up)')
-      return apply('✕ closed', 'var(--color-down)')
+      if (!next) return apply('✕ closed', 'var(--color-down)')
+      const sec = (Date.parse(next.hkt) - Date.now()) / 1000
+
+      if (prev && isOpenType(prev.type)) {
+        return apply('● open · ' + fmtHMS(sec), 'var(--color-up)')
+      }
+      if (prev && prev.type === 'halt') {
+        return apply('◐ maintenance · ' + fmtHMS(sec), 'var(--color-warn)')
+      }
+      return apply('✕ closed · opens in ' + fmtHMS(sec), 'var(--color-down)')
     }
 
     tick()
