@@ -138,7 +138,7 @@ export function RebuildBar() {
         <div className="shell border-t border-line pb-2">
           {last && last.ok === false && (
             <div role="alert" className="border border-down bg-down/10 px-3 py-2 text-[12px] text-down">
-              ✗ build failed at {last.at} — {last.error ?? 'see the rebuild log'}. your changes are still pending; fix and rebuild again.
+              ✗ build failed at {new Date(last.at).toLocaleTimeString()} — {last.error ?? 'see the rebuild log'}. your changes are still pending; fix and rebuild again.
             </div>
           )}
           {running ? (

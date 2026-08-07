@@ -59,7 +59,7 @@ function normalizeMoment(m: Record<string, any>): Record<string, any> | null {
   const at = /^\d{2}:\d{2}$/.test(String(m.at ?? '')) ? String(m.at) : '00:00'
   const out: Record<string, any> = { at, type }
   if (typeof m.text === 'string' && m.text.trim()) out.text = m.text.trim()
-  if (m.tradeIdx != null) {
+  if (m.tradeIdx != null && String(m.tradeIdx).trim() !== '') {
     const ti = Number(m.tradeIdx)
     if (Number.isInteger(ti) && ti >= 0) out.tradeIdx = ti
   }

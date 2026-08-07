@@ -30,9 +30,11 @@ export function MarkdownEditor({
 
   useEffect(() => {
     const id = ++renderSeq.current
-    renderMd(value).then((h) => {
-      if (renderSeq.current === id) setHtml(h)
-    })
+    renderMd(value)
+      .then((h) => {
+        if (renderSeq.current === id) setHtml(h)
+      })
+      .catch(() => {})
   }, [value])
 
   return (
