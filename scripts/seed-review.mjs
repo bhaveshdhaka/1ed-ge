@@ -100,7 +100,13 @@ function usMarketStatus(iso) {
 
 // ---------------------------------------------------------------- dates
 const START = new Date('2026-08-05T00:00:00Z')
-const DAYS = 730
+// Filler-day count. Site logic must never hardcode a period length — pass --days=N explicitly.
+const DAYS_ARG = Number(process.argv.find((a) => a.startsWith('--days='))?.split('=')[1])
+if (!Number.isInteger(DAYS_ARG) || DAYS_ARG <= 0) {
+  console.error('usage: node scripts/seed-review.mjs --days=N')
+  process.exit(1)
+}
+const DAYS = DAYS_ARG
 const dateStr = (d) => d.toISOString().slice(0, 10)
 const dates = []
 for (let i = 0; i < DAYS; i++) {
@@ -604,7 +610,7 @@ Every account is a story that gets told in frontmatter — stages, payouts, and 
 T('dayzero', 'Day Zero', 'this is the beginning of a public experiment.',
   ['intro', 'rules'], `This is the beginning of a public experiment.
 
-For the next two years everything here is public — every trade, every account, every mood, every miss. No hiding. No cherry-picking. If I wouldn't show it, I shouldn't be doing it.
+Everything here is public — every trade, every account, every mood, every miss. No hiding. No cherry-picking. If I wouldn't show it, I shouldn't be doing it.
 
 The only metric that matters here is **R** — the number of points risked vs the number of points made. Everything else is noise.
 

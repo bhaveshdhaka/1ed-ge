@@ -29,6 +29,7 @@ export function isIsoDay(s: string): boolean {
 }
 
 const PROJECT_START = new Date('2026-08-05T00:00:00Z')
-export function projectDayNumber(): number {
-  return Math.min(730, Math.max(1, Math.floor((Date.now() - PROJECT_START.getTime()) / 86400000) + 1))
+/** Day number since project start, uncapped — the site is the owner's life, not a 2-year experiment. */
+export function projectDayNumber(now: number = Date.now()): number {
+  return Math.max(1, Math.floor((now - PROJECT_START.getTime()) / 86400000) + 1)
 }

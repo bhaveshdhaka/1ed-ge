@@ -8,7 +8,7 @@ export async function GET(context: { site: URL }) {
   )
   return rss({
     title: '1ed.ge — public trading journal',
-    description: 'A two-year public trading experiment. Every trade, every account, every R.',
+    description: 'A public trading journal. Every trade, every account, every R.',
     site: context.site,
     items: journal.map((j) => ({
       title: j.data.day ?? j.data.date,
