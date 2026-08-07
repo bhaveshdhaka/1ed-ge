@@ -1,9 +1,12 @@
 ---
 import { getCollection } from 'astro:content'
-import { addDaysIso, marketEvents, todayHkt } from '../lib/sessions'
+import { addDaysIso, marketEvents, todayHkt, daySessionWindows } from '../lib/sessions'
 import type { MarketEvent } from '../lib/sessions'
+import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
+import type { StripPayload } from '../lib/strip'
+import type { MarketKey } from '../lib/sessions'
 import { marketMarker } from '../lib/market'
-import { groupNewsByTime, newsEmoji } from '../lib/market-news'
+import NewsBlock from './NewsBlock.astro'
 
 interface Props {
   news?: boolean
@@ -14,29 +17,34 @@ const today = todayHkt()
 const events = marketEvents(today, 3)
 const news = showNews ? await getCollection('market-news') : []
 const newsToday = news.find((n) => n.data.date === today)
-const mk = marketMarker(today)
+const red = newsToday?.data.red ?? []
+const orange = newsToday?.data.orange ?? []
 
-const redGroups = newsToday ? groupNewsByTime(newsToday.data.red) : []
-const orangeGroups = newsToday ? groupNewsByTime(newsToday.data.orange) : []
+const payload: StripPayload = buildStrip(today, Date.now(), red, orange)
+const now = payload.now
+
+const wins = daySessionWindows(today)
+const mk = marketMarker(today)
 
 const MON = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 const prettyDate = `${parseInt(today.slice(8, 10), 10)} ${MON[parseInt(today.slice(5, 7), 10) - 1]} ${today.slice(0, 4)}`
 
-const todayEvents = events.filter((e) => e.hkt.slice(0, 10) === today)
-const t = (e?: MarketEvent) => (e ? e.hkt.slice(11, 16) : '—')
-const nyseOpen = todayEvents.find((e) => e.market === 'nyse' && e.type === 'open')
-const nyseClose = todayEvents.find((e) => e.market === 'nyse' && e.type === 'close')
-const tseOpen = todayEvents.find((e) => e.market === 'tse' && e.type === 'open')
-const tseClose = todayEvents.find((e) => e.market === 'tse' && e.type === 'close')
-const lseOpen = todayEvents.find((e) => e.market === 'lse' && e.type === 'open')
-const lseClose = todayEvents.find((e) => e.market === 'lse' && e.type === 'close')
-
-const markets = [
-  { key: 'cme', flag: '📈', name: 'MNQ futures', window: '~24h' },
-  { key: 'nyse', flag: '🇺🇸', name: 'New York · NYSE', window: `${t(nyseOpen)}→${t(nyseClose)}` },
-  { key: 'tse', flag: '🇯🇵', name: 'Tokyo · TSE', window: `${t(tseOpen)}–${t(tseClose)}` },
-  { key: 'lse', flag: '🇬🇧', name: 'London · LSE', window: `${t(lseOpen)}→${t(lseClose)}` },
+const markets: { key: MarketKey; flag: string; name: string; window: string }[] = [
+  { key: 'cme', flag: '📈', name: 'CME Globex', window: wins.cme },
+  { key: 'nyse', flag: '🇺🇸', name: 'New York · NYSE', window: wins.nyse },
+  { key: 'tse', flag: '🇯🇵', name: 'Tokyo · TSE', window: wins.tse },
+  { key: 'lse', flag: '🇬🇧', name: 'London · LSE', window: wins.lse },
 ]
+
+const segOf = (key: MarketKey) => segmentAt(payload.segments[key], now)
+const nextRed = nextNewsAt(payload.news, now)
+const speaker = nextSpeakerAt(payload.speaker, now)
+const redKind = nextRed?.kind === 'red'
+
+const clsColor = (cls: string) =>
+  cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
+const clsClass = (cls: string) =>
+  cls === 'up' ? 'text-up' : cls === 'warn' ? 'text-warn' : cls === 'down' ? 'text-down' : 'text-dim'
 
 // ---- HKT day timeline: session spans clipped to today's 00:00–24:00 bar ----
 interface Seg {
@@ -51,7 +59,7 @@ const hours = (hkt: string) => {
   return hh + mm / 60
 }
 
-function barSegments(market: string, pause: boolean): Seg[] {
+function barSegments(market: MarketKey, pause: boolean): Seg[] {
   const list = segEvents.filter((e) => e.market === market)
   const opens = (typ: string) => (pause ? typ === 'halt' || typ === 'close' : typ === 'open' || typ === 'resume')
   const closes = (typ: string) => (pause ? typ === 'open' || typ === 'resume' : typ === 'close' || typ === 'halt')
@@ -90,10 +98,10 @@ function barSegments(market: string, pause: boolean): Seg[] {
 }
 
 const barSegs = [
-  { market: 'nyse', segs: barSegments('nyse', false), cls: 'bg-up/30' },
-  { market: 'tse', segs: barSegments('tse', false), cls: 'bg-accent/25' },
-  { market: 'lse', segs: barSegments('lse', false), cls: 'bg-purp/25' },
-  { market: 'cme', segs: barSegments('cme', true), cls: 'bg-warn/40' },
+  { market: 'nyse' as MarketKey, segs: barSegments('nyse', false), cls: 'bg-up/30' },
+  { market: 'tse' as MarketKey, segs: barSegments('tse', false), cls: 'bg-accent/25' },
+  { market: 'lse' as MarketKey, segs: barSegments('lse', false), cls: 'bg-purp/25' },
+  { market: 'cme' as MarketKey, segs: barSegments('cme', true), cls: 'bg-warn/40' },
 ]
 
 const nowHktBuild = new Date(Date.now() + 8 * 3600 * 1000)
@@ -129,128 +137,168 @@ const nowFracBuild = (nowHktBuild.getUTCHours() + nowHktBuild.getUTCMinutes() / 
       <span class="flex items-center gap-1.5"><span class="h-2 w-3 bg-up/30"></span>🇺🇸 New York</span>
       <span class="flex items-center gap-1.5"><span class="h-2 w-3 bg-accent/25"></span>🇯🇵 Tokyo</span>
       <span class="flex items-center gap-1.5"><span class="h-2 w-3 bg-purp/25"></span>🇬🇧 London</span>
-      <span class="flex items-center gap-1.5"><span class="h-2 w-3 bg-warn/40"></span>📈 futures closed</span>
+      <span class="flex items-center gap-1.5"><span class="h-2 w-3 bg-warn/40"></span>📈 CME Globex maintenance</span>
     </div>
   </div>
 
   <div id="mkt-rows" class="mt-2">
-    {markets.map((m) => (
-      <div class="flex items-center justify-between gap-x-4 border-t border-line/60 py-2" data-session-row={m.key}>
-        <div class="flex min-w-0 items-center gap-2">
-          <span class="shrink-0 text-[15px] leading-none">{m.flag}</span>
-          <span class="truncate text-[13px] text-ink">{m.name}</span>
+    {markets.map((m) => {
+      const seg = segOf(m.key)
+      return (
+        <div class="flex items-center justify-between gap-x-4 border-t border-line/60 py-2" data-session-row={m.key}>
+          <div class="flex min-w-0 items-center gap-2">
+            <span class="shrink-0 text-[15px] leading-none">{m.flag}</span>
+            <span class="truncate text-[13px] text-ink">{m.name}</span>
+          </div>
+          <div class="flex min-w-0 items-center gap-x-3 text-right">
+            <span data-session-text={m.key} class:list={['min-w-0 truncate text-[13px]', seg ? clsClass(seg.cls) : 'text-faint']}>
+              {seg ? seg.text : 'closed'}
+            </span>
+            <span data-session-cd={m.key} class="shrink-0 w-[5.5rem] text-right text-[13px] tabular-nums" style={`color:${seg ? clsColor(seg.cls) : 'var(--color-faint)'}`}>
+              {seg ? fmtHuman((seg.until - now) / 1000) : '—'}
+            </span>
+            <span class="hidden w-[7rem] text-right text-[11px] text-faint tabular-nums sm:inline">{m.window}</span>
+          </div>
         </div>
-        <div class="flex shrink-0 items-center gap-x-3">
-          <span class="hidden text-[11px] text-faint tabular-nums sm:inline">{m.window}</span>
-          <span class="w-[4.6rem] text-right text-[13px] tabular-nums" data-session={m.key}>--:--:--</span>
-          <span class="w-[3.4rem] text-right text-[10px] text-faint" data-session-label={m.key}>—</span>
-        </div>
-      </div>
-    ))}
+      )
+    })}
   </div>
 
-  {showNews && newsToday && (newsToday.data.red.length > 0 || newsToday.data.orange.length > 0) && (
+  {showNews && (payload.news.length > 0 || speaker) && (
+    <div class="mt-2 flex flex-col gap-1 border-t border-line/60 pt-2 text-[13px]" data-news-lines>
+      <div class="flex items-baseline gap-3" data-news-row style={nextRed ? '' : 'display:none'}>
+        <span data-news-dot class:list={['inline-block h-1.5 w-1.5 shrink-0 rounded-full', redKind ? 'bg-down' : 'bg-warn']}></span>
+        <span data-news-text class:list={['min-w-0 flex-1', redKind ? 'text-down' : 'text-warn']}>{nextRed?.text ?? ''}</span>
+        <span data-news-cd class="shrink-0 text-[12px] tabular-nums" style={nextRed ? `color:${redKind ? 'var(--color-down)' : 'var(--color-warn)'}` : ''}>
+          {nextRed ? fmtHuman((nextRed.at - now) / 1000) : ''}
+        </span>
+      </div>
+      {speaker && (
+        <div class="flex items-baseline gap-3" data-speaker-row>
+          <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
+          <span data-speaker-text class="min-w-0 flex-1 text-accent">{speaker.text}</span>
+          <span data-speaker-cd class="shrink-0 text-[12px] tabular-nums text-accent">{fmtHuman((speaker.at - now) / 1000)}</span>
+        </div>
+      )}
+    </div>
+  )}
+
+  {showNews && (red.length > 0 || orange.length > 0) && (
     <details class="group mt-2 border-t border-line/60">
       <summary class="flex cursor-pointer list-none items-center justify-between gap-3 py-2 text-[13px]">
-        <span class="flex flex-wrap items-center gap-2 text-dim">
-          <span>USD news</span>
-          {redGroups.length > 0 && <span class="text-down">{newsEmoji(redGroups[0].titles[0])} red {redGroups[0].time}</span>}
-          {redGroups.length === 0 && orangeGroups.length > 0 && (
-            <span class="opacity-70 text-warn">{newsEmoji(orangeGroups[0].titles[0])} orange {orangeGroups[0].time}</span>
-          )}
-        </span>
+        <span class="text-dim">USD news · all today</span>
         <span class="text-faint transition-transform group-open:rotate-180">▾</span>
       </summary>
-      <div class="mt-1 flex flex-col gap-1 border-t border-line/50 pt-2 text-[13px]">
-        {redGroups.map((g) => (
-          <div class="flex items-baseline gap-3">
-            <span class="w-20 shrink-0 text-right text-[12px] tabular-nums text-down">{newsEmoji(g.titles[0])} {g.time}</span>
-            <span class="text-down">{g.titles.join(' · ')}</span>
-          </div>
-        ))}
-        {orangeGroups.map((g) => (
-          <div class="flex items-baseline gap-3">
-            <span class="w-20 shrink-0 text-right text-[12px] tabular-nums opacity-70 text-warn">{newsEmoji(g.titles[0])} {g.time}</span>
-            <span class="opacity-70 text-warn">{g.titles.join(' · ')}</span>
-          </div>
-        ))}
+      <div class="mt-1 flex flex-col gap-1 border-t border-line/50 pt-2">
+        <NewsBlock red={red} orange={orange} />
       </div>
     </details>
   )}
-  {showNews && (!newsToday || (newsToday.data.red.length === 0 && newsToday.data.orange.length === 0)) && (
-    <p class="mt-2 border-t border-line/60 pt-2 text-[11px] text-faint">no major USD news for today.</p>
-  )}
 
-  <p class="mt-2 border-t border-line/60 pt-2 text-[11px] text-faint">all times HKT · DST-aware</p>
+  <p class="mt-2 border-t border-line/60 pt-2 text-[11px] text-faint">all times HKT · CME Globex is the master clock</p>
 </section>
 
-<script type="application/json" id="mkt-sessions" set:html={JSON.stringify(events).replace(/</g, '\\u003c')} is:inline></script>
+<script type="application/json" id="mkt-strip" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')} is:inline></script>
 
 <script is:inline>
   (() => {
-    const el = document.getElementById('mkt-sessions')
+    const el = document.getElementById('mkt-strip')
     const container = document.getElementById('mkt-rows')
     if (!el || !container) return
-    let EVENTS = []
-    try { EVENTS = JSON.parse(el.textContent || '[]') } catch {}
-    const byMarket = {}
-    for (const e of EVENTS) (byMarket[e.market] = byMarket[e.market] || []).push(e)
+    let PAYLOAD = null
+    try { PAYLOAD = JSON.parse(el.textContent || 'null') } catch {}
+    if (!PAYLOAD) return
 
     const p = (n) => String(n).padStart(2, '0')
-    const fmtHMS = (sec) => {
-      const s = Math.max(0, Math.round(sec))
-      return p(Math.floor(s / 3600)) + ':' + p(Math.floor((s % 3600) / 60)) + ':' + p(s % 60)
+    const fmtHuman = (sec) => {
+      sec = Math.max(0, Math.round(sec))
+      const d = Math.floor(sec / 86400)
+      const h = Math.floor((sec % 86400) / 3600)
+      const m = Math.floor((sec % 3600) / 60)
+      const s = Math.floor(sec % 60)
+      if (d > 0) return h > 0 ? d + 'd ' + h + 'h' : d + 'd'
+      if (h > 0) return m > 0 ? h + 'h ' + m + 'm' : h + 'h'
+      if (m > 0) return m + 'm'
+      return s + 's'
     }
-    const nowHkt = () => new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 16) + '+08:00'
-    const isOpenType = (type) => type === 'open' || type === 'resume'
+    const segAt = (segs, now) => {
+      for (const s of segs) if (now >= s.at && now < s.until) return s
+      return null
+    }
+    const nextAt = (list, now) => {
+      const up = list.filter((n) => n.at > now)
+      if (!up.length) return null
+      const red = up.find((n) => n.kind === 'red')
+      return red || up.reduce((a, b) => (b.at < a.at ? b : a))
+    }
+    const color = (cls) =>
+      cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
+    const clsName = (cls) =>
+      cls === 'up' ? 'text-up' : cls === 'warn' ? 'text-warn' : cls === 'down' ? 'text-down' : 'text-dim'
 
     const nowMarker = document.querySelector('[data-now-marker]')
 
     const render = () => {
-      const now = nowHkt()
+      const now = Date.now()
       const order = []
       for (const row of container.querySelectorAll('[data-session-row]')) {
-        const market = row.getAttribute('data-session-row')
-        const cd = row.querySelector('[data-session]')
-        const lb = row.querySelector('[data-session-label]')
-        const list = byMarket[market] || []
-        let prev = null
-        let next = null
-        for (const e of list) {
-          if (e.hkt <= now) prev = e
-          else { next = e; break }
-        }
-        if (!next) {
-          cd.textContent = '--:--:--'
-          lb.textContent = '—'
+        const key = row.getAttribute('data-session-row')
+        const seg = segAt(PAYLOAD.segments[key], now)
+        const txt = row.querySelector('[data-session-text="' + key + '"]')
+        const cd = row.querySelector('[data-session-cd="' + key + '"]')
+        if (!seg) {
+          txt.textContent = 'closed'
+          txt.className = 'min-w-0 truncate text-[13px] text-faint'
+          cd.textContent = '—'
+          cd.style.color = 'var(--color-faint)'
           order.push({ sec: Infinity, row })
           continue
         }
-        const sec = (Date.parse(next.hkt) - Date.now()) / 1000
-        const open = prev ? isOpenType(prev.type) : false
-        let label
-        let color
-        if (prev && prev.type === 'halt') {
-          label = 'to reopen'
-          color = 'var(--color-warn)'
-        } else if (open) {
-          label = next.type === 'close' || next.type === 'halt' ? 'to close' : 'to open'
-          color = 'var(--color-up)'
-        } else {
-          label = next.type === 'open' || next.type === 'resume' ? 'to open' : 'to close'
-          color = 'var(--color-down)'
-        }
-        cd.textContent = fmtHMS(sec)
-        cd.style.color = color
-        lb.textContent = label
-        order.push({ sec, row })
+        txt.textContent = seg.text
+        txt.className = 'min-w-0 truncate text-[13px] ' + clsName(seg.cls)
+        cd.textContent = fmtHuman((seg.until - now) / 1000)
+        cd.style.color = color(seg.cls)
+        order.push({ sec: (seg.until - now) / 1000, row })
       }
       order.sort((a, b) => a.sec - b.sec)
       for (const o of order) container.appendChild(o.row)
+
+      const newsRow = document.querySelector('[data-news-row]')
+      const news = nextAt(PAYLOAD.news, now)
+      if (newsRow) {
+        if (news) {
+          newsRow.style.display = ''
+          newsRow.querySelector('[data-news-text]').textContent = news.text
+          newsRow.querySelector('[data-news-cd]').textContent = fmtHuman((news.at - now) / 1000)
+          const red = news.kind === 'red'
+          const dot = newsRow.querySelector('[data-news-dot]')
+          dot.className = 'inline-block h-1.5 w-1.5 shrink-0 rounded-full ' + (red ? 'bg-down' : 'bg-warn')
+          const t = newsRow.querySelector('[data-news-text]')
+          t.className = 'min-w-0 flex-1 ' + (red ? 'text-down' : 'text-warn')
+          const cd = newsRow.querySelector('[data-news-cd]')
+          cd.style.color = red ? 'var(--color-down)' : 'var(--color-warn)'
+        } else {
+          newsRow.style.display = 'none'
+        }
+      }
+
+      const spRow = document.querySelector('[data-speaker-row]')
+      const sp = nextAt(PAYLOAD.speaker, now)
+      if (spRow) {
+        if (sp) {
+          spRow.style.display = ''
+          spRow.querySelector('[data-speaker-text]').textContent = sp.text
+          spRow.querySelector('[data-speaker-cd]').textContent = fmtHuman((sp.at - now) / 1000)
+        } else {
+          spRow.style.display = 'none'
+        }
+      }
+
       if (nowMarker) {
-        const hh = +now.slice(11, 13)
-        const mm = +now.slice(14, 16)
-        nowMarker.style.left = ((hh + mm / 60) / 24) * 100 + '%'
+        const hh = now.getUTCHours() + 8
+        const mm = now.getUTCMinutes()
+        const hk = hh >= 24 ? hh - 24 : hh
+        nowMarker.style.left = ((hk + mm / 60) / 24) * 100 + '%'
       }
     }
 

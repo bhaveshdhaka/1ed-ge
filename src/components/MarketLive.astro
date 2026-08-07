@@ -1,53 +1,56 @@
 ---
-import { addDaysIso, marketEvents, todayHkt } from '../lib/sessions'
-import type { MarketEvent } from '../lib/sessions'
+import { todayHkt } from '../lib/sessions'
+import { buildStrip, segmentAt, fmtHuman } from '../lib/strip'
+import type { StripPayload } from '../lib/strip'
 
-// CME equity-index futures (master clock) events around today, for the live footer ticker.
-const cmeEvents = marketEvents(addDaysIso(todayHkt(), -1), 4).filter((e) => e.market === 'cme')
+// CME equity-index futures (master clock) narrative for the live `[data-mkt-live]`
+// markers on the widget header / Ambient / calendar / admin. Same phrases as the
+// footer + homepage strip — all sourced from src/lib/strip.ts.
+const today = todayHkt()
+const payload: StripPayload = buildStrip(today, Date.now(), [], [])
 ---
 
-<script type="application/json" id="mkt-data" set:html={JSON.stringify(cmeEvents).replace(/</g, '\\u003c')} is:inline></script>
+<script type="application/json" id="mkt-data" set:html={JSON.stringify(payload.segments.cme).replace(/</g, '\\u003c')} is:inline></script>
 
 <script is:inline>
   (() => {
     const el = document.getElementById('mkt-data')
     if (!el) return
-    let EVENTS = []
-    try { EVENTS = JSON.parse(el.textContent || '[]') } catch {}
+    let SEGS = []
+    try { SEGS = JSON.parse(el.textContent || '[]') } catch {}
 
     const p = (n) => String(n).padStart(2, '0')
-    const fmtHMS = (sec) => {
-      const s = Math.max(0, Math.round(sec))
-      return p(Math.floor(s / 3600)) + ':' + p(Math.floor((s % 3600) / 60)) + ':' + p(s % 60)
+    const fmtHuman = (sec) => {
+      sec = Math.max(0, Math.round(sec))
+      const d = Math.floor(sec / 86400)
+      const h = Math.floor((sec % 86400) / 3600)
+      const m = Math.floor((sec % 3600) / 60)
+      const s = Math.floor(sec % 60)
+      if (d > 0) return h > 0 ? d + 'd ' + h + 'h' : d + 'd'
+      if (h > 0) return m > 0 ? h + 'h ' + m + 'm' : h + 'h'
+      if (m > 0) return m + 'm'
+      return s + 's'
     }
-    const nowHkt = () => new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 16) + '+08:00'
-    const isOpenType = (t) => t === 'open' || t === 'resume'
+    const segAt = (segs, now) => {
+      for (const s of segs) if (now >= s.at && now < s.until) return s
+      return null
+    }
+    const color = (cls) =>
+      cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
+    const glyph = (cls) => (cls === 'up' ? '●' : cls === 'warn' ? '◐' : '✕')
 
-    const apply = (text, color) => {
+    const apply = (text, cls) => {
       document.querySelectorAll('[data-mkt-live]').forEach((n) => {
         n.textContent = text
-        if (color) n.style.color = color
+        if (cls) n.style.color = color(cls)
       })
     }
 
     const tick = () => {
-      const now = nowHkt()
-      let prev = null
-      let next = null
-      for (const e of EVENTS) {
-        if (e.hkt <= now) prev = e
-        else { next = e; break }
-      }
-      if (!next) return apply('✕ closed', 'var(--color-down)')
-      const sec = (Date.parse(next.hkt) - Date.now()) / 1000
-
-      if (prev && isOpenType(prev.type)) {
-        return apply('● open · ' + fmtHMS(sec), 'var(--color-up)')
-      }
-      if (prev && prev.type === 'halt') {
-        return apply('◐ maintenance · ' + fmtHMS(sec), 'var(--color-warn)')
-      }
-      return apply('✕ closed · opens in ' + fmtHMS(sec), 'var(--color-down)')
+      const now = Date.now()
+      const seg = segAt(SEGS, now)
+      if (!seg) return apply('✕ closed', 'down')
+      apply(glyph(seg.cls) + ' ' + seg.text + ' ' + fmtHuman((seg.until - now) / 1000), seg.cls)
     }
 
     tick()

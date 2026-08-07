@@ -1,0 +1,29 @@
+---
+import type { NewsItem } from '../lib/market-news'
+import { newsEmoji } from '../lib/market-news'
+
+interface Props {
+  red: NewsItem[]
+  orange: NewsItem[]
+  /** Show an emoji hint per title (default true). */
+  emoji?: boolean
+}
+
+const { red, orange, emoji = true } = Astro.props
+---
+
+{
+  [...red.map((r) => ({ ...r, kind: 'red' as const })), ...orange.map((o) => ({ ...o, kind: 'orange' as const }))].map((n) => (
+    <div class="flex items-baseline gap-3">
+      <span class:list={['inline-block h-1.5 w-1.5 shrink-0 self-center rounded-full', n.kind === 'red' ? 'bg-down' : 'bg-warn']} title={n.kind} />
+      <span class:list={['w-20 shrink-0 text-right text-[12px] tabular-nums', n.kind === 'red' ? 'text-down' : 'text-warn opacity-70']}>
+        {emoji && newsEmoji(n.title)} {n.time}
+      </span>
+      <span class="min-w-0 flex-1 text-[13px] leading-snug">
+        <span class:list={[n.kind === 'red' ? 'text-down' : 'text-warn']}>{n.title}</span>
+        {n.source && <span class="ml-1.5 text-[10px] text-faint">[{n.source}]</span>}
+        {n.verified && <span class="ml-1 text-[11px] text-accent">✦</span>}
+      </span>
+    </div>
+  ))
+}

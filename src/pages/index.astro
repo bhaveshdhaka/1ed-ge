@@ -5,8 +5,10 @@ import { todayHkt } from '../lib/sessions'
 import { fmtDay } from '../lib/dates'
 import { resolveMoments, dayFacts } from '../lib/stream'
 import type { DayData } from '../lib/stream'
+import { readLiveState } from '../lib/live'
 import MomentCard from '../components/stream/MomentCard.astro'
 import DayFacts from '../components/stream/DayFacts.astro'
+import MarketWidget from '../components/MarketWidget.astro'
 
 export const prerender = false
 
@@ -26,6 +28,8 @@ const latestIso = dataDays.length ? dataDays[0].data.date : null
 
 const latestMoments = latestIso && latestIso !== iso ? resolveMoments(byDate.get(latestIso) as DayData).slice(-3) : []
 const cells = dayFacts(today, activeHabits)
+
+const live = readLiveState()
 ---
 
 <Base
@@ -41,6 +45,10 @@ const cells = dayFacts(today, activeHabits)
       the misses included. <span class="text-up">R</span> is points risked vs points made; it is the
       only metric that matters.
     </p>
+  </section>
+
+  <section class="shell pb-6">
+    <MarketWidget />
   </section>
 
   <section class="shell pb-6">
@@ -61,7 +69,11 @@ const cells = dayFacts(today, activeHabits)
   <section class="shell pb-20">
     <div class="flex items-baseline justify-between gap-3">
       <h2 class="text-lg text-ink">/ today's stream</h2>
-      <a href="/stream" class="text-2xs text-dim transition-colors hover:text-accent">all stream →</a>
+      <span class:list={['flex items-center gap-2 text-[12px]', live.live ? 'text-up' : 'text-faint']}>
+        <span class:list={['inline-block h-1.5 w-1.5 rounded-full', live.live ? 'bg-up' : 'bg-line2']}></span>
+        {live.live ? 'trader is live' : 'offline'}
+      </span>
+      <a href="/stream" class="ml-auto text-2xs text-dim transition-colors hover:text-accent">all stream →</a>
     </div>
 
     {moments.length > 0 ? (

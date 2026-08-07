@@ -1,0 +1,197 @@
+---
+import { getCollection } from 'astro:content'
+import { todayHkt } from '../lib/sessions'
+import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
+import type { StripPayload } from '../lib/strip'
+import type { MarketKey } from '../lib/sessions'
+import NewsBlock from './NewsBlock.astro'
+
+const today = todayHkt()
+const news = (await getCollection('market-news')).find((n) => n.data.date === today)
+const red = news?.data.red ?? []
+const orange = news?.data.orange ?? []
+
+const payload: StripPayload = buildStrip(today, Date.now(), red, orange)
+
+const now = payload.now
+const cme = segmentAt(payload.segments.cme, now)
+const cash = (['nyse', 'tse', 'lse'] as MarketKey[]).map((k) => ({
+  key: k,
+  flag: k === 'nyse' ? '🇺🇸' : k === 'tse' ? '🇯🇵' : '🇬🇧',
+  seg: segmentAt(payload.segments[k], now),
+}))
+const nextRed = nextNewsAt(payload.news, now)
+const speaker = nextSpeakerAt(payload.speaker, now)
+const redKind = nextRed?.kind === 'red'
+
+const MON = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+const prettyDate = `${parseInt(today.slice(8, 10), 10)} ${MON[parseInt(today.slice(5, 7), 10) - 1]} ${today.slice(0, 4)}`
+
+const clsColor = (cls: string) =>
+  cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
+const clsClass = (cls: string) =>
+  cls === 'up' ? 'text-up' : cls === 'warn' ? 'text-warn' : cls === 'down' ? 'text-down' : 'text-dim'
+---
+
+<details class="group w-full">
+  <summary class="flex cursor-pointer list-none flex-wrap items-baseline gap-x-4 gap-y-1 py-1 text-[12px]">
+    <span class="text-faint uppercase tracking-widest">market</span>
+    <span class="text-faint tabular-nums">{prettyDate}</span>
+
+    <span data-f-market class="min-w-0 flex-1 tabular-nums" style={`color:${cme ? clsColor(cme.cls) : 'var(--color-dim)'}`}>
+      {cme ? `${cme.text} ${fmtHuman((cme.until - now) / 1000)}` : '—'}
+    </span>
+
+    {cash.find((c) => c.seg?.cls === 'up' || c.seg?.cls === 'warn') && (
+      <span data-f-cash class="hidden text-dim sm:inline">
+        {(() => {
+          const open = cash.find((c) => c.seg?.cls === 'up' || c.seg?.cls === 'warn')
+          return `${open!.flag} ${open!.seg!.text} ${fmtHuman((open!.seg!.until - now) / 1000)}`
+        })()}
+      </span>
+    )}
+
+    <span class="text-faint transition-transform group-open:rotate-180">▾</span>
+  </summary>
+
+  <div class="border-t border-line/50 pt-2">
+    <div class="flex flex-col gap-1" data-f-rows>
+      {cash.map((c) => (
+        <div class="flex items-baseline gap-2 text-[12px]" data-f-cash-row={c.key}>
+          <span class="shrink-0">{c.flag}</span>
+          <span data-f-cash-text={c.key} class:list={[c.seg ? clsClass(c.seg.cls) : 'text-faint']}>
+            {c.seg ? c.seg.text : 'closed'}
+          </span>
+          <span data-f-cash-cd={c.key} class="ml-auto tabular-nums" style={`color:${c.seg ? clsColor(c.seg.cls) : 'var(--color-faint)'}`}>
+            {c.seg ? fmtHuman((c.seg.until - now) / 1000) : '—'}
+          </span>
+        </div>
+      ))}
+      <div class="flex items-baseline gap-2 text-[12px]" data-f-news style={nextRed ? '' : 'display:none'}>
+        <span data-f-news-dot class:list={['inline-block h-1.5 w-1.5 rounded-full', redKind ? 'bg-down' : 'bg-warn']}></span>
+        <span data-f-news-text class:list={[redKind ? 'text-down' : 'text-warn']}>{nextRed?.text ?? ''}</span>
+        <span data-f-news-cd class="ml-auto tabular-nums" style={nextRed ? `color:${redKind ? 'var(--color-down)' : 'var(--color-warn)'}` : ''}>
+          {nextRed ? fmtHuman((nextRed.at - now) / 1000) : ''}
+        </span>
+      </div>
+      <div class="flex items-baseline gap-2 text-[12px]" data-f-speaker style={speaker ? '' : 'display:none'}>
+        <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent"></span>
+        <span data-f-speaker-text class="text-accent">{speaker?.text ?? ''}</span>
+        <span data-f-speaker-cd class="ml-auto tabular-nums text-accent">{speaker ? fmtHuman((speaker.at - now) / 1000) : ''}</span>
+      </div>
+    </div>
+
+    {(red.length > 0 || orange.length > 0) && (
+      <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2">
+        <NewsBlock red={red} orange={orange} />
+      </div>
+    )}
+  </div>
+</details>
+
+<script type="application/json" id="f-strip" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')} is:inline></script>
+
+<script is:inline>
+  (() => {
+    const el = document.getElementById('f-strip')
+    if (!el) return
+    let PAYLOAD = null
+    try { PAYLOAD = JSON.parse(el.textContent || 'null') } catch {}
+    if (!PAYLOAD) return
+
+    const p = (n) => String(n).padStart(2, '0')
+    const fmtHuman = (sec) => {
+      sec = Math.max(0, Math.round(sec))
+      const d = Math.floor(sec / 86400)
+      const h = Math.floor((sec % 86400) / 3600)
+      const m = Math.floor((sec % 3600) / 60)
+      const s = Math.floor(sec % 60)
+      if (d > 0) return h > 0 ? d + 'd ' + h + 'h' : d + 'd'
+      if (h > 0) return m > 0 ? h + 'h ' + m + 'm' : h + 'h'
+      if (m > 0) return m + 'm'
+      return s + 's'
+    }
+    const segAt = (segs, now) => {
+      for (const s of segs) if (now >= s.at && now < s.until) return s
+      return null
+    }
+    const nextAt = (list, now) => {
+      const up = list.filter((n) => n.at > now)
+      if (!up.length) return null
+      const red = up.find((n) => n.kind === 'red')
+      return red || up.reduce((a, b) => (b.at < a.at ? b : a))
+    }
+    const color = (cls) =>
+      cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
+    const clsName = (cls) =>
+      cls === 'up' ? 'text-up' : cls === 'warn' ? 'text-warn' : cls === 'down' ? 'text-down' : 'text-dim'
+
+    const main = document.querySelector('[data-f-market]')
+    const cashRows = ['nyse', 'tse', 'lse']
+
+    const tick = () => {
+      const now = Date.now()
+      const cme = segAt(PAYLOAD.segments.cme, now)
+      if (main && cme) {
+        main.textContent = cme.text + ' ' + fmtHuman((cme.until - now) / 1000)
+        main.style.color = color(cme.cls)
+      }
+      for (const key of cashRows) {
+        const row = document.querySelector('[data-f-cash-row="' + key + '"]')
+        if (!row) continue
+        const seg = segAt(PAYLOAD.segments[key], now)
+        const txt = row.querySelector('[data-f-cash-text="' + key + '"]')
+        const cd = row.querySelector('[data-f-cash-cd="' + key + '"]')
+        if (!seg) {
+          txt.textContent = 'closed'
+          txt.className = 'text-faint'
+          cd.textContent = '—'
+          cd.style.color = 'var(--color-faint)'
+          continue
+        }
+        txt.textContent = seg.text
+        txt.className = clsName(seg.cls)
+        cd.textContent = fmtHuman((seg.until - now) / 1000)
+        cd.style.color = color(seg.cls)
+      }
+      const newsEl = document.querySelector('[data-f-news]')
+      const news = nextAt(PAYLOAD.news, now)
+      if (newsEl) {
+        if (news) {
+          newsEl.style.display = ''
+          newsEl.querySelector('[data-f-news-text]').textContent = news.text
+          newsEl.querySelector('[data-f-news-cd]').textContent = fmtHuman((news.at - now) / 1000)
+          const red = news.kind === 'red'
+          const dot = newsEl.querySelector('[data-f-news-dot]')
+          dot.className = 'inline-block h-1.5 w-1.5 rounded-full ' + (red ? 'bg-down' : 'bg-warn')
+          const t = newsEl.querySelector('[data-f-news-text]')
+          t.className = red ? 'text-down' : 'text-warn'
+          const cd = newsEl.querySelector('[data-f-news-cd]')
+          cd.style.color = red ? 'var(--color-down)' : 'var(--color-warn)'
+        } else {
+          newsEl.style.display = 'none'
+        }
+      }
+      const spEl = document.querySelector('[data-f-speaker]')
+      const sp = nextAt(PAYLOAD.speaker, now)
+      if (spEl) {
+        if (sp) {
+          spEl.style.display = ''
+          spEl.querySelector('[data-f-speaker-text]').textContent = sp.text
+          spEl.querySelector('[data-f-speaker-cd]').textContent = fmtHuman((sp.at - now) / 1000)
+        } else {
+          spEl.style.display = 'none'
+        }
+      }
+    }
+
+    tick()
+    setInterval(tick, 1000)
+  })()
+</script>
+
+<style>
+  .crt details > summary::-webkit-details-marker {
+    display: none;
+  }
+</style>

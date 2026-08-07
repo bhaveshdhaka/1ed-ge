@@ -92,3 +92,18 @@ export function groupNewsByTime(items: NewsItem[]): { time: string; titles: stri
   }
   return out
 }
+
+export interface NewsHeadline {
+  time: string
+  title: string
+  kind: 'red' | 'orange'
+}
+
+/** First red (else orange) event — the summary line, never the word "red". */
+export function newsHeadline(red: NewsItem[], orange: NewsItem[]): NewsHeadline | null {
+  const r = red[0]
+  if (r) return { time: r.time, title: r.title, kind: 'red' }
+  const o = orange[0]
+  if (o) return { time: o.time, title: o.title, kind: 'orange' }
+  return null
+}
