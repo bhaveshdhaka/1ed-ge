@@ -5,6 +5,7 @@ import type {
   SelectHTMLAttributes,
   ButtonHTMLAttributes,
 } from 'react'
+import { cn } from '../../lib/utils'
 
 export function Field({
   label,
@@ -16,30 +17,30 @@ export function Field({
   className?: string
 }) {
   return (
-    <label className={`block ${className}`}>
-      <span className="mb-1 block text-[11px] uppercase tracking-widest text-dim">{label}</span>
+    <label className={cn('block', className)}>
+      <span className="label">{label}</span>
       {children}
     </label>
   )
 }
 
 export const inputCls =
-  'w-full border border-line bg-bg px-2.5 py-1.5 text-[13px] text-ink outline-none placeholder:text-faint focus:border-accent'
+  'w-full border border-line bg-bg px-2.5 py-1.5 text-sm text-ink outline-none placeholder:text-faint focus:border-accent'
 
 export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={`${inputCls} ${props.className ?? ''}`} />
+  return <input {...props} className={cn(inputCls, props.className)} />
 }
 
 export function NumInput(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input type="number" step="any" {...props} className={`${inputCls} ${props.className ?? ''}`} />
+  return <input type="number" step="any" {...props} className={cn(inputCls, props.className)} />
 }
 
 export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} className={`${inputCls} resize-y ${props.className ?? ''}`} />
+  return <textarea {...props} className={cn(inputCls, 'resize-y leading-snug', props.className)} />
 }
 
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select {...props} className={`${inputCls} ${props.className ?? ''}`} />
+  return <select {...props} className={cn(inputCls, props.className)} />
 }
 
 export function Button({
@@ -52,7 +53,13 @@ export function Button({
   return (
     <button
       {...rest}
-      className={`btn ${variant === 'primary' ? 'btn-primary' : ''} ${variant === 'danger' ? 'btn-danger' : ''} ${size === 'sm' ? 'btn-sm' : ''} ${className}`}
+      className={cn(
+        'btn',
+        variant === 'primary' && 'btn-primary',
+        variant === 'danger' && 'btn-danger',
+        size === 'sm' && 'btn-sm',
+        className
+      )}
     >
       {children}
     </button>
@@ -71,10 +78,10 @@ export function Card({
   actions?: ReactNode
 }) {
   return (
-    <section className={`panel p-4 ${className}`}>
+    <section className={cn('panel p-4', className)}>
       {(title || actions) && (
         <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 className="text-[13px] uppercase tracking-widest text-soft">{title}</h2>}
+          {title && <h2 className="text-2xs uppercase tracking-widest text-soft">{title}</h2>}
           {actions}
         </div>
       )}
@@ -86,7 +93,7 @@ export function Card({
 export function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="bg-bg p-4">
-      <div className="text-[10px] uppercase tracking-widest text-dim">{label}</div>
+      <div className="text-2xs uppercase tracking-widest text-dim">{label}</div>
       <div className="mt-1.5 text-lg text-ink">{value}</div>
     </div>
   )
