@@ -1,13 +1,11 @@
 ---
-import CockpitPage from '../../components/cockpit/CockpitPage.astro'
+import DayArchive from '../../components/archive/DayArchive.astro'
 import { getCollection } from 'astro:content'
 import { fmtDay } from '../../lib/dates'
 
 export async function getStaticPaths() {
   const [days, journal, coach] = await Promise.all([
-    getCollection('days'),
-    getCollection('journal'),
-    getCollection('coach'),
+    getCollection('days'), getCollection('journal'), getCollection('coach'),
   ])
   const dates = new Set<string>()
   for (const c of [...days, ...journal, ...coach]) dates.add(c.data.date)
@@ -17,8 +15,6 @@ export async function getStaticPaths() {
     props: { iso, allDates },
   }))
 }
-
 const { iso, allDates } = Astro.props
 ---
-
-<CockpitPage iso={iso} allDates={allDates} />
+<DayArchive iso={iso} allDates={allDates} />

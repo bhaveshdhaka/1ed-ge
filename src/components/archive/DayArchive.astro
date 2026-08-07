@@ -1,0 +1,233 @@
+---
+import Base from '../../layouts/Base.astro'
+import { getCollection, render } from 'astro:content'
+import { fmtDay } from '../../lib/dates'
+import { scheduledDayMarker } from '../../lib/sessions'
+import { newsHeadline } from '../../lib/market-news'
+import { dayFacts, resolveMoments, ROf } from '../../lib/stream'
+import { MomentCard } from '../stream/MomentCard.astro'
+import { DayFacts } from '../stream/DayFacts.astro'
+import NewsBlock from '../NewsBlock.astro'
+import { Badge } from '../ui/Badge.astro'
+import { Card } from '../ui/Card.astro'
+import { EmptyState } from '../ui/EmptyState.astro'
+import { Separator } from '../ui/Separator.astro'
+
+interface Props { iso: string; allDates: string[] }
+const { iso, allDates } = Astro.props
+
+const [days, accounts, journal, coach, habits, news, briefs] = await Promise.all([
+  getCollection('days'), getCollection('accounts'), getCollection('journal'),
+  getCollection('coach'), getCollection('habits'), getCollection('market-news'), getCollection('brief'),
+])
+const entry = days.find((d) => d.data.date === iso) ?? null
+const journalFor = journal.find((j) => j.data.date === iso) ?? null
+const coachFor = coach.find((c) => c.data.date === iso) ?? null
+const newsFor = news.find((n) => n.data.date === iso)
+const briefFor = briefs.find((b) => b.data.date === iso) ?? null
+const dayRed = newsFor?.data.red ?? []
+const dayOrange = newsFor?.data.orange ?? []
+const dayHead = newsHeadline(dayRed, dayOrange)
+
+const accMap = new Map(accounts.map((a) => [a.data.id, a.data]))
+const dayIdx = allDates.indexOf(iso)
+const prevIso = dayIdx > 0 ? allDates[dayIdx - 1] : null
+const nextIso = dayIdx >= 0 && dayIdx < allDates.length - 1 ? allDates[dayIdx + 1] : null
+
+const d = entry?.data ?? null
+const activeHabits = habits.filter((h) => h.data.active !== false)
+const facts = dayFacts(d as any, activeHabits.length)
+const moments = d ? resolveMoments(d as any) : []
+const trades = d?.trades ?? []
+const mk = scheduledDayMarker(iso)
+
+let Reflection: any = null
+let Coaching: any = null
+let Brief: any = null
+if (journalFor) { const r = await render(journalFor); Reflection = r.Content }
+if (coachFor) { const r = await render(coachFor); Coaching = r.Content }
+if (briefFor) { const r = await render(briefFor); Brief = r.Content }
+---
+
+<Base
+  title={`day ${fmtDay(iso)} — 1ed.ge`}
+  description={`${fmtDay(iso)} — ${facts.find((f) => f.key === 'mood')?.value ?? '—'} mood, ${trades.length} trades, ${facts.find((f) => f.key === 'r')?.value ?? '—'} R. Everything public.`}
+>
+  <div class="shell pt-12 pb-20">
+    <header class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <div class="flex items-baseline gap-3 text-[13px]">
+        <span class="text-ink">day</span>
+        <span class="text-faint">{fmtDay(iso)}</span>
+      </div>
+      <span class={`text-[12px] tabular-nums ${mk.cls}`}>
+        {mk.glyph} {mk.text}
+      </span>
+    </header>
+
+    <nav class="mt-4 flex items-center justify-between gap-3 text-[12px]">
+      {prevIso ? (
+        <a href={`/day/${fmtDay(prevIso)}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">← {fmtDay(prevIso)}</a>
+      ) : (<span class="text-faint">← older</span>)}
+      <span class="text-faint">day {dayIdx + 1} of {allDates.length}</span>
+      {nextIso ? (
+        <a href={`/day/${fmtDay(nextIso)}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">{fmtDay(nextIso)} →</a>
+      ) : (<span class="text-faint">newer →</span>)}
+    </nav>
+
+    <section class="mt-6">
+      <h2 class="text-lg">/ day facts</h2>
+      <div class="mt-3"><DayFacts cells={facts} /></div>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-lg">/ moments</h2>
+      {moments.length === 0 ? (
+        <div class="mt-3"><EmptyState text="nothing published this day." /></div>
+      ) : (
+        <div class="mt-4 flex max-w-2xl flex-col gap-3">
+          {moments.map((m) => <MomentCard moment={m} />)}
+        </div>
+      )}
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-lg">/ trades {trades.length > 0 ? `(${trades.length})` : ''}</h2>
+      {trades.length === 0 ? (
+        <p class="mt-3 text-[13px] text-faint">no trades logged this day.</p>
+      ) : (
+        <div class="mt-4 space-y-4">
+          {trades.map((t, i) => {
+            const R = ROf(t as any)
+            const ex = t.executions ?? []
+            const totalPnl = ex.reduce((s, e) => s + t.points * (accMap.get(e.account)?.pointsValue ?? 2) * (e.size ?? 1), 0)
+            return (
+              <Card>
+                <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  <span class="text-[15px] text-ink">{t.direction === 'long' ? '▲' : '▼'} {t.market}</span>
+                  <span class="text-[12px] text-dim">{t.session ?? '—'} · {t.setup ?? 'no setup'}</span>
+                  {t.model && <Badge variant="accent">{t.model}</Badge>}
+                  <span class:list={['ml-auto text-[15px]', R > 0 ? 'num-up' : R < 0 ? 'num-down' : '']}>
+                    {R > 0 ? '+' : ''}{R.toFixed(2)}R
+                  </span>
+                  <span class:list={['text-[13px]', totalPnl >= 0 ? 'num-up' : 'num-down']}>
+                    {totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString()}
+                  </span>
+                </div>
+                <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-[12px] text-dim md:grid-cols-4">
+                  <span>entry <span class="text-ink">{t.entry}</span></span>
+                  <span>exit <span class="text-ink">{t.exit}</span></span>
+                  <span>stop <span class="text-ink">{t.stop ?? '—'}</span></span>
+                  <span>points <span class:list={[t.points >= 0 ? 'text-up' : 'text-down']}>{t.points >= 0 ? '+' : ''}{t.points}</span></span>
+                </div>
+                {t.commentary && (
+                  <p class="mt-2 border-t border-line/60 pt-2 text-[13px] text-soft">{t.commentary}</p>
+                )}
+                {(ex.length > 0 || t.note) && (
+                  <div class="mt-2 text-[12px] text-dim">
+                    {ex.length > 0 && (
+                      <span>accounts: {ex.map((e) => { const a = accMap.get(e.account); return `${a?.firm ?? ''} ${a?.sizeLabel ?? ''}${e.size && e.size > 1 ? ` ×${e.size}` : ''}` }).join(' · ')}</span>
+                    )}
+                    {t.note && <span class="text-soft"> — {t.note}</span>}
+                  </div>
+                )}
+                {(t.screenshots?.length ?? 0) > 0 && (
+                  <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+                    {t.screenshots!.map((s) => (
+                      <a href={s} target="_blank" class="block border border-line bg-bg transition-colors hover:border-accent">
+                        <img src={s} alt={`trade ${i + 1} screenshot`} loading="lazy" class="w-full" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            )
+          })}
+        </div>
+      )}
+    </section>
+
+    {d && (
+      <section class="mt-10">
+        <h2 class="text-lg">/ habits</h2>
+        <div class="mt-3 flex flex-wrap gap-2">
+          {habits.map((h) => {
+            const done = (d.habits ?? {})[h.id] === true
+            return (
+              <span class="flex items-center gap-2 border px-3 py-1.5 text-[13px]" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
+                {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
+              </span>
+            )
+          })}
+        </div>
+      </section>
+    )}
+
+    {d?.device && (d.device.screenshots?.length ?? 0) > 0 && (
+      <section class="mt-10">
+        <h2 class="text-lg">/ screen time — proof</h2>
+        <p class="mt-2 text-[13px] text-dim">{d.device.notes ?? 'no note'}</p>
+        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {d.device.screenshots!.map((s) => (
+            <a href={s} target="_blank" class="block border border-line bg-panel transition-colors hover:border-accent">
+              <img src={s} alt="screen time screenshot" loading="lazy" class="w-full" />
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {newsFor && (dayRed.length > 0 || dayOrange.length > 0) && (
+      <details class="group mt-10 border border-line bg-panel/50 px-4 py-3" open>
+        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 text-[13px]">
+          <span class="flex items-center gap-2 text-dim">
+            <span>USD news</span>
+            {dayHead && (
+              <span class:list={['flex items-center gap-1.5 tabular-nums', dayHead.kind === 'red' ? 'text-down' : 'text-warn opacity-70']}>
+                <span class:list={['inline-block h-1.5 w-1.5 rounded-full', dayHead.kind === 'red' ? 'bg-down' : 'bg-warn']}></span>
+                {dayHead.time}
+              </span>
+            )}
+          </span>
+          <span class="text-dim transition-transform group-open:rotate-180">▾</span>
+        </summary>
+        <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2">
+          <NewsBlock red={dayRed} orange={dayOrange} />
+        </div>
+      </details>
+    )}
+
+    {briefFor && Brief && (
+      <section class="mt-10 border border-line bg-panel/50 px-4 py-3">
+        <div class="text-[13px] text-dim">/ brief</div>
+        <div class="prose mt-2 [&>*]:text-[13px]"><Brief /></div>
+      </section>
+    )}
+
+    {journalFor && Reflection && (
+      <section class="mt-10">
+        <h2 class="text-lg">/ reflection</h2>
+        <div class="prose mt-4 max-w-3xl">
+          {journalFor.data.summary && <p class="text-[13px] text-soft">{journalFor.data.summary}</p>}
+          <Reflection />
+        </div>
+      </section>
+    )}
+
+    <Separator class="mt-10" />
+
+    <section class="mt-8">
+      <h2 class="text-lg">/ coach</h2>
+      {coachFor && Coaching ? (
+        <article class="mt-4 max-w-3xl border-l-2 border-line2 pl-6">
+          <div class="flex flex-wrap items-center gap-3 text-[12px] text-dim">
+            <span>{fmtDay(coachFor.data.date)}</span>
+            {coachFor.data.summary && <span class="text-soft">{coachFor.data.summary}</span>}
+          </div>
+          <div class="prose mt-4"><Coaching /></div>
+        </article>
+      ) : (
+        <p class="mt-3 text-[13px] text-faint">no coaching session this day.</p>
+      )}
+    </section>
+  </div>
+</Base>
