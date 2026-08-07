@@ -1,7 +1,7 @@
 import { defineCollection, z } from 'astro:content'
 import { glob } from 'astro/loaders'
 
-const accountStages = z.enum(['eval', 'buffer', 'payout', 'failed', 'paused'])
+const accountStages = z.enum(['eval', 'funded', 'buffer', 'payout', 'failed', 'paused'])
 
 const accounts = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/accounts' }),
@@ -41,6 +41,7 @@ const trade = z.object({
   session: z.string().optional(),
   direction: z.enum(['long', 'short']),
   setup: z.string().optional(),
+  model: z.string().optional(),
   entry: z.number(),
   stop: z.number().optional(),
   target: z.number().optional(),
@@ -49,8 +50,20 @@ const trade = z.object({
   points: z.number(),
   confidence: z.number().int().min(1).max(5).optional(),
   note: z.string().optional(),
+  commentary: z.string().optional(),
   screenshots: z.array(z.string()).default([]),
   executions: z.array(execution).default([]),
+})
+
+const momentType = z.enum(['pre-market', 'post-market', 'trade', 'note', 'quote', 'media'])
+
+const moment = z.object({
+  at: z.string(),
+  type: momentType,
+  text: z.string().optional(),
+  tradeIdx: z.number().int().nonnegative().optional(),
+  media: z.string().optional(),
+  author: z.string().optional(),
 })
 
 const device = z
@@ -74,9 +87,16 @@ const days = defineCollection({
         quality: z.number().int().min(1).max(5).optional(),
       })
       .optional(),
-    habits: z.record(z.string(), z.boolean()).optional(),
+    habits: z.record(z.string(), z.union([z.boolean(), z.number()])).optional(),
     device,
     trades: z.array(trade).default([]),
+    stream: z.array(moment).default([]),
+    draft: z
+      .object({
+        reflection: z.string().optional(),
+        moments: z.array(moment).default([]),
+      })
+      .optional(),
   }),
 })
 
@@ -144,8 +164,24 @@ const habits = defineCollection({
   schema: z.object({
     name: z.string(),
     emoji: z.string().optional(),
-    color: z.string().default('#4ade80'),
+    color: z.string().default('#6ea88a'),
     description: z.string().optional(),
+    kind: z.enum(['bool', 'count']).default('bool'),
+    target: z.number().optional(),
+    category: z.string().default('general'),
+    order: z.number().default(0),
+    active: z.boolean().default(true),
+  }),
+})
+
+const models = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/models' }),
+  schema: z.object({
+    name: z.string(),
+    premise: z.string().optional(),
+    rules: z.array(z.string()).default([]),
+    status: z.enum(['active', 'paused', 'retired']).default('active'),
+    order: z.number().default(0),
   }),
 })
 
@@ -164,4 +200,4 @@ const quotes = defineCollection({
   }),
 })
 
-export const collections = { accounts, days, payouts, coach, journal, habits, brief, 'market-news': marketNews, rules, quotes }
+export const collections = { accounts, days, payouts, coach, journal, habits, models, brief, 'market-news': marketNews, rules, quotes }
