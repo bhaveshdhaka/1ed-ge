@@ -2,13 +2,14 @@
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
 import { todayHkt } from '../lib/sessions'
-import { fmtDay } from '../lib/dates'
+import { fmtDay, fmtDayW } from '../lib/dates'
 import { resolveMoments, dayFacts } from '../lib/stream'
 import type { DayData } from '../lib/stream'
 import { readLiveState } from '../lib/live'
 import MomentCard from '../components/stream/MomentCard.astro'
 import DayFacts from '../components/stream/DayFacts.astro'
 import MarketWidget from '../components/MarketWidget.astro'
+import MarketDay from '../components/MarketDay.astro'
 
 export const prerender = false
 
@@ -52,8 +53,12 @@ const live = readLiveState()
   </section>
 
   <section class="shell pb-6">
+    <MarketDay />
+  </section>
+
+  <section class="shell pb-6">
     <div class="flex items-baseline justify-between gap-3">
-      <h2 class="text-lg text-ink">/ today <span class="text-faint">· {fmtDay(iso)}</span></h2>
+      <h2 class="text-lg text-ink">/ today <span class="text-faint">· {fmtDayW(iso)}</span></h2>
       {latestIso && latestIso !== iso && (
         <a href={`/day/${fmtDay(latestIso)}`} class="text-2xs text-dim transition-colors hover:text-accent">
           last logged day {fmtDay(latestIso)} →
