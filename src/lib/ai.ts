@@ -1,4 +1,5 @@
 import { env } from './env'
+import { round2 } from './utils'
 
 interface OrPart {
   type: string
@@ -463,9 +464,6 @@ function int(v: unknown): number | null {
   const n = num(v)
   if (n === null) return null
   return Math.max(1, Math.min(5, Math.round(n)))
-}
-export function round2(n: number): number {
-  return Math.round(n * 100) / 100
 }
 
 export async function captionAlt(dataUrl: string): Promise<string> {

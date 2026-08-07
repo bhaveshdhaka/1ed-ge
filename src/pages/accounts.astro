@@ -59,10 +59,10 @@ const active = sorted.filter((a) => a.active)
               <td class="td text-right text-dim">{a.sizeLabel}</td>
               <td class="td text-right text-dim">${a.drawdownLimit.toLocaleString()}</td>
               <td class="td text-right" class:list={[muted && 'text-faint']}>{a.trades}</td>
-              <td class="td text-right" class:list={[muted ? 'text-faint' : 'num-up']}>{fmtPnl(a.grossPnl)}</td>
+              <td class="td text-right" class:list={[muted ? 'text-faint' : a.grossPnl > 0 ? 'num-up' : a.grossPnl < 0 ? 'num-down' : 'text-dim']}>{fmtPnl(a.grossPnl)}</td>
               <td class="td text-right text-dim">{a.payouts ? fmtPnl(-a.payouts) : '—'}</td>
-              <td class="td text-right" class:list={[muted ? 'text-faint' : 'num-up']}>{fmtPnl(a.netPnl)}</td>
-              <td class="td text-right" class:list={[muted ? 'text-faint' : 'num-up']}>{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
+              <td class="td text-right" class:list={[muted ? 'text-faint' : a.netPnl > 0 ? 'num-up' : a.netPnl < 0 ? 'num-down' : 'text-dim']}>{fmtPnl(a.netPnl)}</td>
+              <td class="td text-right" class:list={[muted ? 'text-faint' : a.sumR > 0 ? 'num-up' : a.sumR < 0 ? 'num-down' : 'text-dim']}>{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
               <td class="td">
                 <div class="flex items-center justify-end gap-2">
                   <div class="h-1.5 w-20 bg-raise">

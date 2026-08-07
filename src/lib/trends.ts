@@ -1,6 +1,6 @@
 import type { DayEntry } from './stats'
 import { flatten, type AccountEntry, type ExecutionRow } from './stats'
-import { round2 } from './ai'
+import { round2 } from './utils'
 
 export interface DayStat {
   date: string

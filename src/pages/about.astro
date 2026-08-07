@@ -74,7 +74,7 @@ const timeline = [
               <td class="td">{a.data.firm}</td>
               <td class="td text-dim">{a.data.sizeLabel}</td>
               <td class="td text-right text-dim">${a.data.drawdownLimit.toLocaleString()}</td>
-              <td class="td"><span class="text-up">{a.data.stage}</span></td>
+              <td class="td"><span class={a.data.stage === 'failed' ? 'text-down' : a.data.stage === 'paused' ? 'text-dim' : 'text-up'}>{a.data.stage}</span></td>
             </tr>
           ))}
         </tbody>

@@ -1,5 +1,6 @@
 import type { CollectionEntry } from 'astro:content'
-import { round2 } from './ai'
+import { round2 } from './utils'
+import { riskOf, ROf } from './stream'
 
 export type AccountEntry = CollectionEntry<'accounts'>
 export type DayEntry = CollectionEntry<'days'>
@@ -43,8 +44,8 @@ export function flatten(days: DayEntry[], accounts: AccountEntry[]): {
   for (const d of days) {
     if (d.data.trades.length) daysWithTrades++
     d.data.trades.forEach((t, ti) => {
-      const risk = t.riskPoints ?? (t.stop !== undefined ? Math.abs(t.entry - t.stop) : 1)
-      const R = risk > 0 ? t.points / risk : 0
+      const risk = riskOf(t)
+      const R = ROf(t)
       const accs = t.executions.length ? t.executions : [{ account: '__unlogged__' }]
       // idea-level row (uses first execution's account data for display)
       const first = accMap.get(accs[0].account)
