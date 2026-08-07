@@ -28,6 +28,27 @@ const emptyTrade = (): TradeForm => ({
   confidence: '', note: '', model: '', commentary: '', screenshots: [], executions: [],
 })
 
+const toTradeForm = (t: any): TradeForm => ({
+  market: String(t.market ?? 'MNQ'),
+  session: String(t.session ?? ''),
+  direction: t.direction === 'short' ? ('short' as const) : ('long' as const),
+  setup: String(t.setup ?? ''),
+  entry: t.entry != null ? String(t.entry) : '',
+  stop: t.stop != null ? String(t.stop) : '',
+  target: t.target != null ? String(t.target) : '',
+  exit: t.exit != null ? String(t.exit) : '',
+  riskPoints: t.riskPoints != null ? String(t.riskPoints) : '',
+  points: t.points != null ? String(t.points) : '',
+  confidence: t.confidence ? String(t.confidence) : '',
+  note: String(t.note ?? ''),
+  model: String(t.model ?? ''),
+  commentary: String(t.commentary ?? ''),
+  screenshots: [],
+  executions: Array.isArray(t.accounts) && t.accounts.length
+    ? t.accounts.map((a: string) => ({ account: a, size: '' }))
+    : [],
+})
+
 function dayKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
@@ -68,6 +89,8 @@ export function DayWorkspace({
   const [dayText, setDayText] = useState('')
   const [dayImages, setDayImages] = useState<DayImage[]>([])
   const dayImagesRef = useRef<DayImage[]>([])
+  // trades produced by the last AI structure pass — a fresh pass replaces these
+  const lastAiTradesRef = useRef<TradeForm[]>([])
 
   const [editing, setEditing] = useState<string | null>(null)
   const [expandedTrade, setExpandedTrade] = useState<number | null>(null)
@@ -97,6 +120,7 @@ export function DayWorkspace({
       setEditing(null)
       setExpandedTrade(null)
       setExpandAll(false)
+      lastAiTradesRef.current = []
       try {
         const res = await api<{ day: any; accounts: AccRow[]; habits: HabitDef[]; models: { slug: string; name: string }[] }>(
           `/api/admin/days?date=${encodeURIComponent(d)}`,
@@ -286,7 +310,7 @@ export function DayWorkspace({
     if (!featuredImage && deviceScreens.length) setFeaturedImage(deviceScreens[0])
   }
 
-  const applyStructured = (r: any, imgs: DayImage[]) => {
+  const applyStructured = (r: any) => {
     if (r.mood) setMood(String(r.mood))
     if (r.sleepHours) setSleepHours(String(r.sleepHours))
     if (r.sleepQuality) setSleepQuality(String(r.sleepQuality))
@@ -298,10 +322,16 @@ export function DayWorkspace({
       if (dv.macHours != null) setMacHours(String(dv.macHours))
       if (dv.notes) setDeviceNotes((n) => (n ? n + ' · ' : '') + dv.notes)
     }
-    const devUrls = (r.deviceScreens ?? []).map((i: number) => imgs[i]?.url).filter(Boolean)
-    if (devUrls.length) setDeviceScreens((s) => [...new Set([...s, ...devUrls])])
     if (Array.isArray(r.trades) && r.trades.length) {
-      setTrades((existing) => mergeStructured(existing, r.trades))
+      const incomingForms = r.trades.map(toTradeForm)
+      const prev = lastAiTradesRef.current
+      lastAiTradesRef.current = incomingForms
+      // a fresh structure pass replaces the trades from the previous AI pass;
+      // trades the owner added or edited since then survive (identity match)
+      setTrades((existing) => {
+        const kept = prev.length ? existing.filter((t) => !prev.includes(t)) : existing
+        return [...kept, ...incomingForms]
+      })
     }
     const j = r.journal
     if (j) {
@@ -316,47 +346,6 @@ export function DayWorkspace({
     setTimeout(autoFeatured, 0)
   }
 
-  const mergeStructured = (existing: TradeForm[], incoming: any[]): TradeForm[] => {
-    const toForm = (t: any): TradeForm => ({
-      market: String(t.market ?? 'MNQ'),
-      session: String(t.session ?? ''),
-      direction: t.direction === 'short' ? ('short' as const) : ('long' as const),
-      setup: String(t.setup ?? ''),
-      entry: t.entry != null ? String(t.entry) : '',
-      stop: t.stop != null ? String(t.stop) : '',
-      target: t.target != null ? String(t.target) : '',
-      exit: t.exit != null ? String(t.exit) : '',
-      riskPoints: t.riskPoints != null ? String(t.riskPoints) : '',
-      points: t.points != null ? String(t.points) : '',
-      confidence: t.confidence ? String(t.confidence) : '',
-      note: String(t.note ?? ''),
-      model: String(t.model ?? ''),
-      commentary: String(t.commentary ?? ''),
-      screenshots: [],
-      executions: Array.isArray(t.accounts) && t.accounts.length
-        ? t.accounts.map((a: string) => ({ account: a, size: '' }))
-        : [],
-    })
-    const incomingForms = incoming.map(toForm)
-    const freshUrls = new Set(incomingForms.flatMap((t) => t.screenshots))
-    // keep trades this run did not touch (no screenshot from this paste)
-    const kept = existing.filter((t) => !t.screenshots.some((u) => freshUrls.has(u)))
-    const out: TradeForm[] = [...kept]
-    for (const inc of incomingForms) {
-      if (inc.screenshots.length) {
-        const idx = out.findIndex((t) => t.screenshots.some((u) => inc.screenshots.includes(u)))
-        if (idx >= 0) {
-          out[idx] = { ...inc, screenshots: [...new Set([...out[idx].screenshots, ...inc.screenshots])] }
-        } else {
-          out.push(inc)
-        }
-      } else {
-        out.push(inc)
-      }
-    }
-    return out
-  }
-
   const runStructure = async (imgs?: DayImage[]) => {
     const images = imgs ?? dayImagesRef.current
     if (!dayText.trim() && images.length === 0) return notify('paste text or screenshots first', false)
@@ -366,7 +355,7 @@ export function DayWorkspace({
         method: 'POST',
         body: { action: 'day', text: dayText, images: images.map((i) => i.dataUrl) },
       })
-      applyStructured(res.result, images)
+      applyStructured(res.result)
       setDayText('')
       dayImagesRef.current = []
       setDayImages([])
@@ -1122,10 +1111,10 @@ export function DayWorkspace({
                               <ImageDropZone onFiles={(fs) => onMomentImages(i, fs)} label="attach images →" />
                               {m.images.length > 0 && (
                                 <div className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-6">
-                                  {m.images.map((s) => (
-                                    <div key={s} className="relative border border-line bg-bg">
+                                  {m.images.map((s, si) => (
+                                    <div key={`${si}:${s}`} className="relative border border-line bg-bg">
                                       <img src={s} alt="" className="h-14 w-full object-cover" />
-                                      <button onClick={() => setMoment(i, { images: m.images.filter((y) => y !== s) })} className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
+                                      <button onClick={() => setMoment(i, { images: m.images.filter((_, j) => j !== si) })} className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
                                     </div>
                                   ))}
                                 </div>

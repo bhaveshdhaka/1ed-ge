@@ -8,14 +8,14 @@ let cacheAt = 0
 const TTL = 10_000
 
 export function readAlts(): Record<string, string> {
-  if (cache && Date.now() - cacheAt < TTL) return cache
+  if (cache && Date.now() - cacheAt < TTL) return { ...cache }
   try {
     cache = JSON.parse(fs.readFileSync(ALTS_FILE, 'utf8')) as Record<string, string>
   } catch {
     cache = {}
   }
   cacheAt = Date.now()
-  return cache
+  return { ...cache }
 }
 
 function writeAlts(alts: Record<string, string>) {

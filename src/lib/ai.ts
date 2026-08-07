@@ -486,5 +486,5 @@ Write ONE short, factual, SEO-friendly alt text (max 12 words). Describe what th
     false,
     60,
   )
-  return raw.trim().replace(/^```(?:text|markdown)?\s*|\s*```$/g, '').trim()
+  return raw.trim().replace(/^```\w*\s*|\s*```$/g, '').replace(/\.$/, '').trim()
 }
