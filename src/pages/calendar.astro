@@ -1,9 +1,10 @@
 ---
 import Base from '../layouts/Base.astro'
 import MarketWidget from '../components/MarketWidget.astro'
+import NewsBlock from '../components/NewsBlock.astro'
 import { getCollection } from 'astro:content'
 import { marketEvents, todayHkt, addDaysIso, scheduledDayMarker, daySessionWindows } from '../lib/sessions'
-import { groupNewsByTime, newsEmoji } from '../lib/market-news'
+import { newsHeadline } from '../lib/market-news'
 import { fmtDay } from '../lib/dates'
 
 const today = todayHkt()
@@ -23,22 +24,20 @@ const rowsByDay = days.map((d) => {
   const dm = scheduledDayMarker(d)
   const wins = daySessionWindows(d)
   const n = newsByDate.get(d)
-  const redGroups = groupNewsByTime(n?.red ?? [])
-  const orangeGroups = groupNewsByTime(n?.orange ?? [])
+  const head = newsHeadline(n?.red ?? [], n?.orange ?? [])
   return {
     d,
     fmt: fmtDay(d),
     dm,
     wins,
-    redGroups,
-    orangeGroups,
-    redFirst: redGroups[0],
-    orangeFirst: orangeGroups[0],
+    red: n?.red ?? [],
+    orange: n?.orange ?? [],
+    head,
   }
 })
 ---
 
-<Base title="calendar — 1ed.ge" description="The next week in HKT: USD red/orange events, session times, and market status — deterministic, DST-aware, zero-inference.">
+<Base title="calendar — 1ed.ge" description="The next week in HKT: USD economic events, session times, and market status — deterministic, DST-aware, zero-inference.">
   <section class="shell pt-12 pb-20">
     <div class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl">/ calendar</h1>
@@ -57,8 +56,12 @@ const rowsByDay = days.map((d) => {
             <span class:list={['text-[12px] tabular-nums', row.dm.cls]} data-mkt-live={row.dm.live ? true : undefined}>
               {row.dm.glyph} {row.dm.text}
             </span>
-            {row.redFirst && <span class="text-[12px] text-down">red {row.redFirst.time}</span>}
-            {!row.redFirst && row.orangeFirst && <span class="text-[12px] opacity-70 text-warn">orange {row.orangeFirst.time}</span>}
+            {row.head && (
+              <span class:list={['text-[12px] tabular-nums', row.head.kind === 'red' ? 'text-down' : 'text-warn opacity-70']}>
+                <span class:list={['mr-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle', row.head.kind === 'red' ? 'bg-down' : 'bg-warn']}></span>
+                {row.head.time}
+              </span>
+            )}
           </div>
 
           <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t border-line/50 pt-2 text-[12px] text-dim">
@@ -68,23 +71,12 @@ const rowsByDay = days.map((d) => {
             <span class="flex items-center gap-1.5"><span>📈</span><span class="tabular-nums">{row.wins.cme}</span></span>
           </div>
 
-          {(row.redGroups.length > 0 || row.orangeGroups.length > 0) && (
-            <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2 text-[13px]">
-              {row.redGroups.map((g) => (
-                <div class="flex items-baseline gap-3">
-                  <span class="w-20 shrink-0 text-right text-[12px] tabular-nums text-down">{newsEmoji(g.titles[0])} {g.time}</span>
-                  <span class="text-down">{g.titles.join(' · ')}</span>
-                </div>
-              ))}
-              {row.orangeGroups.map((g) => (
-                <div class="flex items-baseline gap-3">
-                  <span class="w-20 shrink-0 text-right text-[12px] tabular-nums opacity-70 text-warn">{newsEmoji(g.titles[0])} {g.time}</span>
-                  <span class="opacity-70 text-warn">{g.titles.join(' · ')}</span>
-                </div>
-              ))}
+          {(row.red.length > 0 || row.orange.length > 0) && (
+            <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2">
+              <NewsBlock red={row.red} orange={row.orange} />
             </div>
           )}
-          {row.redGroups.length === 0 && row.orangeGroups.length === 0 && (
+          {row.red.length === 0 && row.orange.length === 0 && (
             <p class="mt-2 border-t border-line/50 pt-2 text-[12px] text-faint">no major USD news · {row.dm.text}</p>
           )}
         </div>

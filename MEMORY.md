@@ -14,9 +14,25 @@ servers when finished.
 ## HANDOFF — next agent, the market/homepage work (read first)
 
 **State: working tree clean, all committed + deployed + verified live.**
-Live: homepage de-cockpitted, `/stream`, `/calendar` — all CME-futures-framed.
+Live: homepage has the market narrative strip + rich footer, `/stream`,
+`/calendar` — all CME-futures-framed.
 
 **This session shipped (commits):**
+- **The context-aware market narrative strip (the PENDING chunk, done).** New
+  `src/lib/strip.ts` is the SINGLE source of truth for every conversational market
+  phrase (homepage strip, site-wide footer, live ticker) — precomputed absolute-time
+  segments per market (`CME Globex open · maintenance in`, `Tokyo on lunch break ·
+  back in`, `London opens in`, …), `fmtHuman` durations, next-event + `{Name}
+  speaking` lines (speakers matched from red/orange titles only). New
+  `MarketFooter.astro` on every public page (condensed master-line + per-band
+  transitions + news countdown + speaker, expandable `<details>` for the full
+  narrative + `NewsBlock`). `MarketWidget` reworked onto segments + `daySessionWindows`
+  (fixes TSE lunch window bug, CME `~24h` hardcode) and embedded under the `/` hero
+  with a trader-live moniker. New `NewsBlock.astro` (dot severity — NO words
+  red/orange — time, title, `[TV]`/`[FF]`, `✦`). `newsHeadline()` added. Calendar +
+  day-page news blocks swapped. **Terminology corrected:** the market is **CME
+  Globex** (equity-index futures), never "MNQ futures" — MNQ is the Micro E-mini
+  Nasdaq-100 ticker, not a market. Commit to be added below once pushed.
 - `90283c0` — homepage de-cockpit: `/` = SSR hero + today facts + today's stream.
   Killed the cockpit mirror (rails/quotes/self-talk) from `/`. New `src/lib/stream.ts`
   (`resolveMoments`, `flattenStream`, `dayFacts`, `momentMeta`),
@@ -37,39 +53,26 @@ clock. If CME is totally closed for the day, EVERYTHING is closed (no TSE/LSE/
 NYSE bands — they can't trade CME futures). Only two states to track: CME
 **early-close** days (`1:15pm ct`, cash exchanges still trade) and CME
 **total-close** holidays. TSE/LSE/NYSE are informational bands on CME-trading days.
-
-**PENDING chunk (owner wants this done — design already approved):**
-homepage market strip. Owner's words: *"on the home page show which market is
-open right now and the bar of where we are in the day — not a full fledged
-calendar but a bar ... something i can expand if i need more ... i must know what
-session is on right now, what news is, how far red or orange ... and below that
-if the trader is live or what is streaming."* Homepage = hero → **market strip**
-(which session is on now + 24h bar + news with time-to-event, expandable) →
-**trader-live + today's stream**.
-1. `src/lib/market-news.ts`: add `newsHeadline(red, orange)` → first red (else orange) `{time, title, kind}`.
-2. New `src/components/NewsBlock.astro` (zero-JS, shared): **one row per event** — colored
-   severity dot (NO words "red"/"orange"), time, full title, `[TV]`/`[FF]`, `✦` verified.
-3. `src/components/MarketWidget.astro`: windows via `daySessionWindows(today)` — fixes TSE
-   showing `08:00–10:30` (lunch break; should be `08:00–14:00`) + CME hardcoded `~24h`
-   (→ `halt 05:00–06:00`/`~23h`); explicit live "now" line; expandable `<details>` for
-   countdown rows + NewsBlock; labels with target time (`closes 14:00`).
-4. `src/components/MarketLive.astro`: descriptive footer — `● MNQ open · halt in 17:21:04` /
-   `◐ MNQ maintenance · resumes in 00:12:00` / `✕ MNQ closed · reopens in 1d 03:00`.
-5. `src/pages/index.astro`: embed `<MarketWidget />` under hero + trader-live moniker
-   (`readLiveState()`) on `/ today's stream`.
-6. `src/pages/calendar.astro` + `src/components/cockpit/CockpitPage.astro` (still live until
-   day-page chunk): swap `red {time}`/`orange {time}` + crude lists for `newsHeadline` + `NewsBlock`.
-Ship: typecheck → build → commit (`feat:`) → deploy → verify live. Then pause.
+Terminology: the market is **CME Globex** (equity-index futures on CME's electronic
+platform); **MNQ** is the Micro E-mini Nasdaq-100 futures *ticker*, never a market name.
 
 **Roadmap after:** day-page posterized archive (then delete `src/components/cockpit/`),
 `/models`, `/journal` on primitives, Phase 2 admin rework, Phase 4 remediation
 (money-color bugs, path traversal, rebuild mutex, tests, docs).
+
+**Backlog — LOWEST priority (owner moved it here; do NOT research web archives for it):**
+futures contract-rollover widget (active front-month ticker + next rollover date),
+sitting on the homepage, separate from the calendar. Known facts from prior research:
+equity-index quarterlies ES/NQ/MES/MNQ roll on 3rd Friday of Mar/Jun/Sep/Dec; WTI
+crude CL/MCL are monthly contracts (last trade 4 business days before the 25th of the
+prior month); gold GC/MGC list Feb/Apr/Jun/Aug/Oct/Dec. Not started; just a note.
 
 **Gotchas:** SSR `/` + `/stream` read content from server start — deploy restarts, so
 rebuild alone won't update them (deploy+verify mandatory). `npm run build` clears
 `node_modules/.astro` — keep it. Autosave cron commits every 30 min and may sweep your
 changes up with content — verify your diff landed, don't fight it. `pkill -F pidfile`
 (never `pkill -f pattern`). No parallel agents/builds (race on `node_modules/.astro`).
+Local test server must run on 4323 (4321 is the prod docker container); bind HOST=127.0.0.1.
 
 ---
 

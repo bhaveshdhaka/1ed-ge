@@ -6,6 +6,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Context-aware market narrative strip)
+- **`src/lib/strip.ts`** — single source of truth for every market phrase the site
+  speaks (homepage strip, footer, live ticker). Precomputes absolute-time narrative
+  segments per market (CME Globex / Tokyo TSE / London LSE / New York NYSE) with
+  conversational countdown phrases (`CME Globex open · maintenance in`,
+  `Tokyo on lunch break · back in`, `London opens in`, …) plus `fmtHuman` durations
+  (`3h 12m` / `1d 03:00`). The browser only picks the segment containing "now" and
+  ticks — no phrase logic duplicated client-side.
+- **Correct market terminology** — the market is **CME Globex** (equity-index
+  futures), never "MNQ futures" as a market name (MNQ is the Micro E-mini
+  Nasdaq-100 *ticker*, not a market). Widget row + footer + live ticker all say
+  `CME Globex`; footer states "CME Globex is the master clock".
+- **`NewsBlock.astro`** (zero-JS, shared) — one row per USD event: colored severity
+  dot (never the words red/orange), time, full title, `[TV]`/`[FF]` source badge,
+  `✦` when verified. Used in the widget details, the footer, `/calendar` and the
+  day-page news block.
+- **`MarketFooter.astro`** — site-wide footer market narrative on every public page
+  (Base layout): CME Globex master line + per-band next transition + next-event
+  countdown + `{Name} speaking` line (speaker name matched from red/orange titles
+  only), all ticking every second. Expandable `<details>` reveals the full band
+  narrative + all news rows. Replaces the old one-line footer ticker.
+- **Homepage market strip** — `MarketWidget` embedded under the hero on `/`
+  (hero → market strip → today facts → today's stream), and a trader-live moniker
+  on `/ today's stream` (same as `/stream`).
+- **`newsHeadline(red, orange)`** in `src/lib/market-news.ts` — first red (else
+  orange) event summary for the calendar/day-page collapsed chips.
+
+### Changed (Context-aware market narrative strip)
+- **`MarketWidget.astro`** reworked onto `strip.ts` segments: narrative rows with
+  ticking countdowns + session windows from `daySessionWindows(today)` (fixes TSE
+  `08:00–10:30` lunch-break window bug, CME hardcoded `~24h` → `halt 05:00–06:00`),
+  next-event + speaker lines with countdowns, news in `<details>` via `NewsBlock`.
+- **`MarketLive.astro`** (footer/ambient live marker) now speaks the CME Globex
+  narrative (`● CME Globex open · maintenance in 3h 12m` / `◐ CME Globex on
+  maintenance · back in` / `✕ CME Globex closed · reopens in 1d 03:00`) from the
+  same `strip.ts` segments.
+- **`/calendar` + day-page cockpit news** — `red {time}`/`orange {time}` chips and
+  crude grouped lists replaced with `newsHeadline` summary + `NewsBlock` rows. No
+  words "red"/"orange" in the UI; severity is shown by the dot color.
+- `MarketWidget` CME row label + legend: "MNQ futures" / "futures closed" →
+  "CME Globex" / "CME Globex maintenance".
+
 ### Added (Stream System — Phase 3: Public surfaces, first chunks)
 - **Homepage de-cockpitted** — `/` is now an SSR page: permanent intro hero
   (what this is, R is the only metric, everything public) + today's facts strip

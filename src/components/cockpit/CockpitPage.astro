@@ -3,7 +3,8 @@ import Base from '../../layouts/Base.astro'
 import { getCollection, render } from 'astro:content'
 import { fmtDay } from '../../lib/dates'
 import { scheduledDayMarker } from '../../lib/sessions'
-import { groupNewsByTime, newsEmoji } from '../../lib/market-news'
+import { newsHeadline } from '../../lib/market-news'
+import NewsBlock from '../NewsBlock.astro'
 import Cockpit from './Cockpit.astro'
 
 interface Props { iso: string; allDates: string[] }
@@ -25,8 +26,9 @@ const journalFor = journal.find((j) => j.data.date === iso) ?? null
 const coachFor = coach.find((c) => c.data.date === iso) ?? null
 const newsFor = news.find((n) => n.data.date === iso)
 const briefFor = briefs.find((b) => b.data.date === iso) ?? null
-const dayRedGroups = newsFor ? groupNewsByTime(newsFor.data.red) : []
-const dayOrangeGroups = newsFor ? groupNewsByTime(newsFor.data.orange) : []
+const dayRed = newsFor?.data.red ?? []
+const dayOrange = newsFor?.data.orange ?? []
+const dayHead = newsHeadline(dayRed, dayOrange)
 
 const accMap = new Map(accounts.map((a) => [a.data.id, a.data]))
 const dayIdx = allDates.indexOf(iso)
@@ -100,30 +102,22 @@ if (briefFor) {
     </nav>
 
     <article class="shell max-w-4xl pb-20">
-      {newsFor && (dayRedGroups.length > 0 || dayOrangeGroups.length > 0) && (
+      {newsFor && (dayRed.length > 0 || dayOrange.length > 0) && (
         <details class="group mt-6 border border-line bg-panel/50 px-4 py-3" open>
           <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 text-[13px]">
             <span class="flex items-center gap-2 text-dim">
               <span>USD news</span>
-              {dayRedGroups.length > 0 && <span class="text-down">{newsEmoji(dayRedGroups[0].titles[0])} red {dayRedGroups[0].time}</span>}
-              {dayRedGroups.length > 0 && dayOrangeGroups.length > 0 && <span class="text-faint">·</span>}
-              {dayOrangeGroups.length > 0 && <span class="opacity-70 text-warn">{newsEmoji(dayOrangeGroups[0].titles[0])} orange {dayOrangeGroups[0].time}</span>}
+              {dayHead && (
+                <span class:list={['flex items-center gap-1.5 tabular-nums', dayHead.kind === 'red' ? 'text-down' : 'text-warn opacity-70']}>
+                  <span class:list={['inline-block h-1.5 w-1.5 rounded-full', dayHead.kind === 'red' ? 'bg-down' : 'bg-warn']}></span>
+                  {dayHead.time}
+                </span>
+              )}
             </span>
             <span class="text-dim transition-transform group-open:rotate-180">▾</span>
           </summary>
-          <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2 text-[13px]">
-            {dayRedGroups.map((g) => (
-              <div class="flex items-baseline gap-3">
-                <span class="w-20 shrink-0 text-right text-[12px] tabular-nums text-down">{newsEmoji(g.titles[0])} {g.time}</span>
-                <span class="text-down">{g.titles.join(' · ')}</span>
-              </div>
-            ))}
-            {dayOrangeGroups.map((g) => (
-              <div class="flex items-baseline gap-3">
-                <span class="w-20 shrink-0 text-right text-[12px] tabular-nums opacity-70 text-warn">{newsEmoji(g.titles[0])} {g.time}</span>
-                <span class="opacity-70 text-warn">{g.titles.join(' · ')}</span>
-              </div>
-            ))}
+          <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2">
+            <NewsBlock red={dayRed} orange={dayOrange} />
           </div>
         </details>
       )}

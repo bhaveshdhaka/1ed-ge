@@ -190,8 +190,8 @@ export function speakerFrom(title: string): string | null {
 }
 
 const NEWS_PREFIX: Record<'red' | 'orange', { text: string }> = {
-  red: { text: 'next red event: ' },
-  orange: { text: 'next orange event: ' },
+  red: { text: 'next event: ' },
+  orange: { text: 'next event: ' },
 }
 
 function newsAt(todayIso: string, hhmm: string): number {
