@@ -1,0 +1,60 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { periodRange, periodTypeFromSlug, isoFromAnchor, periodAnchor, periodRangesBetween } from '../src/lib/periods'
+
+test('week = Mon–Sun containing the date', () => {
+  // 2026-08-07 is a Friday; Mon 03-aug → Sun 09-aug
+  const w = periodRange('week', '2026-08-07')
+  assert.equal(w.startIso, '2026-08-03')
+  assert.equal(w.endIso, '2026-08-09')
+  assert.equal(w.label, 'week 32')          // verify: ISO week number of 2026-08-03 — adjust to the computed value
+  assert.equal(w.anchor, '2026-32')
+  assert.equal(w.prev.endIso, '2026-08-02')
+  assert.equal(w.next.startIso, '2026-08-10')
+})
+test('month boundaries', () => {
+  const m = periodRange('month', '2026-02-15')
+  assert.equal(m.startIso, '2026-02-01')
+  assert.equal(m.endIso, '2026-02-28')
+  assert.equal(m.label, 'feb 2026')
+  assert.equal(m.anchor, '2026-02')
+})
+test('quarter boundaries', () => {
+  const q = periodRange('quarter', '2026-08-07')
+  assert.equal(q.startIso, '2026-07-01')
+  assert.equal(q.endIso, '2026-09-30')
+  assert.equal(q.label, 'q3 2026')
+  assert.equal(q.anchor, '2026-q3')
+})
+test('half boundaries', () => {
+  const h1 = periodRange('half', '2026-03-15')
+  assert.equal(h1.startIso, '2026-01-01')
+  assert.equal(h1.endIso, '2026-06-30')
+  const h2 = periodRange('half', '2026-10-15')
+  assert.equal(h2.startIso, '2026-07-01')
+  assert.equal(h2.endIso, '2026-12-31')
+})
+test('year boundaries + prev/next', () => {
+  const y = periodRange('year', '2026-08-07')
+  assert.equal(y.startIso, '2026-01-01')
+  assert.equal(y.endIso, '2026-12-31')
+  assert.equal(y.prev.startIso, '2025-01-01')
+  assert.equal(y.next.startIso, '2027-01-01')
+})
+test('slug ↔ type', () => {
+  assert.equal(periodTypeFromSlug('q2'), 'quarter')
+  assert.equal(periodTypeFromSlug('h1'), 'half')
+  assert.equal(periodTypeFromSlug('week'), 'week')
+  assert.equal(periodTypeFromSlug('bogus'), null)
+})
+test('isoFromAnchor round-trips', () => {
+  assert.equal(periodRange('week', isoFromAnchor('week', '2026-32')).anchor, '2026-32')
+  assert.equal(periodRange('quarter', isoFromAnchor('quarter', '2026', 1)).anchor, '2026-q1')
+  assert.equal(periodRange('month', isoFromAnchor('month', '2026-08')).anchor, '2026-08')
+  assert.equal(periodAnchor('week', '2026-08-07'), periodRange('week', '2026-08-07').anchor)
+})
+test('ranges between spans a span', () => {
+  const rs = periodRangesBetween('week', '2026-08-03', '2026-08-20')
+  assert.ok(rs.length >= 2 && rs.length <= 4)
+  assert.equal(rs[0].startIso, '2026-08-03')
+})
