@@ -136,3 +136,12 @@ server payload already carries the countdown target; the inline copies stay
 - Anything in the admin DayWorkspace (moment-images final fixes already shipped
   separately, commit 76a0644).
 - Newsletter/weekly review surfaces.
+
+## 6. Same-time event grouping (owner amendment, 2026-08-07)
+
+When multiple red/orange events share one HKT time slot, show ONE representative
+(the most important: red beats orange; first-in-source within a kind) with the
+rest collapsed under it (`+N more at HH:MM`, expandable, native `<details>` —
+zero-JS). Applies inside NewsBlock (so every surface inherits it: widget details,
+footer, day pages, calendar, the-day panel) and the chronograph rail's event dots
+dedupe to one per slot (red priority).

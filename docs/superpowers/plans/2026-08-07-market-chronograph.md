@@ -515,3 +515,93 @@ git commit -m "fix(public): lightbox guards, archive trade shots in lightbox, we
 - **Type consistency:** `fmtDayW(iso): string` (Task 1) used in Tasks 3/5/6. `newsEmoji(): string` never `''` (Task 1) → NewsBlock (Task 2). `fmtHuman` rule identical in strip.ts + 3 inline copies (Tasks 1/3/4) — all render `m:ss` when `m < 15`. NewsBlock `dayIso?: string` + `now?: number` (Task 2) passed by all four consumers + MarketDay (Task 5). `data-now-clock`/`data-ev-at` (Task 3) only referenced within MarketWidget's own script.
 - **Zero-JS:** the only runtime JS touched is the pre-existing 1s loops (MarketWidget/MarketLive/MarketFooter); no new JS surfaces. The rail, dots, and past-state are server-rendered; JS only moves the marker/clock and toggles dot classes.
 - **Plan-mandated risks to flag for reviewers:** (a) NewsBlock past-state on STATIC day pages freezes `now` at build time — a past-day archive renders fully dimmed (correct); today's static page lags until rebuild (documented limitation, homepage is SSR and always fresh). (b) The chronograph rail's `animate-pulse` + `opacity-40` dot classes are runtime toggles in the widget's pre-existing loop. (c) `fmtDayW` uses `Date.UTC` weekday — verify against a known date (2026-08-07 is a Friday → `fri | 07-aug-2026`).
+
+### Task 7: Same-time event grouping — one representative per time slot
+
+**Files:**
+- Modify: `src/lib/market-news.ts` (add `groupNewsHeadlines` helper)
+- Modify: `src/components/NewsBlock.astro` (render groups: representative + collapsed rest)
+- Modify: `src/components/MarketWidget.astro` (rail event dots dedupe by time slot)
+
+**Interfaces:**
+- Consumes: `NewsItem`; the chronograph rail (Task 3).
+- Produces: `groupNewsHeadlines(red: NewsItem[], orange: NewsItem[]): NewsGroup[]` where `NewsGroup = { time; kind: 'red'|'orange'; title; source?; verified?; rest: NewsItem[] }` — grouped by unique HKT `time`, representative = first red else first orange (source order), `rest` = the other events at that time. NewsBlock renders each group as the representative row + (when `rest` non-empty) a native `<details>` with `+N more at {time}` summary containing the rest rows. MarketWidget `evDots` built from `groupNewsHeadlines` so one severity dot per slot (red priority, title = representative).
+
+- [ ] **Step 1: `src/lib/market-news.ts` — add `groupNewsHeadlines`**
+
+Add after `newsEmoji` (keep the existing `groupNewsByTime` — check its consumers before touching; this is additive):
+
+```ts
+export interface NewsGroup {
+  time: string
+  kind: 'red' | 'orange'
+  title: string
+  source?: 'TV' | 'FF'
+  verified?: boolean
+  rest: NewsItem[]
+}
+
+/** Per unique HKT time: the most important event (first red, else first orange) + the rest. */
+export function groupNewsHeadlines(red: NewsItem[], orange: NewsItem[]): NewsGroup[] {
+  const byTime = new Map<string, (NewsItem & { kind: 'red' | 'orange' })[]>()
+  for (const n of [
+    ...red.map((r) => ({ ...r, kind: 'red' as const })),
+    ...orange.map((o) => ({ ...o, kind: 'orange' as const })),
+  ]) {
+    const arr = byTime.get(n.time) ?? []
+    arr.push(n)
+    byTime.set(n.time, arr)
+  }
+  return [...byTime.keys()]
+    .sort()
+    .map((t) => {
+      const all = byTime.get(t)!
+      const rep = all.find((n) => n.kind === 'red') ?? all[0]
+      return {
+        time: t,
+        kind: rep.kind,
+        title: rep.title,
+        source: rep.source,
+        verified: rep.verified,
+        rest: all.filter((n) => n !== rep),
+      }
+    })
+}
+```
+
+- [ ] **Step 2: `src/components/NewsBlock.astro` — grouped rendering**
+
+Read the current file (it has the past-state from Task 2). Replace the flat `.map()` with a grouped render: import `groupNewsHeadlines`; map groups; the representative row keeps the existing past-state classes; when `g.rest.length > 0`, wrap the rest rows in a `<details>` whose `<summary>` reads `+{g.rest.length} more at {g.time}` (zero-JS, native). Rest rows render with the same row structure (icon, time, title, source, ✦, past-state). Keep the `emoji` prop behavior.
+
+- [ ] **Step 3: `src/components/MarketWidget.astro` — rail dots dedupe**
+
+Replace the `evDots` frontmatter block (Task 3) to derive from `groupNewsHeadlines(red, orange)` — one dot per slot:
+
+```ts
+const evDots = groupNewsHeadlines(red, orange).map((g) => {
+  const [h, m] = g.time.split(':').map(Number)
+  return {
+    at: Date.parse(`${today}T00:00:00+08:00`) + (h * 60 + m) * 60000,
+    kind: g.kind,
+    pct: ((h + m / 60) / 24) * 100,
+    title: g.title,
+  }
+})
+```
+
+(Import `groupNewsHeadlines` from `../lib/market-news`.)
+
+- [ ] **Step 4: Read-back verify**
+
+```bash
+grep -n "groupNewsHeadlines" src/lib/market-news.ts src/components/NewsBlock.astro src/components/MarketWidget.astro
+grep -n "more at" src/components/NewsBlock.astro
+grep -n "evDots" src/components/MarketWidget.astro
+```
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/lib/market-news.ts src/components/NewsBlock.astro src/components/MarketWidget.astro
+git commit -m "feat(news): one representative event per time slot — the rest collapse under +N more at HH:MM"
+```
