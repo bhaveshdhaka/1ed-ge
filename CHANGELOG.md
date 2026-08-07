@@ -6,7 +6,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed (P1 — Day Cockpit Shell + IA)
+### Added (Stream System — Phase 0: Design System Foundation)
+- **Tokenized design system.** `src/styles/global.css` → `src/styles/app.css`:
+  summit palette moved into the Tailwind v4 `@theme` block (dead theme-override
+  mechanism removed), full type scale (`text-3xs`…`text-5xl` + `text-quote`),
+  weight/leading/tracking tokens, tokenized `::selection` and timeline bands.
+  Purged ~60 lines of dead CSS (`.mono-up`, `.ck-drop`, `.sticky-subnav`,
+  `@keyframes blink`, `.hero-fade`, phantom `--font-display`, `--glow`,
+  `--accent2`, `--chart-empty`). `:where(h1..h4)` zero-specificity base.
+- **Zero-JS Astro UI primitives** — `src/components/ui/`: `Button`, `Card`,
+  `Badge`, `Table`, `StatCard`, `Tag`, `Separator`, `Dot`, `Quote`, `Field`,
+  `Input`, `Textarea`, `EmptyState`, `Icon` (Lucide inline SVG), `Flag`.
+- **Admin React primitives** — `src/components/ui/react/`: Radix `Dialog`,
+  `Tooltip`, `Select`, `Tabs`, `Checkbox`, `Toast` + cva `Button` + `cn`
+  (`clsx` + `tailwind-merge`). Admin `ui.tsx` re-skinned on tokens.
+- **Design-system skill** — `.opencode/skills/design-system/SKILL.md`: the
+  token/primitive/zero-JS/owner-content contracts agents must follow (no
+  arbitrary `text-[..px]`, no hardcoded colors, no raw buttons, no AI
+  rules/quotes/gyan).
+- **Deps added:** `@radix-ui/react-*` (dialog/tooltip/select/tabs/checkbox/
+  toast), `class-variance-authority`, `tailwind-merge`, `lucide-react`,
+  `lucide-static`.
+- **fix(a11y):** 8–9px timeline labels brightened to `--color-soft` — WCAG AA
+  restored (was the one regression the new e2e caught).
+- Docs: Stream System design spec
+  (`docs/superpowers/specs/2026-08-07-stream-system-design.md`) + Phase 0 plan.
+
+
 - **The day page is now the cockpit** — `/` and `/day/<date>` render a
   three-column command center: ambient top strip with a **24h HKT timeline**
   (session bands for CME/TSE/LSE/NYSE, now-marker, hazard dots), a left rail

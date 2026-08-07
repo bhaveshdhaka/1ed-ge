@@ -177,6 +177,23 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-07 — **Stream System, Phase 0 shipped (design-system foundation).** The
+  owner approved a full rebuild ("the UI has no method to the madness") around
+  **shadcn/ui conventions**: Tailwind v4 `@theme` tokens in `src/styles/app.css`
+  (summit palette + full type scale `text-3xs`…`text-5xl` + `text-quote`,
+  weight/leading/tracking, one radius/shadow), zero-JS Astro primitives in
+  `src/components/ui/*` (Button/Card/Badge/Table/StatCard/Quote/Icon/Flag…),
+  React/Radix admin primitives in `src/components/ui/react/*`, and
+  `.opencode/skills/design-system/SKILL.md` as the enforcement skill. Dead CSS
+  purged, a11y fixed, deployed + verified live. **Product model locked:** cockpit
+  (private) → **approved** moments → public stream (`/stream` SSR, `/` hero+stream,
+  `/day` posterized archive); master clock = **CME 23h futures day** with TSE/LSE/
+  NYSE as bands; **no AI gyaan** — rules/quotes/self-talk are 100% owner-authored;
+  Milkdown **out** (plain markdown textarea + preview); habits v2 (bool/count,
+  categories, admin-managed); two-level rules (overall + per-model); trading
+  models with per-trade tags; account lifecycle `eval → funded → buffer → payout`
+  gated. Full spec in `docs/superpowers/specs/2026-08-07-stream-system-design.md`.
+
 - 2026-08-06 — **Ingest feature (PDF/CSV) — designed, not built. Next agent owns it.** The owner wants
   a **daily drag-and-drop ritual**: throw trade screenshots / CSVs / PDFs into the cockpit drop zone,
   the AI parses + dedupes, **the owner approves every trade** before it lands (day records + accounts).
