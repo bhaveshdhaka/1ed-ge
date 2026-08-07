@@ -61,11 +61,13 @@ stream:
   render `trades[tradeIdx].screenshots[]` instead (see 3.2).
 - `draft.moments[]` uses the same shape (private until published).
 
-### 3.2 Trade (unchanged)
+### 3.2 Trade (unchanged — screenshots stay on the trade)
 
-`trades[].screenshots: string[]` stays exactly as today — the trade owns its charts.
-The trade moment is a pointer (`tradeIdx`); the public card shows the trade stats
-(`▲/▼ market · model/setup · ±R`) plus its `screenshots[]` thumbnails.
+`trades[].screenshots: string[]` stays — **the trade owns its charts, forever.** You
+can add screenshots to a trade at any time, even days later. Screenshots render
+wherever the trade shows: the day-archive trade panel and any published trade
+moment that references it. No separate image field on the trade moment — the moment
+points at the trade and the charts come with it.
 
 ### 3.3 Device (screen-time)
 
@@ -141,7 +143,8 @@ Unchanged, plus: delete removes the entry from `alts.json` too.
 
 ### 5.4 Day archive (`DayArchive.astro`)
 
-- Trade panels: facts (unchanged; screenshots continue to render in the panel).
+- Trade panels: facts + the trade's screenshots (as today — charts belong to the
+  trade and stay with it).
 - Moments: MomentCard as above.
 - Screen-time section: values + notes only — screenshot grid removed.
 
