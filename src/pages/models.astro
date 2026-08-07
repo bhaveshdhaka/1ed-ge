@@ -3,12 +3,12 @@ import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
 import { buildModelStats } from '../lib/models'
 import { fmtDay } from '../lib/dates'
-import { Card } from '../components/ui/Card.astro'
-import { Badge } from '../components/ui/Badge.astro'
-import { StatCard } from '../components/ui/StatCard.astro'
-import { Table } from '../components/ui/Table.astro'
-import { EmptyState } from '../components/ui/EmptyState.astro'
-import { Separator } from '../components/ui/Separator.astro'
+import Card from '../components/ui/Card.astro'
+import Badge from '../components/ui/Badge.astro'
+import StatCard from '../components/ui/StatCard.astro'
+import Table from '../components/ui/Table.astro'
+import EmptyState from '../components/ui/EmptyState.astro'
+import Separator from '../components/ui/Separator.astro'
 
 const [days, models] = await Promise.all([getCollection('days'), getCollection('models')])
 const stats = buildModelStats(days, models)
@@ -45,7 +45,7 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
                 <div class="text-2xs uppercase tracking-widest text-dim">rules</div>
                 <ul class="mt-2 space-y-1">
                   {m.rules.map((r, i) => (
-                    <li key={i} class="flex items-baseline gap-2 text-[13px] text-soft">
+                    <li class="flex items-baseline gap-2 text-[13px] text-soft">
                       <span class="text-faint">{i + 1}.</span>
                       <span>{r}</span>
                     </li>
@@ -69,7 +69,7 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
                   class="mt-2"
                 >
                   {m.trades.slice(-8).reverse().map((t, i) => (
-                    <tr key={i}>
+                    <tr>
                       <td class="td"><a href={`/day/${fmtDay(t.iso)}`} class="text-accent hover:underline">{fmtDay(t.iso)}</a></td>
                       <td class="td">{t.market}</td>
                       <td class="td">{t.direction === 'long' ? '▲' : '▼'}</td>
