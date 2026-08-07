@@ -43,7 +43,7 @@ export interface StripPayload {
 const hktMs = (hkt: string) => Date.parse(hkt)
 const isoStartMs = (iso: string) => Date.parse(`${iso}T00:00:00+08:00`)
 
-/** Conversational duration: "3h 12m" · "12m" · "1d 3h" · "50s". */
+/** Conversational duration: "3h 12m" · "12m" · "1d 3h" · "04:32" (< 15 min, chronograph). */
 export function fmtHuman(sec: number): string {
   sec = Math.max(0, Math.round(sec))
   const d = Math.floor(sec / 86400)
@@ -52,8 +52,8 @@ export function fmtHuman(sec: number): string {
   const s = Math.floor(sec % 60)
   if (d > 0) return h > 0 ? `${d}d ${h}h` : `${d}d`
   if (h > 0) return m > 0 ? `${h}h ${m}m` : `${h}h`
-  if (m > 0) return `${m}m`
-  return `${s}s`
+  if (m >= 15) return `${m}m`
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
 /* ---------------- per-market state machine ---------------- */

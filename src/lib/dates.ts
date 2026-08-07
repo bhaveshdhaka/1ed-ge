@@ -6,6 +6,15 @@ export function fmtDay(iso: string): string {
   return `${d}-${MONTHS[parseInt(m, 10) - 1]}-${y}`
 }
 
+const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
+
+/** '2028-08-03' → 'fri | 03-aug-2028' — 3-letter weekday + pipe, display only. */
+export function fmtDayW(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const wd = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
+  return `${wd} | ${fmtDay(iso)}`
+}
+
 /** '03-aug-2028' → '2028-08-03' (or null when the slug is malformed) */
 export function parseDay(slug: string): string | null {
   const m = /^(\d{2})-([a-z]{3})-(\d{4})$/.exec(slug)

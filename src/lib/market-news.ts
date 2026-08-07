@@ -72,14 +72,17 @@ const EMOJI_RULES: [RegExp, string][] = [
   [/sentiment|uom|u\. of m|confidence/i, '💬'],
   [/treasury|auction|budget|debt/i, '🏦'],
   [/trade|import|export|balance/i, '⚖️'],
-  [/income|spending|savings/i, '💵'],
+  [/income|spending|savings|earnings/i, '💵'],
+  [/participation rate/i, '👥'],
 ]
+
+const EMOJI_FALLBACK = '📰'
 
 export function newsEmoji(title: string): string {
   for (const [re, emoji] of EMOJI_RULES) {
     if (re.test(title)) return emoji
   }
-  return ''
+  return EMOJI_FALLBACK
 }
 
 /** Collapse consecutive events that share the same HKT time into one row. */
