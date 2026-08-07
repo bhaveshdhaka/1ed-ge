@@ -115,10 +115,10 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
               <td class="td text-right text-dim">${a.drawdownLimit.toLocaleString()}</td>
               <td class="td text-right">{a.trades}</td>
               <td class="td text-right">{a.winRate === null ? '—' : a.winRate.toFixed(0) + '%'}</td>
-              <td class="td text-right num-up">{fmtPnl(a.grossPnl)}</td>
+              <td class:list={['td text-right', a.grossPnl >= 0 ? 'num-up' : 'num-down']}>{fmtPnl(a.grossPnl)}</td>
               <td class="td text-right text-dim">{a.payouts ? fmtPnl(-a.payouts) : '—'}</td>
-              <td class="td text-right num-up">{fmtPnl(a.netPnl)}</td>
-              <td class="td text-right num-up">{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
+              <td class:list={['td text-right', a.netPnl >= 0 ? 'num-up' : 'num-down']}>{fmtPnl(a.netPnl)}</td>
+              <td class:list={['td text-right', a.sumR >= 0 ? 'num-up' : 'num-down']}>{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
               <td class="td">
                 <div class="flex items-center justify-end gap-2">
                   <div class="h-1.5 w-20 bg-raise">
