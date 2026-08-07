@@ -11,6 +11,44 @@ servers do NOT count as "done". Workflow: typecheck → commit → `bash
 scripts/deploy.sh` → poll until live → curl-verify the changed bits. Kill test
 servers when finished.
 
+## HANDOFF — next agent, the moment-images feature (READ FIRST)
+
+**This session = prep only. Execution is handed to another agent.** The owner
+approved the design and asked that the plan be fully prepped, then a separate
+agent executes it.
+
+**Feature: moment images.** Stream moments collapse to `trade | note | quote`
+(no standalone `media` posts, no `pre-market`/`post-market` labels). Images
+always attach to an artefact: trades keep `screenshots[]` (rendered in the
+archive panel AND any trade moment), notes/quotes carry `images[]`. The capture
+zone becomes **ephemeral** (AI reads screenshots, they are NEVER uploaded —
+truly gone). Cheap-model SEO alt text (`qwen/qwen-2.5-vl-7b-instruct` via new
+`AI_MODEL_ALT` env) is generated on upload into a sidecar
+`public/media/alts.json`. A native `<dialog>` lightbox is the single zero-JS
+exception on public pages. **Test data is wiped** (730 days, 161 journals, 6
+accounts, 5 payouts, 24 coach, media uploads) — the site starts empty until the
+owner logs real days.
+
+**Prep artifacts (all committed on `main`):**
+- Spec: `docs/superpowers/specs/2026-08-07-moment-images-design.md` (approved)
+- Plan: `docs/superpowers/plans/2026-08-07-moment-images.md` (6 tasks, 3 waves)
+- BASE = `bd1b118` (HEAD at handoff). Tree is clean except market-news cron files.
+- SDD workspace: `.superpowers/sdd/2026-08-07-moment-images/` — ledger
+  `progress.md` + `task-1-brief.md` … `task-6-brief.md` all generated.
+
+**Execution instructions (use superpowers:subagent-driven-development):**
+- Wave 1 (parallel, write-disjoint): Task 1 wipe → Task 2 moment collapse →
+  Task 3 alt pipeline. Wave 2 (parallel): Task 4 DayWorkspace → Task 5 public
+  imagery. Wave 3: Task 6 docs + build + deploy + verify live.
+- Per task: implementer reads its `task-N-brief.md`, commits ONLY its own files
+  (never `git add -A`), controller runs `npm run typecheck` centrally between
+  tasks, review each task, one build per wave, final deploy + verify live.
+- Task 3 notes: `.env` does NOT need `AI_MODEL_ALT` (env.ts default applies);
+  never commit `.env`. Alt-model failure is swallowed (upload still succeeds).
+- Task 1 wipes content — verify the build still renders empty states.
+- Trade screenshots render in both places (owner-confirmed "trade owns its
+  charts") — do not "simplify" that away.
+
 ## HANDOFF — next agent, the market/homepage work (read first)
 
 **State: working tree clean, all committed + deployed + verified live.**
