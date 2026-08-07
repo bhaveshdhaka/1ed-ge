@@ -193,8 +193,50 @@ deployed in this session; the autosave cron is active again.
   (lucid-25k-a +$3137 → $1500 paid in payout; tpt-25k-a −$1280 **failed**
   2026-11-02 with post-mortem post), one day-zero. One execution assignment
   drives day files + account math (single source of truth). Typechecked, built,
-  committed. **Not deployed yet in this session — deploy + verify live is the
-  next agent's first act.**
+  committed, **deployed + verified live** (homepage, /accounts failed account,
+  payout + failed day pages, admin 200).
+
+## HANDOFF — WRAP-UP STATE (2026-08-07, end of session)
+
+Owner wants to resume in a new session. **Phase 0 (design system) and Phase 1
+(data model + credible review data) are DONE, committed, deployed, verified
+live.** Phases 2–4 remain. Full spec: `docs/superpowers/specs/2026-08-07-stream-system-design.md`.
+
+**Remaining work (in order):**
+- **Phase 2 — Admin rework**: DayWorkspace on the new primitives (draft
+  reflection, moment composer, per-trade commentary + model tag, publish
+  buttons), Library tab (habits/models/quotes/rules CRUD), **Milkdown → plain
+  markdown textarea + preview** (remove `@milkdown/crepe`, delete
+  `src/components/admin/editor.css`), safety fixes (dirty-guard on tab switch,
+  no wipe-on-paste, loud rebuild failures, AI timeouts, aria labels, heartbeat
+  `/api/admin/ping`).
+- **Phase 3 — Public surfaces**: `/stream` (SSR feed + "trader is live" +
+  "today so far"), homepage intro hero + today's stream (SSR), `/day/<date>`
+  posterized archive (facts + moments, NO cockpit mirror), `/models` page,
+  journal index rebuilt on primitives. Master clock = **CME 23h futures day**,
+  TSE/LSE/NYSE as bands. Public stays zero-JS.
+- **Phase 4 — Remediation**: money-color bugs (performance/accounts/about/
+  DayWorkspace green-for-negative), tablet breakpoint (rails at 768–1023px),
+  floating sticky subnav, journal API path traversal (`GET /api/admin/journal?
+  file=`), early-close copy (`1:15pm ct` vs `1:00pm et`), rebuild race (mutex),
+  unit tests for stats/sessions/timeline, then typecheck → build → deploy →
+  verify live.
+
+**Docs to update as you go:** `AGENTS.md` and `MEMORY.md` still describe
+Milkdown and the "everything public except the admin / day-record-as-mirror"
+era — update them when the admin editor swap and the public surfaces land.
+Note `scripts/seed.mjs` (old, non-review seed) may re-add a Day-Zero on
+2026-08-06 if ever run — it was the duplicate-day-zero source; prefer
+`seed-review.mjs`.
+
+**On launching new agents to parallelize:** yes, but with guardrails — see the
+recommendation at the end of the session summary. The phases are sequential
+(2 → 3 → 4) with heavy shared surface (public pages touch the same primitives/
+tokens), so parallel agents should NOT split one phase; the safe parallel unit
+is one phase's independent files (e.g. Phase 2's Library tab vs DayWorkspace are
+both admin React — can split by tab) with a strict gate: each subagent task ends
+with `npm run typecheck` + commit, and no two agents build at once (builds race
+on `node_modules/.astro`).
 
 - 2026-08-07 — **Stream System, Phase 0 shipped (design-system foundation).** The
   owner approved a full rebuild ("the UI has no method to the madness") around
