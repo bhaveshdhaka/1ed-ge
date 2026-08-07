@@ -1,0 +1,13 @@
+---
+/** EmptyState.astro — one consistent "nothing here" block. */
+interface Props {
+  text: string
+  class?: string
+}
+
+const { text, class: cls = '' } = Astro.props
+---
+
+<div class={`border border-dashed border-line px-4 py-6 text-center text-sm text-faint ${cls}`}>
+  {text}
+</div>

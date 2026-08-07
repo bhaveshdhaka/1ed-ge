@@ -1,0 +1,19 @@
+---
+/** StatCard.astro — one headline number with a label + optional delta. */
+interface Props {
+  label: string
+  value: string
+  delta?: string
+  tone?: 'up' | 'down' | 'default'
+  class?: string
+}
+
+const { label, value, delta, tone = 'default', class: cls = '' } = Astro.props
+const tones = { up: 'text-up', down: 'text-down', default: 'text-ink' }
+---
+
+<div class={`border border-line bg-panel p-3 ${cls}`}>
+  <div class="text-2xs uppercase tracking-widest text-dim">{label}</div>
+  <div class={`mt-1 text-lg font-semibold tabular-nums ${tones[tone]}`}>{value}</div>
+  {delta !== undefined && <div class="mt-0.5 text-2xs text-faint">{delta}</div>}
+</div>

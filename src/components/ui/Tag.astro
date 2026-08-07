@@ -1,0 +1,10 @@
+---
+/** Tag.astro — small inline label (a lighter sibling of Badge, no color states). */
+interface Props {
+  class?: string
+}
+
+const { class: cls = '' } = Astro.props
+---
+
+<span class={`tag ${cls}`}><slot /></span>

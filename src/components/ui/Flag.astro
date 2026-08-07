@@ -1,0 +1,12 @@
+---
+/** Flag.astro — session/exchange flags. Lucide has no country flags; emoji is correct here. */
+interface Props {
+  market?: 'us' | 'uk' | 'jp' | 'cme'
+  class?: string
+}
+
+const { market = 'us', class: cls } = Astro.props
+const FLAGS: Record<string, string> = { us: '🇺🇸', uk: '🇬🇧', jp: '🇯🇵', cme: '📈' }
+---
+
+<span class={cls} aria-hidden="true">{FLAGS[market] ?? FLAGS.us}</span>

@@ -1,0 +1,16 @@
+---
+/** Field.astro — labeled form control wrapper (public; admin uses React `Field`). */
+interface Props {
+  label?: string
+  hint?: string
+  class?: string
+}
+
+const { label, hint, class: cls = '' } = Astro.props
+---
+
+<label class={`block ${cls}`}>
+  {label && <span class="label">{label}</span>}
+  <slot />
+  {hint && <span class="mt-1 block text-2xs text-faint">{hint}</span>}
+</label>

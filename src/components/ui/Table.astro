@@ -1,0 +1,25 @@
+---
+/** Table.astro — data table. `head` = column labels; default slot = <tr> rows using .td. */
+interface Props {
+  head: string[]
+  class?: string
+  align?: 'left' | 'right' | 'none'
+}
+
+const { head, class: cls = '', align = 'none' } = Astro.props
+---
+
+<div class={`overflow-x-auto border border-line bg-panel ${cls}`}>
+  <table class="w-full border-collapse">
+    <thead>
+      <tr>
+        {head.map((h) => (
+          <th class={`th ${align === 'right' ? 'text-right' : ''}`}>{h}</th>
+        ))}
+      </tr>
+    </thead>
+    <tbody class={align === 'right' ? '[&>tr>td]:text-right' : ''}>
+      <slot />
+    </tbody>
+  </table>
+</div>

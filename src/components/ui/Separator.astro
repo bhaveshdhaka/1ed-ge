@@ -1,0 +1,10 @@
+---
+/** Separator.astro — hairline divider. */
+interface Props {
+  class?: string
+}
+
+const { class: cls = '' } = Astro.props
+---
+
+<hr class={`border-0 border-t border-line ${cls}`} />

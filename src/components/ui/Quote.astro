@@ -1,0 +1,15 @@
+---
+/** Quote.astro — the owner's own words, terminal style. Uses the --text-quote role. */
+interface Props {
+  text: string
+  author?: string
+  class?: string
+}
+
+const { text, author, class: cls = '' } = Astro.props
+---
+
+<figure class={`border-l-2 border-line2 pl-3 ${cls}`}>
+  <blockquote class="text-quote leading-snug text-soft">"{text}"</blockquote>
+  {author && <figcaption class="mt-1 text-2xs text-faint">— {author}</figcaption>}
+</figure>

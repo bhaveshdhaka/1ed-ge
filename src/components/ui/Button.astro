@@ -1,0 +1,50 @@
+---
+/**
+ * Button.astro — zero-JS. Renders <a> when href is set, else <button>.
+ * Public pages: use this, never a raw <button class="btn…">.
+ */
+interface Props {
+  href?: string
+  variant?: 'default' | 'primary' | 'danger' | 'ghost'
+  size?: 'sm' | 'md'
+  type?: 'button' | 'submit' | 'reset'
+  disabled?: boolean
+  class?: string
+  title?: string
+  'aria-label'?: string
+  target?: string
+  rel?: string
+}
+
+const {
+  href,
+  variant = 'default',
+  size = 'md',
+  type = 'button',
+  disabled = false,
+  class: cls = '',
+  title,
+  'aria-label': ariaLabel,
+  target,
+  rel,
+} = Astro.props
+
+const variants = {
+  default: '',
+  primary: 'btn-primary',
+  danger: 'btn-danger',
+  ghost: 'border-transparent bg-transparent hover:bg-raise hover:border-line',
+}
+const sizes = { sm: 'btn-sm', md: '' }
+const classes = `btn ${variants[variant]} ${sizes[size]} ${cls}`
+---
+
+{href ? (
+  <a href={href} class={classes} title={title} aria-label={ariaLabel} target={target} rel={rel}>
+    <slot />
+  </a>
+) : (
+  <button type={type} class={classes} disabled={disabled} title={title} aria-label={ariaLabel}>
+    <slot />
+  </button>
+)}

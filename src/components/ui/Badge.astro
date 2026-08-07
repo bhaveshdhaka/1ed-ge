@@ -1,0 +1,24 @@
+---
+/** Badge.astro — compact status/label chip. Variants map to token colors. */
+interface Props {
+  variant?: 'default' | 'up' | 'down' | 'warn' | 'accent' | 'muted' | 'outline'
+  class?: string
+  title?: string
+}
+
+const { variant = 'default', class: cls = '', title } = Astro.props
+
+const variants = {
+  default: 'border-line text-dim bg-panel',
+  up: 'border-up/50 text-up bg-up/10',
+  down: 'border-down/50 text-down bg-down/10',
+  warn: 'border-warn/50 text-warn bg-warn/10',
+  accent: 'border-accent/50 text-accent bg-accent/10',
+  muted: 'border-transparent text-faint',
+  outline: 'border-line2 text-soft',
+}
+---
+
+<span class={`inline-flex items-center gap-1 border px-1.5 py-0.5 text-2xs ${variants[variant]} ${cls}`} title={title}>
+  <slot />
+</span>
