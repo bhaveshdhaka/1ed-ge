@@ -4,7 +4,7 @@ import { fmtDay } from '../../../lib/dates'
 import { Card, Button, Field, TextInput, NumInput, TextArea, Select } from '../ui'
 import { MarketCard } from '../MarketCard'
 import { ImageDropZone } from '../ImageDropZone'
-import { JournalEditor } from '../JournalEditor'
+import { MarkdownEditor } from '../MarkdownEditor'
 
 interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 interface HabitDef { slug: string; name: string; emoji?: string; color: string }
@@ -950,7 +950,7 @@ export function DayWorkspace({ notify }: { notify: (m: string, ok?: boolean) => 
                     <Field label="tags (comma)"><TextInput value={tags} onChange={(e) => { setTags(e.target.value); markDirty() }} placeholder="discipline, revenge" /></Field>
                   </div>
                   <div className="mt-3">
-                    <JournalEditor key={date + (content ? '-c' : '-e')} initialContent={content} onChange={(md) => { setContent(md); markDirty() }} />
+                    <MarkdownEditor value={content} onChange={(md) => { setContent(md); markDirty() }} label="reflection draft" />
                   </div>
                   {featuredImage && (
                     <div className="mt-3 flex items-center gap-3">

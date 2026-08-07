@@ -42,7 +42,7 @@ try {
   await page.goto(`${BASE}/admin/${SECRET}`, { waitUntil: 'networkidle' })
   await page.keyboard.press('2')
   await page.waitForTimeout(1500)
-  const res = await new AxeBuilder({ page }).exclude('.milkdown-1ed').analyze()
+  const res = await new AxeBuilder({ page }).analyze()
   results.push({
     url: '/admin/[secret] (day workspace)',
     violations: res.violations.map((x) => ({ id: x.id, impact: x.impact, help: x.help, nodes: x.nodes.length, targets: x.nodes.slice(0, 3).map((n) => n.target.join(' ')) })),
