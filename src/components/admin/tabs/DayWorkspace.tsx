@@ -19,7 +19,7 @@ interface TradeForm {
 }
 
 interface MomentForm {
-  at: string; type: string; text: string; tradeIdx: string; author: string; media: string
+  at: string; type: string; text: string; tradeIdx: string; author: string; images: string[]
 }
 
 const emptyTrade = (): TradeForm => ({
@@ -209,7 +209,7 @@ export function DayWorkspace({
     text: String(m?.text ?? ''),
     tradeIdx: m?.tradeIdx != null ? String(m.tradeIdx) : '',
     author: String(m?.author ?? ''),
-    media: String(m?.media ?? ''),
+    images: Array.isArray(m?.images) ? m.images.map(String) : [],
   })
   const momentPayload = (m: MomentForm) => ({
     at: m.at || '00:00',
@@ -217,7 +217,7 @@ export function DayWorkspace({
     ...(m.text.trim() ? { text: m.text.trim() } : {}),
     ...(m.type === 'trade' && m.tradeIdx !== '' ? { tradeIdx: parseInt(m.tradeIdx, 10) } : {}),
     ...(m.author.trim() ? { author: m.author.trim() } : {}),
-    ...(m.media.trim() ? { media: m.media.trim() } : {}),
+    ...(m.images.length ? { images: m.images } : {}),
   })
   const setMoment = (i: number, patch: Partial<MomentForm>) => {
     setDraftMoments((ms) => ms.map((m, j) => (j === i ? { ...m, ...patch } : m)))
@@ -226,8 +226,7 @@ export function DayWorkspace({
   const publishMoment = (i: number) => {
     const m = draftMoments[i]
     if (m.type === 'trade' && m.tradeIdx === '') return notify('pick a trade for this moment', false)
-    if (m.type === 'media' && !m.media.trim()) return notify('add a media url first', false)
-    if (!m.text.trim() && m.type !== 'trade' && m.type !== 'media') return notify('write the moment text first', false)
+    if (m.type !== 'trade' && !m.text.trim() && !m.images.length) return notify('write the moment text or attach an image first', false)
     setStream((s) => [...s, m])
     setDraftMoments((ms) => ms.filter((_, j) => j !== i))
     markDirty()
@@ -263,10 +262,9 @@ export function DayWorkspace({
     for (const f of files) {
       try {
         const dataUrl = await fileToDataUrl(f)
-        const url = await uploadDataUrl(dataUrl, f.name)
-        items.push({ id: Math.random().toString(36).slice(2), dataUrl, url })
+        items.push({ id: Math.random().toString(36).slice(2), dataUrl, url: '' })
       } catch (e) {
-        notify(e instanceof Error ? e.message : 'upload failed', false)
+        notify(e instanceof Error ? e.message : 'read failed', false)
       }
     }
     if (!items.length) return
@@ -285,13 +283,7 @@ export function DayWorkspace({
   }
 
   const autoFeatured = () => {
-    if (!featuredImage) {
-      const candidates = [
-        ...deviceScreens,
-        ...trades.flatMap((t) => t.screenshots),
-      ]
-      if (candidates.length) setFeaturedImage(candidates[0])
-    }
+    if (!featuredImage && deviceScreens.length) setFeaturedImage(deviceScreens[0])
   }
 
   const applyStructured = (r: any, imgs: DayImage[]) => {
@@ -309,7 +301,7 @@ export function DayWorkspace({
     const devUrls = (r.deviceScreens ?? []).map((i: number) => imgs[i]?.url).filter(Boolean)
     if (devUrls.length) setDeviceScreens((s) => [...new Set([...s, ...devUrls])])
     if (Array.isArray(r.trades) && r.trades.length) {
-      setTrades((existing) => mergeStructured(existing, r.trades, imgs))
+      setTrades((existing) => mergeStructured(existing, r.trades))
     }
     const j = r.journal
     if (j) {
@@ -324,7 +316,7 @@ export function DayWorkspace({
     setTimeout(autoFeatured, 0)
   }
 
-  const mergeStructured = (existing: TradeForm[], incoming: any[], imgs: DayImage[]): TradeForm[] => {
+  const mergeStructured = (existing: TradeForm[], incoming: any[]): TradeForm[] => {
     const toForm = (t: any): TradeForm => ({
       market: String(t.market ?? 'MNQ'),
       session: String(t.session ?? ''),
@@ -340,7 +332,7 @@ export function DayWorkspace({
       note: String(t.note ?? ''),
       model: String(t.model ?? ''),
       commentary: String(t.commentary ?? ''),
-      screenshots: (t.screenshotIndices ?? []).map((i: number) => imgs[i]?.url).filter(Boolean),
+      screenshots: [],
       executions: Array.isArray(t.accounts) && t.accounts.length
         ? t.accounts.map((a: string) => ({ account: a, size: '' }))
         : [],
@@ -552,12 +544,6 @@ export function DayWorkspace({
         if (r.note) setDeviceNotes((n) => (n ? n + ' · ' : '') + r.note)
         markDirty()
       } catch {}
-      try {
-        const url = await uploadDataUrl(dataUrl, f.name)
-        setDeviceScreens((s) => [...s, url])
-      } catch (e) {
-        notify(e instanceof Error ? e.message : 'upload failed', false)
-      }
     }
     setScreenBusy(false)
   }
@@ -583,6 +569,19 @@ export function DayWorkspace({
       try {
         const url = await uploadDataUrl(dataUrl, f.name)
         setTrades((ts) => ts.map((t, j) => (j === ti ? { ...t, screenshots: [...t.screenshots, url] } : t)))
+      } catch (e) {
+        notify(e instanceof Error ? e.message : 'upload failed', false)
+      }
+    }
+  }
+
+  const onMomentImages = async (i: number, files: File[]) => {
+    for (const f of files) {
+      try {
+        const dataUrl = await fileToDataUrl(f)
+        const url = await uploadDataUrl(dataUrl, f.name)
+        setDraftMoments((ms) => ms.map((m, j) => (j === i ? { ...m, images: [...m.images, url] } : m)))
+        markDirty()
       } catch (e) {
         notify(e instanceof Error ? e.message : 'upload failed', false)
       }
@@ -817,7 +816,7 @@ export function DayWorkspace({
                     <div className="mt-3 grid grid-cols-4 gap-3 md:grid-cols-6">
                       {dayImages.map((img) => (
                         <div key={img.id} className="relative border border-line bg-bg">
-                          <img src={img.url} alt="" className="h-16 w-full object-cover" />
+                          <img src={img.url || img.dataUrl} alt="" className="h-16 w-full object-cover" />
                           <button onClick={() => removeDayImage(img.id)} className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center border border-line bg-bg text-[11px] text-down hover:border-down">×</button>
                         </div>
                       ))}
@@ -1066,7 +1065,7 @@ export function DayWorkspace({
                 <Card
                   title={`moments — stream (${stream.length} live · ${draftMoments.length} draft)`}
                   actions={
-                    <Button size="sm" onClick={() => { setDraftMoments((ms) => [...ms, { at: '', type: 'note', text: '', tradeIdx: '', author: '', media: '' }]); markDirty() }}>
+                    <Button size="sm" onClick={() => { setDraftMoments((ms) => [...ms, { at: '', type: 'note', text: '', tradeIdx: '', author: '', images: [] }]); markDirty() }}>
                       + new moment
                     </Button>
                   }
@@ -1074,13 +1073,15 @@ export function DayWorkspace({
                   {draftMoments.length > 0 && (
                     <div className="mb-4 space-y-2">
                       <div className="text-[11px] uppercase tracking-widest text-warn">draft moments — not public</div>
-                      {draftMoments.map((m, i) => (
+                      {draftMoments.map((m, i) => {
+                        const tradeShots = trades[parseInt(m.tradeIdx, 10)]?.screenshots ?? []
+                        return (
                         <div key={i} className="border border-line bg-bg p-3">
                           <div className="grid gap-2 md:grid-cols-[64px_130px_1fr]">
                             <Field label="at (HH:MM)"><TextInput value={m.at} onChange={(e) => setMoment(i, { at: e.target.value })} placeholder="08:30" /></Field>
                             <Field label="type">
                               <Select value={m.type} onChange={(e) => setMoment(i, { type: e.target.value })}>
-                                {['pre-market', 'post-market', 'trade', 'note', 'quote', 'media'].map((t) => <option key={t} value={t}>{t}</option>)}
+                                {['trade', 'note', 'quote'].map((t) => <option key={t} value={t}>{t}</option>)}
                               </Select>
                             </Field>
                             {m.type === 'trade' ? (
@@ -1089,10 +1090,6 @@ export function DayWorkspace({
                                   <option value="">—</option>
                                   {trades.map((_, ti) => <option key={ti} value={ti}>trade {ti + 1}</option>)}
                                 </Select>
-                              </Field>
-                            ) : m.type === 'media' ? (
-                              <Field label="media url">
-                                <TextInput value={m.media} onChange={(e) => setMoment(i, { media: e.target.value })} placeholder="/media/2026-08-07/….webp" />
                               </Field>
                             ) : (
                               <Field label={m.type === 'quote' ? 'text (the quote)' : 'text'}>
@@ -1105,6 +1102,36 @@ export function DayWorkspace({
                               <Field label="author"><TextInput value={m.author} onChange={(e) => setMoment(i, { author: e.target.value })} /></Field>
                             </div>
                           )}
+                          {m.type === 'trade' ? (
+                            <div className="mt-2">
+                              <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">charts on this trade</div>
+                              {tradeShots.length ? (
+                                <div className="grid grid-cols-4 gap-2 md:grid-cols-6">
+                                  {tradeShots.map((s) => (
+                                    <div key={s} className="border border-line bg-bg">
+                                      <img src={s} alt="" className="h-14 w-full object-cover" />
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-[11px] text-faint">no charts on this trade yet — attach them in the trades section</p>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="mt-2">
+                              <ImageDropZone onFiles={(fs) => onMomentImages(i, fs)} label="attach images →" />
+                              {m.images.length > 0 && (
+                                <div className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-6">
+                                  {m.images.map((s) => (
+                                    <div key={s} className="relative border border-line bg-bg">
+                                      <img src={s} alt="" className="h-14 w-full object-cover" />
+                                      <button onClick={() => setMoment(i, { images: m.images.filter((y) => y !== s) })} className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
                           <div className="mt-2 flex gap-2">
                             <Button size="sm" variant="primary" onClick={() => publishMoment(i)}>publish →</Button>
                             {m.text.trim() && (
@@ -1113,7 +1140,8 @@ export function DayWorkspace({
                             <Button size="sm" variant="danger" onClick={() => { setDraftMoments((ms) => ms.filter((_, j) => j !== i)); markDirty() }}>×</Button>
                           </div>
                         </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                   {stream.length > 0 && (
