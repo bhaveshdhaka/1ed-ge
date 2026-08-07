@@ -434,9 +434,12 @@ those files):** `winRate` counts R===0 as loss; `lastIso` depends on ascending
 journal client `item()` emits `.tag` spans not the Tag component (inherent).
 
 **Docs state:** `AGENTS.md` and `MEMORY.md` describe the post-cockpit era.
-Note `scripts/seed.mjs` (old, non-review seed) may re-add a Day-Zero on
-2026-08-06 if ever run — it was the duplicate-day-zero source; prefer
-`seed-review.mjs`.
+Note `scripts/seed.mjs` (old, non-review seed) writes the **default accounts
++ a Day-Zero journal** — and `scripts/deploy.sh` runs it on **every deploy**, so
+the "empty" site still shows those 4 default accounts + today's Day Zero journal
+until the owner edits them. The test data (730 days, journals, payouts, coach,
+media) does NOT come back. Do NOT run `seed-review.mjs` against the live tree
+(it clears content dirs).
 
 **On launching new agents to parallelize:** yes, but with guardrails — the
 remaining work is one phase (4) with heavy shared surface, so parallel agents
