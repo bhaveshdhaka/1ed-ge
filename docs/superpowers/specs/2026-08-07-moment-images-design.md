@@ -1,6 +1,6 @@
 # Moment Images — Design Spec
 
-**Date:** 2026-08-07 · **Status:** Approved (owner, via brainstorm) · **Owner:** sole trader
+**Date:** 2026-08-07 · **Status:** **Shipped** (executed 2026-08-07, deployed + verified live) · **Owner:** sole trader
 **Product:** 1ed.ge — cockpit (private production) → approved broadcast → public archive.
 
 ---

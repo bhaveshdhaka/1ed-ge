@@ -11,43 +11,40 @@ servers do NOT count as "done". Workflow: typecheck → commit → `bash
 scripts/deploy.sh` → poll until live → curl-verify the changed bits. Kill test
 servers when finished.
 
-## HANDOFF — next agent, the moment-images feature (READ FIRST)
+## HANDOFF — moment-images shipped (READ FIRST)
 
-**This session = prep only. Execution is handed to another agent.** The owner
-approved the design and asked that the plan be fully prepped, then a separate
-agent executes it.
+**Moment images is DONE, committed, deployed, verified live.** Executed
+subagent-driven over 6 tasks (spec `docs/superpowers/specs/2026-08-07-moment-images-design.md`,
+plan `docs/superpowers/plans/2026-08-07-moment-images.md`). Commits: `07ee5a6`
+(wipe test data) `6846616` (cheap-model alt sidecar) `457443f` (moment collapse)
+`28d1120` (DayWorkspace rework) `2b39ec5` (public imagery + lightbox) `55b4af5`
+(lightbox inline script) + the docs commit.
 
-**Feature: moment images.** Stream moments collapse to `trade | note | quote`
-(no standalone `media` posts, no `pre-market`/`post-market` labels). Images
-always attach to an artefact: trades keep `screenshots[]` (rendered in the
-archive panel AND any trade moment), notes/quotes carry `images[]`. The capture
-zone becomes **ephemeral** (AI reads screenshots, they are NEVER uploaded —
-truly gone). Cheap-model SEO alt text (`qwen/qwen-2.5-vl-7b-instruct` via new
-`AI_MODEL_ALT` env) is generated on upload into a sidecar
-`public/media/alts.json`. A native `<dialog>` lightbox is the single zero-JS
-exception on public pages. **Test data is wiped** (730 days, 161 journals, 6
-accounts, 5 payouts, 24 coach, media uploads) — the site starts empty until the
-owner logs real days.
+- **Stream moments collapse to `trade | note | quote`.** The `media` moment type
+  and the `pre-market`/`post-market` labels are deleted everywhere (schema,
+  `stream.ts`, admin API, `/stream` filter, seed script).
+- **Images attach to artefacts.** Trades keep `trades[].screenshots[]` (rendered
+  wherever the trade shows — archive panel AND trade moments — owner-confirmed
+  "trade owns its charts"); note/quote moments carry `images[]`.
+- **Capture zone is ephemeral.** The day screen reads pasted screenshots with the
+  AI and **never uploads them** — truly gone. Screen-time values still come from
+  the AI's read.
+- **Cheap-model SEO alt text on upload** — `AI_MODEL_ALT` env (default
+  `qwen/qwen-2.5-vl-7b-instruct`) → `captionAlt()` in `src/lib/ai.ts` → sidecar
+  `public/media/alts.json` written on upload, removed on delete
+  (`src/lib/media-alt.ts`, `/api/admin/media`). Alt-model failure is swallowed —
+  the upload still succeeds. `.env` does NOT need `AI_MODEL_ALT` (default applies);
+  never commit `.env`.
+- **Native `<dialog>` lightbox** (`src/components/Lightbox.astro`) — the site's
+  single zero-JS exception on public pages; thumbnails degrade to new-tab links
+  with JS off.
+- **Test data wiped** — 730 days, 161 journals, accounts/payouts/coach, media
+  uploads. **The site starts EMPTY until the owner logs real days.** Do NOT run
+  the seed scripts against the live tree.
 
-**Prep artifacts (all committed on `main`):**
-- Spec: `docs/superpowers/specs/2026-08-07-moment-images-design.md` (approved)
-- Plan: `docs/superpowers/plans/2026-08-07-moment-images.md` (6 tasks, 3 waves)
-- BASE = `bd1b118` (HEAD at handoff). Tree is clean except market-news cron files.
-- SDD workspace: `.superpowers/sdd/2026-08-07-moment-images/` — ledger
-  `progress.md` + `task-1-brief.md` … `task-6-brief.md` all generated.
-
-**Execution instructions (use superpowers:subagent-driven-development):**
-- Wave 1 (parallel, write-disjoint): Task 1 wipe → Task 2 moment collapse →
-  Task 3 alt pipeline. Wave 2 (parallel): Task 4 DayWorkspace → Task 5 public
-  imagery. Wave 3: Task 6 docs + build + deploy + verify live.
-- Per task: implementer reads its `task-N-brief.md`, commits ONLY its own files
-  (never `git add -A`), controller runs `npm run typecheck` centrally between
-  tasks, review each task, one build per wave, final deploy + verify live.
-- Task 3 notes: `.env` does NOT need `AI_MODEL_ALT` (env.ts default applies);
-  never commit `.env`. Alt-model failure is swallowed (upload still succeeds).
-- Task 1 wipes content — verify the build still renders empty states.
-- Trade screenshots render in both places (owner-confirmed "trade owns its
-  charts") — do not "simplify" that away.
+**Remaining:** Phase 4 remediation (see WRAP-UP below) + **owner testing** of the
+new day screen (ephemeral capture → AI → nothing saved; 3-type composer with
+per-moment image drops; trade screenshots strip).
 
 ## HANDOFF — next agent, the market/homepage work (read first)
 
@@ -291,6 +288,19 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-07 — **Moment images, live.** Stream moments collapse to
+  `trade | note | quote` (media type + pre-market/post-market labels deleted
+  everywhere: schema, `stream.ts`, admin `days.ts`, `/stream` filter, seed).
+  Images attach to artefacts: trades keep `screenshots[]` (rendered wherever the
+  trade shows), note/quote moments carry `images[]`. Capture zone is **ephemeral**
+  (AI reads pasted screenshots, never uploads). Cheap-model SEO alt text on
+  upload (`AI_MODEL_ALT`, default `qwen/qwen-2.5-vl-7b-instruct`) → `captionAlt()`
+  → `public/media/alts.json` sidecar (`src/lib/media-alt.ts`). Native `<dialog>`
+  lightbox (`Lightbox.astro`) = the single zero-JS exception on public pages.
+  **Test data wiped** — 730 days, 161 journals, accounts/payouts/coach, media
+  uploads; site starts empty until the owner logs real days. Subagent-driven:
+  6 tasks, all committed (`07ee5a6` `6846616` `457443f` `28d1120` `2b39ec5`
+  `55b4af5`), typecheck clean, deployed + verified live.
 - 2026-08-07 — **Phase 3 — Public surfaces, live.** Posterized day archive:
   `/day/<fmtDay(iso)>` = DayFacts strip + published stream moments (MomentCard)
   + trade panels with `model` Badge + `commentary` + habits chips (count-habit
@@ -364,7 +374,19 @@ deployed in this session; the autosave cron is active again.
   committed, **deployed + verified live** (homepage, /accounts failed account,
   payout + failed day pages, admin 200).
 
-## HANDOFF — WRAP-UP STATE (2026-08-07, Phase 3 shipped)
+## HANDOFF — WRAP-UP STATE (2026-08-07, moment-images shipped)
+
+**Moment images shipped (this session):** stream moments are now exactly
+`trade | note | quote` (media + pre-market/post-market deleted everywhere);
+images attach to artefacts — trades keep `screenshots[]`, note/quote moments
+carry `images[]`; the admin capture zone is **ephemeral** (AI reads pasted
+screenshots, never uploads); cheap-model SEO alt text (`AI_MODEL_ALT` →
+`captionAlt()` → `public/media/alts.json` sidecar) is generated on upload;
+a native `<dialog>` lightbox (`src/components/Lightbox.astro`) is the single
+zero-JS exception on public pages. **Test data is wiped — the site starts EMPTY
+until the owner logs real days. Do NOT run the seed scripts against the live
+tree.** Full spec: `docs/superpowers/specs/2026-08-07-moment-images-design.md`
+(status: shipped).
 
 **Phases 0–3 are DONE, committed, deployed, verified live.** Full spec:
 `docs/superpowers/specs/2026-08-07-stream-system-design.md`. Plans:
@@ -392,6 +414,10 @@ deployed in this session; the autosave cron is active again.
   final oracle review (2 one-line habit-chip fixes), all committed.
 
 **Remaining work (in order):**
+- **Owner testing of the moment-images day screen** — ephemeral capture (paste →
+  AI reads → nothing saved), 3-type composer with per-moment image drops, trade
+  screenshots strip. The site starts **empty** (test data wiped) until the owner
+  logs real days.
 - **Phase 4 — Remediation**: money-color bugs (performance/accounts/about/
   DayWorkspace green-for-negative), tablet breakpoint (rails at 768–1023px),
   floating sticky subnav, journal API path traversal (`GET /api/admin/journal?

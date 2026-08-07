@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (Moment images — 3-type stream + artefact-linked imagery)
+
+- **Stream moments collapse to `trade | note | quote`** — the `media` moment
+  type and the `pre-market` / `post-market` labels are deleted from the schema
+  (`content.config.ts`), `src/lib/stream.ts`, the admin API (`days.ts`), the
+  `/stream` filter, and the seed script. The `at` time already says when; no
+  session labels needed.
+- **Images attach to artefacts.** Trades keep `trades[].screenshots[]` (rendered
+  wherever the trade shows — archive panel AND trade moments); note/quote
+  moments carry `images[]`.
+- **Ephemeral capture zone.** The admin day screen reads pasted screenshots with
+  the AI (text + vision) and **never uploads them** — truly gone. Screen-time
+  values still come from the AI's read.
+- **Cheap-model SEO alt text on upload.** New `AI_MODEL_ALT` env (default
+  `qwen/qwen-2.5-vl-7b-instruct`) → `captionAlt()` in `src/lib/ai.ts` → sidecar
+  `public/media/alts.json` written on upload, removed on delete
+  (`src/lib/media-alt.ts`, `/api/admin/media`).
+- **Native `<dialog>` lightbox** — `src/components/Lightbox.astro`, the site's
+  single zero-JS exception on public pages. MomentCard renders thumbnails with
+  `altFor()`; the day-archive screen-time screenshot grid is removed.
+- **Test data wiped** — 730 days, 161 journals, accounts/payouts/coach, and
+  media uploads are gone. The site starts empty until the owner logs real days.
+
 ### Added (Stream System — Phase 3: Public surfaces)
 - **Posterized day archive** — `/day/<fmtDay(iso)>` is now a static archive, not a
   cockpit mirror: `DayFacts` strip (mood/sleep/screen/habits/trades/R) + the day's

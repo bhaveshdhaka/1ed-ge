@@ -93,12 +93,15 @@ src/lib/stream.ts           published-moment helpers: resolveMoments/flattenStre
 src/lib/models.ts           per-model aggregation: buildModelStats (count/sumR/avgR/winRate per model)
 src/lib/live.ts             admin-heartbeat read/write (/tmp/1edge-live.json, 5-min live window)
 src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), readScreenshot,
-                             readScreenTime, coachReply, assist
+                             readScreenTime, coachReply, assist, captionAlt (cheap-model alt text)
+src/lib/media-alt.ts        alt-text sidecar for uploaded media (public/media/alts.json): setAlt/removeAlt/altFor
 src/lib/auth.ts             admin secret check + JSON responses
-src/lib/env.ts              .env access (ADMIN_SECRET, OPENROUTER_API_KEY, models)
+src/lib/env.ts              .env access (ADMIN_SECRET, OPENROUTER_API_KEY, AI_MODEL_ALT, models)
 src/components/MarketLive.astro   CME-event JSON + inline live countdown script (Base + Bare layouts)
 src/components/MarketWidget.astro one-glance market box: CME-framed status + session countdowns + news
-src/components/stream/      public stream components (MomentCard, DayFacts) — zero JS
+src/components/Lightbox.astro     native <dialog> lightbox — the site's single zero-JS exception on public pages
+src/components/stream/      public stream components (MomentCard, DayFacts) — moments are trade|note|quote;
+                             thumbnails with altFor() open the shared lightbox (zero JS otherwise)
 src/components/archive/DayArchive.astro  posterized day archive (facts + moments + model-tagged trades)
 src/pages/                  public pages: / /stream /journal /models /calendar /performance /tracker /trends
                              /accounts /coach /about /day/[date] + rss + sitemap
@@ -108,9 +111,11 @@ src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/api/admin/market.ts    USD news GET + refresh (spawns market-news-fetch.mjs)
 src/pages/media/[...file].ts SSR media file server (uploads in public/media)
 src/components/admin/*      React admin (Overview / Day / Accounts / Coach / Media / Library)
-src/components/admin/tabs/DayWorkspace.tsx  the single "day" screen: capture → evidence-first
+src/components/admin/tabs/DayWorkspace.tsx  the single "day" screen: ephemeral capture (AI
+                            reads pasted screenshots — never uploaded) → evidence-first
                             summary (read-only + rare direct-click overrides) → trades
-                            (model tag + commentary) → moments composer (draft → publish)
+                            (model tag + commentary + screenshots) → moments composer
+                            (trade|note|quote, draft → publish, per-moment image drops)
                             → reflection draft (markdown) → publish reflection → one save
 src/components/admin/tabs/LibraryTab.tsx  habits / models / rules / quotes CRUD
 src/components/admin/RebuildBar.tsx  sticky pending-changes → rebuild bar (all tabs)
@@ -150,16 +155,24 @@ trades:                      # one idea, executions per account
     points: 12               # signed; computed if absent
     riskPoints: 5.5          # computed = |entry - stop| if absent
     commentary: "..."        # NEW — approved published commentary
+    screenshots: []          # trade charts — rendered wherever the trade shows
     executions: [{ account: lucid-50k-a, size: 1 }, { account: tpt-25k-a }]
-stream:                      # NEW — approved, ordered public moments
+stream:                      # approved, ordered public moments — trade | note | quote
   - at: "08:30"
-    type: pre-market         # pre-market | post-market | trade | note | quote | media
+    type: note               # trade | note | quote
     text: "news tonight — flat 15 before"
+    images: []               # note/quote moments carry images[]; trade moments use the trade's screenshots[]
 draft:                       # NEW — private, NEVER rendered publicly
   reflection: "..."          # unpublished reflection
   moments: []                # unpublished draft moments
 ```
 
+- **Images attach to artefacts.** Trades keep `trades[].screenshots[]`; note/quote
+  stream moments carry `images[]`. The day-screen **capture zone is ephemeral** —
+  pasted screenshots are read by the AI and never saved (screen-time values still
+  come from the AI's read). Uploaded media gets cheap-model SEO alt text
+  (`qwen/qwen-2.5-vl-7b-instruct` via `AI_MODEL_ALT`) into a
+  `public/media/alts.json` sidecar.
 - **R** is computed, never stored: `R = points / riskPoints` (price-based,
   identical across executions). Per-account `$ pnl = points × pointsValue × size`
   (MNQ `pointsValue` = 2).
@@ -201,7 +214,9 @@ draft:                       # NEW — private, NEVER rendered publicly
 
 The **Day** admin tab is one screen: capture → day summary → reflection.
 Paste trade charts, screen-time reports, or notes anywhere (clipboard paste
-routes to the capture zone via a global paste sink). `structureDayFull(text,
+routes to the capture zone via a global paste sink). The capture zone is
+**ephemeral** — screenshots are read by the AI and never uploaded.
+`structureDayFull(text,
 images)` (in `lib/ai.ts`) reads everything in one call — Qwen2.5-VL when images
 are present, DeepSeek otherwise — and returns the whole day (mood/sleep/habits/
 device/trades) plus which image index belongs where **and a suggested journal
@@ -228,8 +243,9 @@ optional title/summary/tags/featuredImage.
 - **Everything public except the admin.** Never weaken this. No cherry-picking.
 - **Never commit secrets.** `.env` (ADMIN_SECRET, OPENROUTER_API_KEY) is
   gitignored. `.env.example` documents the shape.
-- **Public pages must stay zero-JS.** No React/JS on public routes. All charts
-  are server-rendered SVG.
+- **Public pages must stay zero-JS** except the single shared `<dialog>` lightbox
+  (`src/components/Lightbox.astro`, one inline script — the owner-approved
+  exception). No React/JS on public routes. All charts are server-rendered SVG.
 - **Content-layer cache:** Astro stores the collection data store at
   `node_modules/.astro/`. `npm run build` clears it so deleted files actually
   disappear from the static build. Keep that `rm -rf node_modules/.astro`
