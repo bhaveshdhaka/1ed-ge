@@ -44,7 +44,7 @@ const day0 = `# Day Zero
 
 this is the beginning of a public experiment.
 
-for the next two years everything here is public — every trade, every account,
+everything here is public — every trade, every account,
 every mood, every miss. no hiding. no cherry-picking. if i do not want the
 world to see it, i should not be doing it.
 

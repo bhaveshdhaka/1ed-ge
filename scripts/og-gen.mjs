@@ -26,7 +26,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" v
   ${wordmarkSvg(86, 330, 150, { gradientId: 'sheen' })}
 
   <text x="88" y="458" font-family="JBMono" font-size="34" fill="#d8d8dc">the edge is all we need.</text>
-  <text x="88" y="506" font-family="JBMono" font-size="24" fill="#5c5c64">a two-year public experiment — every trade, every account, every R.</text>
+  <text x="88" y="506" font-family="JBMono" font-size="24" fill="#5c5c64">a public trading journal — every trade, every account, every R.</text>
 
   <text x="1073" y="586" font-family="JBMono" font-size="22" fill="#9a9aa2">R ▮</text>
 </svg>
