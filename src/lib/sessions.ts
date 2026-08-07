@@ -141,19 +141,21 @@ export function marketEvents(startHkt: string, days: number): MarketEvent[] {
     const cm = cmeDay(d)
     const w = dow(d)
 
-    if (us.status !== 'closed') {
-      // NYSE equity cash session (ET date = d) — a band on the CME clock
-      out.push({ market: 'nyse', type: 'open', hkt: hktIso(wallToUTC('America/New_York', d, 9, 30)) })
-      out.push({
-        market: 'nyse',
-        type: 'close',
-        hkt: hktIso(wallToUTC('America/New_York', d, us.status === 'early' ? 13 : 16, 0)),
-        label: us.status === 'early' ? 'half day' : undefined,
-      })
-    }
-
-    // CME equity-index futures (CT date = d) — the master clock
+    // CME equity-index futures (CT date = d) — the master clock.
+    // If CME is totally closed for the day, no exchange trades CME futures,
+    // so ALL session bands (NYSE/TSE/LSE) are suppressed that day too.
     if (cm.status !== 'closed') {
+      if (us.status !== 'closed') {
+        // NYSE equity cash session (ET date = d) — a band on the CME clock
+        out.push({ market: 'nyse', type: 'open', hkt: hktIso(wallToUTC('America/New_York', d, 9, 30)) })
+        out.push({
+          market: 'nyse',
+          type: 'close',
+          hkt: hktIso(wallToUTC('America/New_York', d, us.status === 'early' ? 13 : 16, 0)),
+          label: us.status === 'early' ? 'half day' : undefined,
+        })
+      }
+
       if (cm.status === 'early') {
         out.push({ market: 'cme', type: 'close', hkt: hktIso(wallToUTC('America/Chicago', d, 13, 15)), label: 'early close' })
       } else if (w === 5) {
@@ -171,16 +173,16 @@ export function marketEvents(startHkt: string, days: number): MarketEvent[] {
       }
     }
 
-    if (isTradingDay(d, jpH)) {
-      // TSE (JST date = d): 09:00–11:30 lunch 12:30–15:00
+    if (cm.status !== 'closed' && isTradingDay(d, jpH)) {
+      // TSE (JST date = d): 09:00–11:30 lunch 12:30–15:00 — only on CME trading days
       out.push({ market: 'tse', type: 'open', hkt: hktIso(wallToUTC('Asia/Tokyo', d, 9, 0)) })
       out.push({ market: 'tse', type: 'close', hkt: hktIso(wallToUTC('Asia/Tokyo', d, 11, 30)), label: 'lunch' })
       out.push({ market: 'tse', type: 'open', hkt: hktIso(wallToUTC('Asia/Tokyo', d, 12, 30)) })
       out.push({ market: 'tse', type: 'close', hkt: hktIso(wallToUTC('Asia/Tokyo', d, 15, 0)) })
     }
 
-    if (isTradingDay(d, ukH)) {
-      // LSE (London date = d): 08:00–16:30
+    if (cm.status !== 'closed' && isTradingDay(d, ukH)) {
+      // LSE (London date = d): 08:00–16:30 — only on CME trading days
       out.push({ market: 'lse', type: 'open', hkt: hktIso(wallToUTC('Europe/London', d, 8, 0)) })
       out.push({ market: 'lse', type: 'close', hkt: hktIso(wallToUTC('Europe/London', d, 16, 30)) })
     }
