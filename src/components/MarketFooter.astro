@@ -39,7 +39,7 @@ const clsClass = (cls: string) =>
     <span class="text-faint tabular-nums">{prettyDate}</span>
 
     <span data-f-market class="min-w-0 flex-1 tabular-nums" style={`color:${cme ? clsColor(cme.cls) : 'var(--color-dim)'}`}>
-      {cme ? `${cme.text} ${fmtHuman((cme.until - now) / 1000)}` : '—'}
+      {cme ? `CME Globex ${cme.text} ${fmtHuman((cme.until - now) / 1000)}` : '—'}
     </span>
 
     {cash.find((c) => c.seg?.cls === 'up' || c.seg?.cls === 'warn') && (
@@ -133,7 +133,7 @@ const clsClass = (cls: string) =>
       const now = Date.now()
       const cme = segAt(PAYLOAD.segments.cme, now)
       if (main && cme) {
-        main.textContent = cme.text + ' ' + fmtHuman((cme.until - now) / 1000)
+        main.textContent = 'CME Globex ' + cme.text + ' ' + fmtHuman((cme.until - now) / 1000)
         main.style.color = color(cme.cls)
       }
       for (const key of cashRows) {

@@ -95,50 +95,60 @@ function advance(market: MarketKey, state: State, e: MarketEvent): State {
   return state
 }
 
-/** Phrase for the span [prev, e) that ENDS when the next event fires. */
+/** Phrase for the span [prev, e) that ENDS when the next event fires.
+ *  Name-less on purpose: the surrounding surface supplies the market name
+ *  (row labels, footer master line, ticker). No "New York · NYSE New York opens in". */
 function describe(market: MarketKey, state: State, e: MarketEvent): { text: string; cls: StripCls } {
   if (market === 'cme') {
     if (state === 'open') {
       return e.type === 'halt'
-        ? { text: 'CME Globex open · maintenance in', cls: 'up' }
-        : { text: 'CME Globex open · closes in', cls: 'up' }
+        ? { text: 'open · maintenance in', cls: 'up' }
+        : { text: 'open · closes in', cls: 'up' }
     }
-    if (state === 'maint') return { text: 'CME Globex on maintenance · back in', cls: 'warn' }
-    return { text: 'CME Globex closed · reopens in', cls: 'down' }
+    if (state === 'maint') return { text: 'on maintenance · back in', cls: 'warn' }
+    return { text: 'closed · reopens in', cls: 'down' }
   }
   if (market === 'tse') {
-    if (state === 'morning') return { text: 'Tokyo in session · closing for lunch in', cls: 'up' }
-    if (state === 'lunch') return { text: 'Tokyo on lunch break · back in', cls: 'warn' }
-    if (state === 'afternoon') return { text: 'Tokyo in session · closing in', cls: 'up' }
-    return { text: 'Tokyo opens in', cls: 'dim' }
+    if (state === 'morning') return { text: 'in session · closing for lunch in', cls: 'up' }
+    if (state === 'lunch') return { text: 'on lunch break · back in', cls: 'warn' }
+    if (state === 'afternoon') return { text: 'in session · closing in', cls: 'up' }
+    return { text: 'opens in', cls: 'dim' }
   }
   if (market === 'lse') {
     return state === 'open'
-      ? { text: 'London is live · closing in', cls: 'up' }
-      : { text: 'London opens in', cls: 'dim' }
+      ? { text: 'is live · closing in', cls: 'up' }
+      : { text: 'opens in', cls: 'dim' }
   }
   // nyse
   return state === 'open'
-    ? { text: 'New York is live · closing in', cls: 'up' }
-    : { text: 'New York opens in', cls: 'dim' }
+    ? { text: 'is live · closing in', cls: 'up' }
+    : { text: 'opens in', cls: 'dim' }
 }
 
-/** Open-ended phrase when the horizon ends inside a state. */
+/** Open-ended phrase when the horizon ends inside a state. Name-less too. */
 function describeEnd(market: MarketKey, state: State): { text: string; cls: StripCls } {
   if (market === 'cme') {
-    if (state === 'open') return { text: 'CME Globex open', cls: 'up' }
-    if (state === 'maint') return { text: 'CME Globex on maintenance', cls: 'warn' }
-    return { text: 'CME Globex closed', cls: 'down' }
+    if (state === 'open') return { text: 'open', cls: 'up' }
+    if (state === 'maint') return { text: 'on maintenance', cls: 'warn' }
+    return { text: 'closed', cls: 'down' }
   }
   if (market === 'tse') {
-    if (state === 'morning') return { text: 'Tokyo in session', cls: 'up' }
-    if (state === 'lunch') return { text: 'Tokyo on lunch break', cls: 'warn' }
-    if (state === 'afternoon') return { text: 'Tokyo in session', cls: 'up' }
-    return { text: 'Tokyo closed', cls: 'dim' }
+    if (state === 'morning') return { text: 'in session', cls: 'up' }
+    if (state === 'lunch') return { text: 'on lunch break', cls: 'warn' }
+    if (state === 'afternoon') return { text: 'in session', cls: 'up' }
+    return { text: 'closed', cls: 'dim' }
   }
   return state === 'open'
-    ? { text: market === 'lse' ? 'London is live' : 'New York is live', cls: 'up' }
-    : { text: market === 'lse' ? 'London closed' : 'New York closed', cls: 'dim' }
+    ? { text: 'is live', cls: 'up' }
+    : { text: 'closed', cls: 'dim' }
+}
+
+/** Display names surfaces attach when the name isn't already shown inline. */
+export const MARKET_NAME: Record<MarketKey, string> = {
+  cme: 'CME Globex',
+  tse: 'Tokyo',
+  lse: 'London',
+  nyse: 'New York',
 }
 
 function buildMarket(market: MarketKey, evs: MarketEvent[], startMs: number, endMs: number): StripSegment[] {

@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
-import { addDaysIso, marketEvents, todayHkt, daySessionWindows } from '../lib/sessions'
-import type { MarketEvent } from '../lib/sessions'
+import { todayHkt, daySessionWindows } from '../lib/sessions'
 import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
 import type { MarketKey } from '../lib/sessions'
@@ -14,7 +13,6 @@ interface Props {
 
 const { news: showNews = true } = Astro.props
 const today = todayHkt()
-const events = marketEvents(today, 3)
 const news = showNews ? await getCollection('market-news') : []
 const newsToday = news.find((n) => n.data.date === today)
 const red = newsToday?.data.red ?? []
@@ -46,64 +44,6 @@ const clsColor = (cls: string) =>
 const clsClass = (cls: string) =>
   cls === 'up' ? 'text-up' : cls === 'warn' ? 'text-warn' : cls === 'down' ? 'text-down' : 'text-dim'
 
-// ---- HKT day timeline: session spans clipped to today's 00:00–24:00 bar ----
-interface Seg {
-  start: number
-  end: number
-  kind: 'open' | 'pause'
-}
-
-const segEvents = marketEvents(addDaysIso(today, -1), 3)
-const hours = (hkt: string) => {
-  const [hh, mm] = hkt.slice(11, 16).split(':').map(Number)
-  return hh + mm / 60
-}
-
-function barSegments(market: MarketKey, pause: boolean): Seg[] {
-  const list = segEvents.filter((e) => e.market === market)
-  const opens = (typ: string) => (pause ? typ === 'halt' || typ === 'close' : typ === 'open' || typ === 'resume')
-  const closes = (typ: string) => (pause ? typ === 'open' || typ === 'resume' : typ === 'close' || typ === 'halt')
-  let active = false
-  for (const e of list) {
-    if (e.hkt.slice(0, 10) >= today) break
-    if (opens(e.type)) active = true
-    else if (closes(e.type)) active = false
-  }
-  const segs: Seg[] = []
-  let cur: Seg | null = active ? { start: 0, end: 24, kind: pause ? 'pause' : 'open' } : null
-  for (const e of list) {
-    const d = e.hkt.slice(0, 10)
-    if (d < today) continue
-    if (d > today) {
-      if (cur) {
-        cur.end = 24
-        segs.push(cur)
-      }
-      break
-    }
-    const h = hours(e.hkt)
-    if (opens(e.type)) {
-      if (!cur) cur = { start: h, end: 24, kind: pause ? 'pause' : 'open' }
-    } else if (cur) {
-      cur.end = h
-      segs.push(cur)
-      cur = null
-    }
-  }
-  if (cur) {
-    cur.end = 24
-    segs.push(cur)
-  }
-  return segs
-}
-
-const barSegs = [
-  { market: 'nyse' as MarketKey, segs: barSegments('nyse', false), cls: 'bg-up/30' },
-  { market: 'tse' as MarketKey, segs: barSegments('tse', false), cls: 'bg-accent/25' },
-  { market: 'lse' as MarketKey, segs: barSegments('lse', false), cls: 'bg-purp/25' },
-  { market: 'cme' as MarketKey, segs: barSegments('cme', true), cls: 'bg-warn/40' },
-]
-
 const nowHktBuild = new Date(Date.now() + 8 * 3600 * 1000)
 const nowFracBuild = (nowHktBuild.getUTCHours() + nowHktBuild.getUTCMinutes() / 60) / 24 * 100
 ---
@@ -120,24 +60,11 @@ const nowFracBuild = (nowHktBuild.getUTCHours() + nowHktBuild.getUTCMinutes() / 
   </div>
 
   <div class="mt-3">
-    <div class="relative h-3 border border-line bg-raise">
-      {barSegs.flatMap((b) => b.segs).map((s, i) => (
-        <div
-          class:list={['absolute inset-y-0', barSegs.find((b) => b.segs.includes(s))!.cls]}
-          style={`left:${(s.start / 24) * 100}%;width:${((s.end - s.start) / 24) * 100}%`}
-          title={`${s.start.toFixed(1)}–${s.end.toFixed(1)} hkt`}
-        />
-      ))}
+    <div class="relative h-px bg-line">
       <div class="absolute inset-y-0 w-px bg-accent" data-now-marker style={`left:${nowFracBuild}%`} title="now (HKT)"></div>
     </div>
     <div class="mt-1 flex justify-between text-[10px] text-faint tabular-nums">
       <span>00</span><span>04</span><span>08</span><span>12</span><span>16</span><span>20</span><span>24</span>
-    </div>
-    <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-dim">
-      <span class="flex items-center gap-1.5"><span class="h-2 w-3 bg-up/30"></span>🇺🇸 New York</span>
-      <span class="flex items-center gap-1.5"><span class="h-2 w-3 bg-accent/25"></span>🇯🇵 Tokyo</span>
-      <span class="flex items-center gap-1.5"><span class="h-2 w-3 bg-purp/25"></span>🇬🇧 London</span>
-      <span class="flex items-center gap-1.5"><span class="h-2 w-3 bg-warn/40"></span>📈 CME Globex maintenance</span>
     </div>
   </div>
 

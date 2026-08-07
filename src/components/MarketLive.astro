@@ -49,8 +49,8 @@ const payload: StripPayload = buildStrip(today, Date.now(), [], [])
     const tick = () => {
       const now = Date.now()
       const seg = segAt(SEGS, now)
-      if (!seg) return apply('✕ closed', 'down')
-      apply(glyph(seg.cls) + ' ' + seg.text + ' ' + fmtHuman((seg.until - now) / 1000), seg.cls)
+      if (!seg) return apply('✕ CME Globex closed', 'down')
+      apply(glyph(seg.cls) + ' CME Globex ' + seg.text + ' ' + fmtHuman((seg.until - now) / 1000), seg.cls)
     }
 
     tick()
