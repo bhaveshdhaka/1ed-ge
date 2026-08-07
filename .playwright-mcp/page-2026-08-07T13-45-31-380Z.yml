@@ -1,0 +1,145 @@
+- generic [active] [ref=f1e1]:
+  - navigation [ref=f1e2]:
+    - link "1edge — home" [ref=f1e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f1e4]: 1edge_
+    - generic [ref=f1e5]:
+      - link "[00] today" [ref=f1e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e7]: "[00]"
+        - text: today
+      - link "[01] stream" [ref=f1e8] [cursor=pointer]:
+        - /url: /stream
+        - generic [ref=f1e9]: "[01]"
+        - text: stream
+      - link "[02] journal" [ref=f1e10] [cursor=pointer]:
+        - /url: /journal
+        - generic [ref=f1e11]: "[02]"
+        - text: journal
+      - link "[03] calendar" [ref=f1e12] [cursor=pointer]:
+        - /url: /calendar
+        - generic [ref=f1e13]: "[03]"
+        - text: calendar
+      - link "[04] performance" [ref=f1e14] [cursor=pointer]:
+        - /url: /performance
+        - generic [ref=f1e15]: "[04]"
+        - text: performance
+      - link "[05] models" [ref=f1e16] [cursor=pointer]:
+        - /url: /models
+        - generic [ref=f1e17]: "[05]"
+        - text: models
+      - link "[06] accounts" [ref=f1e18] [cursor=pointer]:
+        - /url: /accounts
+        - generic [ref=f1e19]: "[06]"
+        - text: accounts
+      - link "[07] about" [ref=f1e20] [cursor=pointer]:
+        - /url: /about
+        - generic [ref=f1e21]: "[07]"
+        - text: about
+  - main [ref=f1e22]:
+    - generic [ref=f1e23]:
+      - heading "1edge — a public trading journal." [level=1] [ref=f1e24]
+      - paragraph [ref=f1e25]: Two years, everything public. Every trade, every account, every R — live and uncensored, the misses included. R is points risked vs points made; it is the only metric that matters.
+    - generic [ref=f1e27]:
+      - generic [ref=f1e28]:
+        - generic [ref=f1e29]:
+          - generic [ref=f1e30]: market
+          - generic [ref=f1e31]: fri | 07-aug-2026
+        - generic [ref=f1e32]: ● CME Globex open · closes in 7h 14m
+      - generic [ref=f1e34]:
+        - generic "Fed Musalem Speech" [ref=f1e35]
+        - generic "Non Farm Payrolls" [ref=f1e36]
+        - generic "Fed Barkin Speech" [ref=f1e37]
+        - generic "now (HKT)" [ref=f1e38]: 21:45:31
+        - generic [ref=f1e42]:
+          - generic [ref=f1e44]: "00"
+          - generic [ref=f1e51]: "06"
+          - generic [ref=f1e58]: "12"
+          - generic [ref=f1e65]: "18"
+          - generic [ref=f1e72]: "24"
+      - generic [ref=f1e75]:
+        - generic [ref=f1e76]:
+          - generic [ref=f1e77]:
+            - generic [ref=f1e78]: 🇬🇧
+            - generic [ref=f1e79]: London · LSE
+          - generic [ref=f1e80]:
+            - generic [ref=f1e81]: is live · closing in
+            - generic [ref=f1e82]: 1h 44m
+            - generic [ref=f1e83]: 15:00→23:30
+        - generic [ref=f1e84]:
+          - generic [ref=f1e85]:
+            - generic [ref=f1e86]: 🇺🇸
+            - generic [ref=f1e87]: New York · NYSE
+          - generic [ref=f1e88]:
+            - generic [ref=f1e89]: is live · closing in
+            - generic [ref=f1e90]: 6h 14m
+            - generic [ref=f1e91]: 21:30→04:00
+        - generic [ref=f1e92]:
+          - generic [ref=f1e93]:
+            - generic [ref=f1e94]: 📈
+            - generic [ref=f1e95]: CME Globex
+          - generic [ref=f1e96]:
+            - generic [ref=f1e97]: open · closes in
+            - generic [ref=f1e98]: 7h 14m
+            - generic [ref=f1e99]: halt 05:00–06:00
+        - generic [ref=f1e100]:
+          - generic [ref=f1e101]:
+            - generic [ref=f1e102]: 🇯🇵
+            - generic [ref=f1e103]: Tokyo · TSE
+          - generic [ref=f1e104]:
+            - generic [ref=f1e105]: opens in
+            - generic [ref=f1e106]: 2d 10h
+            - generic [ref=f1e107]: 08:00–14:30
+      - generic [ref=f1e108]:
+        - generic [ref=f1e109]:
+          - generic [ref=f1e111]: "next event: Fed Barkin Speech"
+          - generic [ref=f1e112]: 14:29
+        - generic [ref=f1e113]:
+          - generic [ref=f1e115]: Barkin speaking
+          - generic [ref=f1e116]: 14:29
+      - group [ref=f1e117]:
+        - generic "USD news · all today ▾" [ref=f1e118] [cursor=pointer]:
+          - generic [ref=f1e119]: USD news · all today
+          - generic [ref=f1e120]: ▾
+      - paragraph [ref=f1e121]: all times HKT · CME Globex is the master clock
+    - generic [ref=f1e123]:
+      - generic [ref=f1e124]:
+        - generic [ref=f1e125]: the day · fri | 07-aug-2026
+        - generic [ref=f1e126]: ● open · full day
+      - generic [ref=f1e127]:
+        - generic [ref=f1e129]:
+          - generic "orange" [ref=f1e130]
+          - generic [ref=f1e131]: 🗣️05:30
+          - generic [ref=f1e132]: Fed Musalem Speech[TV]
+        - generic [ref=f1e133]:
+          - generic [ref=f1e134]:
+            - generic "red" [ref=f1e135]
+            - generic [ref=f1e136]: 💼20:30
+            - generic [ref=f1e137]: Non Farm Payrolls[TV]✦
+          - group [ref=f1e138]:
+            - generic "+7 more at 20:30 ▾" [ref=f1e139] [cursor=pointer]:
+              - text: +7 more at 20:30
+              - generic [ref=f1e140]: ▾
+        - generic [ref=f1e142]:
+          - generic "orange" [ref=f1e143]
+          - generic [ref=f1e144]: 🗣️22:00
+          - generic [ref=f1e145]: Fed Barkin Speech[TV]
+    - heading "/ today · fri | 07-aug-2026" [level=2] [ref=f1e148]
+    - generic [ref=f1e151]:
+      - generic [ref=f1e152]:
+        - heading "/ today's stream" [level=2] [ref=f1e153]
+        - generic [ref=f1e154]: offline
+        - link "all stream →" [ref=f1e156] [cursor=pointer]:
+          - /url: /stream
+      - paragraph [ref=f1e158]: no stream yet today — nothing logged.
+  - contentinfo [ref=f1e159]:
+    - generic [ref=f1e160]:
+      - generic [ref=f1e161]: 1edge — everything public, nothing hidden
+      - generic [ref=f1e162]: R is the only metric that matters.
+    - group [ref=f1e164]:
+      - generic "market fri | 07-aug-2026 CME Globex open · closes in 7h 14m 🇺🇸 is live · closing in 6h 14m ▾" [ref=f1e165] [cursor=pointer]:
+        - generic [ref=f1e166]: market
+        - generic [ref=f1e167]: fri | 07-aug-2026
+        - generic [ref=f1e168]: CME Globex open · closes in 7h 14m
+        - generic [ref=f1e169]: 🇺🇸 is live · closing in 6h 14m
+        - generic [ref=f1e170]: ▾
