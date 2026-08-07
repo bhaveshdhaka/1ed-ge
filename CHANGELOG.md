@@ -6,6 +6,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Stream System — Phase 3: Public surfaces)
+- **Posterized day archive** — `/day/<fmtDay(iso)>` is now a static archive, not a
+  cockpit mirror: `DayFacts` strip (mood/sleep/screen/habits/trades/R) + the day's
+  published `stream` moments (`MomentCard`) + trade panels that finally show the
+  `model` Badge and `commentary` (both were invisible on public pages) + habits
+  chips (count-habit aware, active-only) + screen-time proof + USD news + brief +
+  reflection + coach. **The cockpit is deleted** — `src/components/cockpit/` (7
+  files) is gone; the duplicated points/risk math died with it (R now comes from
+  `ROf` in `src/lib/stream.ts` everywhere).
+- **`/models` page** — the `models` collection's first public consumer. New
+  `src/lib/models.ts` (`buildModelStats`: per-model count/sumR/avgR/winRate/bestR/
+  worstR/lastIso across the 712 model-tagged trades) + `/models` rendering each
+  model's premise, rules (owner-authored, verbatim), stat cards, and a recent-
+  trades table linked to `/day/...`. Nav gains `[05] models` (accounts→06,
+  about→07).
+- **`/journal` rebuilt on primitives** — the index now uses the Phase-0
+  `ui/*` primitives (Card/Badge/Tag/EmptyState/Icon/Separator) and a **lean
+  search index**: the `dayText()` full-day-record dump is deleted (index
+  142KB→91KB, −36%; page 287KB→277KB). Client-side search behavior preserved
+  verbatim (title×3/meta×2/body×1 ranking, `/` focus, `Esc`, sticky month chips,
+  `#back-top`, `__jumpDay`). This is the `ui/*` system's first production use.
+- **Market day-ruler polish** (homepage) — the "now" marker is a pulsing
+  green dot (`.now-dot`, glow ring, 2.2s pulse, reduced-motion safe); hour
+  ticks are responsive: every 6h on mobile, 4h at `sm`, 2h at `lg`.
+
 ### Added (Stream System — Phase 2: Admin rework)
 - **DayWorkspace on stream primitives** (`src/components/admin/tabs/DayWorkspace.tsx`)
   — the day screen now edits the new data model end to end: per-trade `model`

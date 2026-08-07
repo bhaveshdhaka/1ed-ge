@@ -90,6 +90,7 @@ src/lib/market-news.ts          fs read/write of market-news day files (admin + 
 src/lib/brief.ts                deterministic pre-market snapshot builder (sessions+news+last day) + brief fs I/O
 src/lib/changes.ts          pending-changes store (/tmp/1edge-pending.json) + rebuild history
 src/lib/stream.ts           published-moment helpers: resolveMoments/flattenStream/dayFacts/momentMeta
+src/lib/models.ts           per-model aggregation: buildModelStats (count/sumR/avgR/winRate per model)
 src/lib/live.ts             admin-heartbeat read/write (/tmp/1edge-live.json, 5-min live window)
 src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), readScreenshot,
                              readScreenTime, coachReply, assist
@@ -98,7 +99,8 @@ src/lib/env.ts              .env access (ADMIN_SECRET, OPENROUTER_API_KEY, model
 src/components/MarketLive.astro   CME-event JSON + inline live countdown script (Base + Bare layouts)
 src/components/MarketWidget.astro one-glance market box: CME-framed status + session countdowns + news
 src/components/stream/      public stream components (MomentCard, DayFacts) — zero JS
-src/pages/                  public pages: / /stream /journal /calendar /performance /tracker /trends
+src/components/archive/DayArchive.astro  posterized day archive (facts + moments + model-tagged trades)
+src/pages/                  public pages: / /stream /journal /models /calendar /performance /tracker /trends
                              /accounts /coach /about /day/[date] + rss + sitemap
                              (/ + /stream are SSR — prerender = false)
 src/pages/admin/[secret]/   private admin (SSR), renders the React app

@@ -253,6 +253,19 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-07 — **Phase 3 — Public surfaces, live.** Posterized day archive:
+  `/day/<fmtDay(iso)>` = DayFacts strip + published stream moments (MomentCard)
+  + trade panels with `model` Badge + `commentary` + habits chips (count-habit
+  aware, active-only) + screen-time proof + news + brief + reflection + coach.
+  **Cockpit deleted** (`src/components/cockpit/` — 7 files; R math now central
+  in `stream.ts` `ROf`). `/models` page: `src/lib/models.ts` `buildModelStats`
+  (712 model-tagged trades) + per-model premise/rules/stats/recent-trades; nav
+  `[05] models` (accounts→06, about→07). `/journal` on ui primitives — first
+  production use of `ui/*`; lean search index (dayText dump deleted, index
+  142KB→91KB, page 287KB→277KB — owner ruled accept). Market day-ruler polish
+  (designer): pulsing `.now-dot` + responsive ticks (6h/4h/2h). Subagent-driven:
+  3 tasks, 2 fix rounds, final oracle review (2 habit-chip fixes), typecheck
+  clean, deployed + verified live.
 - 2026-08-07 — **Phase 2 — Admin rework, live.** DayWorkspace on stream
   primitives: draft reflection (private `draft.reflection`) + explicit publish
   reflection → `journal/<date>.mdx`; moment composer (draft → `publish →` →
@@ -313,57 +326,59 @@ deployed in this session; the autosave cron is active again.
   committed, **deployed + verified live** (homepage, /accounts failed account,
   payout + failed day pages, admin 200).
 
-## HANDOFF — WRAP-UP STATE (2026-08-07, Phase 2 shipped)
+## HANDOFF — WRAP-UP STATE (2026-08-07, Phase 3 shipped)
 
-**Phase 0 (design system), Phase 1 (data model + credible review data) and
-Phase 2 (admin rework) are DONE, committed, deployed, verified live.** Full
-spec: `docs/superpowers/specs/2026-08-07-stream-system-design.md`.
-Implementation plan: `docs/superpowers/plans/2026-08-07-phase2-admin-rework.md`.
+**Phases 0–3 are DONE, committed, deployed, verified live.** Full spec:
+`docs/superpowers/specs/2026-08-07-stream-system-design.md`. Plans:
+`docs/superpowers/plans/2026-08-07-phase2-admin-rework.md` and
+`docs/superpowers/plans/2026-08-07-phase3-public-surfaces.md`.
 
-**Phase 2 shipped (this session):** DayWorkspace on stream primitives (draft
-reflection + publish, moment composer, per-trade `model` + `commentary`,
-merge-on-paste), Library tab (habits/models/rules/quotes CRUD), Milkdown →
-plain markdown textarea + preview (`MarkdownEditor.tsx`, `@milkdown/crepe`
-removed), API write path for `stream`/`draft`/model/commentary + `models` list
-on day GET, `/api/admin/library` + `/api/admin/ping` (heartbeat), safety fixes
-(dirty-guard on tab switch, no wipe-on-paste, loud rebuild failures, AI 60s
-timeout, aria labels). Executed via subagent-driven development: 5 tasks, each
-typechecked + reviewed (3 fix rounds), final oracle review (4 one-line fixes),
-all committed.
+**Phase 3 shipped (this session):**
+- **Posterized day archive** — `/day/<fmtDay(iso)>` is now a static archive, not
+  a cockpit mirror: `DayFacts` strip + published `stream` moments (`MomentCard`)
+  + trade panels that finally show the `model` Badge + `commentary` + habits
+  chips (count-habit aware, active-only) + screen-time proof + USD news + brief +
+  reflection + coach. **The cockpit is deleted** — `src/components/cockpit/`
+  (7 files) gone; the duplicated points/risk math died with it (R now uses `ROf`
+  everywhere).
+- **`/models` page** — `src/lib/models.ts` (`buildModelStats` over the 712
+  model-tagged trades) + `/models` rendering each model's premise/rules/stats/
+  recent trades. Nav `[05] models` (accounts→06, about→07).
+- **`/journal` on primitives** — first production use of the `ui/*` primitives;
+  lean search index (dayText dump deleted; index 142KB→91KB; page 287KB→277KB).
+  Client search preserved verbatim. **Owner ruled: accept the 277KB size**
+  (full-text body search kept — do not reopen without asking).
+- **Market day-ruler polish** (designer): pulsing now-dot (`.now-dot`) +
+  responsive hour ticks (6h mobile / 4h sm / 2h lg).
+- Executed subagent-driven: 3 tasks, 2 fix rounds (typecheck import fixes),
+  final oracle review (2 one-line habit-chip fixes), all committed.
 
 **Remaining work (in order):**
-- **Phase 3 — Public surfaces**: `/stream` (SSR feed + "trader is live" +
-  "today so far") and homepage intro hero + today's stream are ALREADY LIVE
-  from the earlier session. Remaining: `/day/<date>` posterized archive (facts
-  + moments, NO cockpit mirror), `/models` page, journal index rebuilt on
-  primitives. Master clock = **CME 23h futures day**, TSE/LSE/NYSE as bands.
-  Public stays zero-JS.
 - **Phase 4 — Remediation**: money-color bugs (performance/accounts/about/
   DayWorkspace green-for-negative), tablet breakpoint (rails at 768–1023px),
   floating sticky subnav, journal API path traversal (`GET /api/admin/journal?
   file=`), early-close copy (`1:15pm ct` vs `1:00pm et`), rebuild race (mutex),
-  unit tests for stats/sessions/timeline, then typecheck → build → deploy →
-  verify live.
+  unit tests for stats/sessions/timeline, **dead CSS purge (incl. the 34 lines
+  of `.ck-*` cockpit CSS in `src/styles/app.css` left behind), orphaned
+  `src/lib/timeline.ts` + `src/config/cockpit.json` cleanup**, `--font-display`
+  phantom, lighthouserc dead URLs, then typecheck → build → deploy → verify live.
 
-**Deferred minors from Phase 2 review (parked, revisit in Phase 4 if touching
-those files):** `library.ts` count-habit empty target not client-enforced;
-Library delete button bare "×" no aria-label; Library section switch discards
-unsaved edits; `mergeStructured` overwrites when two incoming trades share a
-screenshot; `key={i}` on moment rows; AdminApp `dirty` state written never
-read; orChat timeout guards `fetch` not `res.json()`; duplicate trade→TradeForm
-mapper in load vs mergeStructured (drift risk).
+**Deferred minors from Phase 3 review (parked, revisit in Phase 4 if touching
+those files):** `winRate` counts R===0 as loss; `lastIso` depends on ascending
+`getCollection('days')` order (add `.sort()`); `+0.00` plus-sign on zero stats;
+`Input` primitive has no `id`/`onchange` passthrough (journal kept raw input);
+journal client `item()` emits `.tag` spans not the Tag component (inherent).
 
-**Docs state:** `AGENTS.md` and this file now describe the markdown-textarea
-era (Milkdown gone). Note `scripts/seed.mjs` (old, non-review seed) may re-add
-a Day-Zero on 2026-08-06 if ever run — it was the duplicate-day-zero source;
-prefer `seed-review.mjs`.
+**Docs state:** `AGENTS.md` and `MEMORY.md` describe the post-cockpit era.
+Note `scripts/seed.mjs` (old, non-review seed) may re-add a Day-Zero on
+2026-08-06 if ever run — it was the duplicate-day-zero source; prefer
+`seed-review.mjs`.
 
 **On launching new agents to parallelize:** yes, but with guardrails — the
-phases are sequential (3 → 4) with heavy shared surface (public pages touch the
-same primitives/tokens), so parallel agents should NOT split one phase; the safe
-parallel unit is one phase's independent files with a strict gate: each subagent
-task ends with `npm run typecheck` + commit, and no two agents build at once
-(builds race on `node_modules/.astro`).
+remaining work is one phase (4) with heavy shared surface, so parallel agents
+should NOT split it; the safe parallel unit is one phase's independent files
+with a strict gate: each subagent task ends with `npm run typecheck` + commit,
+and no two agents build at once (builds race on `node_modules/.astro`).
 
 - 2026-08-07 — **Stream System, Phase 0 shipped (design-system foundation).** The
   owner approved a full rebuild ("the UI has no method to the madness") around
