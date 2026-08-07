@@ -4,6 +4,7 @@ import { listMds, readEntry, writeEntry } from '../../../lib/content'
 import { addChange } from '../../../lib/changes'
 import {
   type PeriodType,
+  PERIOD_TYPES,
   periodAnchor,
   periodRange,
   isoFromAnchor,
@@ -11,10 +12,8 @@ import {
 
 export const prerender = false
 
-const TYPES: PeriodType[] = ['week', 'month', 'quarter', 'half', 'year']
-
 const ANCHOR_RE: Record<PeriodType, RegExp> = {
-  week: /^\d{4}-([0-4]\d|5[0-3])$/,
+  week: /^\d{4}-((0[1-9]|[1-4]\d)|5[0-3])$/,
   month: /^\d{4}-(0[1-9]|1[0-2])$/,
   quarter: /^\d{4}-q[1-4]$/,
   half: /^\d{4}-h[12]$/,
@@ -22,7 +21,7 @@ const ANCHOR_RE: Record<PeriodType, RegExp> = {
 }
 
 function isType(t: unknown): t is PeriodType {
-  return typeof t === 'string' && (TYPES as string[]).includes(t)
+  return typeof t === 'string' && (PERIOD_TYPES as string[]).includes(t)
 }
 
 function validAnchor(type: PeriodType, anchor: string): boolean {
@@ -45,7 +44,7 @@ function availablePeriods(): Record<PeriodType, { anchor: string; label: string 
     year: [],
   }
   for (const iso of dates) {
-    for (const type of TYPES) {
+    for (const type of PERIOD_TYPES) {
       const anchor = periodAnchor(type, iso)
       const list = out[type]
       if (!list.some((p) => p.anchor === anchor)) {
@@ -53,7 +52,7 @@ function availablePeriods(): Record<PeriodType, { anchor: string; label: string 
       }
     }
   }
-  for (const type of TYPES) out[type].sort((a, b) => b.anchor.localeCompare(a.anchor))
+  for (const type of PERIOD_TYPES) out[type].sort((a, b) => b.anchor.localeCompare(a.anchor))
   return out
 }
 

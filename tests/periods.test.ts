@@ -53,6 +53,20 @@ test('isoFromAnchor round-trips', () => {
   assert.equal(periodRange('month', isoFromAnchor('month', '2026-08')).anchor, '2026-08')
   assert.equal(periodAnchor('week', '2026-08-07'), periodRange('week', '2026-08-07').anchor)
 })
+test('isoFromAnchor parses embedded quarter suffix', () => {
+  assert.equal(isoFromAnchor('quarter', '2026-q1'), '2026-02-15')
+  assert.equal(isoFromAnchor('quarter', '2026-q2'), '2026-05-15')
+  assert.equal(isoFromAnchor('quarter', '2026-q3'), '2026-08-15')
+  assert.equal(isoFromAnchor('quarter', '2026-q4'), '2026-11-15')
+})
+test('isoFromAnchor parses embedded half suffix', () => {
+  assert.equal(isoFromAnchor('half', '2026-h1'), '2026-04-15')
+  assert.equal(isoFromAnchor('half', '2026-h2'), '2026-10-15')
+})
+test('isoFromAnchor explicit index overrides the embedded suffix', () => {
+  assert.equal(isoFromAnchor('quarter', '2026-q2', 1), '2026-02-15')
+  assert.equal(isoFromAnchor('half', '2026-h2', 1), '2026-04-15')
+})
 test('ranges between spans a span', () => {
   const rs = periodRangesBetween('week', '2026-08-03', '2026-08-20')
   assert.equal(rs.length, 3)

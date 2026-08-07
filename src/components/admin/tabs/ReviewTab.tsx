@@ -1,10 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, notifyChanged } from '../api'
 import { Card, Button, Field, Select, TextInput } from '../ui'
 import { MarkdownEditor } from '../MarkdownEditor'
-
-type PeriodType = 'week' | 'month' | 'quarter' | 'half' | 'year'
-const TYPES: PeriodType[] = ['week', 'month', 'quarter', 'half', 'year']
+import { type PeriodType, PERIOD_TYPES } from '../../../lib/periods'
 
 interface PeriodOpt {
   anchor: string
@@ -27,7 +25,9 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
   const [sel, setSel] = useState<{ type: PeriodType; anchor: string } | null>(null)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
-  const [loadedKey, setLoadedKey] = useState('')
+  const [loaded, setLoaded] = useState(false)
+  const [saved, setSaved] = useState<{ key: string; title: string; body: string } | null>(null)
+  const loadSeq = useRef(0)
 
   const loadPeriods = useCallback(async () => {
     try {
@@ -50,14 +50,20 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
 
   const loadReview = useCallback(
     async (type: PeriodType, anchor: string) => {
+      const id = ++loadSeq.current
       try {
         const res = await api<{ ok: boolean; review: ReviewBody | null }>(
           `/api/admin/reviews?type=${type}&anchor=${encodeURIComponent(anchor)}`,
         )
-        setTitle(res.review?.data?.title ?? '')
-        setBody(res.review?.body ?? '')
-        setLoadedKey(`${type}-${anchor}`)
+        if (loadSeq.current !== id) return
+        const title = res.review?.data?.title ?? ''
+        const body = res.review?.body ?? ''
+        setTitle(title)
+        setBody(body)
+        setLoaded(true)
+        setSaved({ key: `${type}-${anchor}`, title, body })
       } catch (e) {
+        if (loadSeq.current !== id) return
         notify(e instanceof Error ? e.message : 'review load failed', false)
       }
     },
@@ -65,6 +71,7 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
   )
 
   useEffect(() => {
+    setLoaded(false)
     if (sel && sel.anchor) loadReview(sel.type, sel.anchor)
   }, [sel, loadReview])
 
@@ -82,7 +89,7 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
       })
       notify(`review ${sel.type}-${sel.anchor} saved — queued for rebuild`)
       notifyChanged()
-      setLoadedKey(`${sel.type}-${sel.anchor}`)
+      setSaved({ key: `${sel.type}-${sel.anchor}`, title, body })
     } catch (e) {
       notify(e instanceof Error ? e.message : 'save failed', false)
     }
@@ -90,7 +97,7 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
 
   const list = sel ? (periods[sel.type] ?? []) : []
   const key = sel ? `${sel.type}-${sel.anchor}` : ''
-  const dirty = !loadedKey || loadedKey !== key
+  const dirty = loaded && (!saved || saved.key !== key || saved.title !== title || saved.body !== body)
 
   return (
     <div className="space-y-6">
@@ -100,7 +107,7 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
         <div className="grid gap-3 md:grid-cols-2">
           <Field label="type">
             <Select value={sel?.type ?? 'week'} onChange={(e) => pickType(e.target.value as PeriodType)}>
-              {TYPES.map((t) => (
+              {PERIOD_TYPES.map((t) => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </Select>
@@ -134,7 +141,7 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
             </Field>
             <MarkdownEditor label="review markdown" rows={18} value={body} onChange={setBody} />
           </div>
-          {!dirty && <p className="mt-3 text-[11px] text-faint">saved — queued for rebuild</p>}
+          {loaded && !dirty && <p className="mt-3 text-[11px] text-faint">saved — queued for rebuild</p>}
         </Card>
       ) : (
         <Card title="no periods yet">

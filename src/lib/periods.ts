@@ -3,6 +3,8 @@
 
 export type PeriodType = 'week' | 'month' | 'quarter' | 'half' | 'year'
 
+export const PERIOD_TYPES: PeriodType[] = ['week', 'month', 'quarter', 'half', 'year']
+
 export interface PeriodRange {
   type: PeriodType
   anchor: string            // '2026-33' | '2026-08' | '2026-q1' | '2026-h1' | '2026'
@@ -38,12 +40,12 @@ export function isoFromAnchor(type: PeriodType, urlAnchor: string, index?: numbe
   switch (type) {
     case 'year': return `${y}-01-01`
     case 'quarter': {
-      const q = index ?? 1
+      const q = index ?? embeddedIndex(urlAnchor, 'q', 1, 4) ?? 1
       if (q < 1 || q > 4) throw new Error(`bad quarter index: ${q}`)
       return `${y}-${pad(q * 3 - 1)}-15`
     }
     case 'half': {
-      const h = index ?? 1
+      const h = index ?? embeddedIndex(urlAnchor, 'h', 1, 2) ?? 1
       if (h < 1 || h > 2) throw new Error(`bad half index: ${h}`)
       return `${y}-${pad(h === 1 ? 4 : 10)}-15`
     }
@@ -133,6 +135,15 @@ export function periodRangesBetween(type: PeriodType, fromIso: string, toIso: st
 
 const DAY_MS = 86400000
 const MON = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+
+/** Parse an embedded '-qN' / '-hN' suffix ('2026-q2' → 2). Returns null when absent, throws on out-of-range. */
+function embeddedIndex(anchor: string, letter: 'q' | 'h', min: number, max: number): number | null {
+  const m = new RegExp(`-${letter}([1-9]\\d*)$`).exec(anchor)
+  if (!m) return null
+  const n = Number(m[1])
+  if (!Number.isInteger(n) || n < min || n > max) throw new Error(`bad ${letter} index: ${n}`)
+  return n
+}
 
 function parseIso(iso: string): Date { const [y, m, d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)) }
 function toIso(d: Date): string { return d.toISOString().slice(0, 10) }
