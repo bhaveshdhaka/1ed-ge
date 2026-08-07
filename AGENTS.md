@@ -19,9 +19,10 @@ screen time, and trades all live in the same daily record.
 - **Astro 5** (static-first) + **@astrojs/node** (standalone SSR for the few
   server routes) + **Tailwind CSS v4** + TypeScript.
 - React islands only on the admin page (client-side). Public pages ship zero JS.
-- **Milkdown Crepe** (`@milkdown/crepe`) — the open-source markdown WYSIWYG
-  editor used for journal writing in the admin. Images paste → upload to
-  `/api/admin/media` via its ImageBlock `onUpload`. Do not hand-roll editors.
+- **Markdown editor in the admin** — plain textarea + write/preview tabs
+  (`src/components/admin/MarkdownEditor.tsx`, unified/remark/rehype, raw HTML
+  escaped). Milkdown Crepe is gone. Images paste → upload to `/api/admin/media`
+  from the day/trade capture zones (not the reflection editor).
 - Content collections (glob loaders + Zod schemas) for all content.
 - **OpenRouter** for AI: DeepSeek (`deepseek/deepseek-chat`) for text day
   structuring + the coach + assist; Qwen2.5-VL (`qwen/qwen-2.5-vl-72b-instruct`)
@@ -104,12 +105,14 @@ src/pages/admin/[secret]/   private admin (SSR), renders the React app
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/api/admin/market.ts    USD news GET + refresh (spawns market-news-fetch.mjs)
 src/pages/media/[...file].ts SSR media file server (uploads in public/media)
-src/components/admin/*      React admin (Day / Accounts / Coach / Media / Overview)
+src/components/admin/*      React admin (Overview / Day / Accounts / Coach / Media / Library)
 src/components/admin/tabs/DayWorkspace.tsx  the single "day" screen: capture → evidence-first
-                            summary (read-only + rare ✎ overrides) → reflection (Milkdown) → one save
+                            summary (read-only + rare direct-click overrides) → trades
+                            (model tag + commentary) → moments composer (draft → publish)
+                            → reflection draft (markdown) → publish reflection → one save
+src/components/admin/tabs/LibraryTab.tsx  habits / models / rules / quotes CRUD
 src/components/admin/RebuildBar.tsx  sticky pending-changes → rebuild bar (all tabs)
-src/components/admin/JournalEditor.tsx  Milkdown Crepe markdown editor
-src/components/admin/editor.css  Crepe theme tuned to the 1ed.ge palette
+src/components/admin/MarkdownEditor.tsx  markdown textarea + write/preview tabs
 src/components/*.astro      shared UI + SVG charts (zero JS)
 public/media/               uploaded images (webp) — git-tracked
 scripts/seed.mjs, migrate.mjs, deploy.sh, start.sh

@@ -6,6 +6,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Stream System — Phase 2: Admin rework)
+- **DayWorkspace on stream primitives** (`src/components/admin/tabs/DayWorkspace.tsx`)
+  — the day screen now edits the new data model end to end: per-trade `model`
+  tag + optional published `commentary`, a **draft reflection** (private,
+  `draft.reflection` in the day record) with an explicit **publish reflection**
+  button that writes `journal/<date>.mdx`, and a **moment composer** (draft
+  moments → `publish →` → `stream`, AI polish that only edits the draft,
+  trade/quote/media types). Journal POST moved out of the save path — publish is
+  always the owner's explicit action.
+- **Merge-on-paste** — `applyStructured` no longer wipes the day: `mergeStructured`
+  keeps trades this run didn't touch, replaces trades that share a screenshot
+  with the fresh parse, and appends text-only trades.
+- **Library tab** (`src/components/admin/tabs/LibraryTab.tsx`) — habits
+  (bool/count + target/category/order), trading models (premise + per-model
+  rules), rules, and quotes CRUD against the new `/api/admin/library` route.
+  Admin nav is now 6 tabs (overview/day/accounts/coach/media/library).
+- **Markdown editor swap** — Milkdown Crepe **out**; `MarkdownEditor.tsx`
+  (plain textarea + write/preview tabs, unified/remark/rehype rendering, raw
+  HTML escaped) replaces `JournalEditor.tsx`. `@milkdown/crepe` removed from
+  package.json + lockfile; `editor.css` deleted; axe exclusions dropped.
+- **API layer** — `days.ts` POST persists `stream`/`draft`/trade
+  `model`+`commentary` and GET returns a `models` list; `content.ts` `Kind`
+  extended with `models`/`rules`/`quotes`; new `/api/admin/library` (CRUD) and
+  `/api/admin/ping` (heartbeat → `touchLive`, feeds the public "trader is live"
+  moniker).
+- **Safety** — dirty-guard on admin tab switch (unsaved day work warns before
+  leaving), 30s live heartbeat while the admin is open, loud rebuild-failure
+  banner (`role="alert"`) in `RebuildBar`, 60s `AbortSignal.timeout` on all AI
+  calls, `role="status"`/`aria-live` on toasts, aria labels on nav.
+
 ### Added (Context-aware market narrative strip)
 - **`src/lib/strip.ts`** — single source of truth for every market phrase the site
   speaks (homepage strip, footer, live ticker). Precomputes absolute-time narrative

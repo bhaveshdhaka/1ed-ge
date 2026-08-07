@@ -176,17 +176,22 @@ deployed in this session; the autosave cron is active again.
 - **Save ≠ rebuild.** Mutations queue a pending change
   (`/tmp/1edge-pending.json`); the sticky RebuildBar shows them and rebuilds on
   command (~8–20s). Rebuild history in `/tmp/1edge-rebuilds.json`.
-- **Journal editor is Milkdown Crepe** (`@milkdown/crepe`), not a hand-rolled
-  editor. Its ImageBlock `onUpload` uploads pasted images to the media API.
+- **Journal editor is a plain markdown textarea + preview** (write/preview
+  tabs, `MarkdownEditor.tsx`), Milkdown Crepe removed. Raw HTML escaped; images
+  paste → upload to the media API from the day/trade capture zones, not the
+  reflection editor.
 - **AI-first day input:** paste text + screenshots anywhere (global clipboard
   paste sink); `structureDayFull` reads everything in one pass — Qwen2.5-VL for
   image days, DeepSeek for text-only — and returns the whole day (mood/sleep/
   habits/device/trades) **plus a suggested journal** (title/summary/tags/draft).
   Same schema/tone either way.
 - **One day = one admin screen (v0.4).** The "day" tab: capture → day summary →
-  reflection (Milkdown) → one Save. **Evidence first:** values render read-only
-  with rare ✎ overrides; screen-time hours come from the screenshot, never typed.
-  The journal owns no structured fields (mood/sleep live in the day record).
+  trades (model tag + commentary) → moments composer (draft → publish) →
+  reflection draft → publish reflection → one Save. **Evidence first:** values
+  render read-only with rare direct-click overrides; screen-time hours come from
+  the screenshot, never typed. The journal owns no structured fields (mood/sleep
+  live in the day record); reflection publishes to `journal/<date>.mdx` only via
+  the explicit publish action.
 - **Evidence-first overrides are direct-click (v0.5).** Click the value itself
   (dashed-underline affordance), never a ✎ button; `Esc` cancels.
 - **Admin day navigation is picker-first.** Native date input + mini 12-week
@@ -248,6 +253,23 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-07 — **Phase 2 — Admin rework, live.** DayWorkspace on stream
+  primitives: draft reflection (private `draft.reflection`) + explicit publish
+  reflection → `journal/<date>.mdx`; moment composer (draft → `publish →` →
+  `stream`, AI polish edits drafts only, trade/quote/media types); per-trade
+  `model` tag + published `commentary`; merge-on-paste (`mergeStructured`
+  keeps untouched trades, replaces by shared screenshot, appends text-only).
+  Library tab (habits/models/rules/quotes CRUD) via new `/api/admin/library`;
+  Milkdown Crepe **out** → `MarkdownEditor.tsx` plain textarea + write/preview
+  (unified/remark/rehype, raw HTML escaped; `@milkdown/crepe` removed from
+  package.json + lockfile, `editor.css` deleted, axe exclusions dropped). API:
+  `days.ts` POST persists `stream`/`draft`/model/commentary, GET returns
+  `models`; `content.ts` `Kind` + `models`/`rules`/`quotes`; new
+  `/api/admin/ping` (heartbeat → `touchLive`, feeds public "trader is live").
+  Safety: dirty-guard on tab switch, no wipe-on-paste, loud rebuild-failure
+  banner (`role="alert"`), AI 60s `AbortSignal.timeout`, toast/nav aria.
+  Executed subagent-driven: 5 tasks, 3 fix rounds, final oracle review (4
+  one-line fixes), typecheck clean, deployed + verified live.
 - 2026-08-07 — **Context-aware market narrative strip, live.** New `src/lib/strip.ts`
   = single source of every conversational market phrase (homepage `MarketWidget`,
   site-wide `MarketFooter`, `MarketLive` ticker). Precomputed absolute-time segments
@@ -291,25 +313,31 @@ deployed in this session; the autosave cron is active again.
   committed, **deployed + verified live** (homepage, /accounts failed account,
   payout + failed day pages, admin 200).
 
-## HANDOFF — WRAP-UP STATE (2026-08-07, end of session)
+## HANDOFF — WRAP-UP STATE (2026-08-07, Phase 2 shipped)
 
-Owner wants to resume in a new session. **Phase 0 (design system) and Phase 1
-(data model + credible review data) are DONE, committed, deployed, verified
-live.** Phases 2–4 remain. Full spec: `docs/superpowers/specs/2026-08-07-stream-system-design.md`.
+**Phase 0 (design system), Phase 1 (data model + credible review data) and
+Phase 2 (admin rework) are DONE, committed, deployed, verified live.** Full
+spec: `docs/superpowers/specs/2026-08-07-stream-system-design.md`.
+Implementation plan: `docs/superpowers/plans/2026-08-07-phase2-admin-rework.md`.
+
+**Phase 2 shipped (this session):** DayWorkspace on stream primitives (draft
+reflection + publish, moment composer, per-trade `model` + `commentary`,
+merge-on-paste), Library tab (habits/models/rules/quotes CRUD), Milkdown →
+plain markdown textarea + preview (`MarkdownEditor.tsx`, `@milkdown/crepe`
+removed), API write path for `stream`/`draft`/model/commentary + `models` list
+on day GET, `/api/admin/library` + `/api/admin/ping` (heartbeat), safety fixes
+(dirty-guard on tab switch, no wipe-on-paste, loud rebuild failures, AI 60s
+timeout, aria labels). Executed via subagent-driven development: 5 tasks, each
+typechecked + reviewed (3 fix rounds), final oracle review (4 one-line fixes),
+all committed.
 
 **Remaining work (in order):**
-- **Phase 2 — Admin rework**: DayWorkspace on the new primitives (draft
-  reflection, moment composer, per-trade commentary + model tag, publish
-  buttons), Library tab (habits/models/quotes/rules CRUD), **Milkdown → plain
-  markdown textarea + preview** (remove `@milkdown/crepe`, delete
-  `src/components/admin/editor.css`), safety fixes (dirty-guard on tab switch,
-  no wipe-on-paste, loud rebuild failures, AI timeouts, aria labels, heartbeat
-  `/api/admin/ping`).
 - **Phase 3 — Public surfaces**: `/stream` (SSR feed + "trader is live" +
-  "today so far"), homepage intro hero + today's stream (SSR), `/day/<date>`
-  posterized archive (facts + moments, NO cockpit mirror), `/models` page,
-  journal index rebuilt on primitives. Master clock = **CME 23h futures day**,
-  TSE/LSE/NYSE as bands. Public stays zero-JS.
+  "today so far") and homepage intro hero + today's stream are ALREADY LIVE
+  from the earlier session. Remaining: `/day/<date>` posterized archive (facts
+  + moments, NO cockpit mirror), `/models` page, journal index rebuilt on
+  primitives. Master clock = **CME 23h futures day**, TSE/LSE/NYSE as bands.
+  Public stays zero-JS.
 - **Phase 4 — Remediation**: money-color bugs (performance/accounts/about/
   DayWorkspace green-for-negative), tablet breakpoint (rails at 768–1023px),
   floating sticky subnav, journal API path traversal (`GET /api/admin/journal?
@@ -317,21 +345,25 @@ live.** Phases 2–4 remain. Full spec: `docs/superpowers/specs/2026-08-07-strea
   unit tests for stats/sessions/timeline, then typecheck → build → deploy →
   verify live.
 
-**Docs to update as you go:** `AGENTS.md` and `MEMORY.md` still describe
-Milkdown and the "everything public except the admin / day-record-as-mirror"
-era — update them when the admin editor swap and the public surfaces land.
-Note `scripts/seed.mjs` (old, non-review seed) may re-add a Day-Zero on
-2026-08-06 if ever run — it was the duplicate-day-zero source; prefer
-`seed-review.mjs`.
+**Deferred minors from Phase 2 review (parked, revisit in Phase 4 if touching
+those files):** `library.ts` count-habit empty target not client-enforced;
+Library delete button bare "×" no aria-label; Library section switch discards
+unsaved edits; `mergeStructured` overwrites when two incoming trades share a
+screenshot; `key={i}` on moment rows; AdminApp `dirty` state written never
+read; orChat timeout guards `fetch` not `res.json()`; duplicate trade→TradeForm
+mapper in load vs mergeStructured (drift risk).
 
-**On launching new agents to parallelize:** yes, but with guardrails — see the
-recommendation at the end of the session summary. The phases are sequential
-(2 → 3 → 4) with heavy shared surface (public pages touch the same primitives/
-tokens), so parallel agents should NOT split one phase; the safe parallel unit
-is one phase's independent files (e.g. Phase 2's Library tab vs DayWorkspace are
-both admin React — can split by tab) with a strict gate: each subagent task ends
-with `npm run typecheck` + commit, and no two agents build at once (builds race
-on `node_modules/.astro`).
+**Docs state:** `AGENTS.md` and this file now describe the markdown-textarea
+era (Milkdown gone). Note `scripts/seed.mjs` (old, non-review seed) may re-add
+a Day-Zero on 2026-08-06 if ever run — it was the duplicate-day-zero source;
+prefer `seed-review.mjs`.
+
+**On launching new agents to parallelize:** yes, but with guardrails — the
+phases are sequential (3 → 4) with heavy shared surface (public pages touch the
+same primitives/tokens), so parallel agents should NOT split one phase; the safe
+parallel unit is one phase's independent files with a strict gate: each subagent
+task ends with `npm run typecheck` + commit, and no two agents build at once
+(builds race on `node_modules/.astro`).
 
 - 2026-08-07 — **Stream System, Phase 0 shipped (design-system foundation).** The
   owner approved a full rebuild ("the UI has no method to the madness") around
