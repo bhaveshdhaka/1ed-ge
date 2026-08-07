@@ -467,3 +467,24 @@ function int(v: unknown): number | null {
 export function round2(n: number): number {
   return Math.round(n * 100) / 100
 }
+
+export async function captionAlt(dataUrl: string): Promise<string> {
+  const system = `You write alt text for images in a trader's public journal (charts, screen-time reports, statements, notes).
+Write ONE short, factual, SEO-friendly alt text (max 12 words). Describe what the image actually shows — instrument, direction, what happened. Plain and honest, zero hype, no quotes, no markdown.`
+  const raw = await orChat(
+    [
+      { role: 'system', content: system },
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: 'Write alt text for this image:' },
+          { type: 'image_url', image_url: { url: dataUrl } },
+        ],
+      },
+    ],
+    env.modelAlt(),
+    false,
+    60,
+  )
+  return raw.trim().replace(/^```(?:text|markdown)?\s*|\s*```$/g, '').trim()
+}

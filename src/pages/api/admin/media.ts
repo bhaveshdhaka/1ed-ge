@@ -4,6 +4,8 @@ import fs from 'node:fs'
 import sharp from 'sharp'
 import { authorized, json, error } from '../../../lib/auth'
 import { MEDIA, listMedia, sanitizeSlug } from '../../../lib/content'
+import { captionAlt } from '../../../lib/ai'
+import { setAlt, removeAlt } from '../../../lib/media-alt'
 
 export const prerender = false
 
@@ -41,9 +43,19 @@ export const POST: APIRoute = async ({ request }) => {
     const ext = match[1].includes('png') ? 'png' : match[1].includes('gif') ? 'gif' : 'jpg'
     const rel2 = `${date}/${base}-${Date.now().toString(36)}.${ext}`
     fs.writeFileSync(path.join(MEDIA, rel2), buf)
-    return json({ ok: true, url: `/media/${rel2}`, path: rel2 })
+    let alt2 = ''
+    try {
+      alt2 = await captionAlt(dataUrl)
+    } catch {}
+    if (alt2) setAlt(rel2, alt2)
+    return json({ ok: true, url: `/media/${rel2}`, path: rel2, alt: alt2 })
   }
-  return json({ ok: true, url: `/media/${rel}`, path: rel })
+  let alt = ''
+  try {
+    alt = await captionAlt(dataUrl)
+  } catch {}
+  if (alt) setAlt(rel, alt)
+  return json({ ok: true, url: `/media/${rel}`, path: rel, alt })
 }
 
 export const DELETE: APIRoute = async ({ request }) => {
@@ -53,5 +65,6 @@ export const DELETE: APIRoute = async ({ request }) => {
   const abs = safeMediaPath(rel)
   if (!abs) return error('invalid path')
   if (fs.existsSync(abs)) fs.unlinkSync(abs)
+  removeAlt(rel)
   return json({ ok: true })
 }
