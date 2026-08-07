@@ -83,7 +83,7 @@ const clsClass = (cls: string) =>
 
     {(red.length > 0 || orange.length > 0) && (
       <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2">
-        <NewsBlock red={red} orange={orange} />
+        <NewsBlock red={red} orange={orange} dayIso={today} now={Date.now()} />
       </div>
     )}
   </div>

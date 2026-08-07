@@ -186,7 +186,7 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
           <span class="text-dim transition-transform group-open:rotate-180">▾</span>
         </summary>
         <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2">
-          <NewsBlock red={dayRed} orange={dayOrange} />
+          <NewsBlock red={dayRed} orange={dayOrange} dayIso={iso} now={Date.now()} />
         </div>
       </details>
     )}

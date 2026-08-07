@@ -129,7 +129,7 @@ const nowFracBuild = (nowHktBuild.getUTCHours() + nowHktBuild.getUTCMinutes() / 
         <span class="text-faint transition-transform group-open:rotate-180">▾</span>
       </summary>
       <div class="mt-1 flex flex-col gap-1 border-t border-line/50 pt-2">
-        <NewsBlock red={red} orange={orange} />
+        <NewsBlock red={red} orange={orange} dayIso={today} now={Date.now()} />
       </div>
     </details>
   )}
