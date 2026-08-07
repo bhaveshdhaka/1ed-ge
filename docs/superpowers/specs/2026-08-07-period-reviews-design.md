@@ -78,8 +78,10 @@ export function periodRangesBetween(type: PeriodType, fromIso: string, toIso: st
 
 URL ↔ range flow: `/q1/2026` → `periodTypeFromSlug('q1')` + `isoFromAnchor('quarter','2026')` →
 `periodRange('quarter', iso)` → `anchor '2026-q1'`, `label 'q1 2026'`. File names for review
-notes use `periodAnchor` (`quarter-2026-q1.md`). Rules: week = Mon–Sun (the ISO week
-containing `iso`, Monday start); month = calendar month; quarter = q1 (Jan–Mar)…q4; half =
+notes use `periodAnchor` (`quarter-2026-q1.md`). Rules: week = **Mon–Fri** (the trading
+week — trading days strictly Mon–Fri, no exceptions; the Sat/Sun ritual reviews the
+just-completed Mon–Fri week; weekend day records fall outside every week and flow into
+month/quarter reviews); month = calendar month; quarter = q1 (Jan–Mar)…q4; half =
 h1 (Jan–Jun)/h2; year = calendar year. `prev`/`next` step by one period.
 
 ## 2. Aggregation — `src/lib/period-stats.ts` (pure, tested)
