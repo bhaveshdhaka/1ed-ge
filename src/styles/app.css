@@ -182,7 +182,6 @@
 
 /* ---- zen PWA — iOS/touch hardening (zen app only; public pages untouched) ---- */
 .zen-app {
-  overscroll-behavior: none;
   -webkit-touch-callout: none;
 }
 /* keep text selection in editable fields — the callout kill is non-editable UI only */
@@ -194,6 +193,11 @@
 }
 
 @media (pointer: coarse) {
+  /* pull-to-refresh / back-swipe suppression is touch-only — MacBook Safari
+     (fine pointer) keeps its edge rubber-banding in zen */
+  .zen-app {
+    overscroll-behavior: none;
+  }
   /* ≥44px tap targets on touch devices (iPhone/iPad); desktop stays as-is */
   .zen-app button,
   .zen-app a,
