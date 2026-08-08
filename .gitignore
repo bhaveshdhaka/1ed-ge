@@ -7,6 +7,9 @@ dist/
 *.log
 .tmp/
 
+# durable last-online heartbeat stamp (public/media is bind-mounted, survives restarts)
+public/media/.last-online
+
 # test artifacts
 .lhci/
 playwright-report/
