@@ -77,7 +77,7 @@ git fetch "$PROD_WORKTREE" main
 mapfile -t CHANGED < <(git diff --name-only HEAD FETCH_HEAD)
 if [ ${#CHANGED[@]} -eq 0 ]; then
   echo "✓ no changes to sync (preprod ≡ main)"
-  git stash pop >/dev/null
+  git stash pop >/dev/null 2>&1 || true
   exit 0
 fi
 echo "→ incoming: ${#CHANGED[@]} files"
@@ -86,7 +86,7 @@ echo
 
 if [ "$DRY_RUN" = 1 ]; then
   echo "(dry-run — nothing applied)"
-  git stash pop >/dev/null
+  git stash pop >/dev/null 2>&1 || true
   exit 0
 fi
 
