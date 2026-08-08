@@ -9,7 +9,6 @@ import {
   THE_NUMBERS,
   TREND,
   EMPTY_PERIOD,
-  EMPTY_REVIEWS,
 } from '../src/lib/copy'
 
 test('liveLine: live → trader is live', () => {
@@ -100,5 +99,4 @@ test('section labels are owner-locked strings', () => {
 
 test('empty states are owner-locked strings', () => {
   assert.equal(EMPTY_PERIOD, 'no days logged in this period.')
-  assert.equal(EMPTY_REVIEWS, 'no period reviews yet.')
 })

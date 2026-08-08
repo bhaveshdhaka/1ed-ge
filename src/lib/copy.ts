@@ -3,7 +3,7 @@
  *
  * Owner directive: the language of ALL messages/reminders must be well-thought,
  * consistent, using proper terminologies. Every surface (homepage nudge, zen
- * reminder, period pages, /lookback, AI comparison labels) imports from here —
+ * reminder, period pages, AI comparison labels) imports from here —
  * consistency by construction, the same way `strip.ts` owns market phrases.
  *
  * Locked vocabulary (do not paraphrase):
@@ -65,11 +65,9 @@ export const THE_NUMBERS = 'the numbers'
 export const TREND = 'trend'
 
 export const TAPE = 'the tape'
-export const VIEW_REVIEW = 'view review →'
 
 /** Empty states. */
 export const EMPTY_PERIOD = 'no days logged in this period.'
-export const EMPTY_REVIEWS = 'no period reviews yet.'
 
 /** `imported N trades` — ingest apply-confirm line (plan-locked, exact string). */
 export function importedTrades(n: number): string {
