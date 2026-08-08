@@ -28,6 +28,14 @@ const accounts = defineCollection({
       .default([]),
     note: z.string().optional(),
     platformIds: z.array(z.string()).default([]),
+    rules: z
+      .object({
+        dailyLoss: z.number().positive().optional(),
+        breach: z.enum(['drawdown', 'daily', 'either']).optional(),
+        consistency: z.enum(['none', 'eval', 'funded', 'both']).optional(),
+        consistencyNote: z.string().optional(),
+      })
+      .optional(),
   }),
 })
 

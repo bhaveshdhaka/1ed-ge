@@ -2,17 +2,65 @@ import type { APIRoute } from 'astro'
 import { authorized, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry, deleteEntry, sanitizeSlug } from '../../../lib/content'
 import { addChange } from '../../../lib/changes'
+import { buildStats, flatten } from '../../../lib/stats'
+import { accountRuleStatus, type AccountLike } from '../../../lib/account-rules'
+import { todayHkt } from '../../../lib/sessions'
 
 export const prerender = false
 
-const STAGES = ['eval', 'buffer', 'payout', 'failed', 'paused']
+const STAGES = ['eval', 'funded', 'buffer', 'payout', 'failed', 'paused']
+const BREACH_RULES = ['drawdown', 'daily', 'either']
+const CONSISTENCY_RULES = ['none', 'eval', 'funded', 'both']
+
+/** Owner-dictated rules pass-through — only the four known fields survive; empty → dropped. */
+function rulesFrom(body: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  const dailyLoss = Number(body.dailyLoss)
+  if (Number.isFinite(dailyLoss) && dailyLoss > 0) out.dailyLoss = dailyLoss
+  if (typeof body.breach === 'string' && BREACH_RULES.includes(body.breach)) out.breach = body.breach
+  if (typeof body.consistency === 'string' && CONSISTENCY_RULES.includes(body.consistency)) out.consistency = body.consistency
+  if (typeof body.consistencyNote === 'string' && body.consistencyNote.trim()) {
+    out.consistencyNote = body.consistencyNote.trim()
+  }
+  return out
+}
 
 export const GET: APIRoute = async ({ request }) => {
   if (!authorized(request)) return error('unauthorized', 401)
+
+  // fs reads skip content-collection defaults — default trades/executions +
+  // stages so flatten()/buildStats() stay safe on hand-written/legacy files.
+  const dayEntries = listMds('days').map((f) => {
+    const data = readEntry('days', f).data as Record<string, unknown>
+    const trades = Array.isArray(data.trades)
+      ? (data.trades as Record<string, unknown>[]).map((t) => ({ executions: [], ...t }))
+      : []
+    return { id: f, collection: 'days', data: { ...data, trades } } as never
+  })
+  const accountEntries = listMds('accounts').map((f) => {
+    const data = readEntry('accounts', f).data as Record<string, unknown>
+    return { id: f, collection: 'accounts', data: { stages: [], ...data } } as never
+  })
+  const payoutEntries = listMds('payouts').map((f) => {
+    const data = readEntry('payouts', f).data as Record<string, unknown>
+    return { id: f, collection: 'payouts', data } as never
+  })
+
+  const { executions } = flatten(dayEntries, accountEntries)
+  const stats = buildStats(dayEntries, accountEntries, payoutEntries)
+  const today = todayHkt()
+
   const accounts = listMds('accounts')
     .map((f) => {
       const data = readEntry('accounts', f).data as Record<string, unknown>
-      return { file: f, id: data.id ?? f.replace(/\.md$/, ''), ...data }
+      const id = String(data.id ?? f.replace(/\.md$/, ''))
+      const stat = stats.perAccount.find((s) => s.id === id)
+      return {
+        file: f,
+        id,
+        ...data,
+        status: accountRuleStatus(data as unknown as AccountLike, stat, executions, today),
+      }
     })
     .sort((a, b) => String(a.id).localeCompare(String(b.id)))
   const payouts = listMds('payouts')
@@ -53,6 +101,7 @@ export const POST: APIRoute = async ({ request }) => {
       })),
       ...(body.note ? { note: String(body.note) } : {}),
       platformIds: Array.isArray(body.platformIds) ? body.platformIds.filter((p: unknown) => typeof p === 'string') : [],
+      ...(body.rules && typeof body.rules === 'object' ? rulesFrom(body.rules as Record<string, unknown>) : {}),
     }
     writeEntry('accounts', `${id}.md`, data, '')
     addChange('account', `account ${id}`, `${data.firm} ${data.sizeLabel} → ${stage}`)

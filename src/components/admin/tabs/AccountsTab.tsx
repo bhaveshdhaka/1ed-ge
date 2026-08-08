@@ -28,6 +28,7 @@ interface AccountRow {
   stage: string
   note?: string
   stages: { stage: string; from: string; to?: string; note?: string }[]
+  rules?: { dailyLoss?: number; breach?: string; consistency?: string; consistencyNote?: string }
 }
 interface PayoutRow {
   file?: string
@@ -38,9 +39,11 @@ interface PayoutRow {
   note?: string
 }
 
-const STAGES = ['eval', 'buffer', 'payout', 'failed', 'paused']
-const FLOW = ['eval', 'buffer', 'payout']
+const STAGES = ['eval', 'funded', 'buffer', 'payout', 'failed', 'paused']
+const FLOW = ['eval', 'funded', 'buffer', 'payout']
 const TERMINAL = ['failed', 'paused']
+const BREACH_RULES = ['drawdown', 'daily', 'either']
+const CONSISTENCY_RULES = ['none', 'eval', 'funded', 'both']
 
 export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => void }) {
   const [accounts, setAccounts] = useState<AccountRow[]>([])
@@ -142,6 +145,9 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
 
   const setField = (a: AccountRow, patch: Partial<AccountRow>) =>
     setDrafts((x) => ({ ...x, [a.id]: { ...draft(a), ...patch } }))
+
+  const setRule = (a: AccountRow, patch: Partial<NonNullable<AccountRow['rules']>>) =>
+    setField(a, { rules: { ...(draft(a).rules ?? {}), ...patch } })
 
   const addPayout = async () => {
     if (!payout.account || !payout.amount) return notify('pick an account and amount', false)
@@ -381,6 +387,43 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
             <Field label="note" className="mt-3">
               <TextInput value={draft(a).note ?? ''} onChange={(e) => setField(a, { note: e.target.value })} placeholder="optional" />
             </Field>
+
+            {/* owner-dictated rules — no engine, no AI: prop firms change these, keep it editable */}
+            <div className="mt-4 border-t border-line/60 pt-3">
+              <div className="mb-2 text-[11px] uppercase tracking-widest text-dim">rules — owner-dictated</div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="daily loss ($)">
+                  <NumInput
+                    value={draft(a).rules?.dailyLoss != null ? String(draft(a).rules?.dailyLoss) : ''}
+                    onChange={(e) => setRule(a, { dailyLoss: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    placeholder="250"
+                  />
+                </Field>
+                <Field label="breach — what ends it">
+                  <Select value={draft(a).rules?.breach ?? ''} onChange={(e) => setRule(a, { breach: e.target.value || undefined })}>
+                    <option value="">— none —</option>
+                    {BREACH_RULES.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="consistency applies when">
+                  <Select value={draft(a).rules?.consistency ?? ''} onChange={(e) => setRule(a, { consistency: e.target.value || undefined })}>
+                    <option value="">— none —</option>
+                    {CONSISTENCY_RULES.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+              <Field label="consistency note" className="mt-3">
+                <TextInput
+                  value={draft(a).rules?.consistencyNote ?? ''}
+                  onChange={(e) => setRule(a, { consistencyNote: e.target.value })}
+                  placeholder="30% rule — no single day above 30% of total profit; min 5 trading days"
+                />
+              </Field>
+            </div>
 
             <details className="mt-4">
               <summary className="cursor-pointer text-[11px] uppercase tracking-widest text-dim">

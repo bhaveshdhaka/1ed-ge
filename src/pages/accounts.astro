@@ -1,24 +1,37 @@
 ---
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
-import { buildStats, fmtPnl } from '../lib/stats'
+import { buildStats, flatten, fmtPnl } from '../lib/stats'
+import { accountRuleStatus } from '../lib/account-rules'
+import { todayHkt } from '../lib/sessions'
+
+export const prerender = false
 
 const [accounts, days, payouts] = await Promise.all([
   getCollection('accounts'),
   getCollection('days'),
   getCollection('payouts'),
 ])
-const { perAccount } = buildStats(days, accounts, payouts)
+const { perAccount, executions } = buildStats(days, accounts, payouts)
 const payoutRows = [...payouts].sort((a, b) => b.data.date.localeCompare(a.data.date))
+const todayIso = todayHkt()
+
+// Live rule status per account — composed from the same buildStats/flatten math.
+const statusByAccount = new Map<string, ReturnType<typeof accountRuleStatus>>()
+for (const acc of accounts) {
+  const stat = perAccount.find((s) => s.id === acc.data.id)
+  statusByAccount.set(acc.data.id, accountRuleStatus(acc.data, stat, executions, todayIso))
+}
 
 const stageColor: Record<string, string> = {
   eval: 'text-warn',
+  funded: 'text-accent',
   buffer: 'text-accent',
   payout: 'text-up',
   failed: 'text-down',
   paused: 'text-dim',
 }
-const stageOrder: Record<string, number> = { eval: 0, buffer: 1, payout: 2, failed: 3, paused: 4 }
+const stageOrder: Record<string, number> = { eval: 0, funded: 1, buffer: 2, payout: 3, failed: 4, paused: 5 }
 const sorted = [...perAccount].sort((a, b) => stageOrder[a.stage] - stageOrder[b.stage] || a.id.localeCompare(b.id))
 const active = sorted.filter((a) => a.active)
 ---
@@ -44,11 +57,15 @@ const active = sorted.filter((a) => a.active)
             <th class="th text-right">net</th>
             <th class="th text-right">R</th>
             <th class="th text-right">buffer left</th>
+            <th class="th">live</th>
           </tr>
         </thead>
         <tbody>
           {sorted.map((a) => {
             const muted = !a.active
+            const rs = statusByAccount.get(a.id) ?? null
+            const accRules = accounts.find((x) => x.data.id === a.id)?.data.rules ?? null
+            const note = accRules?.consistencyNote ?? ''
             return (
             <tr>
               <td class="td">
@@ -71,11 +88,28 @@ const active = sorted.filter((a) => a.active)
                   <span class="w-24 text-right text-[11px] text-dim">${a.buffer.toLocaleString()}</span>
                 </div>
               </td>
+              {rs && (
+                <td class="td">
+                  <div class="whitespace-nowrap text-[11px] text-dim">
+                    net {fmtPnl(rs.netPnl)} / ${(rs.drawdownLimit ?? 0).toLocaleString()} dd
+                    {rs.dailyLossLimit ? ` · today ${rs.todayPnl > 0 ? '+' : ''}$${Math.round(rs.todayPnl).toLocaleString()} / ${rs.dailyLossLimit.toLocaleString()} day` : ''}
+                  </div>
+                  <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                    {rs.breach === 'drawdown' && <span class="text-down">● breached — drawdown</span>}
+                    {rs.breach === 'daily' && <span class="text-down">● breached — daily</span>}
+                    {rs.breach === 'none' && <span class="text-dim">○ {accRules?.breach ?? ''} — ok</span>}
+                    <span class:list={[rs.consistencyApplies ? 'text-up' : 'text-dim']}>
+                      consistency: {rs.consistencyApplies ? `applies (${a.stage})` : 'n/a'}
+                    </span>
+                    {note && <span class="w-full text-faint">"{note}"</span>}
+                  </div>
+                </td>
+              )}
             </tr>
             )
           })}
           {sorted.length === 0 && (
-            <tr><td class="td text-faint" colspan="10">no accounts yet</td></tr>
+            <tr><td class="td text-faint" colspan="11">no accounts yet</td></tr>
           )}
         </tbody>
       </table>
@@ -84,9 +118,11 @@ const active = sorted.filter((a) => a.active)
     <div class="mt-6 flex flex-wrap gap-4 text-[12px] text-dim">
       <span><span class="text-up">●</span> active: {active.length}</span>
       <span><span class="text-warn">●</span> eval</span>
-      <span><span class="text-accent">●</span> building buffer</span>
+      <span><span class="text-accent">●</span> funded / building buffer</span>
       <span><span class="text-up">●</span> payout stage</span>
       <span><span class="text-down">●</span> failed — stays in the record forever</span>
+      <span><span class="text-down">●</span> breached</span>
+      <span><span class="text-up">●</span> consistency applies</span>
     </div>
 
     <h2 class="mt-14 text-lg">/ payout history</h2>

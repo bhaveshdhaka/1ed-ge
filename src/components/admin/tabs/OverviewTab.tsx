@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api'
 import { Card, Button, Stat, inputCls } from '../ui'
 import type { Tab } from '../AdminApp'
+import type { AccountRuleStatus } from '../../../lib/account-rules'
 
 interface Status {
   env: { adminSecretSet: boolean; openrouterKeySet: boolean; modelStructure: string; modelVision: string }
@@ -25,6 +26,7 @@ export function OverviewTab({
   const [rebuilding, setRebuilding] = useState(false)
   const [briefDraft, setBriefDraft] = useState('')
   const [briefBusy, setBriefBusy] = useState(false)
+  const [accLive, setAccLive] = useState<{ id: string; stage: string; status: AccountRuleStatus }[] | null>(null)
 
   const loadBrief = useCallback(async () => {
     try {
@@ -44,6 +46,17 @@ export function OverviewTab({
     } catch (e) {
       setError(e instanceof Error ? e.message : 'failed to load')
     }
+    // Live per-account rule status (net/dd · today/day · breach · consistency).
+    try {
+      const res = await api<{ accounts: { id: string; stage?: unknown; status?: AccountRuleStatus }[] }>(
+        '/api/admin/accounts',
+      )
+      setAccLive(
+        res.accounts
+          .filter((a) => a.status)
+          .map((a) => ({ id: a.id, stage: String(a.stage ?? ''), status: a.status! })),
+      )
+    } catch {}
   }, [])
 
   useEffect(() => {
@@ -183,6 +196,39 @@ export function OverviewTab({
           </div>
         </Card>
       </div>
+
+      <Card
+        title="accounts — live"
+        actions={<span className="text-[11px] text-faint">owner-dictated rules · refreshes here</span>}
+      >
+        {accLive && accLive.length > 0 ? (
+          <div className="space-y-2 text-[13px]">
+            {accLive.map((a) => {
+              const s = a.status
+              const fmt = (n: number) => `${n > 0 ? '+' : ''}$${Math.round(n).toLocaleString()}`
+              return (
+                <div
+                  key={a.id}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-0.5 border-b border-line/60 pb-2 last:border-0"
+                >
+                  <span className="w-32 text-ink">{a.id}</span>
+                  <span className="text-dim">
+                    net {fmt(s.netPnl)} / {s.drawdownLimit != null ? `$${s.drawdownLimit.toLocaleString()}` : '—'} dd
+                    {s.dailyLossLimit ? ` · today ${fmt(s.todayPnl)} / $${s.dailyLossLimit.toLocaleString()} day` : ''}
+                  </span>
+                  {s.breach === 'drawdown' && <span className="text-down">● breached — drawdown</span>}
+                  {s.breach === 'daily' && <span className="text-down">● breached — daily</span>}
+                  <span className={s.consistencyApplies ? 'text-up' : 'text-dim'}>
+                    consistency: {s.consistencyApplies ? `applies (${a.stage})` : 'n/a'}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="text-[13px] text-faint">{accLive ? 'no accounts yet' : 'loading…'}</p>
+        )}
+      </Card>
 
       <Card
         title="daily brief"
