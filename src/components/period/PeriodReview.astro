@@ -8,9 +8,8 @@ import { render } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
 import { periodHeader, REFLECTION, COMPARISON, THE_NUMBERS, TREND, EMPTY_PERIOD } from '../../lib/copy'
 import { fmtDay, fmtDayW } from '../../lib/dates'
-import { slugFromType, periodRange, PERIOD_TYPES, type PeriodRange } from '../../lib/periods'
+import { slugFromType, type PeriodRange } from '../../lib/periods'
 import { periodDelta, type PeriodStats, type TrendPoint } from '../../lib/period-stats'
-import { todayHkt } from '../../lib/sessions'
 import type { ResolvedMoment } from '../../lib/stream'
 import Card from '../ui/Card.astro'
 import StatCard from '../ui/StatCard.astro'
@@ -55,10 +54,9 @@ const fmtDelta = (v: number) => (!Number.isFinite(v) ? (v > 0 ? '∞' : '−∞'
 const winPct = stats.winRate * 100
 const pfText = stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2)
 
-const currentRanges = PERIOD_TYPES.map((t) => periodRange(t, todayHkt()))
-const switcher = currentRanges.map((r) => ({ slug: slugFromType(r.type, r.index), label: r.label.split(' ')[0] }))
-
 const pathType = Astro.url.pathname.split('/')[1] ?? ''
+const switcher = ['week', 'month', 'q1', 'q2', 'q3', 'q4', 'h1', 'h2', 'year'].map((slug) => ({ slug, label: slug }))
+
 const prevUrl = `/${slugFromType(range.prev.type, range.prev.index)}/${range.prev.anchor}`
 const nextUrl = `/${slugFromType(range.next.type, range.next.index)}/${range.next.anchor}`
 ---

@@ -134,6 +134,32 @@ export function periodRangesBetween(type: PeriodType, fromIso: string, toIso: st
   return out
 }
 
+/** Public-route URL resolution: slug + optional anchor → period range, or null (404).
+ *  Bare quarter/half slugs resolve to that index of the current year; week/month/year
+ *  bare slugs are the current period. Quarter/half anchors are canonical year-only
+ *  (`/q1/2026`); anything else returns null. Malformed anchors → null. */
+export function resolvePeriod(slug: string, anchor: string | undefined, todayIso: string): PeriodRange | null {
+  const type = periodTypeFromSlug(slug)
+  if (!type) return null
+  try {
+    if (anchor === undefined || anchor === '') {
+      if (type === 'quarter' || type === 'half') {
+        const index = Number(slug.slice(1))
+        return periodRange(type, isoFromAnchor(type, todayIso.slice(0, 4), index))
+      }
+      return periodRange(type, todayIso)
+    }
+    if (type === 'quarter' || type === 'half') {
+      if (!/^\d{4}$/.test(anchor)) return null
+      const index = Number(slug.slice(1))
+      return periodRange(type, isoFromAnchor(type, anchor, index))
+    }
+    return periodRange(type, isoFromAnchor(type, anchor))
+  } catch {
+    return null
+  }
+}
+
 // --- plain-ISO date helpers (no TZ) ---
 
 const DAY_MS = 86400000

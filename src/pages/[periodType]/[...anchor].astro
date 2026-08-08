@@ -1,12 +1,16 @@
 ---
 /**
  * [periodType]/[...anchor].astro — one dynamic route for all period reviews.
- * All-SSR: /week, /month, /q1..q4, /h1/h2, /year are current periods (anchor undefined);
- * /week/2026-32, /q1/2026, /month/2026-08 are anchored periods resolved on demand.
+ * All-SSR via resolvePeriod: bare /week, /month, /q1..q4, /h1/h2, /year resolve to
+ * their period — quarter/half bare slugs to that index of the CURRENT year,
+ * week/month/year bare slugs to the current period. Quarter/half anchors are
+ * canonical year-only (/q1/2026); aliases (/q1/2026-q1) and malformed anchors
+ * return 404. Week/month/year keep their anchored forms (/week/2026-32,
+ * /month/2026-08, /year/2026).
  */
 import Base from '../../layouts/Base.astro'
 import { getCollection } from 'astro:content'
-import { periodTypeFromSlug, isoFromAnchor, periodRange, type PeriodRange } from '../../lib/periods'
+import { resolvePeriod } from '../../lib/periods'
 import { aggregatePeriod, trendSeries, type PeriodStats, type TrendPoint } from '../../lib/period-stats'
 import { readEntry } from '../../lib/content'
 import { todayHkt } from '../../lib/sessions'
@@ -16,20 +20,9 @@ import PeriodReview from '../../components/period/PeriodReview.astro'
 export const prerender = false
 
 const slug = Astro.params.periodType ?? ''
-const type = periodTypeFromSlug(slug)
-if (!type) return new Response(null, { status: 404 })
-
-const anchor = Astro.params.anchor
-const index = type === 'quarter' ? Number(slug.slice(1)) : type === 'half' ? Number(slug.slice(1)) : undefined
-// Nested paths (e.g. /week/2026-32/extra) land in the [...anchor] rest param as
-// '2026-32/extra' and will throw from isoFromAnchor — return 404 instead of 500.
-let representativeIso: string
-try {
-  representativeIso = anchor ? isoFromAnchor(type, anchor, index) : todayHkt()
-} catch {
-  return new Response(null, { status: 404 })
-}
-const range: PeriodRange = periodRange(type, representativeIso)
+const range = resolvePeriod(slug, Astro.params.anchor, todayHkt())
+if (!range) return new Response(null, { status: 404 })
+const type = range.type
 
 const [dayEntries, habitEntries, accountEntries, journalEntries, reviewEntries] = await Promise.all([
   getCollection('days'),

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { periodRange, periodTypeFromSlug, isoFromAnchor, periodAnchor, periodRangesBetween } from '../src/lib/periods'
+import { periodRange, periodTypeFromSlug, isoFromAnchor, periodAnchor, periodRangesBetween, resolvePeriod } from '../src/lib/periods'
 
 test('week = Mon–Fri trading week containing the date', () => {
   // 2026-08-07 is a Friday; Mon 03-aug → Fri 07-aug
@@ -93,4 +93,30 @@ test('isoFromAnchor round-trips year-boundary weeks', () => {
   // week 53 of 2026 = Mon 2026-12-28 .. Fri 2027-01-01
   assert.equal(isoFromAnchor('week', '2026-53'), '2026-12-28')
   assert.equal(periodRange('week', isoFromAnchor('week', '2026-53')).anchor, '2026-53')
+})
+test('resolvePeriod — bare quarter/half slugs = that index of the CURRENT year', () => {
+  // sanity: week 32 of 2026 = Mon 03-aug → Fri 07-aug
+  assert.equal(periodRange('week', '2026-08-08').anchor, '2026-32')
+  assert.equal(resolvePeriod('q1', undefined, '2026-08-08')!.anchor, '2026-q1')
+  assert.equal(resolvePeriod('q1', undefined, '2026-08-08')!.label, 'q1 2026')
+  assert.equal(resolvePeriod('q3', undefined, '2026-08-08')!.anchor, '2026-q3') // bare honors the slug index, not today's month
+  assert.equal(resolvePeriod('h2', undefined, '2026-08-08')!.anchor, '2026-h2')
+  assert.equal(resolvePeriod('q1', undefined, '2027-01-15')!.anchor, '2027-q1') // rolls with the year
+})
+test('resolvePeriod — quarter/half anchors are canonical year-only', () => {
+  assert.equal(resolvePeriod('q1', '2026', '2026-08-08')!.anchor, '2026-q1')
+  assert.equal(resolvePeriod('q1', '2026-q1', '2026-08-08'), null) // alias → 404
+  assert.equal(resolvePeriod('q1', '2026-q2', '2026-08-08'), null) // embedded suffix no longer silently renders q1
+})
+test('resolvePeriod — week/month/year keep their anchored forms', () => {
+  assert.equal(resolvePeriod('week', undefined, '2026-08-08')!.anchor, '2026-32')
+  assert.equal(resolvePeriod('week', '2026-32', '2026-08-08')!.anchor, '2026-32')
+  assert.equal(resolvePeriod('month', '2026-08', '2026-08-08')!.anchor, '2026-08')
+  assert.equal(resolvePeriod('year', '2026', '2026-08-08')!.anchor, '2026')
+})
+test('resolvePeriod — malformed/mismatched anchors → null', () => {
+  assert.equal(resolvePeriod('week', '2026-32/extra', '2026-08-08'), null) // nested junk
+  assert.equal(resolvePeriod('week', '2026', '2026-08-08'), null) // month-style anchor in week
+  assert.equal(resolvePeriod('month', '2026', '2026-08-08'), null) // year-style anchor in month
+  assert.equal(resolvePeriod('bogus', undefined, '2026-08-08'), null) // unknown slug
 })
