@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { parseOptionsFromJSON } from './webauthn-options'
 
 export default function RegisterScreen() {
   const [busy, setBusy] = useState(false)
@@ -15,7 +16,7 @@ export default function RegisterScreen() {
       })
       const { options, nonce, error: beginErr } = await begin.json()
       if (!begin.ok || beginErr) throw new Error(beginErr || 'begin failed')
-      const credential = await navigator.credentials.create({ publicKey: options as PublicKeyCredentialCreationOptions })
+      const credential = await navigator.credentials.create({ publicKey: parseOptionsFromJSON<PublicKeyCredentialCreationOptions>(options) })
       if (!credential) throw new Error('no credential')
       const verify = await fetch('/api/webauthn/register', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
