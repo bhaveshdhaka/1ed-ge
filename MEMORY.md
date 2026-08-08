@@ -54,14 +54,20 @@ saved). Demo files stay in `/tmp/opencode/import-demo/` (2 × Lucid 50k:
 `LTE05061295040002`/`...0003`; Performance ↔ Orders fill-ids share ZERO ids on the
 demo — attribution is best-effort, the alias-confirm covers it). Commits: `84f7efe`
 (foundation) `ca93d85` (core pipeline + 13 tests) `c6814b1` (API) `5200743`+`260d35c`
-(panel UI + fix round) `6d4646b` (final-review polish). **Imported trades carry no
-`stop` → `riskOf()` defaults to 1, so R = raw points until the owner adds stops in the
-day workspace** (Tradovate exports don't include stops) — known, documented for the
-Cloudflare port.
+(panel UI + fix round) `6d4646b` (final-review polish). **Imported trades carry no `stop` → `riskOf()` defaults to 1, so R = raw points** —
+the ingest review queue now has a per-trade "risk pts" field (prefilled when the
+source shows a stop — the LLM/vision prompts extract it; manual otherwise),
+persisted as `riskPoints` on apply; the day workspace can also edit stop/risk on
+any trade. Tradovate CSV exports never carry stops → manual entry there. Commit
+`30b7321` (risk threading: `Fill.stop` → `PositionProposal.riskPoints` →
+panel input + live R hint).
 
-**NEXT (roadmap):** Cloudflare Pages + CDN port (everything file-based → clean
-swap); Safari/iOS polish pass (safe-area insets, touch targets, PWA) tracked in this
-file; account stage auto-transitions on drawdown breach (possible CSV bulk import).
+**NEXT (in progress):** **Safari/iOS polish pass** — zen used as a PWA on iPhone,
+iPad, and MacBook (safe-area insets, ≥16px inputs to stop iOS focus-zoom, touch
+targets, `-webkit-touch-callout` off on zen, a zen-scoped manifest so the installed
+app launches into `/zen/<secret>` not the public home). **Deferred:** Cloudflare
+Pages + CDN port (owner: stay on this VPS for a few weeks before testing any of
+that); account stage auto-transitions on drawdown breach (possible CSV bulk import).
 
 **INGEST-integration notes (ora-3):** (1) `toDayData` in `src/pages/api/admin/reviews.ts`
 (50 lines) re-parses day files independently of the content-collection schema — a
@@ -372,6 +378,16 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-08 — **Risk-per-trade on ingest, live.** Owner request: per-trade risk
+  points (the points they risked — "sometimes the source shows it, sometimes not").
+  `Fill.stop` (LLM/vision prompt: "include the stop ONLY when the source shows one,
+  never invent") → `PositionProposal.riskPoints` = |entry − stop| per cluster →
+  IngestPanel "risk pts" input (prefilled when parsed, manual otherwise, live
+  `R x.xx` hint) → apply persists `riskPoints` (positive-only, schema-safe).
+  Commit `30b7321`; 106/106 tests, typecheck 0, deployed + verified live.
+  Owner decision: **no Cloudflare/CDN port for now** — stay on this VPS for a few
+  weeks before testing any of that; **Safari/iOS polish pass is next** (zen as a
+  PWA on iPhone/iPad/MacBook).
 - 2026-08-08 — **INGEST shipped + live.** Daily drop ritual in the day screen:
   drag Tradovate exports (screenshot/CSV/PDF) → parse (cheap model
   `deepseek/deepseek-v4-flash-0731` for text via pdftotext/poppler, vision for
