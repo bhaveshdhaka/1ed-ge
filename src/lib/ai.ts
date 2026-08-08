@@ -171,22 +171,22 @@ Return exactly this shape:
     habits: parsed.habits && typeof parsed.habits === 'object' ? (parsed.habits as Record<string, boolean>) : null,
     device: parsed.device && typeof parsed.device === 'object'
       ? {
-          iphoneHours: num((parsed.device as any).iphoneHours),
-          socialHours: num((parsed.device as any).socialHours),
-          macHours: num((parsed.device as any).macHours),
-          notes: typeof (parsed.device as any).notes === 'string' ? (parsed.device as any).notes : null,
+          iphoneHours: num(parsed.device.iphoneHours),
+          socialHours: num(parsed.device.socialHours),
+          macHours: num(parsed.device.macHours),
+          notes: typeof parsed.device.notes === 'string' ? parsed.device.notes : null,
         }
       : null,
     deviceScreens: Array.isArray(parsed.deviceScreens) ? parsed.deviceScreens.map(Number).filter((n) => Number.isInteger(n) && n >= 0) : [],
     journal:
       parsed.journal && typeof parsed.journal === 'object'
         ? {
-            title: typeof (parsed.journal as any).title === 'string' ? (parsed.journal as any).title : null,
-            summary: typeof (parsed.journal as any).summary === 'string' ? (parsed.journal as any).summary : null,
-            tags: Array.isArray((parsed.journal as any).tags)
-              ? (parsed.journal as any).tags.map(String).filter((t: string) => t.trim()).slice(0, 6)
+            title: typeof parsed.journal.title === 'string' ? parsed.journal.title : null,
+            summary: typeof parsed.journal.summary === 'string' ? parsed.journal.summary : null,
+            tags: Array.isArray(parsed.journal.tags)
+              ? parsed.journal.tags.map(String).filter((t: string) => t.trim()).slice(0, 6)
               : [],
-            draft: typeof (parsed.journal as any).draft === 'string' ? (parsed.journal as any).draft : null,
+            draft: typeof parsed.journal.draft === 'string' ? parsed.journal.draft : null,
           }
         : null,
     trades: trades.map((t) => ({

@@ -52,14 +52,15 @@ export async function api<T = any>(
     },
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   })
-  let data: any = null
+  let data: T | null = null
   try {
-    data = await res.json()
+    data = (await res.json()) as T
   } catch {}
-  if (!res.ok || data?.ok === false) {
-    throw new Error(data?.error || `HTTP ${res.status}`)
+  const env = data as unknown as { ok?: boolean; error?: string } | null
+  if (!res.ok || env?.ok === false) {
+    throw new Error(env?.error || `HTTP ${res.status}`)
   }
-  return data
+  return data as T
 }
 
 export function todayStr(): string {
@@ -108,8 +109,16 @@ export interface RebuildRecord {
   error?: string
 }
 
+export interface BuildStatus {
+  running: boolean
+  ok: boolean | null
+  startedAt?: number
+  finishedAt?: number
+  error?: string
+}
+
 export interface BuildState {
-  build: any
+  build: BuildStatus | null
   pending: PendingChange[]
   rebuilds: RebuildRecord[]
 }
