@@ -11,71 +11,92 @@ servers do NOT count as "done". Workflow: typecheck → commit → `bash
 scripts/deploy.sh` → poll until live → curl-verify the changed bits. Kill test
 servers when finished.
 
-## HANDOFF — period reviews SHIPPED + LIVE (READ FIRST)
+## HANDOFF — pre-prod env + clean-slate prod + bug backlog (READ FIRST)
 
-**State: the period-reviews feature is DONE — committed, deployed, verified live.**
-All Wave-7 reviews approved + fix rounds landed; the final whole-branch oracle review
-approved for deploy. Deployed via `bash scripts/deploy.sh`; verified LIVE: home 200;
-/week /month /q1/2026 /h1/2026 /year/2026 /zen/<secret> 200; /admin/<secret>
-302 → /zen; bare /q1 200 (q1 of current year); /q1/2026-q1 and /week/2026-32/extra → 404;
-homepage nudge line; no "Two years" anywhere.
+**State (2026-08-08):** production `1ed.ge` is a CLEAN SLATE (no accounts/journal/models/rules/
+quotes/habits — deploy no longer auto-seeds; the calendar/market-news stays). A permanent
+PRE-PROD sandbox runs at `test.1ed.ge` (basic auth `trader`/`wonderland`) with the full filler
+world. A QA pass found 6 confirmed bugs — **fixes go to the PRE-PROD branch first, the owner
+approves on test, then the same fixes sync to prod.**
 
-**Shipped + LIVE earlier this session:** moment-images (3-type stream, ephemeral capture,
-alt sidecar, lightbox), market chronograph + overlap fix (clock-chip lane), quick wins
-(dead cockpit code + sign-correct money colors), node:test runner (84 tests), no-2-year
-de-hardcode (day counter uncapped, seed-review `--days` arg, copy de-emphasized).
+### The pre-prod environment (test.1ed.ge)
+- **What:** a permanent staging sandbox with the full credible filler — 730 days ending today
+  (the tape's 106-point compounding arc), 6 accounts (4 profitable, 2 FAILED with post-mortem
+  stories), 180 weekly payouts, review notes + an AI comparison, media placeholders, account
+  rules on 3 accounts. Every surface renders.
+- **Setup (how it was built):**
+  - Git worktree `/root/1ed-ge-preprod` on branch **`preprod`** (shares the repo; branches from
+    main). Own `.env` (copied from prod + `SITE_NOINDEX=1`); `npm install` in the tree.
+  - Filler: `node scripts/seed-review.mjs --days=730` — NOTE the preprod branch's
+    `scripts/seed-review.mjs` has a date tweak so days END TODAY (main's copy starts at the
+    fixed 2026-08-05 and goes forward — do NOT merge that tweak to main unless intended).
+  - Lifecycle shaping: `/tmp/shape-preprod-lifecycle.mjs` (throwaway) — assigns executions
+    (2 fail accounts get most losers, 4 profit accounts most winners), writes 180 weekly
+    payouts, sets the failed stages + a post-mortem journal. Re-run after re-seeding.
+  - Content: review notes in `src/content/reviews` (week-2026-31, month-2026-07,
+    quarter-2026-q2 + `.cmp.md`, year-2025); media placeholders
+    `public/media/<date>/demo-*.webp` + `alts.json`; rules blocks on lucid-50k-a/b + tpt-50k-a.
+  - `src/layouts/Base.astro` on preprod emits the noindex meta when `SITE_NOINDEX=1`
+    (pre-prod only; production stays indexable). All committed on `preprod` (last `ddf11da`).
+- **Running it:**
+  - Server: `cd /root/1ed-ge-preprod && set -a; source .env; set +a; PORT=4323 HOST=127.0.0.1
+    node dist/server/entry.mjs` (pidfile `/tmp/preprod.pid`). MUST source `.env` (ADMIN_SECRET,
+    SITE_NOINDEX). The SSR content store loads at server start — after content/code changes:
+    rebuild + restart the server.
+  - nginx: `/etc/nginx/sites-available/test.1ed.ge` → `127.0.0.1:4323`; `auth_basic` user
+    `trader`, htpasswd `/etc/nginx/.htpasswd-test` (password `wonderland`); `X-Robots-Tag:
+    noindex, nofollow` + `robots.txt` Disallow (the 401 itself is the 4th de-index layer).
+  - DNS: `test.1ed.ge` A → origin, Cloudflare-proxied (owner set it up).
+- **Maintenance:**
+  - Sync code from main: in the worktree `git fetch origin && git merge origin/main` (the preprod
+    branch keeps its seed-date tweak + Base noindex — expect small merge conflicts there).
+  - Refresh the filler: re-run the seed + the lifecycle script + `npm run build` + restart.
+  - Teardown (if ever): `git worktree remove /root/1ed-ge-preprod` + rm the vhost/htpasswd +
+    kill the server; the DNS record is the owner's to remove.
+- **Gotchas:** the autosave cron only touches `/root/1ed.ge` (prod) — the pre-prod worktree is
+  separate; pre-prod content is committed on `preprod` only. Port 4323 had a stale-process
+  collision (kill by PID — pidfiles go stale). The 3-day tape demo is gone (superseded; its
+  gitignore entry removed). The VPS resolver can't resolve test.1ed.ge (curl via Host header or
+  a public resolver).
 
-**URL semantics (owner-locked 2026-08-08):** bare `/q1` = q1 of the CURRENT YEAR (rolling);
-bare /week /month /year = current period; quarter/half PUBLIC anchors are canonical
-year-only (`/q1/2026` — `/q1/2026-q1` and `/q1/2026-q2` → 404); the admin API keeps
-internal `2026-q1` anchors (`isoFromAnchor` embedded-suffix + `validAnchor` in
-`src/pages/api/admin/reviews.ts`); the review-page switcher = 9 chips (week · month ·
-q1..q4 · h1 h2 · year). `resolvePeriod` + `publicAnchor` in `src/lib/periods.ts` are the
-pure, tested (90 tests) URL layer — the route `src/pages/[periodType]/[...anchor].astro`
-is a thin caller.
+### Production — clean slate
+- Accounts/journal/models/rules/quotes/habits removed (commits `5fe9cf9` + `b6ddddf`);
+  `scripts/deploy.sh` no longer runs the seed (bootstrap done). The calendar/market-news + the
+  code stay. The owner starts real days tomorrow/Monday and re-enters accounts, models+rules,
+  habits, quotes via zen.
 
-**Recovery map:** the SDD ledger `.superpowers/sdd/2026-08-07-period-reviews/progress.md`
-has the full history. Spec: `docs/superpowers/specs/2026-08-07-period-reviews-design.md`
-(status: shipped). Plan: `docs/superpowers/plans/2026-08-07-period-reviews.md`.
-Post-review commits: `1a4dcd6` (URL semantics + resolvePeriod, 15 tests) `9dd041e`
-(Wave-7 review fixes — lookback cleanup + horizon-first sort + filtered count, zen 404
-early-return, e2e/.env.example zen paths, VIEW_REVIEW) `8cc0e36` (publicAnchor prev/next +
-lookback round-trip regression, NaN-safe delta, styled 404) `9849c0f` ("reflection
-missing" suffix on the pending nudge, ReviewTab dirty-guard on period switch).
+### THE BUG BACKLOG (QA 2026-08-08 — awaiting owner sign-off; fix on PRE-PROD first, owner
+approves on test, then sync to prod)
+1. **Day-page order** → day facts → trades → news events → reflection → moments → habits
+   (currently facts → moments → trades → habits → screen-time → reflection → coach). Open call:
+   coach + screen-time placement (the owner's spec ends at habits).
+2. **"day {N} of {total}"** on `/day` (`src/pages/day/[date].astro:72`) — the 730 framing;
+   drop the "of {total}".
+3. **"USD news" → "News events"** (`DayArchive.astro:178` + the home-widget "USD news · all
+   today" + calendar copy).
+4. **Live market footer on past days** — the global MarketLive "opens in/closes in"/next-event
+   countdown renders on past-day pages as if live; suppress on non-today pages (the day's news
+   card timeslot collapse already works: "+N more at HH:MM").
+5. **/journal month "· N"** — unlabeled post counts; label ("· N posts") or drop.
+6. **Homepage nudge wall** — the filler's missing reflections render "404 days' pending · ~100
+   week entries"; cap/aggregate the pending line.
+Open calls: coach/screen-time on the day page; whether "News events" naming extends to the
+widget/calendar; the nudge cap format.
 
-**INGEST — SHIPPED + LIVE (2026-08-08).** Daily drop ritual in the day screen: drag
-Tradovate exports (screenshot/CSV/PDF) into the "import trades" zone → AI parses
-(cheap model `deepseek/deepseek-v4-flash-0731` via `AI_MODEL_INGEST` for text,
-`pdftotext`/poppler in the image, vision for screenshots) → fills grouped to positions
-(10-min clustering, VWAP entry/exit) → per-account dedup (advisory, pre-flagged) →
-owner approves each → apply merges into `days/<date>.md` + persists platform-id
-aliases (`platformIds[]` on accounts). Sources ephemeral (decoded in memory, never
-saved). Demo files stay in `/tmp/opencode/import-demo/` (2 × Lucid 50k:
-`LTE05061295040002`/`...0003`; Performance ↔ Orders fill-ids share ZERO ids on the
-demo — attribution is best-effort, the alias-confirm covers it). Commits: `84f7efe`
-(foundation) `ca93d85` (core pipeline + 13 tests) `c6814b1` (API) `5200743`+`260d35c`
-(panel UI + fix round) `6d4646b` (final-review polish). **Imported trades carry no `stop` → `riskOf()` defaults to 1, so R = raw points** —
-the ingest review queue now has a per-trade "risk pts" field (prefilled when the
-source shows a stop — the LLM/vision prompts extract it; manual otherwise),
-persisted as `riskPoints` on apply; the day workspace can also edit stop/risk on
-any trade. Tradovate CSV exports never carry stops → manual entry there. Commit
-`30b7321` (risk threading: `Fill.stop` → `PositionProposal.riskPoints` →
-panel input + live R hint).
+### Still-open owner actions (from earlier today)
+- **Account-rules dictation** — the per-account rules feature is built + live (config + status
+  on /accounts + zen); the owner dictates drawdown/daily loss/breach/consistency per real account.
+- **zen PWA device test** — iPhone/iPad/MacBook; the 10-point list is in
+  `.superpowers/sdd/2026-08-07-ios-polish/report.md`.
+- **The tape live eyeball** — once real days land.
 
-**NEXT (in progress):** **Safari/iOS polish pass — SHIPPED, awaiting owner device
-testing.** zen is now an installable PWA (iPhone/iPad Add-to-Home-Screen,
-MacBook Add-to-Dock) via a secret-guarded SSR manifest
-(`/zen/<secret>/manifest.webmanifest`, start_url/scope = the zen mount) + PWA
-metas on the Bare layout; zen got safe-area insets (Dynamic Island/home
-indicator), the 16px iOS focus-zoom floor, 44px touch targets on coarse
-pointers, `-webkit-touch-callout` off (fields keep selection), overscroll
-suppression on touch only, `interactive-widget=resizes-content`. Public pages
-untouched (audit-only). Commits `4385ded` + `93ce70e`. The owner must test on
-real devices — the 10-point list is in
-`.superpowers/sdd/2026-08-07-ios-polish/report.md`. **Deferred:** Cloudflare
-Pages + CDN port (owner: stay on this VPS for a few weeks before testing any of
-that); account stage auto-transitions on drawdown breach (possible CSV bulk
-import).
+### Still-live locked decisions (do not re-litigate)
+- URL semantics: bare /q1 = current-year q1; canonical-only public anchors (`/q1/2026`, aliases
+  404); 9-chip switcher; `resolvePeriod`/`publicAnchor` in `src/lib/periods.ts` (tested).
+- NO user-facing 2-year/730 framing anywhere (the "day N of 730" on /day is a bug — backlog #2).
+- Everything public except zen; public pages zero-JS (the tape is SSR SVG; only the Lightbox
+  script is JS). Reflection writing stays in zen (day screen + reviews tab); the tape displays.
+- Model config: all opencode agents pinned to `opencode-go/deepseek-v4-flash` (owner: no revert).
 
 **INGEST-integration notes (ora-3):** (1) `toDayData` in `src/pages/api/admin/reviews.ts`
 (50 lines) re-parses day files independently of the content-collection schema — a
@@ -386,6 +407,14 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-08 — **Pre-prod sandbox + clean-slate prod + QA (the handover above).** Built the
+  permanent `test.1ed.ge` pre-prod: git worktree on branch `preprod`, full credible filler
+  (730 days ending today via a seed date-tweak, 2 failed accounts + 180 weekly payouts +
+  review notes + media + account rules), basic auth trader/wonderland + 4 de-index layers.
+  Production cleared to a clean slate (seeded accounts/journal/models/rules/quotes/habits
+  removed in `5fe9cf9` + `b6ddddf`; deploy.sh stops auto-seeding; calendar stays). Full QA
+  found 6 bugs — the backlog in the top handoff; fixes pending the owner's sign-off
+  (pre-prod first, then sync to prod).
 - 2026-08-08 — **The tape — one holistic period recap, live.** `/lookback` + the
   period review merge into ONE page at the same clean URLs (/week /month /q1..q4
   /h1/h2 /year + anchors): a server-rendered SVG compounding arc (cumulative R,
