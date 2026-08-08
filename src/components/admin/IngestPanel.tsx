@@ -136,9 +136,10 @@ export function IngestPanel({
   }
 
   const apply = async () => {
-    if (!state.result) return
+    const result = state.result
+    if (!result) return
     const approvedPositions: PositionProposal[] = []
-    state.result.proposals.forEach((p, i) => {
+    result.proposals.forEach((p, i) => {
       if (!state.approved[i]) return
       const internalId = state.accountByIndex[i] || p.account.internalId || ''
       approvedPositions.push({
@@ -149,7 +150,7 @@ export function IngestPanel({
     if (approvedPositions.length === 0) return notify('no trades selected to import', false)
 
     const platformLinks = Object.entries(state.links)
-      .filter(([platformId]) => state.result.platformIdsSeen.includes(platformId))
+      .filter(([platformId]) => result.platformIdsSeen.includes(platformId))
       .map(([platformId, internalId]) => ({ platformId, internalId }))
 
     try {
@@ -202,7 +203,10 @@ export function IngestPanel({
                 <div className="flex items-center gap-2">
                   <Select
                     value={state.links[state.result.aliasProposal.platformId] ?? state.result.aliasProposal.suggested ?? ''}
-                    onChange={(e) => setLink(state.result.aliasProposal!.platformId, e.target.value)}
+                    onChange={(e) => {
+                      const platformId = state.result?.aliasProposal?.platformId
+                      if (platformId) setLink(platformId, e.target.value)
+                    }}
                     className="flex-1"
                   >
                     <option value="">— skip —</option>
@@ -226,7 +230,7 @@ export function IngestPanel({
                   <span className="text-faint">approve</span>
                 </label>
                 <span className="text-[14px] text-ink">
-                  {p.direction === 'long' ? '▲' : '▼'} {p.market} {p.direction} {p.entry} → {p.exit} · {p.points >= 0 ? '+' : ''}{p.points}R · size {p.size} · {p.fillCount} fills
+                  {p.direction === 'long' ? '▲' : '▼'} {p.market} {p.direction} {p.entry} → {p.exit} · {p.points >= 0 ? '+' : ''}{p.points} pts · size {p.size} · {p.fillCount} fills
                 </span>
                 {p.dup && (
                   <span className="border border-line px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-warn">dup</span>
