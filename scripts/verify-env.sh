@@ -33,8 +33,16 @@ check() {
 
 echo "── verify-env: $expected @ $url ───────────────────────────────"
 
+# Curl args: test env needs basic auth to pass the nginx auth_basic gate.
+CURL_BASE=(curl -sS --max-time 10 -L)
+if [ "$expected" = "test" ]; then
+  CURL_AUTH=(-u trader:wonderland)
+else
+  CURL_AUTH=()
+fi
+
 # 1. HTTP 200 on /
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url/" || echo 000)
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${CURL_AUTH[@]}" "$url/" || echo 000)
 if [ "$HTTP_CODE" = "200" ]; then
   check "HTTP 200 on /" ok
 else
@@ -42,7 +50,7 @@ else
 fi
 
 # 2. /robots.txt — inspect the wildcard (User-agent: *) block, not per-bot rules
-ROBOTS=$(curl -s --max-time 10 "$url/robots.txt" || echo "")
+ROBOTS=$(curl -s --max-time 10 "${CURL_AUTH[@]}" "$url/robots.txt" || echo "")
 # Extract the first wildcard block: from "User-agent: *" to the next blank line or EOF
 WILDCARD_BLOCK=$(echo "$ROBOTS" | awk '/^User-agent: \*$/ {flag=1; next} flag && /^$/ {flag=0} flag' | head -20)
 if [ "$expected" = "test" ]; then
@@ -60,7 +68,7 @@ else
 fi
 
 # 3. X-Robots-Tag header on /
-HEADER=$(curl -sI --max-time 10 "$url/" 2>/dev/null | grep -i "x-robots-tag" || true)
+HEADER=$(curl -sI --max-time 10 "${CURL_AUTH[@]}" "$url/" 2>/dev/null | grep -i "x-robots-tag" || true)
 if [ "$expected" = "test" ]; then
   if echo "$HEADER" | grep -qi "noindex"; then
     check "X-Robots-Tag header has noindex" ok
@@ -76,7 +84,7 @@ else
 fi
 
 # 4. meta noindex in HTML
-HTML=$(curl -s --max-time 10 "$url/" || echo "")
+HTML=$(curl -s --max-time 10 "${CURL_AUTH[@]}" "$url/" || echo "")
 if [ "$expected" = "test" ]; then
   if echo "$HTML" | grep -qi 'name="robots" content="noindex'; then
     check "HTML meta robots has noindex" ok
