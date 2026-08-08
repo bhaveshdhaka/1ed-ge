@@ -96,7 +96,11 @@ widget/calendar; the nudge cap format.
 - NO user-facing 2-year/730 framing anywhere (the "day N of 730" on /day is a bug — backlog #2).
 - Everything public except zen; public pages zero-JS (the tape is SSR SVG; only the Lightbox
   script is JS). Reflection writing stays in zen (day screen + reviews tab); the tape displays.
-- Model config: all opencode agents pinned to `opencode-go/deepseek-v4-flash` (owner: no revert).
+- Model config (2026-08-08, overrides the earlier all-flash pin): opencode-go preset
+  in `~/.config/opencode/oh-my-opencode-slim.json` — orchestrator=`opencode-go/minimax-m3`,
+  oracle=`opencode-go/deepseek-v4-pro`, observer=`opencode-go/mimo-v2.5` (vision),
+  explorer/librarian/designer/fixer=`opencode-go/deepseek-v4-flash`. Superpowers plugin
+  untouched.
 
 **INGEST-integration notes (ora-3):** (1) `toDayData` in `src/pages/api/admin/reviews.ts`
 (50 lines) re-parses day files independently of the content-collection schema — a
