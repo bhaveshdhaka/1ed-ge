@@ -67,6 +67,9 @@ approves on test, then the same fixes sync to prod.**
 
 ### THE BUG BACKLOG (QA 2026-08-08 — awaiting owner sign-off; fix on PRE-PROD first, owner
 approves on test, then sync to prod)
+> **STATUS 2026-08-08 (late): ALL 6 + ~20 more fixed on preprod (`af1eff4`), verified live on
+> test.1ed.ge (155/155 tests). Future periods now 307-redirect to today's period; journal
+> "Day N" counters removed. Owner reviews on test → then sync preprod→main + deploy.
 1. **Day-page order** → day facts → trades → news events → reflection → moments → habits
    (currently facts → moments → trades → habits → screen-time → reflection → coach). Open call:
    coach + screen-time placement (the owner's spec ends at habits).
