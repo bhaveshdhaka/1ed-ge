@@ -204,8 +204,15 @@ export function marketEvents(startHkt: string, days: number): MarketEvent[] {
 /* ------------------------------------------------------------------ */
 /* Context-aware day marker.                                           */
 /*  - today: LIVE marker (data-mkt-live drives the ticking countdown)  */
-/*  - other dates: scheduled presentation — hollow ○ + session window, */
-/*    never a green "● open" (which would imply it's open right now).  */
+/*  - other dates: the STATE only — never a per-day schedule window.   */
+/*    The schedule window is shown in the calendar's per-day session   */
+/*    band row (where "halt 05:00–06:00" vs "~23h" is informative),     */
+/*    but for the day-page header / calendar row header we want ONE    */
+/*    consistent label per state (open / closed / early close). The    */
+/*    prior version of this function injected the window into the      */
+/*    text, which made Friday ("~23h") and Monday–Thursday             */
+/*    ("halt 05:00–06:00 hkt") render differently despite being the    */
+/*    same STATE — a 23h CME session.                                  */
 /* ------------------------------------------------------------------ */
 
 export interface DayMarker {
@@ -220,9 +227,7 @@ export function scheduledDayMarker(iso: string): DayMarker {
   if (m.status === 'closed') return { glyph: '✕', text: `closed · ${m.label}`, cls: 'text-down', live: false }
   if (m.status === 'early') return { glyph: '◐', text: 'early close 1:15pm ct', cls: 'text-warn', live: false }
   if (iso === todayHkt()) return { glyph: '●', text: 'open', cls: 'text-up', live: true }
-  const cmeWin = daySessionWindows(iso).cme
-  const suffix = cmeWin.startsWith('halt') ? `${cmeWin} hkt` : cmeWin === '~23h' ? '~23h' : ''
-  return { glyph: '○', text: suffix ? `open · ${suffix}` : 'open', cls: 'text-dim', live: false }
+  return { glyph: '○', text: 'open', cls: 'text-dim', live: false }
 }
 
 /** Compact per-market session window for a date (HKT), e.g. NYSE "21:30→04:00". */

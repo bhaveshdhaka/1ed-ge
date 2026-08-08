@@ -73,11 +73,13 @@ test('sessions: NYSE/TSE/LSE windows are unaffected by the CME halt fix', () => 
   assert.equal(mon.lse, '15:00→23:30')
 })
 
-test('sessions: scheduledDayMarker renders a normal past day as "○ open · halt 05:00–06:00 hkt"', () => {
-  // 2026-08-03 is past relative to today (2026-08-08), so it's a hollow ○ marker.
+test('sessions: scheduledDayMarker renders a normal past day as "○ open" (state only, no schedule window)', () => {
+  // The day-page header / calendar row header describe STATE, not the
+  // per-day schedule window. Friday ("~23h") and Mon–Thu ("halt 05:00–06:00")
+  // are both 23h CME sessions — the header should be identical.
   const mk = scheduledDayMarker('2026-08-03')
   assert.equal(mk.glyph, '○')
-  assert.equal(mk.text, 'open · halt 05:00–06:00 hkt')
+  assert.equal(mk.text, 'open')
   assert.equal(mk.cls, 'text-dim')
   assert.equal(mk.live, false)
 })
@@ -103,16 +105,11 @@ test('sessions: addDaysIso handles month/year boundaries', () => {
 })
 
 test('sessions: scheduledDayMarker is consistent across all of one trading week', () => {
-  // Mon–Thu share the halt display; Friday is "~23h"; the rest of the week
-  // is consistent within those two buckets. This locks in the post-fix
-  // contract so the bug cannot regress.
+  // All five weekdays are 23h CME sessions — the header must be identical.
+  // Mon–Thu and Fri are both "open" with no schedule-window suffix.
   const week = ['2026-08-03', '2026-08-04', '2026-08-05', '2026-08-06', '2026-08-07']
   const markers = week.map((d) => scheduledDayMarker(d).text)
-  assert.deepEqual(markers, [
-    'open · halt 05:00–06:00 hkt',
-    'open · halt 05:00–06:00 hkt',
-    'open · halt 05:00–06:00 hkt',
-    'open · halt 05:00–06:00 hkt',
-    'open · ~23h',
-  ])
+  assert.deepEqual(markers, ['open', 'open', 'open', 'open', 'open'])
+  const glyphs = week.map((d) => scheduledDayMarker(d).glyph)
+  assert.deepEqual(glyphs, ['○', '○', '○', '○', '○'])
 })
