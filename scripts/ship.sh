@@ -36,13 +36,14 @@ fi
 
 case "$cmd" in
   preprod-to-main)
-    # Must run from the preprod worktree (sync-to-prod.sh guards that)
+    # sync-to-prod.sh must run from the PROD worktree (main checked out) —
+    # its mechanism (git checkout FETCH_HEAD -- files && git commit) commits
+    # to the current branch. So cd to the prod worktree first.
     echo "═══ shipping preprod → main ═══"
+    cd /root/1ed.ge
     bash scripts/sync-to-prod.sh -y
     echo
-    echo "═══ syncing main into prod worktree, then deploying ═══"
-    cd /root/1ed.ge
-    git pull /root/1ed-ge-preprod main --no-rebase
+    echo "═══ deploying prod ═══"
     bash scripts/deploy-prod.sh
     ;;
 
