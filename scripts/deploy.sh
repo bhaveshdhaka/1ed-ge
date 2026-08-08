@@ -3,8 +3,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
 
-echo "→ seeding content (idempotent)"
-node scripts/seed.mjs
+# content bootstrap (seed.mjs) is done — the site starts as a clean slate;
+# never auto-seed placeholder content over real trader data.
 
 echo "→ fetching USD market news (red/orange, no build)"
 node scripts/market-news-fetch.mjs --no-build || echo "  warn: market fetch failed — deploy continues"
