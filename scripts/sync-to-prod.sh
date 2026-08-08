@@ -28,6 +28,18 @@
 
 set -euo pipefail
 
+# Guard: this script only runs from the preprod (test) worktree.
+cd "$(dirname "$0")/.."
+# shellcheck source=lib/env.sh
+source scripts/lib/env.sh
+require_env test
+
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+if [ "$branch" != "preprod" ]; then
+  echo "✗ refusing: this script must run on the preprod branch (got: ${branch:-<no git>})" >&2
+  exit 1
+fi
+
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
