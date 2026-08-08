@@ -1,0 +1,344 @@
+---
+/**
+ * PeriodReview.astro — one posterized review surface for any horizon.
+ * Zero-JS. R centerpiece + per-account + per-model + life metrics +
+ * reflection + AI comparison + journal entries + stream moments.
+ */
+import { render } from 'astro:content'
+import { periodHeader, REFLECTION, COMPARISON, THE_NUMBERS, TREND, EMPTY_PERIOD } from '../lib/copy'
+import { fmtDay, fmtDayW } from '../lib/dates'
+import { slugFromType, periodRange, PERIOD_TYPES, type PeriodRange } from '../lib/periods'
+import { periodDelta, type PeriodStats, type TrendPoint } from '../lib/period-stats'
+import { todayHkt } from '../lib/sessions'
+import type { ResolvedMoment } from '../lib/stream'
+import Card from '../ui/Card.astro'
+import StatCard from '../ui/StatCard.astro'
+import Table from '../ui/Table.astro'
+import Badge from '../ui/Badge.astro'
+import EmptyState from '../ui/EmptyState.astro'
+import MomentCard from '../stream/MomentCard.astro'
+
+interface Props {
+  range: PeriodRange
+  stats: PeriodStats
+  prevStats: PeriodStats | null
+  trend: TrendPoint[]
+  dayIsos: string[]
+  reviewEntry: any
+  comparisonBody: string
+  journals: any[]
+  moments: ResolvedMoment[]
+}
+
+const { range, stats, prevStats, trend, dayIsos, reviewEntry, comparisonBody, journals, moments } = Astro.props
+
+let Reflection: any = null
+if (reviewEntry) {
+  const r = await render(reviewEntry)
+  Reflection = r.Content
+}
+
+const deltas = prevStats ? periodDelta(prevStats, stats) : []
+
+const deltaLabels: Record<string, string> = {
+  sumR: 'sum R',
+  expectancyR: 'expectancy',
+  winRate: 'win rate',
+  profitFactor: 'profit factor',
+  trades: 'trades',
+  tradedDays: 'traded days',
+}
+
+const winPct = stats.winRate * 100
+const pfText = stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2)
+
+const currentRanges = PERIOD_TYPES.map((t) => periodRange(t, todayHkt()))
+const switcher = currentRanges.map((r) => ({ slug: slugFromType(r.type, r.index), label: r.label.split(' ')[0] }))
+
+const pathType = Astro.url.pathname.split('/')[1] ?? ''
+const prevUrl = `/${slugFromType(range.prev.type, range.prev.index)}/${range.prev.anchor}`
+const nextUrl = `/${slugFromType(range.next.type, range.next.index)}/${range.next.anchor}`
+---
+
+<div class="shell pt-12 pb-20">
+  <header class="flex flex-col gap-2">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+      <h1 class="text-2xl text-ink">/ review</h1>
+      <span class="text-xs text-faint">{stats.daysCount} days logged</span>
+    </div>
+    <div class="text-base text-soft">{periodHeader(range)}</div>
+  </header>
+
+  <nav class="mt-4 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-2">
+      <a
+        href={prevUrl}
+        class="flex h-10 items-center border border-line px-3 text-xs text-dim transition-colors hover:border-accent hover:text-ink"
+      >
+        ← {range.prev.label}
+      </a>
+      <a
+        href={nextUrl}
+        class="flex h-10 items-center border border-line px-3 text-xs text-dim transition-colors hover:border-accent hover:text-ink"
+      >
+        {range.next.label} →
+      </a>
+    </div>
+    <div class="flex flex-wrap gap-1.5">
+      {switcher.map((s) => {
+        const active = pathType === s.slug
+        return (
+          <a
+            href={`/${s.slug}`}
+            aria-current={active ? 'page' : undefined}
+            class:list={[
+              'border px-2.5 py-1 text-2xs transition-colors',
+              active ? 'border-accent text-accent' : 'border-line2 text-dim hover:border-accent hover:text-accent',
+            ]}
+          >
+            {s.label}
+          </a>
+        )
+      })}
+    </div>
+  </nav>
+
+  {stats.daysCount === 0 ? (
+    <div class="mt-10">
+      <EmptyState text={EMPTY_PERIOD} />
+    </div>
+  ) : (
+    <div class="mt-10 flex flex-col gap-10">
+      <section>
+        <h2 class="text-lg text-ink">/ {THE_NUMBERS}</h2>
+        <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          <StatCard
+            label="sum R"
+            value={`${stats.sumR >= 0 ? '+' : ''}${stats.sumR.toFixed(2)}R`}
+            tone={stats.sumR > 0 ? 'up' : stats.sumR < 0 ? 'down' : 'default'}
+          />
+          <StatCard
+            label="expectancy"
+            value={`${stats.expectancyR >= 0 ? '+' : ''}${stats.expectancyR.toFixed(2)}R`}
+            tone={stats.expectancyR > 0 ? 'up' : stats.expectancyR < 0 ? 'down' : 'default'}
+          />
+          <StatCard label="win rate" value={`${winPct.toFixed(0)}%`} />
+          <StatCard label="profit factor" value={pfText} />
+          <StatCard label="trades" value={String(stats.trades)} />
+          <StatCard label="traded days" value={String(stats.tradedDays)} />
+        </div>
+      </section>
+
+      <section class="grid gap-6 lg:grid-cols-2">
+        <div>
+          <h3 class="mb-3 text-sm text-soft">/ per-account p&l</h3>
+          {stats.pnlByAccount.length > 0 ? (
+            <Table head={['account', 'pnl']}>
+              {stats.pnlByAccount.map((row) => (
+                <tr>
+                  <td class="td">{row.account}</td>
+                  <td class:list={['td text-right tabular-nums', row.pnl >= 0 ? 'num-up' : 'num-down']}>
+                    {row.pnl >= 0 ? '+' : ''}${row.pnl.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </Table>
+          ) : (
+            <EmptyState text="no accounts traded this period." />
+          )}
+        </div>
+        <div>
+          <h3 class="mb-3 text-sm text-soft">/ per-model</h3>
+          {stats.modelStats.length > 0 ? (
+            <Table head={['model', 'trades', 'sum R']}>
+              {stats.modelStats.map((row) => (
+                <tr>
+                  <td class="td">
+                    <Badge variant="accent">{row.model}</Badge>
+                  </td>
+                  <td class="td text-right tabular-nums">{row.count}</td>
+                  <td
+                    class:list={[
+                      'td text-right tabular-nums',
+                      row.sumR > 0 ? 'num-up' : row.sumR < 0 ? 'num-down' : '',
+                    ]}
+                  >
+                    {row.sumR > 0 ? '+' : ''}
+                    {row.sumR.toFixed(2)}R
+                  </td>
+                </tr>
+              ))}
+            </Table>
+          ) : (
+            <EmptyState text="no model-tagged trades this period." />
+          )}
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-lg text-ink">/ life metrics</h2>
+        <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <StatCard label="avg sleep" value={stats.avgSleep !== null ? `${stats.avgSleep.toFixed(1)}h` : '—'} />
+          <StatCard label="avg mood" value={stats.avgMood !== null ? `${stats.avgMood.toFixed(1)}/5` : '—'} />
+          <StatCard
+            label="avg screen"
+            value={stats.avgScreenHours !== null ? `${stats.avgScreenHours.toFixed(1)}h` : '—'}
+          />
+          <StatCard label="habits tracked" value={String(stats.habitAdherence.length)} />
+        </div>
+        {stats.habitAdherence.length > 0 && (
+          <div class="mt-4 flex flex-wrap gap-2">
+            {stats.habitAdherence.map((h) => (
+              <span class="flex items-center gap-2 border border-line px-3 py-1.5 text-sm text-dim">
+                {h.habit} <span class="tabular-nums text-ink">{h.pct.toFixed(0)}%</span>
+              </span>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 class="text-lg text-ink">/ days</h2>
+        {dayIsos.length > 0 ? (
+          <div class="mt-3 flex flex-wrap gap-1.5">
+            {dayIsos.map((iso) => (
+              <a
+                href={`/day/${fmtDay(iso)}`}
+                class="border border-line px-2 py-1 text-2xs text-dim transition-colors hover:border-accent hover:text-accent"
+              >
+                {fmtDayW(iso)}
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div class="mt-3">
+            <EmptyState text="no day records in this period." />
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 class="text-lg text-ink">/ {TREND}</h2>
+        {trend.length > 0 ? (
+          <Table head={['period', 'sum R', 'win rate', 'trades']}>
+            {trend.map((pt) => (
+              <tr>
+                <td class="td">{pt.label}</td>
+                <td
+                  class:list={['td text-right tabular-nums', pt.sumR > 0 ? 'num-up' : pt.sumR < 0 ? 'num-down' : '']}
+                >
+                  {pt.sumR > 0 ? '+' : ''}
+                  {pt.sumR.toFixed(2)}R
+                </td>
+                <td class="td text-right tabular-nums">{(pt.winRate * 100).toFixed(0)}%</td>
+                <td class="td text-right tabular-nums">{pt.trades}</td>
+              </tr>
+            ))}
+          </Table>
+        ) : (
+          <EmptyState text="no trend data yet." />
+        )}
+      </section>
+
+      <section>
+        <h2 class="text-lg text-ink">/ {REFLECTION}</h2>
+        {Reflection ? (
+          <div class="prose mt-4 max-w-3xl">
+            <Reflection />
+          </div>
+        ) : (
+          <div class="mt-4">
+            <EmptyState text="no reflection written for this period." />
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 class="text-lg text-ink">/ {COMPARISON}</h2>
+        {comparisonBody ? (
+          <Card class="mt-4 max-w-3xl">
+            <div class="flex flex-col gap-1">
+              {comparisonBody
+                .split('\n')
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line) => {
+                  const bullet = line.replace(/^[-*]+\s*/, '')
+                  return <p class="text-sm text-soft">· {bullet}</p>
+                })}
+            </div>
+          </Card>
+        ) : (
+          <Card class="mt-4 max-w-3xl">
+            {deltas.length > 0 ? (
+              <div class="flex flex-col gap-1">
+                {deltas.map((d) => (
+                  <p class="text-sm text-soft">
+                    · {deltaLabels[d.field] ?? d.field}: {d.cur.toFixed(2)} vs {d.prev.toFixed(2)}
+                    {d.pct !== null ? ` (${d.pct > 0 ? '+' : ''}${(d.pct * 100).toFixed(0)}%)` : ''}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p class="text-sm text-faint">no previous period to compare.</p>
+            )}
+            {trend.length > 0 && (
+              <div class="mt-3 border-t border-line/50 pt-3">
+                <p class="text-2xs uppercase tracking-widest text-dim">rolling trend</p>
+                <p class="mt-1 text-sm text-soft">
+                  {trend
+                    .map((pt) => `${pt.label} ${pt.sumR > 0 ? '+' : ''}${pt.sumR.toFixed(2)}R`)
+                    .join(' · ')}
+                </p>
+              </div>
+            )}
+          </Card>
+        )}
+      </section>
+
+      <section>
+        <h2 class="text-lg text-ink">/ journal entries</h2>
+        {journals.length > 0 ? (
+          <div class="mt-4 grid gap-3 md:grid-cols-2">
+            {journals.map((j) => (
+              <a
+                href={`/day/${fmtDay(j.data.date)}`}
+                class="block border border-line bg-panel p-4 transition-colors hover:border-accent"
+              >
+                <div class="text-2xs text-faint">{fmtDayW(j.data.date)}</div>
+                {j.data.day && <div class="mt-1 text-sm text-ink">{j.data.day}</div>}
+                {j.data.summary && <p class="mt-1 text-sm text-soft">{j.data.summary}</p>}
+                {j.data.tags && j.data.tags.length > 0 && (
+                  <div class="mt-2 flex flex-wrap gap-1.5">
+                    {j.data.tags.map((tag: string) => (
+                      <span class="text-2xs text-faint">#{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div class="mt-4">
+            <EmptyState text="no journal entries this period." />
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 class="text-lg text-ink">/ stream moments</h2>
+        {moments.length > 0 ? (
+          <div class="mt-4 flex max-w-2xl flex-col gap-3">
+            {moments.map((m) => (
+              <MomentCard moment={m} showDay />
+            ))}
+          </div>
+        ) : (
+          <div class="mt-4">
+            <EmptyState text="no stream moments this period." />
+          </div>
+        )}
+      </section>
+    </div>
+  )}
+</div>
