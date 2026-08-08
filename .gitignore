@@ -6,6 +6,7 @@ dist/
 .DS_Store
 *.log
 .tmp/
+data/
 
 # durable last-online heartbeat stamp (public/media is bind-mounted, survives restarts)
 public/media/.last-online
