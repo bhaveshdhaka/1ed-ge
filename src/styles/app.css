@@ -356,7 +356,8 @@
   .tb-stars-b,
   .tb-peak-glow,
   .brand-word,
-  .brand-tk {
+  .brand-tk,
+  .tape-dot-now {
     animation: none;
   }
   .brand-word {

@@ -135,7 +135,7 @@ const last = tape.length - 1
         >
           <polyline points={tLine} fill="none" stroke={tColor} stroke-width="1.5" opacity="0.8" />
           {tape.map((p, i) => (
-            <a href={p.href} title={`${p.short} · ${p.sumR >= 0 ? '+' : ''}${p.sumR.toFixed(2)}R`} aria-label={`${p.short} — view this period`}>
+            <a href={p.href} title={`${p.short} · ${p.sumR >= 0 ? '+' : ''}${p.sumR.toFixed(2)}R`} aria-label={`${p.short}: ${p.sumR >= 0 ? '+' : ''}${p.sumR.toFixed(2)}R`}>
               <circle cx={tX(i)} cy={tY(p.cumulative)} r={p.current ? 5 : 3.5} fill={dotColor(p.sumR)} class:list={[p.current && 'tape-dot-now']} />
             </a>
           ))}
@@ -146,7 +146,7 @@ const last = tape.length - 1
           )}
           {tape[last]?.current && (
             <g>
-              <line x1={tX(last)} y1={10} x2={tX(last)} y2={tY(tape[last].cumulative) - 10} stroke={tColor} stroke-width="1.5" />
+              <line x1={tX(last)} y1={10} x2={tX(last)} y2={Math.max(tY(tape[last].cumulative) - 10, 18)} stroke={tColor} stroke-width="1.5" />
               <text x={tX(last)} y={8} fill={tColor} font-size="9" text-anchor="middle">now</text>
             </g>
           )}
