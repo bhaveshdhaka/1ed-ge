@@ -124,7 +124,10 @@ src/pages/                  public pages: / /stream /journal /models /calendar /
                              /year + anchored forms via [periodType]/[...anchor], all SSR) + /lookback
                              + rss + sitemap (/ + /stream + review routes + /lookback are SSR)
 src/pages/zen/[secret]/    private zen (SSR), renders the React app; the old
-                             /admin/[secret] is a thin redirect to /zen
+                             /admin/[secret] is a thin redirect to /zen;
+                             /zen/<secret>/manifest.webmanifest is a secret-guarded
+                             PWA manifest (start_url/scope = the zen mount) so zen
+                             installs standalone on iPhone/iPad/MacBook
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/api/admin/market.ts    USD news GET + refresh (spawns market-news-fetch.mjs)
 src/pages/api/admin/reviews.ts   period review notes + AI comparison (GET/POST; internal <type>-<anchor> anchors)

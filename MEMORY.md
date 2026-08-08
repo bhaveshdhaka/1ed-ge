@@ -62,12 +62,20 @@ any trade. Tradovate CSV exports never carry stops → manual entry there. Commi
 `30b7321` (risk threading: `Fill.stop` → `PositionProposal.riskPoints` →
 panel input + live R hint).
 
-**NEXT (in progress):** **Safari/iOS polish pass** — zen used as a PWA on iPhone,
-iPad, and MacBook (safe-area insets, ≥16px inputs to stop iOS focus-zoom, touch
-targets, `-webkit-touch-callout` off on zen, a zen-scoped manifest so the installed
-app launches into `/zen/<secret>` not the public home). **Deferred:** Cloudflare
+**NEXT (in progress):** **Safari/iOS polish pass — SHIPPED, awaiting owner device
+testing.** zen is now an installable PWA (iPhone/iPad Add-to-Home-Screen,
+MacBook Add-to-Dock) via a secret-guarded SSR manifest
+(`/zen/<secret>/manifest.webmanifest`, start_url/scope = the zen mount) + PWA
+metas on the Bare layout; zen got safe-area insets (Dynamic Island/home
+indicator), the 16px iOS focus-zoom floor, 44px touch targets on coarse
+pointers, `-webkit-touch-callout` off (fields keep selection), overscroll
+suppression on touch only, `interactive-widget=resizes-content`. Public pages
+untouched (audit-only). Commits `4385ded` + `93ce70e`. The owner must test on
+real devices — the 10-point list is in
+`.superpowers/sdd/2026-08-07-ios-polish/report.md`. **Deferred:** Cloudflare
 Pages + CDN port (owner: stay on this VPS for a few weeks before testing any of
-that); account stage auto-transitions on drawdown breach (possible CSV bulk import).
+that); account stage auto-transitions on drawdown breach (possible CSV bulk
+import).
 
 **INGEST-integration notes (ora-3):** (1) `toDayData` in `src/pages/api/admin/reviews.ts`
 (50 lines) re-parses day files independently of the content-collection schema — a
@@ -378,6 +386,18 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-08 — **Safari/iOS polish pass, live (zen PWA).** Owner: the PWA is only
+  for them — zen is their daily surface on iPhone/iPad/MacBook. Shipped: zen-scoped
+  secret-guarded SSR manifest (`/zen/<secret>/manifest.webmanifest`, standalone,
+  start_url/scope = zen mount — the installed app opens straight into zen; public
+  manifest + sw.js untouched), PWA metas on the Bare layout (viewport-fit=cover,
+  black-translucent, theme-color, interactive-widget), safe-area utilities on the
+  zen header/RebuildBar/section-jump/toast, 16px iOS focus-zoom floor + 44px touch
+  targets on coarse pointers, `-webkit-touch-callout` off (fields keep selection),
+  overscroll suppression touch-only (MacBook keeps rubber-banding), `min-h-svh`.
+  Commits `4385ded` + `93ce70e`. Two designer sessions errored (harness) — the
+  spec'd pass ran as a fixer lane instead. Public pages audit-only (no changes).
+  Owner device-testing pending (10-point list in the ios-polish SDD report).
 - 2026-08-08 — **Risk-per-trade on ingest, live.** Owner request: per-trade risk
   points (the points they risked — "sometimes the source shows it, sometimes not").
   `Fill.stop` (LLM/vision prompt: "include the stop ONLY when the source shows one,

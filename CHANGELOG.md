@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (Safari/iOS polish — zen as a PWA)
+
+- **Zen is now an installable PWA** on iPhone/iPad (Add to Home Screen) and
+  MacBook Safari (Add to Dock): a new secret-guarded SSR manifest
+  (`/zen/<secret>/manifest.webmanifest`) scopes `start_url`/`scope` to the zen
+  mount path, so the installed app launches straight into the private desk. The
+  public manifest + service worker are untouched (the SW keeps skipping `/zen` —
+  no offline admin).
+- **Safe-area insets on zen** — `env(safe-area-inset-*)` padding on the header,
+  sticky RebuildBar, section jump, toast, and preview page clears the Dynamic
+  Island/notch and home indicator in standalone mode (`min-h-svh` roots).
+- **iOS focus-zoom fix** — zen form fields are floored to 16px (Safari
+  auto-zooms smaller controls on focus); `interactive-widget=resizes-content`
+  on the zen viewport.
+- **Touch targets** — primary zen controls (buttons, links, selects,
+  checkboxes, tab nav) hit ≥44px on coarse pointers (iPhone/iPad); desktop
+  density unchanged.
+- **Hardening** — `-webkit-touch-callout: none` on zen's non-editable UI (text
+  selection kept in fields); `overscroll-behavior: none` on touch devices only
+  (MacBook keeps rubber-banding).
+- **PWA metas on the Bare layout** (theme-color, black-translucent status bar,
+  viewport-fit=cover) mirror the public head.
+
 ### Added (Ingest — the daily drop ritual)
 
 - **Drag-and-drop trade import in the day screen.** The owner drops Tradovate
