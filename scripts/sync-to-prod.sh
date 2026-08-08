@@ -14,6 +14,9 @@
 #   tests/
 #   .gitignore
 #   nginx/  (nginx vhost configs; both envs have them)
+#   package.json / package-lock.json   (dependency pins — e.g. the passkey
+#       auth feature's @simplewebauthn/server + docker-compose.yml below)
+#   docker-compose.yml   (the data/ volume mount for passkey sessions/creds)
 #
 # MEMORY.md is intentionally excluded: prod MEMORY is the owner's authoritative
 # log, preprod MEMORY has the session log + cleanups. Pass --with-memory to
@@ -43,8 +46,9 @@ fi
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
-ALLOWLIST_REGEX='^(src/[^c]|src/c[^o]|src/co[^n]|src/con[^t]|src/cont[^e]|src/conte[^n]|src/conten[^t]|src/content/($|.n(ext|ot-used))|tests/|\.gitignore|nginx/)'
-# ^ allows src/* EXCEPT src/content/*, plus tests/, .gitignore, nginx/.
+ALLOWLIST_REGEX='^(src/[^c]|src/c[^o]|src/co[^n]|src/con[^t]|src/cont[^e]|src/conte[^n]|src/conten[^t]|src/content/($|.n(ext|ot-used))|tests/|\.gitignore|nginx/|package\.json|package-lock\.json|docker-compose\.yml)'
+# ^ allows src/* EXCEPT src/content/*, plus tests/, .gitignore, nginx/,
+# package.json, package-lock.json and docker-compose.yml.
 # The content/ exclusion is the guard. The src/content/( ... .n(ext|ot-used))
 # branch is a safety hatch for "I really do want to sync one specific content
 # file" — but in normal use, nothing under src/content/ should sync.

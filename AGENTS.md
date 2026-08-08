@@ -28,6 +28,9 @@ deploy or sync. The pipeline guarantees:
 - Wrong-env actions fail loud (`require_env <expected>` in every script).
 - **Direct `git push` to main/preprod is refused** by the pre-push hook —
   the path is `bash scripts/ship.sh <direction>`, not `git push`.
+- **Zen auth is passkey-based** (`/zen`, WebAuthn). The setup/recovery URL is
+  `/zen/setup?key=<ADMIN_SECRET>` — the secret is no longer in the daily URL.
+  Admin API auth = session cookie, not the `x-admin-secret` header.
 
 The one-line env check: `bash scripts/where-am-i.sh`. The 10-second
 wired-up check: `bash scripts/audit-pipeline.sh`. The single ship command:

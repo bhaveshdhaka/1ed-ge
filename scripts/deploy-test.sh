@@ -18,6 +18,8 @@ echo "→ fetching USD market news (red/orange, no build)"
 node scripts/market-news-fetch.mjs --no-build || echo "  warn: market fetch failed — deploy continues"
 
 echo "→ building"
+echo "→ ensuring data dir exists"
+mkdir -p "$ROOT/data"
 npm run build
 
 echo "→ starting node server on port $SITE_PORT (kill any stale process first)"

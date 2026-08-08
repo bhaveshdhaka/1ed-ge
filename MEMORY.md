@@ -13,6 +13,12 @@ servers when finished.
 
 ## HANDOFF — pre-prod env + clean-slate prod + bug backlog (READ FIRST)
 
+**Zen auth is now passkey-based (WebAuthn), test-first on preprod:** `/zen` is
+passkey-gated, the admin API authenticates via the `zen_session` cookie (no
+more `x-admin-secret` header). Setup/recovery URL is `/zen/setup?key=<ADMIN_SECRET>`;
+the old secret URL `/zen/<secret>` is gone. All 7 tasks of the passkey plan are
+committed on `preprod`; **awaiting owner approval on test → sync to prod.**
+
 **State (2026-08-08):** production `1ed.ge` is a CLEAN SLATE (no accounts/journal/models/rules/
 quotes/habits — deploy no longer auto-seeds; the calendar/market-news stays). A permanent
 PRE-PROD sandbox runs at `test.1ed.ge` (basic auth `trader`/`wonderland`) with the full filler
