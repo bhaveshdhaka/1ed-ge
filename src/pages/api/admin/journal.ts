@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry, deleteEntry } from '../../../lib/content'
 import { addChange } from '../../../lib/changes'
 
@@ -22,7 +22,7 @@ function readJournal() {
 }
 
 export const GET: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const url = new URL(request.url)
   const file = url.searchParams.get('file')
   if (file) {
@@ -36,7 +36,7 @@ export const GET: APIRoute = async ({ request }) => {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const date = String(body.date ?? '')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return error('invalid date (expected YYYY-MM-DD)')
@@ -59,7 +59,7 @@ export const POST: APIRoute = async ({ request }) => {
 }
 
 export const DELETE: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const file = String(body.file ?? '')
   if (!file || !/^[\w.-]+\.mdx?$/.test(file)) return error('invalid file')

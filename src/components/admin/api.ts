@@ -3,9 +3,9 @@ let SECRET = ''
 export function setSecret(s: string) {
   SECRET = s
 }
-export function getSecret(): string {
-  return SECRET
-}
+// NOTE: getSecret was removed in the passkey switch (Task 3); setSecret stays
+// until Task 6 retires the AdminApp `secret` prop. The x-admin-secret header
+// is gone — auth now rides the zen_session cookie.
 
 type Listener = () => void
 const listeners = new Set<Listener>()
@@ -48,7 +48,6 @@ export async function api<T = any>(
     method: opts.method ?? 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'x-admin-secret': SECRET,
     },
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   })

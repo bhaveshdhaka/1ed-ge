@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, getSecret, fetchRebuildState, bus } from '../api'
+import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, fetchRebuildState, bus } from '../api'
 import { fmtDay } from '../../../lib/dates'
 import { Card, Button, Field, TextInput, NumInput, TextArea, Select } from '../ui'
 import { MarketCard } from '../MarketCard'
@@ -650,7 +650,7 @@ export function DayWorkspace({
 
   const hasDayRecord = daysList.some((d) => d.date === date)
   const dayPending = pendingLabels.some((l) => l.includes(date))
-  const previewHref = `/zen/${getSecret()}/preview/${date}`
+  const previewHref = `/zen/preview/${date}`
   const editableHint = 'underline decoration-dashed decoration-line2 underline-offset-4 hover:text-accent hover:decoration-accent cursor-pointer'
 
   // day-level keyboard shortcuts (global save handled in AdminApp)

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import {
   structureDayFull,
   readScreenshot,
@@ -16,7 +16,7 @@ import { buildBriefSnapshot } from '../../../lib/brief'
 export const prerender = false
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const action = String(body.action ?? '')
   try {

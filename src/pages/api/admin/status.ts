@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { env } from '../../../lib/env'
 import { listMds, listMedia } from '../../../lib/content'
 import { todayKey } from '../../../lib/habits'
@@ -8,7 +8,7 @@ import { getPending, getRebuilds } from '../../../lib/changes'
 export const prerender = false
 
 export const GET: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const today = todayKey()
 
   let todayDay: Record<string, unknown> | null = null

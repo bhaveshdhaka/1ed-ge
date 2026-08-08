@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { readBrief, saveBrief } from '../../../lib/brief'
 import { addChange } from '../../../lib/changes'
 import { todayKey } from '../../../lib/habits'
@@ -7,13 +7,13 @@ import { todayKey } from '../../../lib/habits'
 export const prerender = false
 
 export const GET: APIRoute = async ({ request, url }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const date = url.searchParams.get('date') ?? todayKey()
   return json({ ok: true, date, brief: readBrief(date) })
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const date = String(body.date ?? '')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return error('invalid date')

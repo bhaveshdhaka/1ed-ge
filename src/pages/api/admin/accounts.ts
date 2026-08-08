@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry, deleteEntry, sanitizeSlug } from '../../../lib/content'
 import { addChange } from '../../../lib/changes'
 import { buildStats, flatten } from '../../../lib/stats'
@@ -26,7 +26,7 @@ function rulesFrom(body: Record<string, unknown>): Record<string, unknown> {
 }
 
 export const GET: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
 
   // fs reads skip content-collection defaults — default trades/executions +
   // stages so flatten()/buildStats() stay safe on hand-written/legacy files.
@@ -73,7 +73,7 @@ export const GET: APIRoute = async ({ request }) => {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const action = String(body.action ?? '')
 

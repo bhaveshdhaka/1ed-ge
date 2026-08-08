@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry } from '../../../lib/content'
 import { addChange } from '../../../lib/changes'
 import {
@@ -132,7 +132,7 @@ function statsCtx(): PeriodStatsCtx {
 }
 
 export const GET: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const url = new URL(request.url)
   const typeRaw = url.searchParams.get('type')
   const anchorRaw = url.searchParams.get('anchor')
@@ -158,7 +158,7 @@ export const GET: APIRoute = async ({ request }) => {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const type = body.type
   const anchor = String(body.anchor ?? '')
