@@ -17,9 +17,10 @@ const {
   title = '1ed.ge — public trading journal',
   description = 'A public trading journal. Every trade, every account, every R. Live and uncensored.',
   ogImage = '/og.png',
-  noindex = false,
+  noindex: noindexProp = false,
 } = Astro.props
 
+const noindex = noindexProp || (typeof process !== 'undefined' && process.env.SITE_NOINDEX === '1')
 const theme = 'summit'
 const SITE = 'https://1ed.ge'
 const canonical = new URL(Astro.url.pathname, SITE)

@@ -11,6 +11,10 @@ riskPerTrade: 200
 stage: "eval"
 stages:
   - stage: "eval"
-    from: "2026-08-07"
+    from: "2026-08-05"
+rules:
+  dailyLoss: 250
+  breach: 'either'
+  consistency: 'funded'
+  consistencyNote: "30% rule — no single day above 30% of total profit; min 5 trading days"
 ---
-
