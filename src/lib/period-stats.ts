@@ -4,7 +4,7 @@
 // re-implemented here.
 
 import { ROf, type DayData } from './stream'
-import { periodRangesBetween, type PeriodRange, type PeriodType } from './periods'
+import { periodRange, periodRangesBetween, publicAnchor, slugFromType, type PeriodRange, type PeriodType } from './periods'
 
 export interface PeriodStats {
   daysCount: number
@@ -178,4 +178,84 @@ export function trendSeries(type: PeriodType, days: DayData[], n: number, ctx: P
     const s = aggregatePeriod(days, range, ctx)
     return { label: range.label, sumR: s.sumR, winRate: s.winRate, trades: s.trades }
   })
+}
+
+export interface TapePoint {
+  href: string       // canonical URL, e.g. '/week/2026-33' or '/q1/2026'
+  short: string      // 'w33' | 'aug' | 'q1' | 'h1' | '2026'
+  sumR: number       // that period's sumR
+  cumulative: number // running total of sumR through this period
+  current: boolean   // the period containing todayIso
+}
+
+export interface LadderEntry {
+  label: string // 'day' | 'week' | 'month' | 'quarter' | 'year'
+  sumR: number
+}
+
+function tapeShort(type: PeriodType, range: PeriodRange): string {
+  switch (type) {
+    case 'week': return `w${range.index}`
+    case 'month': return range.label.split(' ')[0]
+    case 'quarter': return `q${range.index}`
+    case 'half': return `h${range.index}`
+    case 'year': return range.label
+  }
+}
+
+/**
+ * The tape — chronological periods with day data (oldest first), each with its
+ * sumR and the running cumulative R (the compounding arc the SVG draws). The
+ * current period is ALWAYS the final point (appended at 0-R when it has no data
+ * yet) and marked `current` — the tape always extends to now.
+ */
+export function buildTape(type: PeriodType, days: DayData[], ctx: PeriodStatsCtx, todayIso: string): TapePoint[] {
+  if (days.length === 0) return []
+  const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date))
+  const ranges = periodRangesBetween(type, sorted[0].date, todayIso)
+  const currentAnchor = periodRange(type, todayIso).anchor
+  const points: TapePoint[] = []
+  let cumulative = 0
+  for (const range of ranges) {
+    const s = aggregatePeriod(days, range, ctx)
+    if (range.anchor === currentAnchor) {
+      cumulative = round3(cumulative + s.sumR)
+      points.push({
+        href: `/${slugFromType(type, range.index)}/${publicAnchor(type, range.anchor)}`,
+        short: tapeShort(type, range),
+        sumR: s.sumR,
+        cumulative,
+        current: true,
+      })
+      break
+    }
+    if (s.daysCount === 0) continue // data-only for past periods
+    cumulative = round3(cumulative + s.sumR)
+    points.push({
+      href: `/${slugFromType(type, range.index)}/${publicAnchor(type, range.anchor)}`,
+      short: tapeShort(type, range),
+      sumR: s.sumR,
+      cumulative,
+      current: false,
+    })
+  }
+  return points
+}
+
+/**
+ * The to-date ladder — cumulative R at each horizon containing today:
+ * day · week · month · quarter · year. Day = today's trades; the rest are the
+ * current period of each horizon.
+ */
+export function toDateLadder(days: DayData[], todayIso: string, ctx: PeriodStatsCtx): LadderEntry[] {
+  const today = days.find((d) => d.date === todayIso)
+  const daySumR = today ? round3(today.trades.reduce((s, t) => s + ROf(t), 0)) : 0
+  const horizon = (type: PeriodType): number => round3(aggregatePeriod(days, periodRange(type, todayIso), ctx).sumR)
+  return [
+    { label: 'day', sumR: daySumR },
+    { label: 'week', sumR: horizon('week') },
+    { label: 'month', sumR: horizon('month') },
+    { label: 'quarter', sumR: horizon('quarter') },
+    { label: 'year', sumR: horizon('year') },
+  ]
 }

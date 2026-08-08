@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { periodRange, periodRangesBetween } from '../src/lib/periods'
-import { aggregatePeriod, periodDelta, trendSeries, type PeriodStats, type PeriodStatsCtx } from '../src/lib/period-stats'
+import { aggregatePeriod, buildTape, periodDelta, toDateLadder, trendSeries, type PeriodStats, type PeriodStatsCtx } from '../src/lib/period-stats'
 import type { DayData, DayTrade } from '../src/lib/stream'
 
 const approx = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) < eps
@@ -193,4 +193,51 @@ test('trendSeries: spans only whole periods between earliest and latest day', ()
     { label: 'week 32', sumR: 2, winRate: 1, trades: 1 },
     { label: 'week 33', sumR: 4, winRate: 1, trades: 1 },
   ])
+})
+
+test('buildTape: chronological data-only arc, current marked', () => {
+  const tape = buildTape('week', days, ctx, '2026-08-10')
+  assert.equal(tape.length, 2)
+  assert.equal(tape[0].short, 'w32')
+  assert.ok(approx(tape[0].sumR, 2.2))
+  assert.ok(approx(tape[0].cumulative, 2.2))
+  assert.equal(tape[0].current, false)
+  assert.equal(tape[0].href, '/week/2026-32')
+  assert.equal(tape[1].short, 'w33')
+  assert.equal(tape[1].sumR, 99)
+  assert.ok(approx(tape[1].cumulative, 101.2))
+  assert.equal(tape[1].current, true)
+  assert.equal(tape[1].href, '/week/2026-33')
+})
+
+test('buildTape: empty current week appended at 0-R with the live mark', () => {
+  const tape = buildTape('week', days, ctx, '2026-08-21') // Fri of an empty w34
+  assert.equal(tape.length, 3)
+  assert.equal(tape[2].short, 'w34')
+  assert.equal(tape[2].sumR, 0)
+  assert.ok(approx(tape[2].cumulative, 101.2))
+  assert.equal(tape[2].current, true)
+})
+
+test('buildTape: empty past periods are skipped (data-only arc)', () => {
+  const gapDays = [days[0], day('2026-08-24', [trade({ points: 2 })])]
+  const tape = buildTape('week', gapDays, ctx, '2026-08-24')
+  assert.deepEqual(tape.map((p) => p.short), ['w32', 'w35'])
+  assert.equal(tape[tape.length - 1].current, true)
+})
+
+test('toDateLadder: day feeds week month quarter year', () => {
+  const ladder = toDateLadder(days, '2026-08-04', ctx)
+  const byLabel = Object.fromEntries(ladder.map((l) => [l.label, l.sumR]))
+  assert.equal(byLabel.day, 1)
+  assert.ok(approx(byLabel.week, 2.2))
+  assert.ok(approx(byLabel.month, 101.2))
+  assert.ok(approx(byLabel.quarter, 101.2))
+  assert.ok(approx(byLabel.year, 101.2))
+})
+
+test('toDateLadder: no day record → day is 0', () => {
+  const ladder = toDateLadder(days, '2026-08-05', ctx)
+  const byLabel = Object.fromEntries(ladder.map((l) => [l.label, l.sumR]))
+  assert.equal(byLabel.day, 0)
 })
