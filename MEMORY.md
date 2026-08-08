@@ -41,6 +41,21 @@ That doc is the single source of truth. Key points:
   code stay. The owner starts real days tomorrow/Monday and re-enters accounts, models+rules,
   habits, quotes via zen.
 
+## Session log (recent)
+
+- 2026-08-08 — **Passkey auth for zen — LIVE on prod + test.** The secret URL is gone; zen is
+  at the stable **`/zen`** (WebAuthn passkey, Face ID / Touch ID / iCloud Keychain), the old
+  `/zen/<secret>` and `/admin/<secret>` routes 404. Setup/recovery page: **`/zen/setup?key=<ADMIN_SECRET>`**
+  (one-time first registration + recovery). The admin API rides a 30-day sliding httpOnly
+  session cookie instead of the `x-admin-secret` header; the old header is deleted everywhere.
+  `@simplewebauthn/server@13.3.2` + a gitignored `data/` dir (passkeys.json + sessions.json,
+  docker volume `./data:/app/data`). Owner tested on test.1ed.ge first, approved, synced to
+  prod via `ship.sh preprod-to-main`. **The zen PWA needs re-install** (Add to Home Screen
+  again — the manifest moved to `/zen/`). Pipeline bug fixed on the way: `sync-to-prod.sh`
+  must run from the **prod** worktree (main) — its mechanism commits to the current branch,
+  and the allowlist now covers package.json/package-lock.json/docker-compose.yml (test
+  vhost `nginx/test.1ed.ge.conf` is explicitly preprod-only and never syncs).
+
 ### THE BUG BACKLOG (QA 2026-08-08 — awaiting owner sign-off; fix on PRE-PROD first, owner
 approves on test, then sync to prod)
 > **STATUS 2026-08-08 (late): ALL 6 + ~20 more fixed on preprod (`af1eff4`), verified live on

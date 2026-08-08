@@ -40,7 +40,7 @@ Every pipeline script sources `scripts/lib/env.sh` and calls `require_env <expec
 | `scripts/deploy-prod.sh` | prod worktree | Build docker, install prod nginx, install prod crons, verify live |
 | `scripts/deploy-test.sh` | preprod worktree | Build, start node on 4323, install test nginx, optional seed, verify live |
 | `scripts/sync-from-prod.sh` | preprod worktree | Pull main → preprod (stashes preprod-only files across merge) |
-| `scripts/sync-to-prod.sh` | preprod worktree | Push preprod → main, but **blocks src/content/** (the sandbox filler must never land on prod) |
+| `scripts/sync-to-prod.sh` | **prod** worktree | Push preprod → main, but **blocks src/content/** (the sandbox filler must never land on prod). Must run from the prod worktree (main checked out) — its `git checkout FETCH_HEAD -- files && git commit` lands on the current branch |
 | `scripts/verify-env.sh [prod\|test]` | any | Curl the running env, assert noindex signals + content match |
 | `scripts/audit-pipeline.sh` | any | 10-second wired-up check (where-am-i + verify-env + git status) |
 | `scripts/seed.mjs` | preprod worktree | Idempotent default seed (4 accounts + 6 habits + Day Zero). Refuses in prod. |
@@ -67,9 +67,8 @@ bash scripts/deploy-test.sh       # rebuild + restart
 ### I want to ship a code change from preprod to main
 
 ```bash
-cd /root/1ed-ge-preprod
-bash scripts/sync-to-prod.sh      # show the diff, ask to confirm
 cd /root/1ed.ge
+bash scripts/sync-to-prod.sh      # run from PROD — show the diff, ask to confirm
 bash scripts/deploy-prod.sh       # rebuild docker, install crons, verify
 ```
 
