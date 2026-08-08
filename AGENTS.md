@@ -8,7 +8,8 @@ single source of truth for how this project is built, run, and shipped.
 `1ed.ge` is a **public trading journal** — a two-year, everything-public
 experiment on the road to a hedge fund. Every trade, every account, every
 mood, every sleep hour, every screen-time screenshot, every miss is public.
-The only private thing is the admin area at `/admin/<secret>`.
+The only private thing is the **zen** area at `/zen/<secret>` (the old
+`/admin/<secret>` path redirects there).
 
 The centerpiece metric is **R** = points risked vs points made. All
 performance math is risk-based. Everything is linked: mood, sleep, habits,
@@ -109,7 +110,8 @@ src/components/archive/DayArchive.astro  posterized day archive (facts + moments
 src/pages/                  public pages: / /stream /journal /models /calendar /performance /tracker /trends
                              /accounts /coach /about /day/[date] + rss + sitemap
                              (/ + /stream are SSR — prerender = false)
-src/pages/admin/[secret]/   private admin (SSR), renders the React app
+src/pages/zen/[secret]/    private zen (SSR), renders the React app; the old
+                             /admin/[secret] is a thin redirect to /zen
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/api/admin/market.ts    USD news GET + refresh (spawns market-news-fetch.mjs)
 src/pages/media/[...file].ts SSR media file server (uploads in public/media)

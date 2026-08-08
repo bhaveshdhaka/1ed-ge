@@ -35,21 +35,21 @@ for (const route of routes) {
   await context.close()
 }
 
-// admin day workspace (best-effort)
+// zen day workspace (best-effort)
 try {
   const context = await browser.newContext()
   const page = await context.newPage()
-  await page.goto(`${BASE}/admin/${SECRET}`, { waitUntil: 'networkidle' })
+  await page.goto(`${BASE}/zen/${SECRET}`, { waitUntil: 'networkidle' })
   await page.keyboard.press('2')
   await page.waitForTimeout(1500)
   const res = await new AxeBuilder({ page }).analyze()
   results.push({
-    url: '/admin/[secret] (day workspace)',
+    url: '/zen/[secret] (day workspace)',
     violations: res.violations.map((x) => ({ id: x.id, impact: x.impact, help: x.help, nodes: x.nodes.length, targets: x.nodes.slice(0, 3).map((n) => n.target.join(' ')) })),
   })
   await context.close()
 } catch (e) {
-  results.push({ url: '/admin (SKIPPED)', violations: [{ id: 'error', impact: 'n/a', help: String(e.message).slice(0, 120), nodes: 1, targets: [] }] })
+  results.push({ url: '/zen (SKIPPED)', violations: [{ id: 'error', impact: 'n/a', help: String(e.message).slice(0, 120), nodes: 1, targets: [] }] })
 }
 
 await browser.close()

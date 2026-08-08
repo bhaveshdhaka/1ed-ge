@@ -1,20 +1,24 @@
 ---
+// Old private-area path — thin SSR redirect to the zen mount, so old
+// bookmarks still work. A wrong secret 404s like the zen page itself.
 export const prerender = false
-import Bare from '../../../layouts/Bare.astro'
-import AdminApp from '../../../components/admin/AdminApp'
 import { env } from '../../../lib/env'
 
 const { secret } = Astro.params
-const ok = secret === env.adminSecret()
-if (!ok) {
+if (secret !== env.adminSecret()) {
   Astro.response.status = 404
+} else {
+  return Astro.redirect(`/zen/${secret}`)
 }
 ---
-
-<Bare title={ok ? 'admin — 1ed.ge' : 'not found'}>
-  {ok ? (
-    <AdminApp client:only="react" secret={secret!} />
-  ) : (
-    <div class="shell py-24 text-[13px] text-faint">404 — not found</div>
-  )}
-</Bare>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>404 — not found</title>
+  </head>
+  <body style="font-family: ui-monospace, monospace; background: #0a0a0c; color: #8b8b93; padding: 6rem 1rem; text-align: center">
+    404 — not found
+  </body>
+</html>

@@ -1,0 +1,41 @@
+---
+export const prerender = false
+import Bare from '../../../layouts/Bare.astro'
+import AdminApp from '../../../components/admin/AdminApp'
+import { env } from '../../../lib/env'
+import { getCollection } from 'astro:content'
+import type { DayData } from '../../../lib/stream'
+import { accountabilityStatus } from '../../../lib/accountability'
+import { pendingReflectionsLine } from '../../../lib/copy'
+
+const { secret } = Astro.params
+const ok = secret === env.adminSecret()
+if (!ok) {
+  Astro.response.status = 404
+}
+
+// zen reminder — pending end-of-day + period reflections greet the owner on
+// login. Server-side (SSR) so it is computed from fresh collection data; the
+// owner-locked line comes from copy.ts (null → nothing renders).
+const [dayEntries, journalEntries, reviewEntries] = await Promise.all([
+  getCollection('days'),
+  getCollection('journal'),
+  getCollection('reviews'),
+])
+const nowIso = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 16)
+const account = accountabilityStatus(
+  dayEntries.map((d) => d.data as DayData),
+  journalEntries.map((j) => j.data.date),
+  reviewEntries.map((r) => ({ type: r.data.type, anchor: r.data.anchor })),
+  nowIso,
+)
+const zenLine = pendingReflectionsLine(account.pendingDays, account.pendingPeriods)
+---
+
+<Bare title={ok ? 'zen — 1ed.ge' : 'not found'}>
+  {ok ? (
+    <AdminApp client:only="react" secret={secret!} zenLine={zenLine} />
+  ) : (
+    <div class="shell py-24 text-[13px] text-faint">404 — not found</div>
+  )}
+</Bare>

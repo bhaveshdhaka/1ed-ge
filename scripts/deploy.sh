@@ -30,5 +30,5 @@ sudo systemctl restart cron 2>/dev/null || true
 
 echo ""
 echo "✓ deployed — http://1ed.ge"
-echo "  admin: https://1ed.ge/admin/<ADMIN_SECRET>"
+echo "  zen: https://1ed.ge/zen/<ADMIN_SECRET>"
 echo "  remember to point 1ed.ge A @ 142.91.108.254 on Cloudflare (proxied)"

@@ -43,7 +43,7 @@ function isTyping(e: KeyboardEvent): boolean {
   )
 }
 
-export default function AdminApp({ secret }: { secret: string }) {
+export default function AdminApp({ secret, zenLine }: { secret: string; zenLine?: string | null }) {
   const [tab, setTab] = useState<Tab>('overview')
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const [help, setHelp] = useState(false)
@@ -147,9 +147,9 @@ export default function AdminApp({ secret }: { secret: string }) {
             <span className="brand-word">
               <span className="brand-one">1</span>edge<span className="brand-tk">_</span>
             </span>
-            <span className="ml-2 text-[11px] font-normal uppercase tracking-widest text-faint">admin</span>
+            <span className="ml-2 text-[11px] font-normal uppercase tracking-widest text-faint">zen</span>
           </a>
-          <nav aria-label="admin tabs" className="flex flex-wrap items-center gap-1">
+          <nav aria-label="zen tabs" className="flex flex-wrap items-center gap-1">
             {TABS.map((t) => (
               <button
                 key={t.id}
@@ -173,6 +173,16 @@ export default function AdminApp({ secret }: { secret: string }) {
           </nav>
         </div>
       </header>
+
+      {zenLine && (
+        <div className="border-b border-line bg-raise/60">
+          <div className="shell flex items-center gap-2 py-2 text-[12px]">
+            <span className="text-warn" aria-hidden="true">◷</span>
+            <span className="text-dim">{zenLine}</span>
+            <span className="ml-auto text-faint">pending reflections</span>
+          </div>
+        </div>
+      )}
 
       <RebuildBar />
 

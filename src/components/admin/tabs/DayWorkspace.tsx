@@ -649,7 +649,7 @@ export function DayWorkspace({
 
   const hasDayRecord = daysList.some((d) => d.date === date)
   const dayPending = pendingLabels.some((l) => l.includes(date))
-  const previewHref = `/admin/${getSecret()}/preview/${date}`
+  const previewHref = `/zen/${getSecret()}/preview/${date}`
   const editableHint = 'underline decoration-dashed decoration-line2 underline-offset-4 hover:text-accent hover:decoration-accent cursor-pointer'
 
   // day-level keyboard shortcuts (global save handled in AdminApp)

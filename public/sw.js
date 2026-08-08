@@ -21,7 +21,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
-  if (url.pathname.startsWith('/admin')) return
+  if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/zen')) return
 
   if (url.pathname.startsWith('/media/') || url.pathname.startsWith('/_astro/') || url.pathname === '/manifest.webmanifest') {
     event.respondWith(

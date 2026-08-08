@@ -238,7 +238,7 @@ deployed in this session; the autosave cron is active again.
 - **Zero-JS still holds on public pages.** Mobile nav is a `<details>` hamburger;
   the only inline JS is the SW registration and a one-line date-jump handler.
 - **PWA shipped.** `public/manifest.webmanifest` + network-first `sw.js` + PNG
-  icons generated from `favicon.svg` via sharp. SW skips `/admin`.
+  icons generated from `favicon.svg` via sharp. SW skips `/admin` + `/zen`.
 - **Models:** DeepSeek `deepseek/deepseek-chat` (text day / coach / assist),
   Qwen2.5-VL `qwen/qwen-2.5-vl-72b-instruct` (image days + screenshots), both
   via OpenRouter. Overridable in `.env`. Cost ≈ $1–3/month at a few calls/day.
