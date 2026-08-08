@@ -1,0 +1,29 @@
+---
+export const prerender = false
+import Bare from '../../layouts/Bare.astro'
+import { setupKeyOk } from '../../lib/auth'
+
+const key = Astro.url.searchParams.get('key')
+const ok = setupKeyOk(key)
+if (!ok) {
+  Astro.response.status = 404
+}
+const manifestHref = ok ? '/zen/manifest.webmanifest' : undefined
+---
+
+<Bare title={ok ? 'zen — setup' : 'not found'} manifest={manifestHref}>
+  {ok ? (
+    <div class="shell py-16">
+      <h1 class="mb-1 text-xl">zen setup</h1>
+      <p class="mb-6 text-[13px] text-dim">register a passkey to lock zen to this device / your iCloud Keychain.</p>
+      {/* TODO the real RegisterScreen (Task 6+) replaces this placeholder —
+          registration calls POST /api/webauthn/register with ?key= */}
+      <div class="panel p-4 text-[13px] text-dim">
+        passkey registration is wired server-side (<code class="text-ink">/api/webauthn/register</code>) —
+        the in-zen register screen lands with the full setup flow.
+      </div>
+    </div>
+  ) : (
+    <div class="shell py-24 text-[13px] text-faint">404 — not found</div>
+  )}
+</Bare>

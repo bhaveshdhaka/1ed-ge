@@ -1,0 +1,46 @@
+---
+export const prerender = false
+import Bare from '../../layouts/Bare.astro'
+import AdminApp from '../../components/admin/AdminApp'
+import { sessionOk } from '../../lib/auth'
+import { getCollection } from 'astro:content'
+import type { DayData } from '../../lib/stream'
+import { nowHkt } from '../../lib/sessions'
+import { accountabilityStatus } from '../../lib/accountability'
+import { pendingReflectionsLine } from '../../lib/copy'
+
+const authed = sessionOk(Astro.request)
+
+let zenLine: string | null = null
+if (authed) {
+  const [dayEntries, journalEntries, reviewEntries] = await Promise.all([
+    getCollection('days'),
+    getCollection('journal'),
+    getCollection('reviews'),
+  ])
+  const nowIso = nowHkt()
+  const account = accountabilityStatus(
+    dayEntries.map((d) => d.data as DayData),
+    journalEntries.map((j) => j.data.date),
+    reviewEntries.map((r) => ({ type: r.data.type, anchor: r.data.anchor })),
+    nowIso,
+  )
+  zenLine = pendingReflectionsLine(account.pendingDays, account.pendingPeriods)
+}
+const manifestHref = '/zen/manifest.webmanifest'
+---
+
+<Bare title={authed ? 'zen — 1ed.ge' : 'zen sign in'} manifest={manifestHref}>
+  {authed ? (
+    // TODO Task 6 removes the `secret` prop from AdminApp; the '' placeholder
+    // keeps the build green until then (setSecret is already a no-op vestige).
+    <AdminApp client:only="react" secret={''} zenLine={zenLine} />
+  ) : (
+    // TODO Task 6 replaces this with the real LoginScreen component.
+    <div class="shell py-24 text-[13px]">
+      <h1 class="mb-2 text-xl">sign in</h1>
+      <p class="mb-6 text-dim">zen is passkey-locked. sign in with your passkey to open the desk.</p>
+      <a href="/zen/setup" class="underline underline-offset-4 hover:text-ink">recover / register a passkey →</a>
+    </div>
+  )}
+</Bare>

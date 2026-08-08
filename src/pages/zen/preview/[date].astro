@@ -1,13 +1,13 @@
 ---
 export const prerender = false
-import Bare from '../../../../layouts/Bare.astro'
-import { env } from '../../../../lib/env'
-import { readEntry, listMds } from '../../../../lib/content'
-import { renderMarkdown } from '../../../../lib/markdown'
-import { fmtDay } from '../../../../lib/dates'
+import Bare from '../../../layouts/Bare.astro'
+import { sessionOk } from '../../../lib/auth'
+import { readEntry, listMds } from '../../../lib/content'
+import { renderMarkdown } from '../../../lib/markdown'
+import { fmtDay } from '../../../lib/dates'
 
-const { secret, date } = Astro.params
-const ok = secret === env.adminSecret() && /^\d{4}-\d{2}-\d{2}$/.test(date ?? '')
+const { date } = Astro.params
+const ok = sessionOk(Astro.request) && /^\d{4}-\d{2}-\d{2}$/.test(date ?? '')
 if (!ok) {
   Astro.response.status = 404
 }
