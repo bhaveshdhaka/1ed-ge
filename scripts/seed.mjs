@@ -2,6 +2,15 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+// Guard: this script only runs in the TEST env. In prod, exit loudly.
+if (process.env.SITE_ENV !== 'test') {
+  console.error('✗ refusing: scripts/seed.mjs only runs in the TEST env.')
+  console.error(`  SITE_ENV is ${JSON.stringify(process.env.SITE_ENV ?? null)} in this worktree's env.`)
+  console.error('  This script writes the default 4 accounts + 6 habits + Day Zero journal.')
+  console.error('  If you really want to seed here (initial bootstrap), set SITE_ENV=test first.')
+  process.exit(1)
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.join(__dirname, '..')
 const C = (rel) => path.join(ROOT, 'src/content', rel)

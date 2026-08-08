@@ -68,5 +68,31 @@ test('where-am-i.sh prints env snapshot', () => {
   ok(/noindex:\s+1/.test(r.stdout), 'prints noindex: 1')
 })
 
+test('seed.mjs refuses when SITE_ENV is not test', () => {
+  const r = run('node', ['scripts/seed.mjs'], { SITE_ENV: 'prod' })
+  ok(r.code === 1, 'exit 1 in prod')
+  ok(/refusing/.test(r.stderr), 'stderr says refusing')
+  ok(/SITE_ENV is "prod"/.test(r.stderr), 'stderr names the env')
+})
+
+test('seed.mjs refuses when SITE_ENV is unset', () => {
+  const r = run('node', ['scripts/seed.mjs'], { SITE_ENV: '' })
+  ok(r.code === 1, 'exit 1 when SITE_ENV is empty')
+  ok(/refusing/.test(r.stderr), 'stderr says refusing')
+})
+
+test('seed-review.mjs refuses when SITE_ENV is not test', () => {
+  const r = run('node', ['scripts/seed-review.mjs', '--days=1'], { SITE_ENV: 'prod' })
+  ok(r.code === 1, 'exit 1 in prod')
+  ok(/CLEAR|clears|destroys/i.test(r.stderr), 'stderr warns about destruction')
+})
+
+test('seed-prod.sh always refuses with instructions', () => {
+  const r = run('bash', ['scripts/seed-prod.sh'], { SITE_ENV: 'prod' })
+  ok(r.code === 1, 'exit 1')
+  ok(/seed-prod is not a thing/.test(r.stdout), 'stdout explains')
+  ok(/SITE_ENV=test node/.test(r.stdout), 'stdout shows the override')
+})
+
 console.log(`\n${pass} pass · ${fail} fail`)
 process.exit(fail === 0 ? 0 : 1)

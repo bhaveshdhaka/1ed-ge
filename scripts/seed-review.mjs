@@ -2,6 +2,17 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+// Guard: this script only runs in the TEST env. In prod, exit loudly.
+// seed-review.mjs clears src/content/{days,journal,payouts,coach,accounts}
+// — running it in prod would wipe the owner's real data.
+if (process.env.SITE_ENV !== 'test') {
+  console.error('✗ refusing: scripts/seed-review.mjs only runs in the TEST env.')
+  console.error(`  SITE_ENV is ${JSON.stringify(process.env.SITE_ENV ?? null)} in this worktree's env.`)
+  console.error('  This script CLEARS src/content/{days,journal,payouts,coach,accounts} and rewrites them with filler.')
+  console.error("  Running it in prod would destroy the owner's real data. Set SITE_ENV=test if you really mean it.")
+  process.exit(1)
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
 const C = (rel) => path.join(ROOT, 'src/content', rel)
