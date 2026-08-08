@@ -160,6 +160,12 @@ export function resolvePeriod(slug: string, anchor: string | undefined, todayIso
   }
 }
 
+/** Public URL anchor for a period: quarter/half drop the internal -qN/-hN suffix
+ *  ('2026-q3' → '2026', matching the canonical /q1/2026 URL form); others pass through. */
+export function publicAnchor(type: PeriodType, anchor: string): string {
+  return type === 'quarter' || type === 'half' ? anchor.split('-')[0] : anchor
+}
+
 // --- plain-ISO date helpers (no TZ) ---
 
 const DAY_MS = 86400000

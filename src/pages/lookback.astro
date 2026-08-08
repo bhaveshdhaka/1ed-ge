@@ -6,7 +6,7 @@
  */
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
-import { periodRangesBetween, slugFromType, PERIOD_TYPES, type PeriodType, type PeriodRange } from '../lib/periods'
+import { periodRangesBetween, slugFromType, publicAnchor, PERIOD_TYPES, type PeriodType, type PeriodRange } from '../lib/periods'
 import { aggregatePeriod, type PeriodStats } from '../lib/period-stats'
 import { periodHeader, EMPTY_REVIEWS, REFLECTION, COMPARISON, VIEW_REVIEW } from '../lib/copy'
 import { todayHkt } from '../lib/sessions'
@@ -167,7 +167,7 @@ for (const t of PERIOD_TYPES) countByType.set(t, rows.filter((r) => r.type === t
         {filtered.map((row) => {
           const winPct = row.stats.winRate * 100
           const sumR = row.stats.sumR
-          const href = `/${slugFromType(row.type, row.range.index)}/${row.range.anchor}`
+          const href = `/${slugFromType(row.type, row.range.index)}/${publicAnchor(row.type, row.range.anchor)}`
           return (
             <a
               href={href}

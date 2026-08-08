@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { periodRange, periodTypeFromSlug, isoFromAnchor, periodAnchor, periodRangesBetween, resolvePeriod } from '../src/lib/periods'
+import { periodRange, periodTypeFromSlug, isoFromAnchor, periodAnchor, periodRangesBetween, resolvePeriod, publicAnchor, slugFromType } from '../src/lib/periods'
 
 test('week = Mon–Fri trading week containing the date', () => {
   // 2026-08-07 is a Friday; Mon 03-aug → Fri 07-aug
@@ -119,4 +119,24 @@ test('resolvePeriod — malformed/mismatched anchors → null', () => {
   assert.equal(resolvePeriod('week', '2026', '2026-08-08'), null) // month-style anchor in week
   assert.equal(resolvePeriod('month', '2026', '2026-08-08'), null) // year-style anchor in month
   assert.equal(resolvePeriod('bogus', undefined, '2026-08-08'), null) // unknown slug
+})
+test('public URLs round-trip through resolvePeriod (prev/next + lookback links)', () => {
+  const today = '2026-08-08'
+  for (const type of ['week', 'month', 'quarter', 'half', 'year'] as const) {
+    const range = periodRange(type, today)
+    for (const r of [range, range.prev, range.next]) {
+      const slug = slugFromType(r.type, r.index)
+      const anchor = publicAnchor(r.type, r.anchor)
+      const rt = resolvePeriod(slug, anchor, today)
+      assert.ok(rt, `${type}: resolvePeriod('${slug}', '${anchor}') must resolve`)
+      assert.equal(rt.anchor, r.anchor)
+    }
+  }
+})
+test('publicAnchor strips quarter/half suffix only', () => {
+  assert.equal(publicAnchor('quarter', '2026-q3'), '2026')
+  assert.equal(publicAnchor('half', '2026-h1'), '2026')
+  assert.equal(publicAnchor('week', '2026-32'), '2026-32')
+  assert.equal(publicAnchor('month', '2026-08'), '2026-08')
+  assert.equal(publicAnchor('year', '2026'), '2026')
 })
