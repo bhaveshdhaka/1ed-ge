@@ -27,6 +27,7 @@ const accounts = defineCollection({
       )
       .default([]),
     note: z.string().optional(),
+    platformIds: z.array(z.string()).default([]),
   }),
 })
 

@@ -4,10 +4,12 @@ export function ImageDropZone({
   onFiles,
   label,
   className = '',
+  accept = 'image/*',
 }: {
   onFiles: (files: File[]) => void
   label?: string
   className?: string
+  accept?: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -30,7 +32,7 @@ export function ImageDropZone({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept={accept}
         multiple
         aria-label={label ?? 'upload images'}
         className="hidden"

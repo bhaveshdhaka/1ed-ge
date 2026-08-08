@@ -52,6 +52,7 @@ export const POST: APIRoute = async ({ request }) => {
         ...(s?.note ? { note: String(s.note) } : {}),
       })),
       ...(body.note ? { note: String(body.note) } : {}),
+      platformIds: Array.isArray(body.platformIds) ? body.platformIds.filter((p: unknown) => typeof p === 'string') : [],
     }
     writeEntry('accounts', `${id}.md`, data, '')
     addChange('account', `account ${id}`, `${data.firm} ${data.sizeLabel} → ${stage}`)
