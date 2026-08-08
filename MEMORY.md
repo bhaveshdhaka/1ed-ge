@@ -16,7 +16,7 @@ servers when finished.
 **State: the period-reviews feature is DONE — committed, deployed, verified live.**
 All Wave-7 reviews approved + fix rounds landed; the final whole-branch oracle review
 approved for deploy. Deployed via `bash scripts/deploy.sh`; verified LIVE: home 200;
-/week /month /q1/2026 /h1/2026 /year/2026 /lookback /zen/<secret> 200; /admin/<secret>
+/week /month /q1/2026 /h1/2026 /year/2026 /zen/<secret> 200; /admin/<secret>
 302 → /zen; bare /q1 200 (q1 of current year); /q1/2026-q1 and /week/2026-32/extra → 404;
 homepage nudge line; no "Two years" anywhere.
 
@@ -386,6 +386,16 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-08 — **The tape — one holistic period recap, live.** `/lookback` + the
+  period review merge into ONE page at the same clean URLs (/week /month /q1..q4
+  /h1/h2 /year + anchors): a server-rendered SVG compounding arc (cumulative R,
+  clickable per-period points, live pulsing "now" marker — progress reads as a
+  building line per the owner's momentum principle: each day counts, working
+  toward the week/month/quarter) + the to-date ladder (day · week · month ·
+  quarter · year). `/lookback` deleted, NO redirect (fresh slate — 404s); nav
+  `[05] tape`; "review"/"lookback" out of public copy; reflection writing
+  unchanged (zen). Commits `39e2c8c` `271a210` `e8bc7cd` `ac7360b` (+ docs);
+  126/126 tests, typecheck 0, final oracle review approved, deployed + verified.
 - 2026-08-08 — **Safari/iOS polish pass, live (zen PWA).** Owner: the PWA is only
   for them — zen is their daily surface on iPhone/iPad/MacBook. Shipped: zen-scoped
   secret-guarded SSR manifest (`/zen/<secret>/manifest.webmanifest`, standalone,

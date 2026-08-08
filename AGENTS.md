@@ -120,9 +120,9 @@ src/components/stream/      public stream components (MomentCard, DayFacts) — 
 src/components/archive/DayArchive.astro  posterized day archive (facts + moments + model-tagged trades);
                              trade screenshots open the lightbox via data-lb
 src/pages/                  public pages: / /stream /journal /models /calendar /performance /tracker /trends
-                             /accounts /coach /about /day/[date] + review routes (/week /month /q1..q4 /h1/h2
-                             /year + anchored forms via [periodType]/[...anchor], all SSR) + /lookback
-                             + rss + sitemap (/ + /stream + review routes + /lookback are SSR)
+                             /accounts /coach /about /day/[date] + the tape (/week /month /q1..q4 /h1/h2
+                             /year + anchored forms via [periodType]/[...anchor], all SSR)
+                             + rss + sitemap (/ + /stream + review routes are SSR)
 src/pages/zen/[secret]/    private zen (SSR), renders the React app; the old
                              /admin/[secret] is a thin redirect to /zen;
                              /zen/<secret>/manifest.webmanifest is a secret-guarded

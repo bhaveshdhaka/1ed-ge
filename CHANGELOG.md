@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (The tape — one holistic period recap)
+
+- **`/lookback` + the period review merge into ONE page — "the tape"** — at the
+  same clean URLs (`/week /month /q1..q4 /h1/h2 /year` + anchors).
+- **The compounding arc** — a server-rendered SVG line of cumulative R from the
+  first data period to now; every period is a clickable point (green/red by that
+  period's R), the current period is live (pulsing "now" marker) — progress reads
+  as a building line, never a flat tape. Zero-JS.
+- **The to-date ladder** — `day · week · month · quarter · year` cumulative R
+  under the arc: each day visibly feeds the week, the month, the quarter.
+- **The dossier below, unchanged** — R centerpiece, per-account/model, life,
+  reflection, AI comparison, journal + moments.
+- **`/lookback` is deleted (404, no redirect)** — fresh slate; nav becomes
+  `[05] tape` (models/accounts/about renumber). "review"/"lookback" leave public
+  copy. Reflection writing unchanged (zen day screen + reviews tab).
+
 ### Changed (Safari/iOS polish — zen as a PWA)
 
 - **Zen is now an installable PWA** on iPhone/iPad (Add to Home Screen) and

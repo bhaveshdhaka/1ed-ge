@@ -120,7 +120,7 @@ test('resolvePeriod — malformed/mismatched anchors → null', () => {
   assert.equal(resolvePeriod('month', '2026', '2026-08-08'), null) // year-style anchor in month
   assert.equal(resolvePeriod('bogus', undefined, '2026-08-08'), null) // unknown slug
 })
-test('public URLs round-trip through resolvePeriod (prev/next + lookback links)', () => {
+test('public URLs round-trip through resolvePeriod (prev/next + archive links)', () => {
   const today = '2026-08-08'
   for (const type of ['week', 'month', 'quarter', 'half', 'year'] as const) {
     const range = periodRange(type, today)

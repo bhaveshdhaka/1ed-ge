@@ -1,6 +1,6 @@
 # The Tape — merged period recap (design)
 
-**Status: approved (owner, 2026-08-08) → in implementation**
+**Status: shipped — deployed + verified live (2026-08-08).**
 
 The owner's ask: `/lookback` and the period `/review` surfaces are two pages doing
 two halves of one job, and the names are "pedestrian or posh". Merge them into ONE
