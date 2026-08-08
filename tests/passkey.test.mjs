@@ -41,6 +41,9 @@ test('challenge store: set + get within TTL, gone after 2 min', () => {
   lib.setChallenge('nonce-2', 'x')
   // Simulate expiry by direct Map manipulation if exposed; otherwise rely on TTL default
   assert.equal(lib.getChallenge('nonce-nope'), null)
+  lib.setChallenge('stale', 'x')
+  // Simulate 3 minutes later — past the 2-min TTL, the challenge must be gone
+  assert.equal(lib.getChallenge('stale', Date.now() + 3 * 60 * 1000), null)
 })
 
 // cleanup

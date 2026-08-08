@@ -88,10 +88,10 @@ const CHALLENGE_TTL = 2 * 60 * 1000
 export function setChallenge(nonce: string, challenge: string) {
   challenges.set(nonce, { value: challenge, at: Date.now() })
 }
-export function getChallenge(nonce: string): string | null {
+export function getChallenge(nonce: string, now: number = Date.now()): string | null {
   const c = challenges.get(nonce)
   if (!c) return null
-  if (Date.now() - c.at > CHALLENGE_TTL) {
+  if (now - c.at > CHALLENGE_TTL) {
     challenges.delete(nonce)
     return null
   }
