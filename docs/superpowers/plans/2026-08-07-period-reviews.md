@@ -462,6 +462,30 @@ git commit -m "feat(reviews): per-period review notes — collection, admin API,
 
 ---
 
+### Task 5f: Copy + terminology — `src/lib/copy.ts`
+
+**Files:**
+- Create: `src/lib/copy.ts`
+- Test: `tests/copy.test.ts`
+
+**Interfaces:**
+- Consumes: nothing (pure string builders).
+- Produces (every surface task — T5, T5b, T5d, T5e, T4b's comparison labels — consumes):
+  - The standard vocabulary: **trader** (third-person), **zen** (the private area, never "admin"/"cockpit"), **reflection** (the written end-of-period note), **period review**, **comparison · from verified data**, **week = Mon–Fri trading week**.
+  - `liveLine(live: boolean, lastSeenDays: number | null): string` — `trader is live` / `trader is offline · last seen {n}d ago`.
+  - `pendingReflectionsLine(pendingDays: number, pendingPeriods: string[]): string | null` — `trader has {n} day(s)' pending end of day reflection` (1 day → `1 day's`, else `{n} days'`) + ` · week 31 reflection missing` etc. Returns null when nothing pending.
+  - `periodHeader(range: PeriodRange): string` — `week 32 · mon 03-aug → fri 07-aug` (fmtDayW of start/end).
+  - Section labels: `reflection`, `comparison · from verified data`, `the numbers`, `trend`.
+  - Empty states: `no days logged in this period.` / `no period reviews yet.`
+- The owner-locked voice: factual, terminal-styled, no gyaan, no acrimony, R-centric. The comparison label always says "from verified data".
+
+- [ ] **Step 1:** Implement `src/lib/copy.ts` per the interfaces (read `src/lib/dates.ts` `fmtDayW` + the spec §7 vocabulary).
+- [ ] **Step 2:** `tests/copy.test.ts` — live line singular/plural, pending line 1-day vs n-days + combined, periodHeader format, empty-state strings.
+- [ ] **Step 3:** Verify — `npm test -- tests/copy.test.ts` green.
+- [ ] **Step 4:** Commit: `git add src/lib/copy.ts tests/copy.test.ts && git commit -m "feat(copy): single-source terminology — trader/zen/reflection lines, pending nudge, period headers, section labels"`
+
+---
+
 ### Task 5: The review surface + routes + nav (designer)
 
 **Files:**
@@ -522,6 +546,63 @@ git commit -m "feat(periods): review surface + /week /month /q1..q4 /h1..h2 /yea
 - [ ] **Step 2:** nav entry.
 - [ ] **Step 3:** Read-back + local smoke (`/lookback` renders with the filter chips; a period with a note shows its snippet).
 - [ ] **Step 4:** Commit: `git add src/pages/lookback.astro src/layouts/Base.astro && git commit -m "feat(periods): /lookback — aggregated reviews hub (type filter, newest first)"`
+
+---
+
+### Task 5c: Accountability lib — `src/lib/accountability.ts` + tests
+
+**Files:**
+- Create: `src/lib/accountability.ts`
+- Test: `tests/accountability.test.ts`
+
+**Interfaces:**
+- Consumes: `PeriodRange`/`periodRange`/`periodRangesBetween`/`PeriodType` (Task 2); the days + journal + reviews data shapes.
+- Produces (Tasks 5d/5e consume):
+  - `accountabilityStatus(days: DayData[], journalDates: string[], reviews: { type: string; anchor: string }[], nowIso: string): { pendingDays: number; pendingPeriods: string[] }` where `pendingDays` = count of Mon–Fri days past their grace (due 03:00 HKT next day — STRICT 3h grace after midnight, owner-locked) with no journal post; `pendingPeriods` = completed periods (week/month/quarter/half/year) past grace with no review note, as `type label` strings (e.g. `week 31`, `month`, `quarter`).
+  - Rules (owner-locked): EVERY Mon–Fri day requires a reflection even on zero-trade days (writing habit, not trade logging); Sat/Sun relaxed — only the week review is due on the weekend; grace = 3 hours after midnight HKT, no more.
+- Pure + tested (nowIso injected for determinism).
+
+- [ ] **Step 1:** Implement per the rules (day grace = day + 1 at 03:00 HKT; week due Mon 03:00 HKT after the Mon–Fri week; month/quarter/half/year due 3h after the period ends; only COMPLETED periods count).
+- [ ] **Step 2:** `tests/accountability.test.ts` — pending vs grace boundary (day due at 03:00 next day), zero-trade days count, weekend relaxed, week-review due, completed-only periods, no-2-year caps.
+- [ ] **Step 3:** Verify — `npm test -- tests/accountability.test.ts` green.
+- [ ] **Step 4:** Commit: `git add src/lib/accountability.ts tests/accountability.test.ts && git commit -m "feat(accountability): pending reflections — Mon-Fri every day (3h grace), weekend relaxed, completed periods only"`
+
+---
+
+### Task 5d: Homepage nudge — durable last-online + one-liner
+
+**Files:**
+- Modify: `src/lib/live.ts` (durable last-online stamp)
+- Modify: `src/pages/api/admin/ping.ts` (heartbeat writes the durable stamp too)
+- Modify: `src/pages/index.astro` (the one-liner in the live-moniker zone)
+
+**Interfaces:**
+- Consumes: `accountabilityStatus` (Task 5c); `liveLine`/`pendingReflectionsLine` (Task 5f); the existing `readLiveState`/`touchLive`.
+- Produces: the homepage live moniker extends to the one compact line: online → `trader is live`; offline → `trader is offline · last seen {n}d ago`; plus the pending line when due (from `pendingReflectionsLine`). Durable last-online: the heartbeat (admin → `/api/admin/ping` → `touchLive`) also writes a gitignored state file in the bind-mounted media dir (e.g. `public/media/.last-online`) so "last seen" survives container restarts (the /tmp file resets and would lie). `readLiveState` returns `lastOnlineIso`.
+- Zero-JS, SSR-computed; the nudge is one compact line (owner-locked).
+
+- [ ] **Step 1:** `src/lib/live.ts` + ping: durable stamp write/read (gitignored — verify `.gitignore` covers `public/media/.last-online`; add if not).
+- [ ] **Step 2:** `index.astro`: the moniker zone renders `liveLine` + `pendingReflectionsLine` (compute `accountabilityStatus` server-side).
+- [ ] **Step 3:** Read-back + local smoke (server on 4323: `/` shows the moniker line; offline shows `last seen N days ago`).
+- [ ] **Step 4:** Commit: `git add src/lib/live.ts src/pages/api/admin/ping.ts src/pages/index.astro [.gitignore] && git commit -m "feat(home): durable last-online + one-line reflection nudge"`
+
+---
+
+### Task 5e: zen — rename the private area + pending reminders inside
+
+**Files:**
+- Move: `src/pages/admin/[secret]/` → `src/pages/zen/[secret]/`
+- Modify: the zen React shell + header (brand as **zen**, never "admin"/"cockpit"); any internal references to the old path (deploy.sh output, AGENTS.md links, redirect from `/admin` → `/zen` for the old path)
+- Modify: the zen Overview (or a persistent strip) to render the pending-reflections reminder (same `pendingReflectionsLine` from Task 5f + `accountabilityStatus` from Task 5c)
+
+**Interfaces:**
+- Consumes: `accountabilityStatus` (5c), `pendingReflectionsLine` (5f), the existing admin API paths (kept at `/api/admin/*` — internal, not user-facing).
+- Produces: the private area lives at `/zen/<secret>` (the owner's access path), branded zen; a redirect from `/admin/<secret>` (old path) for safety; the zen reminder greets the owner on login ("pending — 2 day reflections · week 31 reflection").
+
+- [ ] **Step 1:** Move the route + update internal links (`grep -rn "/admin" src/` — the React app fetches `/api/admin/*` (KEEP those), any `window.location`/links to the mount path change).
+- [ ] **Step 2:** Brand the zen header (labels say zen; the deploy.sh output line + docs updated).
+- [ ] **Step 3:** The zen pending reminder (Overview tab or a compact persistent strip — match the existing admin patterns).
+- [ ] **Step 4:** Read-back (grep old `/admin/` mount references gone; `/zen` works; reminder renders) + commit: `git add -A` is FORBIDDEN — stage the exact moved/new files: `git add src/pages/zen src/pages/admin scripts/deploy.sh AGENTS.md [other exact paths] && git commit -m "feat(zen): private area renamed — /zen/<secret>, pending reflection reminders, admin path redirects"`
 
 ---
 
