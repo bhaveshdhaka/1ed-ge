@@ -114,10 +114,10 @@ const cmeEarlyCloseRules = [
  * shortens the session to a morning half (halt ~12:00 PM CT, reopen
  * ~5:00 PM CT). The owner trades from Asia and wants these flagged
  * because volume is thin and price action is messy. */
-const cmeEarlyHaltRules = [
-  (y: number) => nthWeekday(y, 0, 1, 3),  // MLK Day — 3rd Monday of January
-  (y: number) => nthWeekday(y, 1, 1, 3),  // Presidents' Day — 3rd Monday of February
-  (y: number) => lastWeekday(y, 4, 1),    // Memorial Day — last Monday of May
+const cmeEarlyHaltRules: [(y: number) => Date, string][] = [
+  [(y) => nthWeekday(y, 0, 1, 3),  'MLK Day'],
+  [(y) => nthWeekday(y, 1, 1, 3),  "Presidents' Day"],
+  [(y) => lastWeekday(y, 4, 1),    'Memorial Day'],
 ]
 
 /** Deterministic CME equity-index-futures day status (master clock). */
@@ -134,7 +134,7 @@ export function cmeDay(iso: string): MarketDay {
   }
   // Early-halt (MLK / Presidents / Memorial): the morning session runs,
   // a 5-hour halt starts ~12:00 PM CT, then a normal afternoon session.
-  for (const rule of cmeEarlyHaltRules) {
+  for (const [rule] of cmeEarlyHaltRules) {
     const e = rule(y)
     if (e && isoFromDate(e) === iso && e.getDay() !== 0 && e.getDay() !== 6) {
       return { status: 'early-halt', label: 'early halt 12pm ct' }
@@ -193,4 +193,62 @@ export function marketSchedule(year: number): { holidays: string[]; earlyCloses:
     if (e.getDay() !== 0 && e.getDay() !== 6) earlyCloses.push(isoFromDate(e))
   }
   return { holidays, earlyCloses }
+}
+
+/* ------------------------------------------------------------------ */
+/* Modified-hours day lookup. The owner only looks at zen and needs    */
+/* to know in advance when CME will be shortened so they don't get     */
+/* caught in thin-volume Asia-hours mess. Scans the next `withinDays`  */
+/* days from `fromIso` for any early-halt (MLK/Presidents/Memorial) or */
+/* early-close (day after Thanksgiving, Christmas Eve, NYE, day before*/
+/* a Friday-observed Independence Day). Returns the soonest match.     */
+/* ------------------------------------------------------------------ */
+
+export interface ModifiedHoursDay {
+  iso: string
+  kind: 'early-halt' | 'early-close'
+  /** Human label for the reason: "MLK Day", "day before Independence Day", … */
+  reason: string
+  daysAway: number
+}
+
+/** All modified-hours days in a given year, sorted by date. */
+function modifiedHoursDaysInYear(year: number): { iso: string; kind: 'early-halt' | 'early-close'; reason: string }[] {
+  const out: { iso: string; kind: 'early-halt' | 'early-close'; reason: string }[] = []
+  for (const [rule, reason] of cmeEarlyHaltRules) {
+    const e = rule(year)
+    if (e && e.getDay() !== 0 && e.getDay() !== 6) {
+      out.push({ iso: isoFromDate(e), kind: 'early-halt', reason })
+    }
+  }
+  // Early-close reasons by date
+  const thanksgiving = nthWeekday(year, 10, 4, 4)
+  out.push({ iso: isoFromDate(addDays(thanksgiving, 1)), kind: 'early-close', reason: 'day after Thanksgiving' })
+  out.push({ iso: isoFromDate(new Date(year, 11, 24)), kind: 'early-close', reason: 'Christmas Eve' })
+  out.push({ iso: isoFromDate(new Date(year, 11, 31)), kind: 'early-close', reason: "New Year's Eve" })
+  const jul4 = new Date(year, 6, 4)
+  if (jul4.getDay() === 6) {
+    out.push({ iso: isoFromDate(addDays(jul4, -2)), kind: 'early-close', reason: 'day before Independence Day' })
+  }
+  return out.sort((a, b) => a.iso.localeCompare(b.iso))
+}
+
+/** The next modified-hours day strictly after `fromIso` (or on it), within `withinDays`. */
+export function nextModifiedHoursDay(fromIso: string, withinDays = 90): ModifiedHoursDay | null {
+  const [fy, fm, fd] = fromIso.split('-').map(Number)
+  const fromMs = Date.UTC(fy, fm - 1, fd)
+  const horizonMs = fromMs + withinDays * 86400000
+  const years = new Set<number>([fy, fy + 1])
+  const candidates: ModifiedHoursDay[] = []
+  for (const y of years) {
+    for (const d of modifiedHoursDaysInYear(y)) {
+      const [y2, m2, d2] = d.iso.split('-').map(Number)
+      const ms = Date.UTC(y2, m2 - 1, d2)
+      if (ms >= fromMs && ms <= horizonMs) {
+        candidates.push({ ...d, daysAway: Math.round((ms - fromMs) / 86400000) })
+      }
+    }
+  }
+  candidates.sort((a, b) => a.iso.localeCompare(b.iso))
+  return candidates[0] ?? null
 }

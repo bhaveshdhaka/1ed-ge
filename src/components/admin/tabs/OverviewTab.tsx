@@ -3,6 +3,8 @@ import { api } from '../api'
 import { Card, Button, Stat, inputCls } from '../ui'
 import type { Tab } from '../AdminApp'
 import type { AccountRuleStatus } from '../../../lib/account-rules'
+import { nextModifiedHoursDay, type ModifiedHoursDay } from '../../../lib/market'
+import { fmtDayW } from '../../../lib/dates'
 
 interface Status {
   env: { adminSecretSet: boolean; openrouterKeySet: boolean; modelStructure: string; modelVision: string }
@@ -115,6 +117,20 @@ export function OverviewTab({
   const habitCount = status.counts.habits
   const screenLogged = !!status.todayDay?.device?.screenshots?.length
 
+  // The owner only looks at zen — surface the next modified-hours CME day
+  // here so they don't get caught in thin-volume Asia-hours mess.
+  const modifiedHours = nextModifiedHoursDay(status.today, 180)
+  const modifiedHoursLine = (m: ModifiedHoursDay): string => {
+    const away =
+      m.daysAway === 0 ? 'today' :
+      m.daysAway === 1 ? 'tomorrow' :
+      m.daysAway < 14  ? `in ${m.daysAway} days` :
+      m.daysAway < 60  ? `in ${Math.round(m.daysAway / 7)} weeks` :
+                          `in ${Math.round(m.daysAway / 30)} months`
+    const kind = m.kind === 'early-halt' ? 'early halt 12pm ct' : 'early close'
+    return `next modified-hours day: ${fmtDayW(m.iso)} (${m.reason}) — ${kind}, ${away}`
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -124,6 +140,32 @@ export function OverviewTab({
           <a href="/" target="_blank" className="text-accent hover:text-ink">view site →</a>
         </div>
       </div>
+
+      {modifiedHours && (
+        <div
+          className={`flex flex-wrap items-center gap-2 border px-3 py-2 text-[13px] ${
+            modifiedHours.daysAway <= 2
+              ? 'border-warn/50 bg-warn/5 text-warn'
+              : 'border-line bg-panel/40 text-dim'
+          }`}
+          role={modifiedHours.daysAway <= 2 ? 'alert' : 'status'}
+        >
+          <span
+            className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${
+              modifiedHours.kind === 'early-halt' ? 'bg-warn' : 'bg-warn opacity-60'
+            }`}
+            aria-hidden
+          />
+          <span>{modifiedHoursLine(modifiedHours)}</span>
+          <a
+            href={`/day/${modifiedHours.iso}`}
+            target="_blank"
+            className="ml-auto text-[12px] text-faint hover:text-ink"
+          >
+            open day →
+          </a>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">
         <Stat label="days logged" value={status.counts.days} />
