@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
-import { todayHkt, daySessionWindows } from '../lib/sessions'
+import { todayHkt, daySessionWindows, HKT_OFFSET_MS } from '../lib/sessions'
 import { fmtDayW } from '../lib/dates'
 import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
@@ -45,7 +45,7 @@ const clsColor = (cls: string) =>
 const clsClass = (cls: string) =>
   cls === 'up' ? 'text-up' : cls === 'warn' ? 'text-warn' : cls === 'down' ? 'text-down' : 'text-dim'
 
-const nowHktBuild = new Date(Date.now() + 8 * 3600 * 1000)
+const nowHktBuild = new Date(Date.now() + HKT_OFFSET_MS)
 const nowFracBuild = (nowHktBuild.getUTCHours() + nowHktBuild.getUTCMinutes() / 60) / 24 * 100
 
 const evDots = groupNewsHeadlines(red, orange).map((g) => {

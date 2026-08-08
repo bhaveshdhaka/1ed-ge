@@ -10,6 +10,7 @@ import {
   groupFillsToPositions,
   resolveAlias,
   ingestFiles,
+  normalizeLlmFills,
 } from '../src/lib/ingest'
 
 const DEMO = '/tmp/opencode/import-demo'
@@ -184,4 +185,23 @@ test('groupFillsToPositions yields null riskPoints when no fill carries a stop',
   const positions = groupFillsToPositions(fills, { internalId: null, platformId: null, confirmed: false })
   assert.equal(positions.length, 1)
   assert.equal(positions[0].riskPoints, null)
+})
+
+test('normalizeLlmFills maps rows identically: finite stop only, ctToHkt applied', () => {
+  const fills = normalizeLlmFills([
+    // Valid stop → carried through; Chicago timestamp → HKT.
+    { symbol: 'MNQU6', qty: 1, buyPrice: 29260.75, sellPrice: 29261, pnl: 0.5, stop: 29245.5, buyTime: '08/06/2026 21:33:00', sellTime: '08/06/2026 21:33:23' },
+    // Garbage stop → dropped (never invented/inferred); bad times → null.
+    { symbol: 'MNQU6', qty: 2, buyPrice: 100, sellPrice: 101, pnl: 2, stop: 'not-a-number', buyTime: 'nope', sellTime: 'nope' },
+    // Symbol-less row → filtered out entirely.
+    { qty: 3, buyPrice: 1, sellPrice: 2, pnl: 0 },
+  ])
+  assert.equal(fills.length, 2)
+  assert.equal(fills[0].stop, 29245.5)
+  assert.equal(fills[0].buyTime?.slice(0, 10), '2026-08-07')
+  assert.equal(fills[0].buyTime?.slice(11, 16), '10:33')
+  assert.equal(fills[0].qty, 1)
+  assert.equal(fills[1].stop, undefined)
+  assert.equal(fills[1].buyTime, null)
+  assert.equal(fills[1].qty, 2)
 })

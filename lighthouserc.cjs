@@ -4,13 +4,16 @@ const SECRET = (fs.readFileSync('.env', 'utf8').match(/^ADMIN_SECRET=(.*)$/m) ??
 
 const PUBLIC_URLS = [
   `http://127.0.0.1:${PORT}/`,
-  `http://127.0.0.1:${PORT}/journal`,
-  `http://127.0.0.1:${PORT}/performance`,
   `http://127.0.0.1:${PORT}/stream`,
-  `http://127.0.0.1:${PORT}/models`,
+  `http://127.0.0.1:${PORT}/journal`,
+  `http://127.0.0.1:${PORT}/calendar`,
+  `http://127.0.0.1:${PORT}/performance`,
   `http://127.0.0.1:${PORT}/accounts`,
   `http://127.0.0.1:${PORT}/coach`,
   `http://127.0.0.1:${PORT}/about`,
+  `http://127.0.0.1:${PORT}/models`,
+  `http://127.0.0.1:${PORT}/week`,
+  `http://127.0.0.1:${PORT}/lookback`,
 ]
 
 module.exports = {

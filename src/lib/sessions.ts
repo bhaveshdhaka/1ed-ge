@@ -9,7 +9,7 @@ export interface MarketEvent {
   label?: string
 }
 
-const HKT_OFFSET_MS = 8 * 3600 * 1000
+export const HKT_OFFSET_MS = 8 * 3600 * 1000
 
 /** Offset of `tz` from UTC in minutes at the given instant. */
 function tzOffsetMinutes(tz: string, date: Date): number {
@@ -54,6 +54,16 @@ function dow(iso: string): number {
 
 export function todayHkt(): string {
   return new Date(Date.now() + HKT_OFFSET_MS).toISOString().slice(0, 10)
+}
+
+/** Current HKT wall time — `YYYY-MM-DDTHH:MM` (the shape accountability uses). */
+export function nowHkt(): string {
+  return new Date(Date.now() + HKT_OFFSET_MS).toISOString().slice(0, 16)
+}
+
+/** HKT calendar-day number of a timestamp (the homepage last-seen span helper). */
+export function hktDayNumber(ts: string | number): number {
+  return Math.floor((Date.parse(String(ts)) + HKT_OFFSET_MS) / 86400000)
 }
 
 /* ------------------------------------------------------------------ */

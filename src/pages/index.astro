@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
-import { todayHkt } from '../lib/sessions'
+import { todayHkt, nowHkt, hktDayNumber } from '../lib/sessions'
 import { fmtDay, fmtDayW } from '../lib/dates'
 import { resolveMoments, dayFacts } from '../lib/stream'
 import type { DayData } from '../lib/stream'
@@ -42,7 +42,7 @@ const live = readLiveState()
 // --- moniker line: live + pending-reflection nudge (one compact line) ---
 // nowIso = current HKT wall time (YYYY-MM-DDTHH:MM); accountabilityStatus
 // compares it lexicographically against the 03:00-HKT grace boundaries.
-const nowIso = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 16)
+const nowIso = nowHkt()
 const account = accountabilityStatus(
   dayEntries.map((d) => d.data as DayData),
   journalEntries.map((j) => j.data.date),
@@ -50,9 +50,8 @@ const account = accountabilityStatus(
   nowIso,
 )
 // Calendar-day difference in HKT between the durable stamp and now.
-const hktDay = (ts: string) => Math.floor((Date.parse(ts) + 8 * 3600 * 1000) / 86400000)
 const lastSeenDays = live.lastOnlineIso
-  ? Math.max(0, hktDay(`${nowIso}:00+08:00`) - hktDay(live.lastOnlineIso))
+  ? Math.max(0, hktDayNumber(`${nowIso}:00+08:00`) - hktDayNumber(live.lastOnlineIso))
   : null
 const moniker = [liveLine(live.live, lastSeenDays), pendingReflectionsLine(account.pendingDays, account.pendingPeriods)]
   .filter(Boolean)

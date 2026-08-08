@@ -1,6 +1,7 @@
 import { env } from './env'
 import { orChat } from './ai'
 import { round2 } from './utils'
+import { HKT_OFFSET_MS, todayHkt } from './sessions'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -174,7 +175,7 @@ export function ctToHkt(ct: string): string | null {
   )
   const offsetMs = renderedAsUtc - wallAsUtc // negative in CDT/CST
   const instantUtc = wallAsUtc - offsetMs // true UTC instant
-  return new Date(instantUtc + 8 * 3600 * 1000).toISOString()
+  return new Date(instantUtc + HKT_OFFSET_MS).toISOString()
 }
 
 // ---------------------------------------------------------------------------
@@ -278,11 +279,13 @@ async function llmJson<T>(system: string, userText: string, model: string, maxTo
   }
 }
 
-/** Performance PDF text → fills (cheap model, owner-directed). */
-export async function parsePerformancePdfText(text: string): Promise<Fill[]> {
-  const j = await llmJson<{ fills?: Record<string, unknown>[] }>(FILLS_SYSTEM, text, env.modelIngest())
-  if (!j?.fills) return []
-  return j.fills
+/**
+ * Shared LLM-row → Fill mapper: identical field mapping + ctToHkt conversion +
+ * finite-stop guard for every model-based fill parser (PDF text, image, CSV).
+ * Exported so tests exercise the mapping without a model call.
+ */
+export function normalizeLlmFills(rows: Record<string, unknown>[]): Fill[] {
+  return rows
     .map((f) => ({
       symbol: String(f.symbol ?? ''),
       qty: Number(f.qty) || 1,
@@ -294,6 +297,13 @@ export async function parsePerformancePdfText(text: string): Promise<Fill[]> {
       stop: f.stop != null && Number.isFinite(Number(f.stop)) ? Number(f.stop) : undefined,
     }))
     .filter((f) => f.symbol)
+}
+
+/** Performance PDF text → fills (cheap model, owner-directed). */
+export async function parsePerformancePdfText(text: string): Promise<Fill[]> {
+  const j = await llmJson<{ fills?: Record<string, unknown>[] }>(FILLS_SYSTEM, text, env.modelIngest())
+  if (!j?.fills) return []
+  return normalizeLlmFills(j.fills)
 }
 
 /** Orders PDF text → orders rows (cheap model). */
@@ -339,18 +349,7 @@ export async function parseImage(dataUrl: string): Promise<Fill[]> {
   const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/```$/, '').trim()
   try {
     const j = JSON.parse(cleaned) as { fills?: Record<string, unknown>[] }
-    return (j.fills ?? [])
-      .map((f) => ({
-        symbol: String(f.symbol ?? ''),
-        qty: Number(f.qty) || 1,
-        buyPrice: f.buyPrice != null ? Number(f.buyPrice) : null,
-        sellPrice: f.sellPrice != null ? Number(f.sellPrice) : null,
-        buyTime: f.buyTime ? ctToHkt(String(f.buyTime)) : null,
-        sellTime: f.sellTime ? ctToHkt(String(f.sellTime)) : null,
-        pnl: Number(f.pnl) || 0,
-        stop: f.stop != null && Number.isFinite(Number(f.stop)) ? Number(f.stop) : undefined,
-      }))
-      .filter((f) => f.symbol)
+    return normalizeLlmFills(j.fills ?? [])
   } catch {
     return []
   }
@@ -440,10 +439,6 @@ export function groupFillsToPositions(
 // ---------------------------------------------------------------------------
 // Step 7: dedup + `ingestFiles` orchestration
 // ---------------------------------------------------------------------------
-
-function hktToday(): string {
-  return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10)
-}
 
 export async function ingestFiles(files: IngestFile[], ctx: IngestCtx): Promise<IngestResult> {
   const ordersRows: OrderRow[] = []
@@ -550,7 +545,7 @@ export async function ingestFiles(files: IngestFile[], ctx: IngestCtx): Promise<
 
   // date = HKT date of the earliest fill; falls back to today's HKT date.
   const earliest = proposals.length ? [...proposals].sort((a, b) => a.start.localeCompare(b.start))[0].start : ''
-  const date = earliest ? earliest.slice(0, 10) : hktToday()
+  const date = earliest ? earliest.slice(0, 10) : todayHkt()
 
   return { date, proposals, dupes, aliasProposal, platformIdsSeen }
 }

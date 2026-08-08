@@ -26,6 +26,9 @@ export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url)
   const file = url.searchParams.get('file')
   if (file) {
+    // Path hygiene: only entries that actually live in the journal dir. A
+    // `../` traversal would otherwise read outside src/content/journal.
+    if (!listMds('journal').includes(file)) return error('invalid file')
     const e = readEntry('journal', file)
     return json({ ok: true, entry: { file, data: e.data, content: e.content } })
   }

@@ -5,6 +5,7 @@ import AdminApp from '../../../components/admin/AdminApp'
 import { env } from '../../../lib/env'
 import { getCollection } from 'astro:content'
 import type { DayData } from '../../../lib/stream'
+import { nowHkt } from '../../../lib/sessions'
 import { accountabilityStatus } from '../../../lib/accountability'
 import { pendingReflectionsLine } from '../../../lib/copy'
 
@@ -26,7 +27,7 @@ if (ok) {
     getCollection('journal'),
     getCollection('reviews'),
   ])
-  const nowIso = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 16)
+  const nowIso = nowHkt()
   const account = accountabilityStatus(
     dayEntries.map((d) => d.data as DayData),
     journalEntries.map((j) => j.data.date),
