@@ -5,22 +5,31 @@ import MarketLive from '../components/MarketLive.astro'
 
 interface Props {
   title?: string
+  manifest?: string
 }
 
-const { title = '1ed.ge' } = Astro.props
+const { title = '1ed.ge', manifest } = Astro.props
 ---
 
 <!doctype html>
 <html lang="en" class="bg-bg" data-theme="summit">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+    />
     <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#0a0a0c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
     <title>{title}</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {manifest && <link rel="manifest" href={manifest} />}
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   </head>
-  <body class="crt min-h-screen">
+  <body class="crt min-h-svh">
     <ThemeBackground />
     <slot />
     <MarketLive />

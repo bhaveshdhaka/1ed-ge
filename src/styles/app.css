@@ -158,6 +158,68 @@
   }
 }
 
+/* ---- zen PWA — safe-area utilities (zen pages only) ---- */
+/* max() keeps the normal desktop/mobile spacing when the device has no inset,
+   and clears the Dynamic Island / notch / home indicator in standalone mode. */
+@utility pt-safe-3 {
+  padding-top: max(env(safe-area-inset-top, 0px), 0.75rem);
+}
+@utility pt-safe-4 {
+  padding-top: max(env(safe-area-inset-top, 0px), 1rem);
+}
+@utility pt-safe-10 {
+  padding-top: max(env(safe-area-inset-top, 0px), 2.5rem);
+}
+@utility bottom-safe-5 {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
+}
+@utility top-safe {
+  top: env(safe-area-inset-top, 0px);
+}
+@utility top-safe-14 {
+  top: calc(env(safe-area-inset-top, 0px) + 3.5rem);
+}
+
+/* ---- zen PWA — iOS/touch hardening (zen app only; public pages untouched) ---- */
+.zen-app {
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+}
+/* keep text selection in editable fields — the callout kill is non-editable UI only */
+.zen-app input,
+.zen-app textarea,
+.zen-app select,
+.zen-app [contenteditable='true'] {
+  -webkit-touch-callout: default;
+}
+
+@media (pointer: coarse) {
+  /* ≥44px tap targets on touch devices (iPhone/iPad); desktop stays as-is */
+  .zen-app button,
+  .zen-app a,
+  .zen-app summary,
+  .zen-app label:has(> input[type='checkbox']) {
+    min-height: 44px;
+  }
+  /* Safari auto-zooms form fields under 16px on focus — floor the font size.
+     Scoped to the zen app so the public terminal density is untouched. */
+  .zen-app input:not([type='checkbox']):not([type='file']),
+  .zen-app select,
+  .zen-app textarea {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .zen-app input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+  }
+  /* the RebuildBar's sticky section-jump offset is tuned for the taller
+     (44px) touch bar; keep the desktop 56px offset unchanged */
+  .zen-app .top-safe-14 {
+    top: calc(env(safe-area-inset-top, 0px) + 4rem);
+  }
+}
+
 /* ---- theme background layers (fixed, decorative, zero-JS) ---- */
 .theme-bg {
   position: fixed;

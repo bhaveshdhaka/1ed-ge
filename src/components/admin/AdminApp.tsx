@@ -140,9 +140,9 @@ export default function AdminApp({ secret, zenLine }: { secret: string; zenLine?
   }, [go])
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="zen-app min-h-svh bg-bg">
       <header className="border-b border-line">
-        <div className="shell flex flex-wrap items-center justify-between gap-3 py-3 md:py-4">
+        <div className="shell flex flex-wrap items-center justify-between gap-3 pb-3 pt-safe-3 md:pb-4 md:pt-safe-4">
           <a href="/" target="_blank" className="flex h-11 items-center text-[22px] font-semibold">
             <span className="brand-word">
               <span className="brand-one">1</span>edge<span className="brand-tk">_</span>
@@ -197,7 +197,7 @@ export default function AdminApp({ secret, zenLine }: { secret: string; zenLine?
       </main>
 
       {toast && (
-        <div role="status" aria-live="polite" className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 border border-line2 bg-raise px-5 py-3 text-[13px] shadow-2xl">
+        <div role="status" aria-live="polite" className="fixed bottom-safe-5 left-1/2 z-50 -translate-x-1/2 border border-line2 bg-raise px-5 py-3 text-[13px] shadow-2xl">
           <span className={toast.ok ? 'text-up' : 'text-down'}>
             {toast.ok ? '✓' : '✗'}
           </span>{' '}

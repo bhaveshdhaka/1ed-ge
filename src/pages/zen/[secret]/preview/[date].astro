@@ -46,7 +46,7 @@ const accMap = new Map(accountList.map((a) => [a.id, a]))
   {!ok ? (
     <div class="shell py-24 text-[13px] text-faint">404 — not found</div>
   ) : (
-    <article class="shell max-w-4xl pt-10 pb-20">
+    <article class="shell max-w-4xl pt-safe-10 pb-20">
       <div class="mb-8 flex flex-wrap items-center justify-between gap-3 border border-accent/40 bg-accent/5 px-4 py-2 text-[12px] text-accent">
         <span>preview — saved but not yet published (pending rebuild)</span>
         <a href={`/day/${fmtDay(date!)}`} target="_blank" class="underline underline-offset-4 hover:text-ink">live page →</a>

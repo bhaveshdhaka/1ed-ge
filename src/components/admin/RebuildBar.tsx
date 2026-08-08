@@ -77,7 +77,7 @@ export function RebuildBar() {
 
   return (
     <div
-      className={`sticky top-0 z-40 border-b border-line backdrop-blur ${
+      className={`sticky top-safe z-40 border-b border-line backdrop-blur ${
         idle ? 'bg-panel/80' : 'bg-panel/95'
       }`}
     >

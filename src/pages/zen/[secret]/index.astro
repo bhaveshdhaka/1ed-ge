@@ -13,6 +13,7 @@ const ok = secret === env.adminSecret()
 if (!ok) {
   Astro.response.status = 404
 }
+const manifestHref = ok ? `/zen/${secret!}/manifest.webmanifest` : undefined
 
 // zen reminder — pending end-of-day + period reflections greet the owner on
 // login. Server-side (SSR) so it is computed from fresh collection data; the
@@ -36,7 +37,7 @@ if (ok) {
 }
 ---
 
-<Bare title={ok ? 'zen — 1ed.ge' : 'not found'}>
+<Bare title={ok ? 'zen — 1ed.ge' : 'not found'} manifest={manifestHref}>
   {ok ? (
     <AdminApp client:only="react" secret={secret!} zenLine={zenLine} />
   ) : (

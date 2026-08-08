@@ -677,7 +677,7 @@ export function DayWorkspace({
   return (
     <div className="space-y-6">
       {/* sticky section jump (desktop) */}
-      <div className="sticky top-14 z-30 -mx-2 hidden border-b border-line bg-bg/95 px-2 py-1 backdrop-blur md:block">
+      <div className="sticky top-safe-14 z-30 -mx-2 hidden border-b border-line bg-bg/95 px-2 py-1 backdrop-blur md:block">
         <div className="flex gap-1 overflow-x-auto text-[12px]">
           {[
             ['capture', 'sec-capture'],
@@ -748,7 +748,7 @@ export function DayWorkspace({
                     key={i}
                     onClick={() => selectDate(c.date)}
                     title={c.date}
-                    className={`flex h-3.5 items-center justify-center text-[8px] leading-none ${
+                    className={`flex min-h-3.5! h-3.5 items-center justify-center text-[8px] leading-none ${
                       c.isToday
                         ? 'border border-accent text-accent'
                         : c.hasData
@@ -807,7 +807,7 @@ export function DayWorkspace({
                       {dayImages.map((img) => (
                         <div key={img.id} className="relative border border-line bg-bg">
                           <img src={img.url || img.dataUrl} alt="" className="h-16 w-full object-cover" />
-                          <button onClick={() => removeDayImage(img.id)} className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center border border-line bg-bg text-[11px] text-down hover:border-down">×</button>
+                          <button onClick={() => removeDayImage(img.id)} className="absolute right-1 top-1 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-[11px] text-down hover:border-down">×</button>
                         </div>
                       ))}
                     </div>
@@ -903,7 +903,7 @@ export function DayWorkspace({
                           {deviceScreens.map((s) => (
                             <div key={s} className="relative border border-line bg-bg">
                               <img src={s} alt="" className="h-14 w-full object-cover" />
-                              <button onClick={() => setDeviceScreens((x) => x.filter((y) => y !== s))} className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center border border-line bg-bg text-[10px] text-down hover:border-down">×</button>
+                              <button onClick={() => setDeviceScreens((x) => x.filter((y) => y !== s))} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-[10px] text-down hover:border-down">×</button>
                             </div>
                           ))}
                         </div>
@@ -1037,7 +1037,7 @@ export function DayWorkspace({
                                     {t.screenshots.map((s) => (
                                       <div key={s} className="relative border border-line bg-bg">
                                         <img src={s} alt="" className="h-14 w-full object-cover" />
-                                        <button onClick={() => setTrade(ti, { screenshots: t.screenshots.filter((y) => y !== s) })} className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
+                                        <button onClick={() => setTrade(ti, { screenshots: t.screenshots.filter((y) => y !== s) })} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
                                       </div>
                                     ))}
                                   </div>
@@ -1118,7 +1118,7 @@ export function DayWorkspace({
                                   {m.images.map((s, si) => (
                                     <div key={`${si}:${s}`} className="relative border border-line bg-bg">
                                       <img src={s} alt="" className="h-14 w-full object-cover" />
-                                      <button onClick={() => setMoment(i, { images: m.images.filter((_, j) => j !== si) })} className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
+                                      <button onClick={() => setMoment(i, { images: m.images.filter((_, j) => j !== si) })} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
                                     </div>
                                   ))}
                                 </div>
