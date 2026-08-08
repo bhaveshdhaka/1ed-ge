@@ -43,11 +43,25 @@ early-return, e2e/.env.example zen paths, VIEW_REVIEW) `8cc0e36` (publicAnchor p
 lookback round-trip regression, NaN-safe delta, styled 404) `9849c0f` ("reflection
 missing" suffix on the pending nudge, ReviewTab dirty-guard on period switch).
 
-**NEXT — the INGEST feature (queued):** `docs/superpowers/plans/2026-08-07-ingest.md`
-(5 tasks — PDF/CSV/image → trades, deepseek v4 flash 0731, per-account dedup,
-approve-every-trade, account-link confirm). Note: its Task-1 additions
-(`env.modelIngest`, `AI_MODEL_INGEST`, ImageDropZone `accept`) ALREADY EXIST — verify
-before re-adding. The owner's demo files stay in `/tmp/opencode/import-demo/`.
+**INGEST — SHIPPED + LIVE (2026-08-08).** Daily drop ritual in the day screen: drag
+Tradovate exports (screenshot/CSV/PDF) into the "import trades" zone → AI parses
+(cheap model `deepseek/deepseek-v4-flash-0731` via `AI_MODEL_INGEST` for text,
+`pdftotext`/poppler in the image, vision for screenshots) → fills grouped to positions
+(10-min clustering, VWAP entry/exit) → per-account dedup (advisory, pre-flagged) →
+owner approves each → apply merges into `days/<date>.md` + persists platform-id
+aliases (`platformIds[]` on accounts). Sources ephemeral (decoded in memory, never
+saved). Demo files stay in `/tmp/opencode/import-demo/` (2 × Lucid 50k:
+`LTE05061295040002`/`...0003`; Performance ↔ Orders fill-ids share ZERO ids on the
+demo — attribution is best-effort, the alias-confirm covers it). Commits: `84f7efe`
+(foundation) `ca93d85` (core pipeline + 13 tests) `c6814b1` (API) `5200743`+`260d35c`
+(panel UI + fix round) `6d4646b` (final-review polish). **Imported trades carry no
+`stop` → `riskOf()` defaults to 1, so R = raw points until the owner adds stops in the
+day workspace** (Tradovate exports don't include stops) — known, documented for the
+Cloudflare port.
+
+**NEXT (roadmap):** Cloudflare Pages + CDN port (everything file-based → clean
+swap); Safari/iOS polish pass (safe-area insets, touch targets, PWA) tracked in this
+file; account stage auto-transitions on drawdown breach (possible CSV bulk import).
 
 **INGEST-integration notes (ora-3):** (1) `toDayData` in `src/pages/api/admin/reviews.ts`
 (50 lines) re-parses day files independently of the content-collection schema — a
@@ -74,10 +88,12 @@ site is the owner's life/lifestyle).
 
 **Gotchas:** SSR routes read content at server start (deploy restarts pick up changes —
 rebuild alone won't update /week, /lookback, /zen); build clears `node_modules/.astro`
-(keep it); autosave cron may sweep content commits (verify diffs landed); `pkill -F
-pidfile`; local test server on 4323 (bind HOST=127.0.0.1); the VPS resolver can't resolve
-1ed.ge (`curl --resolve 1ed.ge:443:104.21.7.179`); no parallel builds (astro races on
-`node_modules/.astro`); never commit `.env` or market-news cron edits.
+(keep it); **the 30-min autosave cron sweeps uncommitted WORKING-TREE edits into
+`chore(content)` commits too** (it swept an in-flight IngestPanel fix on 2026-08-08 —
+commit promptly, verify diffs after sweeps); `pkill -F pidfile`; local test server on
+4323 (bind HOST=127.0.0.1); the VPS resolver can't resolve 1ed.ge (`curl --resolve
+1ed.ge:443:104.21.7.179`); no parallel builds (astro races on `node_modules/.astro`);
+never commit `.env` or market-news cron edits.
 
 ## HANDOFF — moment-images shipped (READ FIRST)
 
@@ -356,6 +372,20 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-08 — **INGEST shipped + live.** Daily drop ritual in the day screen:
+  drag Tradovate exports (screenshot/CSV/PDF) → parse (cheap model
+  `deepseek/deepseek-v4-flash-0731` for text via pdftotext/poppler, vision for
+  images) → fill→position grouping (10-min clusters, VWAP) → per-account dedup
+  (advisory) → owner approves each → apply (day merge + `platformIds[]` alias
+  persist). Commits: `84f7efe` `ca93d85` `c6814b1` `5200743` `260d35c`; reviews:
+  T1 Approved, T2 Approved (13 ingest tests; demo Performance↔Orders fill-ids
+  share 0 ids — attribution best-effort), T3 Approved (Important re-apply risk
+  closed via the T4 busy-guard), T4 Needs-fixes → fix round Approved (alias-
+  confirm cascade was dead — now seeds `internalId ?? ''` and resolves
+  `accountByIndex[i] || links[platformId] || internalId || ''`). Gotcha: the
+  02:00 autosave swept an in-flight uncommitted fix. 103/103 tests, typecheck 0,
+  build OK, e2e smoke on :4323 with the real demo files, deployed + verified
+  live.
 - 2026-08-08 — **Period reviews SHIPPED + LIVE.** Owner URL gate (this session): bare
   `/q1` = q1 of current year; canonical-only public quarter/half anchors; 9-chip switcher;
   week-53 skip. Wave-7 reviews: T5b Approved (oracle), T5e Approved (general), route

@@ -6,6 +6,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Ingest — the daily drop ritual)
+
+- **Drag-and-drop trade import in the day screen.** The owner drops Tradovate
+  exports (screenshots, CSVs, PDFs) into the admin "import trades" zone; the AI
+  parses + dedupes + groups fills into positions; **every trade is approved
+  before it lands** in the day record.
+- **Format pipeline:** CSVs parsed deterministically (Tradovate Performance +
+  Orders layouts, validated against the owner's real exports); PDFs via
+  `pdftotext` (poppler-utils, now in the container image) + the cheap text model
+  (`AI_MODEL_INGEST`, default `deepseek/deepseek-v4-flash-0731`); screenshots
+  via the existing vision model. Sources are ephemeral — decoded in memory,
+  never saved.
+- **Fill → position grouping** — ~30 per-fill round-trips collapse to ~4 ideas
+  (10-minute time clustering, VWAP-weighted entry/exit), so the journal never
+  looks like overtrading.
+- **Per-account dedup** — the two copy-trading accounts never collapse into one;
+  each account's CSV+PDF imports once. Dedup is advisory (pre-flagged, the owner
+  still decides).
+- **Account linking** — unknown platform ids (`LTE…`) propose an internal
+  account; the owner confirms once, persisted as `platformIds[]` on the account
+  record. Performance fills attribute to accounts via fill-id join against the
+  Orders export where the ids line up.
+- **Apply** — approved positions merge into `days/<date>.md` as
+  normalizeTrade-compatible trades (market without contract suffix,
+  `executions[{account,size}]`) + a pending change; alias links persist on the
+  account records.
+
 ### Added (Period reviews — the Sat/Sun ritual, every horizon)
 
 - **One period engine, one review surface.** `src/lib/periods.ts` (week = Mon–Fri trading

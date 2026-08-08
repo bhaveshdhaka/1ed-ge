@@ -30,6 +30,9 @@ screen time, and trades all live in the same daily record.
   for whole-day structuring with screenshots, trade screenshots, and
   screen-time screenshots. Same prompt/schema → identical output tone.
 - `sharp` (image → webp), `gray-matter` (file I/O in the admin APIs).
+- `poppler-utils` (`pdftotext`) in the container — PDF trade-statement ingestion;
+  the ingest text parser uses `AI_MODEL_INGEST` (cheap model, default
+  `deepseek/deepseek-v4-flash-0731`).
 
 ## Commands
 
@@ -99,6 +102,8 @@ src/lib/period-stats.ts      period aggregation — R/P&L/per-account/per-model/
 src/lib/review-compare.ts    AI factual comparison (deepseek v4 flash 0731, formatter-over-numbers) + fallback
 src/lib/accountability.ts    pending reflections — Mon–Fri every day (3h grace), completed periods only
 src/lib/copy.ts              SINGLE source of every public message string (trader/zen/reflection vocabulary)
+src/lib/ingest.ts            import pipeline — CSV/PDF/image parse (cheap model + poppler), CT→HKT,
+                             fill-id attribution, fill→position grouping, per-account dedup (tested)
 src/lib/live.ts             admin-heartbeat read/write (/tmp/1edge-live.json, 5-min live window)
 src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), readScreenshot,
                              readScreenTime, coachReply, assist, captionAlt (cheap-model alt text)
@@ -123,6 +128,8 @@ src/pages/zen/[secret]/    private zen (SSR), renders the React app; the old
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/api/admin/market.ts    USD news GET + refresh (spawns market-news-fetch.mjs)
 src/pages/api/admin/reviews.ts   period review notes + AI comparison (GET/POST; internal <type>-<anchor> anchors)
+src/pages/api/admin/ingest.ts    trade import — POST /api/admin/ingest (parse proposal) +
+                             /api/admin/ingest/apply (day merge + platform-id alias persist + pending change)
 src/pages/media/[...file].ts SSR media file server (uploads in public/media)
 src/components/admin/*      React admin (Overview / Day / Accounts / Coach / Media / Library)
 src/components/admin/tabs/DayWorkspace.tsx  the single "day" screen: ephemeral capture (AI
@@ -194,7 +201,9 @@ draft:                       # NEW — private, NEVER rendered publicly
   (MNQ `pointsValue` = 2).
 - **Accounts** = lifecycle instances: `stage` in `eval | funded | buffer |
   payout | failed | paused`, with a `stages[]` history. Failures spawn a new
-  instance; old ones stay forever.
+  instance; old ones stay forever. Accounts also carry `platformIds[]` — the
+  Tradovate platform-id → internal-id alias map, persisted once on the owner's
+  first import confirm.
 - **Trading models** = `models/` collection (name, premise, rules, status,
   order). Every trade may carry a `model` tag. Public `/models` page renders
   models + rules + their trades. Rules are owner-authored only — never AI

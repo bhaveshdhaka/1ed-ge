@@ -1,6 +1,6 @@
 # Ingest: PDF / CSV / Image trade import — design
 
-**Date:** 2026-08-06 · **Status:** DESIGNED, NOT BUILT — handoff to next agent
+**Date:** 2026-08-06 · **Status:** SHIPPED — deployed + verified live (2026-08-08)
 **Owner:** sole trader (single user). Everything here was validated against the
 owner's real Tradovate exports (files still in `/tmp/opencode/import-demo/`).
 
