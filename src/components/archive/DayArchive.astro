@@ -67,7 +67,6 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
       {prevIso ? (
         <a href={`/day/${fmtDay(prevIso)}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">← {fmtDay(prevIso)}</a>
       ) : (<span class="text-faint">← older</span>)}
-      <span class="text-faint">day {dayIdx + 1}</span>
       {nextIso ? (
         <a href={`/day/${fmtDay(nextIso)}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">{fmtDay(nextIso)} →</a>
       ) : (<span class="text-faint">newer →</span>)}
