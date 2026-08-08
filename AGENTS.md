@@ -26,9 +26,12 @@ deploy or sync. The pipeline guarantees:
 - Prod data never lands on test (preprod branch is separate).
 - All de-indexing is test-only (the 4 layers live in the preprod repo).
 - Wrong-env actions fail loud (`require_env <expected>` in every script).
+- **Direct `git push` to main/preprod is refused** by the pre-push hook —
+  the path is `bash scripts/ship.sh <direction>`, not `git push`.
 
 The one-line env check: `bash scripts/where-am-i.sh`. The 10-second
-wired-up check: `bash scripts/audit-pipeline.sh`.
+wired-up check: `bash scripts/audit-pipeline.sh`. The single ship command:
+`bash scripts/ship.sh <preprod-to-main|main-to-preprod|prod-only|test-only>`.
 
 ## Stack
 
@@ -77,12 +80,16 @@ does not exist to them. After ANY meaningful change:
 2. **Commit** — conventional prefix (`feat:` / `fix:` / `chore:` / `docs:`),
    concise message, `git add -A` first. Never leave work uncommitted at the end
    of a session.
-3. **Deploy** — `bash scripts/deploy-prod.sh` (from the prod worktree). The
-   container runs `npm run build` on start (~15s), so wait/poll until
-   `https://1ed.ge` returns 200 before declaring success. For the preprod,
-   use `bash scripts/deploy-test.sh` (from the preprod worktree). See
-   `docs/PIPELINE.md`.
-4. **Verify LIVE** — `bash scripts/verify-env.sh prod` (or `test` from the
+3. **Ship** — use `scripts/ship.sh`, never `git push` directly. The pre-push
+   git hook refuses direct push to main/preprod and points to the script.
+   Subcommands: `preprod-to-main`, `main-to-preprod`, `prod-only`,
+   `test-only`. See `docs/PIPELINE.md` for the workflow.
+4. **Deploy (when shipping)** — `bash scripts/ship.sh <direction>` runs the
+   sync + deploy + verify end-to-end. The prod deploy container runs
+   `npm run build` on start (~15s), so wait/poll until `https://1ed.ge`
+   returns 200 before declaring success. For the preprod, the node server
+   is on port 4323 (not docker).
+5. **Verify LIVE** — `bash scripts/verify-env.sh prod` (or `test` from the
    preprod). Confirms HTTP 200, noindex signals (test-only), and the
    noindex absence (prod-only). Then curl `https://1ed.ge` and confirm the
    changed bits are actually in the served HTML/bundle.
