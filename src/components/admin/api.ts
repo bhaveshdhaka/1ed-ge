@@ -1,12 +1,3 @@
-let SECRET = ''
-
-export function setSecret(s: string) {
-  SECRET = s
-}
-// NOTE: getSecret was removed in the passkey switch (Task 3); setSecret stays
-// until Task 6 retires the AdminApp `secret` prop. The x-admin-secret header
-// is gone — auth now rides the zen_session cookie.
-
 type Listener = () => void
 const listeners = new Set<Listener>()
 const topics = new Map<string, Set<Listener>>()
