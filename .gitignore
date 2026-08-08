@@ -15,6 +15,7 @@ public/media/.last-online
 playwright-report/
 test-results/
 .lighthouseci/
+.playwright-mcp/
 
 # brainstorm scratch (visual companion mockups)
 .superpowers/

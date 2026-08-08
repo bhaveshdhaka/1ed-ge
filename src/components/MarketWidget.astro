@@ -20,7 +20,7 @@ const newsToday = news.find((n) => n.data.date === today)
 const red = newsToday?.data.red ?? []
 const orange = newsToday?.data.orange ?? []
 
-const payload: StripPayload = buildStrip(today, Date.now(), red, orange)
+const payload: StripPayload & { hktOffsetMs: number } = { ...buildStrip(today, Date.now(), red, orange), hktOffsetMs: HKT_OFFSET_MS }
 const now = payload.now
 
 const wins = daySessionWindows(today)
@@ -178,6 +178,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
     let PAYLOAD = null
     try { PAYLOAD = JSON.parse(el.textContent || 'null') } catch {}
     if (!PAYLOAD) return
+    const HKT_MS = PAYLOAD.hktOffsetMs || 8 * 3600 * 1000
 
     const p = (n) => String(n).padStart(2, '0')
     const fmtHuman = (sec) => {
@@ -264,7 +265,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
         }
       }
 
-      const hk = new Date(Date.now() + 8 * 3600 * 1000)
+      const hk = new Date(Date.now() + HKT_MS)
       if (nowMarker) {
         nowMarker.style.left = ((hk.getUTCHours() + hk.getUTCMinutes() / 60) / 24) * 100 + '%'
       }
