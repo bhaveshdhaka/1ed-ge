@@ -1,0 +1,336 @@
+- generic [active] [ref=f6e1]:
+  - navigation [ref=f6e2]:
+    - link "1edge — home" [ref=f6e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f6e4]: 1edge_
+    - generic [ref=f6e5]:
+      - link "[00] today" [ref=f6e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f6e7]: "[00]"
+        - text: today
+      - link "[01] stream" [ref=f6e8] [cursor=pointer]:
+        - /url: /stream
+        - generic [ref=f6e9]: "[01]"
+        - text: stream
+      - link "[02] journal" [ref=f6e10] [cursor=pointer]:
+        - /url: /journal
+        - generic [ref=f6e11]: "[02]"
+        - text: journal
+      - link "[03] calendar" [ref=f6e12] [cursor=pointer]:
+        - /url: /calendar
+        - generic [ref=f6e13]: "[03]"
+        - text: calendar
+      - link "[04] performance" [ref=f6e14] [cursor=pointer]:
+        - /url: /performance
+        - generic [ref=f6e15]: "[04]"
+        - text: performance
+      - link "[05] tape" [ref=f6e16] [cursor=pointer]:
+        - /url: /week
+        - generic [ref=f6e17]: "[05]"
+        - text: tape
+      - link "[06] models" [ref=f6e18] [cursor=pointer]:
+        - /url: /models
+        - generic [ref=f6e19]: "[06]"
+        - text: models
+      - link "[07] accounts" [ref=f6e20] [cursor=pointer]:
+        - /url: /accounts
+        - generic [ref=f6e21]: "[07]"
+        - text: accounts
+      - link "[08] about" [ref=f6e22] [cursor=pointer]:
+        - /url: /about
+        - generic [ref=f6e23]: "[08]"
+        - text: about
+  - main [ref=f6e24]:
+    - generic [ref=f6e25]:
+      - generic [ref=f6e26]:
+        - heading "/ calendar" [level=1] [ref=f6e27]
+        - generic [ref=f6e28]: the next week in HKT · deterministic, DST-aware
+      - generic [ref=f6e30]:
+        - generic [ref=f6e31]:
+          - generic [ref=f6e32]:
+            - generic [ref=f6e33]: market
+            - generic [ref=f6e34]: sat | 08-aug-2026
+          - generic [ref=f6e35]: ✕ CME Globex closed · reopens in 1d 14h
+        - generic [ref=f6e37]:
+          - generic "now (HKT)" [ref=f6e38]: 15:15:27
+          - generic [ref=f6e42]:
+            - generic [ref=f6e44]: "00"
+            - generic [ref=f6e51]: "06"
+            - generic [ref=f6e58]: "12"
+            - generic [ref=f6e65]: "18"
+            - generic [ref=f6e72]: "24"
+        - generic [ref=f6e75]:
+          - generic [ref=f6e76]:
+            - generic [ref=f6e77]:
+              - generic [ref=f6e78]: 📈
+              - generic [ref=f6e79]: CME Globex
+            - generic [ref=f6e80]:
+              - generic [ref=f6e81]: closed · reopens in
+              - generic [ref=f6e82]: 1d 14h
+              - generic [ref=f6e83]: closed
+          - generic [ref=f6e84]:
+            - generic [ref=f6e85]:
+              - generic [ref=f6e86]: 🇯🇵
+              - generic [ref=f6e87]: Tokyo · TSE
+            - generic [ref=f6e88]:
+              - generic [ref=f6e89]: opens in
+              - generic [ref=f6e90]: 1d 16h
+              - generic [ref=f6e91]: —
+          - generic [ref=f6e92]:
+            - generic [ref=f6e93]:
+              - generic [ref=f6e94]: 🇬🇧
+              - generic [ref=f6e95]: London · LSE
+            - generic [ref=f6e96]:
+              - generic [ref=f6e97]: opens in
+              - generic [ref=f6e98]: 1d 23h
+              - generic [ref=f6e99]: —
+          - generic [ref=f6e100]:
+            - generic [ref=f6e101]:
+              - generic [ref=f6e102]: 🇺🇸
+              - generic [ref=f6e103]: New York · NYSE
+            - generic [ref=f6e104]:
+              - generic [ref=f6e105]: opens in
+              - generic [ref=f6e106]: 2d 6h
+              - generic [ref=f6e107]: —
+        - paragraph [ref=f6e108]: all times HKT · CME Globex is the master clock
+      - generic [ref=f6e109]:
+        - generic [ref=f6e110]:
+          - generic [ref=f6e111]:
+            - generic [ref=f6e112]: 08-aug-2026
+            - generic [ref=f6e113]: ✕ closed · weekend
+          - generic [ref=f6e114]:
+            - generic [ref=f6e115]:
+              - generic [ref=f6e116]: 🇺🇸
+              - generic [ref=f6e117]: —
+            - generic [ref=f6e118]:
+              - generic [ref=f6e119]: 🇯🇵
+              - generic [ref=f6e120]: —
+            - generic [ref=f6e121]:
+              - generic [ref=f6e122]: 🇬🇧
+              - generic [ref=f6e123]: —
+            - generic [ref=f6e124]:
+              - generic [ref=f6e125]: 📈
+              - generic [ref=f6e126]: closed
+          - paragraph [ref=f6e127]: no major USD news · closed · weekend
+        - generic [ref=f6e128]:
+          - generic [ref=f6e129]:
+            - generic [ref=f6e130]: 09-aug-2026
+            - generic [ref=f6e131]: ✕ closed · weekend
+            - generic [ref=f6e132]: 00:45
+          - generic [ref=f6e134]:
+            - generic [ref=f6e135]:
+              - generic [ref=f6e136]: 🇺🇸
+              - generic [ref=f6e137]: —
+            - generic [ref=f6e138]:
+              - generic [ref=f6e139]: 🇯🇵
+              - generic [ref=f6e140]: —
+            - generic [ref=f6e141]:
+              - generic [ref=f6e142]: 🇬🇧
+              - generic [ref=f6e143]: —
+            - generic [ref=f6e144]:
+              - generic [ref=f6e145]: 📈
+              - generic [ref=f6e146]: closed
+          - generic [ref=f6e149]:
+            - generic "orange" [ref=f6e150]
+            - generic [ref=f6e151]: 🗣️00:45
+            - generic [ref=f6e152]: Fed Bowman Speech[TV]
+        - generic [ref=f6e153]:
+          - generic [ref=f6e154]:
+            - generic [ref=f6e155]: 10-aug-2026
+            - generic [ref=f6e156]: ○ open · ~23h
+          - generic [ref=f6e157]:
+            - generic [ref=f6e158]:
+              - generic [ref=f6e159]: 🇺🇸
+              - generic [ref=f6e160]: 21:30→04:00
+            - generic [ref=f6e161]:
+              - generic [ref=f6e162]: 🇯🇵
+              - generic [ref=f6e163]: 08:00–14:30
+            - generic [ref=f6e164]:
+              - generic [ref=f6e165]: 🇬🇧
+              - generic [ref=f6e166]: 15:00→23:30
+            - generic [ref=f6e167]:
+              - generic [ref=f6e168]: 📈
+              - generic [ref=f6e169]: ~23h
+          - paragraph [ref=f6e170]: no major USD news · open · ~23h
+        - generic [ref=f6e171]:
+          - generic [ref=f6e172]:
+            - generic [ref=f6e173]: 11-aug-2026
+            - generic [ref=f6e174]: ○ open · halt 05:00–06:00 hkt
+            - generic [ref=f6e175]: 22:00
+          - generic [ref=f6e177]:
+            - generic [ref=f6e178]:
+              - generic [ref=f6e179]: 🇺🇸
+              - generic [ref=f6e180]: 21:30→04:00
+            - generic [ref=f6e181]:
+              - generic [ref=f6e182]: 🇯🇵
+              - generic [ref=f6e183]: —
+            - generic [ref=f6e184]:
+              - generic [ref=f6e185]: 🇬🇧
+              - generic [ref=f6e186]: 15:00→23:30
+            - generic [ref=f6e187]:
+              - generic [ref=f6e188]: 📈
+              - generic [ref=f6e189]: halt 05:00–06:00
+          - generic [ref=f6e190]:
+            - generic [ref=f6e192]:
+              - generic "orange" [ref=f6e193]
+              - generic [ref=f6e194]: 💼20:15
+              - generic [ref=f6e195]: ADP Employment Change Weekly[TV]
+            - generic [ref=f6e196]:
+              - generic [ref=f6e197]:
+                - generic "red" [ref=f6e198]
+                - generic [ref=f6e199]: 🏠22:00
+                - generic [ref=f6e200]: Existing Home Sales[TV]
+              - group [ref=f6e201]:
+                - generic "+1 more at 22:00 ▾" [ref=f6e202] [cursor=pointer]:
+                  - text: +1 more at 22:00
+                  - generic [ref=f6e203]: ▾
+        - generic [ref=f6e204]:
+          - generic [ref=f6e205]:
+            - generic [ref=f6e206]: 12-aug-2026
+            - generic [ref=f6e207]: ○ open · halt 05:00–06:00 hkt
+            - generic [ref=f6e208]: 20:30
+          - generic [ref=f6e210]:
+            - generic [ref=f6e211]:
+              - generic [ref=f6e212]: 🇺🇸
+              - generic [ref=f6e213]: 21:30→04:00
+            - generic [ref=f6e214]:
+              - generic [ref=f6e215]: 🇯🇵
+              - generic [ref=f6e216]: 08:00–14:30
+            - generic [ref=f6e217]:
+              - generic [ref=f6e218]: 🇬🇧
+              - generic [ref=f6e219]: 15:00→23:30
+            - generic [ref=f6e220]:
+              - generic [ref=f6e221]: 📈
+              - generic [ref=f6e222]: halt 05:00–06:00
+          - generic [ref=f6e223]:
+            - generic [ref=f6e225]:
+              - generic "orange" [ref=f6e226]
+              - generic [ref=f6e227]: 🛢️04:30
+              - generic [ref=f6e228]: API Crude Oil Stock Change[TV]
+            - generic [ref=f6e230]:
+              - generic "orange" [ref=f6e231]
+              - generic [ref=f6e232]: 🏠19:00
+              - generic [ref=f6e233]: MBA 30-Year Mortgage Rate[TV]
+            - generic [ref=f6e234]:
+              - generic [ref=f6e235]:
+                - generic "red" [ref=f6e236]
+                - generic [ref=f6e237]: 🛒20:30
+                - generic [ref=f6e238]: Inflation Rate YoY[TV]
+              - group [ref=f6e239]:
+                - generic "+5 more at 20:30 ▾" [ref=f6e240] [cursor=pointer]:
+                  - text: +5 more at 20:30
+                  - generic [ref=f6e241]: ▾
+            - generic [ref=f6e242]:
+              - generic [ref=f6e243]:
+                - generic "orange" [ref=f6e244]
+                - generic [ref=f6e245]: 🛢️22:30
+                - generic [ref=f6e246]: EIA Gasoline Stocks Change[TV]
+              - group [ref=f6e247]:
+                - generic "+1 more at 22:30 ▾" [ref=f6e248] [cursor=pointer]:
+                  - text: +1 more at 22:30
+                  - generic [ref=f6e249]: ▾
+        - generic [ref=f6e250]:
+          - generic [ref=f6e251]:
+            - generic [ref=f6e252]: 13-aug-2026
+            - generic [ref=f6e253]: ○ open · halt 05:00–06:00 hkt
+            - generic [ref=f6e254]: 20:30
+          - generic [ref=f6e256]:
+            - generic [ref=f6e257]:
+              - generic [ref=f6e258]: 🇺🇸
+              - generic [ref=f6e259]: 21:30→04:00
+            - generic [ref=f6e260]:
+              - generic [ref=f6e261]: 🇯🇵
+              - generic [ref=f6e262]: 08:00–14:30
+            - generic [ref=f6e263]:
+              - generic [ref=f6e264]: 🇬🇧
+              - generic [ref=f6e265]: 15:00→23:30
+            - generic [ref=f6e266]:
+              - generic [ref=f6e267]: 📈
+              - generic [ref=f6e268]: halt 05:00–06:00
+          - generic [ref=f6e269]:
+            - generic [ref=f6e271]:
+              - generic "orange" [ref=f6e272]
+              - generic [ref=f6e273]: 🏦02:00
+              - generic [ref=f6e274]: Monthly Budget Statement[TV]
+            - generic [ref=f6e276]:
+              - generic "orange" [ref=f6e277]
+              - generic [ref=f6e278]: 🗣️20:15
+              - generic [ref=f6e279]: Fed Hammack Speech[TV]
+            - generic [ref=f6e280]:
+              - generic [ref=f6e281]:
+                - generic "red" [ref=f6e282]
+                - generic [ref=f6e283]: 🛒20:30
+                - generic [ref=f6e284]: PPI MoM[TV]
+              - group [ref=f6e285]:
+                - generic "+2 more at 20:30 ▾" [ref=f6e286] [cursor=pointer]:
+                  - text: +2 more at 20:30
+                  - generic [ref=f6e287]: ▾
+            - generic [ref=f6e289]:
+              - generic "orange" [ref=f6e290]
+              - generic [ref=f6e291]: 🗣️20:40
+              - generic [ref=f6e292]: Fed Barkin Speech[TV]
+        - generic [ref=f6e293]:
+          - generic [ref=f6e294]:
+            - generic [ref=f6e295]: 14-aug-2026
+            - generic [ref=f6e296]: ○ open · halt 05:00–06:00 hkt
+            - generic [ref=f6e297]: 20:30
+          - generic [ref=f6e299]:
+            - generic [ref=f6e300]:
+              - generic [ref=f6e301]: 🇺🇸
+              - generic [ref=f6e302]: 21:30→04:00
+            - generic [ref=f6e303]:
+              - generic [ref=f6e304]: 🇯🇵
+              - generic [ref=f6e305]: 08:00–14:30
+            - generic [ref=f6e306]:
+              - generic [ref=f6e307]: 🇬🇧
+              - generic [ref=f6e308]: 15:00→23:30
+            - generic [ref=f6e309]:
+              - generic [ref=f6e310]: 📈
+              - generic [ref=f6e311]: halt 05:00–06:00
+          - generic [ref=f6e312]:
+            - generic [ref=f6e313]:
+              - generic [ref=f6e314]:
+                - generic "red" [ref=f6e315]
+                - generic [ref=f6e316]: 🛍️20:30
+                - generic [ref=f6e317]: Retail Sales MoM[TV]
+              - group [ref=f6e318]:
+                - generic "+2 more at 20:30 ▾" [ref=f6e319] [cursor=pointer]:
+                  - text: +2 more at 20:30
+                  - generic [ref=f6e320]: ▾
+            - generic [ref=f6e321]:
+              - generic [ref=f6e322]:
+                - generic "red" [ref=f6e323]
+                - generic [ref=f6e324]: 💬22:00
+                - generic [ref=f6e325]: Michigan Consumer Sentiment Prel[TV]
+              - group [ref=f6e326]:
+                - generic "+1 more at 22:00 ▾" [ref=f6e327] [cursor=pointer]:
+                  - text: +1 more at 22:00
+                  - generic [ref=f6e328]: ▾
+        - generic [ref=f6e329]:
+          - generic [ref=f6e330]:
+            - generic [ref=f6e331]: 15-aug-2026
+            - generic [ref=f6e332]: ✕ closed · weekend
+          - generic [ref=f6e333]:
+            - generic [ref=f6e334]:
+              - generic [ref=f6e335]: 🇺🇸
+              - generic [ref=f6e336]: —
+            - generic [ref=f6e337]:
+              - generic [ref=f6e338]: 🇯🇵
+              - generic [ref=f6e339]: —
+            - generic [ref=f6e340]:
+              - generic [ref=f6e341]: 🇬🇧
+              - generic [ref=f6e342]: —
+            - generic [ref=f6e343]:
+              - generic [ref=f6e344]: 📈
+              - generic [ref=f6e345]: closed
+          - paragraph [ref=f6e346]: no major USD news · closed · weekend
+  - contentinfo [ref=f6e347]:
+    - generic [ref=f6e348]:
+      - generic [ref=f6e349]: 1edge — everything public, nothing hidden
+      - generic [ref=f6e350]: R is the only metric that matters.
+    - group [ref=f6e352]:
+      - generic "market sat | 08-aug-2026 CME Globex closed · reopens in 1d 14h ▾" [ref=f6e353] [cursor=pointer]:
+        - generic [ref=f6e354]: market
+        - generic [ref=f6e355]: sat | 08-aug-2026
+        - generic [ref=f6e356]: CME Globex closed · reopens in 1d 14h
+        - generic [ref=f6e357]: ▾

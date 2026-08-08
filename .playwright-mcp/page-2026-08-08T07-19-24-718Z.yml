@@ -1,0 +1,549 @@
+- generic [active] [ref=f16e1]:
+  - navigation [ref=f16e2]:
+    - link "1edge — home" [ref=f16e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f16e4]: 1edge_
+    - group [ref=f16e5]:
+      - generic "menu" [ref=f16e6] [cursor=pointer]
+  - main [ref=f16e11]:
+    - generic [ref=f16e12]:
+      - generic [ref=f16e13]:
+        - generic [ref=f16e14]:
+          - heading "/ the tape" [level=1] [ref=f16e15]
+          - generic [ref=f16e16]: 5 days logged
+        - generic [ref=f16e17]: week 32 · mon | 03-aug-2026 → fri | 07-aug-2026
+      - navigation [ref=f16e18]:
+        - generic [ref=f16e19]:
+          - link "← week 31" [ref=f16e20] [cursor=pointer]:
+            - /url: /week/2026-31
+          - link "week 33 →" [ref=f16e21] [cursor=pointer]:
+            - /url: /week/2026-33
+        - generic [ref=f16e22]:
+          - link "week" [ref=f16e23] [cursor=pointer]:
+            - /url: /week
+          - link "month" [ref=f16e24] [cursor=pointer]:
+            - /url: /month
+          - link "q1" [ref=f16e25] [cursor=pointer]:
+            - /url: /q1
+          - link "q2" [ref=f16e26] [cursor=pointer]:
+            - /url: /q2
+          - link "q3" [ref=f16e27] [cursor=pointer]:
+            - /url: /q3
+          - link "q4" [ref=f16e28] [cursor=pointer]:
+            - /url: /q4
+          - link "h1" [ref=f16e29] [cursor=pointer]:
+            - /url: /h1
+          - link "h2" [ref=f16e30] [cursor=pointer]:
+            - /url: /h2
+          - link "year" [ref=f16e31] [cursor=pointer]:
+            - /url: /year
+      - generic [ref=f16e32]:
+        - heading "/ the tape" [level=2] [ref=f16e33]
+        - img "the tape — cumulative R by period" [ref=f16e35]:
+          - 'link "w32: +3.02R" [ref=f16e37] [cursor=pointer]':
+            - /url: /week/2024-32
+          - 'link "w33: +1.31R" [ref=f16e39] [cursor=pointer]':
+            - /url: /week/2024-33
+          - 'link "w34: +2.35R" [ref=f16e41] [cursor=pointer]':
+            - /url: /week/2024-34
+          - 'link "w35: +0.39R" [ref=f16e43] [cursor=pointer]':
+            - /url: /week/2024-35
+          - 'link "w36: +0.50R" [ref=f16e45] [cursor=pointer]':
+            - /url: /week/2024-36
+          - 'link "w37: +5.28R" [ref=f16e47] [cursor=pointer]':
+            - /url: /week/2024-37
+          - 'link "w38: -6.72R" [ref=f16e49] [cursor=pointer]':
+            - /url: /week/2024-38
+          - 'link "w39: -1.61R" [ref=f16e51] [cursor=pointer]':
+            - /url: /week/2024-39
+          - 'link "w40: +3.68R" [ref=f16e53] [cursor=pointer]':
+            - /url: /week/2024-40
+          - 'link "w41: +3.64R" [ref=f16e55] [cursor=pointer]':
+            - /url: /week/2024-41
+          - 'link "w42: -2.83R" [ref=f16e57] [cursor=pointer]':
+            - /url: /week/2024-42
+          - 'link "w43: +0.68R" [ref=f16e59] [cursor=pointer]':
+            - /url: /week/2024-43
+          - 'link "w44: +2.93R" [ref=f16e61] [cursor=pointer]':
+            - /url: /week/2024-44
+          - 'link "w45: +1.44R" [ref=f16e63] [cursor=pointer]':
+            - /url: /week/2024-45
+          - 'link "w46: +0.94R" [ref=f16e65] [cursor=pointer]':
+            - /url: /week/2024-46
+          - 'link "w47: -3.28R" [ref=f16e67] [cursor=pointer]':
+            - /url: /week/2024-47
+          - 'link "w48: -1.00R" [ref=f16e69] [cursor=pointer]':
+            - /url: /week/2024-48
+          - 'link "w49: -0.05R" [ref=f16e71] [cursor=pointer]':
+            - /url: /week/2024-49
+          - 'link "w50: -0.55R" [ref=f16e73] [cursor=pointer]':
+            - /url: /week/2024-50
+          - 'link "w51: -3.19R" [ref=f16e75] [cursor=pointer]':
+            - /url: /week/2024-51
+          - 'link "w52: +1.63R" [ref=f16e77] [cursor=pointer]':
+            - /url: /week/2024-52
+          - 'link "w1: -0.92R" [ref=f16e79] [cursor=pointer]':
+            - /url: /week/2025-01
+          - 'link "w2: -1.02R" [ref=f16e81] [cursor=pointer]':
+            - /url: /week/2025-02
+          - 'link "w3: +4.22R" [ref=f16e83] [cursor=pointer]':
+            - /url: /week/2025-03
+          - 'link "w4: +2.06R" [ref=f16e85] [cursor=pointer]':
+            - /url: /week/2025-04
+          - 'link "w5: +2.33R" [ref=f16e87] [cursor=pointer]':
+            - /url: /week/2025-05
+          - 'link "w6: -1.91R" [ref=f16e89] [cursor=pointer]':
+            - /url: /week/2025-06
+          - 'link "w7: +2.54R" [ref=f16e91] [cursor=pointer]':
+            - /url: /week/2025-07
+          - 'link "w8: +3.18R" [ref=f16e93] [cursor=pointer]':
+            - /url: /week/2025-08
+          - 'link "w9: +4.61R" [ref=f16e95] [cursor=pointer]':
+            - /url: /week/2025-09
+          - 'link "w10: -2.19R" [ref=f16e97] [cursor=pointer]':
+            - /url: /week/2025-10
+          - 'link "w11: +1.46R" [ref=f16e99] [cursor=pointer]':
+            - /url: /week/2025-11
+          - 'link "w12: -0.36R" [ref=f16e101] [cursor=pointer]':
+            - /url: /week/2025-12
+          - 'link "w13: +6.53R" [ref=f16e103] [cursor=pointer]':
+            - /url: /week/2025-13
+          - 'link "w14: +1.41R" [ref=f16e105] [cursor=pointer]':
+            - /url: /week/2025-14
+          - 'link "w15: +6.17R" [ref=f16e107] [cursor=pointer]':
+            - /url: /week/2025-15
+          - 'link "w16: +2.60R" [ref=f16e109] [cursor=pointer]':
+            - /url: /week/2025-16
+          - 'link "w17: -1.77R" [ref=f16e111] [cursor=pointer]':
+            - /url: /week/2025-17
+          - 'link "w18: -5.19R" [ref=f16e113] [cursor=pointer]':
+            - /url: /week/2025-18
+          - 'link "w19: -3.59R" [ref=f16e115] [cursor=pointer]':
+            - /url: /week/2025-19
+          - 'link "w20: +3.97R" [ref=f16e117] [cursor=pointer]':
+            - /url: /week/2025-20
+          - 'link "w21: -5.70R" [ref=f16e119] [cursor=pointer]':
+            - /url: /week/2025-21
+          - 'link "w22: -2.33R" [ref=f16e121] [cursor=pointer]':
+            - /url: /week/2025-22
+          - 'link "w23: -5.02R" [ref=f16e123] [cursor=pointer]':
+            - /url: /week/2025-23
+          - 'link "w24: +1.52R" [ref=f16e125] [cursor=pointer]':
+            - /url: /week/2025-24
+          - 'link "w25: -0.21R" [ref=f16e127] [cursor=pointer]':
+            - /url: /week/2025-25
+          - 'link "w26: +1.13R" [ref=f16e129] [cursor=pointer]':
+            - /url: /week/2025-26
+          - 'link "w27: -2.49R" [ref=f16e131] [cursor=pointer]':
+            - /url: /week/2025-27
+          - 'link "w28: +5.89R" [ref=f16e133] [cursor=pointer]':
+            - /url: /week/2025-28
+          - 'link "w29: -1.10R" [ref=f16e135] [cursor=pointer]':
+            - /url: /week/2025-29
+          - 'link "w30: +1.01R" [ref=f16e137] [cursor=pointer]':
+            - /url: /week/2025-30
+          - 'link "w31: -4.58R" [ref=f16e139] [cursor=pointer]':
+            - /url: /week/2025-31
+          - 'link "w32: +0.50R" [ref=f16e141] [cursor=pointer]':
+            - /url: /week/2025-32
+          - 'link "w33: -3.29R" [ref=f16e143] [cursor=pointer]':
+            - /url: /week/2025-33
+          - 'link "w34: +3.00R" [ref=f16e145] [cursor=pointer]':
+            - /url: /week/2025-34
+          - 'link "w35: +4.92R" [ref=f16e147] [cursor=pointer]':
+            - /url: /week/2025-35
+          - 'link "w36: -1.36R" [ref=f16e149] [cursor=pointer]':
+            - /url: /week/2025-36
+          - 'link "w37: +2.33R" [ref=f16e151] [cursor=pointer]':
+            - /url: /week/2025-37
+          - 'link "w38: -0.77R" [ref=f16e153] [cursor=pointer]':
+            - /url: /week/2025-38
+          - 'link "w39: -2.10R" [ref=f16e155] [cursor=pointer]':
+            - /url: /week/2025-39
+          - 'link "w40: -4.40R" [ref=f16e157] [cursor=pointer]':
+            - /url: /week/2025-40
+          - 'link "w41: +5.09R" [ref=f16e159] [cursor=pointer]':
+            - /url: /week/2025-41
+          - 'link "w42: +1.10R" [ref=f16e161] [cursor=pointer]':
+            - /url: /week/2025-42
+          - 'link "w43: +0.39R" [ref=f16e163] [cursor=pointer]':
+            - /url: /week/2025-43
+          - 'link "w44: +4.74R" [ref=f16e165] [cursor=pointer]':
+            - /url: /week/2025-44
+          - 'link "w45: -1.16R" [ref=f16e167] [cursor=pointer]':
+            - /url: /week/2025-45
+          - 'link "w46: -4.77R" [ref=f16e169] [cursor=pointer]':
+            - /url: /week/2025-46
+          - 'link "w47: -5.43R" [ref=f16e171] [cursor=pointer]':
+            - /url: /week/2025-47
+          - 'link "w48: +1.24R" [ref=f16e173] [cursor=pointer]':
+            - /url: /week/2025-48
+          - 'link "w49: -0.54R" [ref=f16e175] [cursor=pointer]':
+            - /url: /week/2025-49
+          - 'link "w50: -0.03R" [ref=f16e177] [cursor=pointer]':
+            - /url: /week/2025-50
+          - 'link "w51: +2.40R" [ref=f16e179] [cursor=pointer]':
+            - /url: /week/2025-51
+          - 'link "w52: +3.11R" [ref=f16e181] [cursor=pointer]':
+            - /url: /week/2025-52
+          - 'link "w1: -2.33R" [ref=f16e183] [cursor=pointer]':
+            - /url: /week/2026-01
+          - 'link "w2: -0.10R" [ref=f16e185] [cursor=pointer]':
+            - /url: /week/2026-02
+          - 'link "w3: +10.57R" [ref=f16e187] [cursor=pointer]':
+            - /url: /week/2026-03
+          - 'link "w4: +2.41R" [ref=f16e189] [cursor=pointer]':
+            - /url: /week/2026-04
+          - 'link "w5: +0.06R" [ref=f16e191] [cursor=pointer]':
+            - /url: /week/2026-05
+          - 'link "w6: -0.98R" [ref=f16e193] [cursor=pointer]':
+            - /url: /week/2026-06
+          - 'link "w7: +5.69R" [ref=f16e195] [cursor=pointer]':
+            - /url: /week/2026-07
+          - 'link "w8: +2.68R" [ref=f16e197] [cursor=pointer]':
+            - /url: /week/2026-08
+          - 'link "w9: -0.68R" [ref=f16e199] [cursor=pointer]':
+            - /url: /week/2026-09
+          - 'link "w10: +0.42R" [ref=f16e201] [cursor=pointer]':
+            - /url: /week/2026-10
+          - 'link "w11: +5.26R" [ref=f16e203] [cursor=pointer]':
+            - /url: /week/2026-11
+          - 'link "w12: +0.81R" [ref=f16e205] [cursor=pointer]':
+            - /url: /week/2026-12
+          - 'link "w13: +7.01R" [ref=f16e207] [cursor=pointer]':
+            - /url: /week/2026-13
+          - 'link "w14: +5.78R" [ref=f16e209] [cursor=pointer]':
+            - /url: /week/2026-14
+          - 'link "w15: +1.54R" [ref=f16e211] [cursor=pointer]':
+            - /url: /week/2026-15
+          - 'link "w16: -1.15R" [ref=f16e213] [cursor=pointer]':
+            - /url: /week/2026-16
+          - 'link "w17: +6.88R" [ref=f16e215] [cursor=pointer]':
+            - /url: /week/2026-17
+          - 'link "w18: -1.43R" [ref=f16e217] [cursor=pointer]':
+            - /url: /week/2026-18
+          - 'link "w19: +0.96R" [ref=f16e219] [cursor=pointer]':
+            - /url: /week/2026-19
+          - 'link "w20: +2.07R" [ref=f16e221] [cursor=pointer]':
+            - /url: /week/2026-20
+          - 'link "w21: -2.91R" [ref=f16e223] [cursor=pointer]':
+            - /url: /week/2026-21
+          - 'link "w22: +2.51R" [ref=f16e225] [cursor=pointer]':
+            - /url: /week/2026-22
+          - 'link "w23: +5.68R" [ref=f16e227] [cursor=pointer]':
+            - /url: /week/2026-23
+          - 'link "w24: +3.17R" [ref=f16e229] [cursor=pointer]':
+            - /url: /week/2026-24
+          - 'link "w25: +8.19R" [ref=f16e231] [cursor=pointer]':
+            - /url: /week/2026-25
+          - 'link "w26: +0.71R" [ref=f16e233] [cursor=pointer]':
+            - /url: /week/2026-26
+          - 'link "w27: +3.55R" [ref=f16e235] [cursor=pointer]':
+            - /url: /week/2026-27
+          - 'link "w28: +6.95R" [ref=f16e237] [cursor=pointer]':
+            - /url: /week/2026-28
+          - 'link "w29: +9.27R" [ref=f16e239] [cursor=pointer]':
+            - /url: /week/2026-29
+          - 'link "w30: +5.32R" [ref=f16e241] [cursor=pointer]':
+            - /url: /week/2026-30
+          - 'link "w31: +0.63R" [ref=f16e243] [cursor=pointer]':
+            - /url: /week/2026-31
+          - 'link "w32: -5.29R" [ref=f16e245] [cursor=pointer]':
+            - /url: /week/2026-32
+          - generic [ref=f16e247]: w36
+          - generic [ref=f16e248]: w41
+          - generic [ref=f16e249]: w46
+          - generic [ref=f16e250]: w51
+          - generic [ref=f16e251]: w4
+          - generic [ref=f16e252]: w9
+          - generic [ref=f16e253]: w14
+          - generic [ref=f16e254]: w19
+          - generic [ref=f16e255]: w24
+          - generic [ref=f16e256]: w29
+          - generic [ref=f16e257]: w34
+          - generic [ref=f16e258]: w39
+          - generic [ref=f16e259]: w44
+          - generic [ref=f16e260]: w49
+          - generic [ref=f16e261]: w2
+          - generic [ref=f16e262]: w7
+          - generic [ref=f16e263]: w12
+          - generic [ref=f16e264]: w17
+          - generic [ref=f16e265]: w22
+          - generic [ref=f16e266]: w27
+          - generic [ref=f16e267]: w32
+          - generic [ref=f16e268]: now
+        - generic [ref=f16e270]:
+          - generic [ref=f16e271]: day +0.0R
+          - generic [ref=f16e272]: week -5.3R
+          - generic [ref=f16e273]: month -5.3R
+          - generic [ref=f16e274]: quarter +15.9R
+          - generic [ref=f16e275]: year +84.5R
+      - generic [ref=f16e276]:
+        - generic [ref=f16e277]:
+          - heading "/ the numbers" [level=2] [ref=f16e278]
+          - generic [ref=f16e279]:
+            - generic [ref=f16e280]:
+              - generic [ref=f16e281]: sum R
+              - generic [ref=f16e282]: "-5.29R"
+            - generic [ref=f16e283]:
+              - generic [ref=f16e284]: expectancy
+              - generic [ref=f16e285]: "-0.59R"
+            - generic [ref=f16e286]:
+              - generic [ref=f16e287]: win rate
+              - generic [ref=f16e288]: 22%
+            - generic [ref=f16e289]:
+              - generic [ref=f16e290]: profit factor
+              - generic [ref=f16e291]: "0.32"
+            - generic [ref=f16e292]:
+              - generic [ref=f16e293]: trades
+              - generic [ref=f16e294]: "9"
+            - generic [ref=f16e295]:
+              - generic [ref=f16e296]: traded days
+              - generic [ref=f16e297]: "4"
+        - generic [ref=f16e298]:
+          - generic [ref=f16e299]:
+            - heading "/ per-account p&l" [level=3] [ref=f16e300]
+            - table [ref=f16e302]:
+              - rowgroup [ref=f16e303]:
+                - row [ref=f16e304]:
+                  - columnheader "account" [ref=f16e305]
+                  - columnheader "pnl" [ref=f16e306]
+              - rowgroup [ref=f16e307]:
+                - row [ref=f16e308]:
+                  - cell "tpt-25k-a" [ref=f16e309]
+                  - cell "$-67" [ref=f16e310]
+                - row [ref=f16e311]:
+                  - cell "lucid-50k-b" [ref=f16e312]
+                  - cell "$-10" [ref=f16e313]
+                - row [ref=f16e314]:
+                  - cell "lucid-25k-a" [ref=f16e315]
+                  - cell "+$10.5" [ref=f16e316]
+                - row [ref=f16e317]:
+                  - cell "tpt-25k-b" [ref=f16e318]
+                  - cell "$-7.5" [ref=f16e319]
+                - row [ref=f16e320]:
+                  - cell "tpt-50k-a" [ref=f16e321]
+                  - cell "$-12" [ref=f16e322]
+          - generic [ref=f16e323]:
+            - heading "/ per-model" [level=3] [ref=f16e324]
+            - table [ref=f16e326]:
+              - rowgroup [ref=f16e327]:
+                - row [ref=f16e328]:
+                  - columnheader "model" [ref=f16e329]
+                  - columnheader "trades" [ref=f16e330]
+                  - columnheader "sum R" [ref=f16e331]
+              - rowgroup [ref=f16e332]:
+                - row [ref=f16e333]:
+                  - cell "orb-drive" [ref=f16e334]
+                  - cell "3" [ref=f16e336]
+                  - cell "-3.49R" [ref=f16e337]
+                - row [ref=f16e338]:
+                  - cell "vwap-reclaim" [ref=f16e339]
+                  - cell "3" [ref=f16e341]
+                  - cell "-3.32R" [ref=f16e342]
+                - row [ref=f16e343]:
+                  - cell "pullback-continuation" [ref=f16e344]
+                  - cell "2" [ref=f16e346]
+                  - cell "+ 2.51R" [ref=f16e347]
+                - row [ref=f16e348]:
+                  - cell "liquidity-breakdown" [ref=f16e349]
+                  - cell "1" [ref=f16e351]
+                  - cell "-1.00R" [ref=f16e352]
+        - generic [ref=f16e353]:
+          - heading "/ life metrics" [level=2] [ref=f16e354]
+          - generic [ref=f16e355]:
+            - generic [ref=f16e356]:
+              - generic [ref=f16e357]: avg sleep
+              - generic [ref=f16e358]: 6.6h
+            - generic [ref=f16e359]:
+              - generic [ref=f16e360]: avg mood
+              - generic [ref=f16e361]: 2.2/5
+            - generic [ref=f16e362]:
+              - generic [ref=f16e363]: avg screen
+              - generic [ref=f16e364]: 9.9h
+            - generic [ref=f16e365]:
+              - generic [ref=f16e366]: habits tracked
+              - generic [ref=f16e367]: "14"
+          - generic [ref=f16e368]:
+            - generic [ref=f16e369]:
+              - text: create-art
+              - generic [ref=f16e370]: 60%
+            - generic [ref=f16e371]:
+              - text: meditate
+              - generic [ref=f16e372]: 20%
+            - generic [ref=f16e373]:
+              - text: no-news-trades
+              - generic [ref=f16e374]: 60%
+            - generic [ref=f16e375]:
+              - text: no-social-morning
+              - generic [ref=f16e376]: 40%
+            - generic [ref=f16e377]:
+              - text: plan-before-open
+              - generic [ref=f16e378]: 20%
+            - generic [ref=f16e379]:
+              - text: eat-clean
+              - generic [ref=f16e380]: 40%
+            - generic [ref=f16e381]:
+              - text: quiet-time
+              - generic [ref=f16e382]: 40%
+            - generic [ref=f16e383]:
+              - text: read
+              - generic [ref=f16e384]: 60%
+            - generic [ref=f16e385]:
+              - text: review-evening
+              - generic [ref=f16e386]: 40%
+            - generic [ref=f16e387]:
+              - text: sleep
+              - generic [ref=f16e388]: 20%
+            - generic [ref=f16e389]:
+              - text: stand-up
+              - generic [ref=f16e390]: 0%
+            - generic [ref=f16e391]:
+              - text: trade-clean
+              - generic [ref=f16e392]: 40%
+            - generic [ref=f16e393]:
+              - text: work-out
+              - generic [ref=f16e394]: 0%
+            - generic [ref=f16e395]:
+              - text: write
+              - generic [ref=f16e396]: 80%
+        - generic [ref=f16e397]:
+          - heading "/ days" [level=2] [ref=f16e398]
+          - generic [ref=f16e399]:
+            - link "mon | 03-aug-2026" [ref=f16e400] [cursor=pointer]:
+              - /url: /day/03-aug-2026
+            - link "tue | 04-aug-2026" [ref=f16e401] [cursor=pointer]:
+              - /url: /day/04-aug-2026
+            - link "wed | 05-aug-2026" [ref=f16e402] [cursor=pointer]:
+              - /url: /day/05-aug-2026
+            - link "thu | 06-aug-2026" [ref=f16e403] [cursor=pointer]:
+              - /url: /day/06-aug-2026
+            - link "fri | 07-aug-2026" [ref=f16e404] [cursor=pointer]:
+              - /url: /day/07-aug-2026
+        - generic [ref=f16e405]:
+          - heading "/ trend" [level=2] [ref=f16e406]
+          - table [ref=f16e408]:
+            - rowgroup [ref=f16e409]:
+              - row [ref=f16e410]:
+                - columnheader "period" [ref=f16e411]
+                - columnheader "sum R" [ref=f16e412]
+                - columnheader "win rate" [ref=f16e413]
+                - columnheader "trades" [ref=f16e414]
+            - rowgroup [ref=f16e415]:
+              - row [ref=f16e416]:
+                - cell "week 25" [ref=f16e417]
+                - cell "+ 8.19R" [ref=f16e418]
+                - cell "86%" [ref=f16e419]
+                - cell "7" [ref=f16e420]
+              - row [ref=f16e421]:
+                - cell "week 26" [ref=f16e422]
+                - cell "+ 0.71R" [ref=f16e423]
+                - cell "50%" [ref=f16e424]
+                - cell "8" [ref=f16e425]
+              - row [ref=f16e426]:
+                - cell "week 27" [ref=f16e427]
+                - cell "+ 3.55R" [ref=f16e428]
+                - cell "60%" [ref=f16e429]
+                - cell "5" [ref=f16e430]
+              - row [ref=f16e431]:
+                - cell "week 28" [ref=f16e432]
+                - cell "+ 6.95R" [ref=f16e433]
+                - cell "75%" [ref=f16e434]
+                - cell "8" [ref=f16e435]
+              - row [ref=f16e436]:
+                - cell "week 29" [ref=f16e437]
+                - cell "+ 9.27R" [ref=f16e438]
+                - cell "67%" [ref=f16e439]
+                - cell "9" [ref=f16e440]
+              - row [ref=f16e441]:
+                - cell "week 30" [ref=f16e442]
+                - cell "+ 5.32R" [ref=f16e443]
+                - cell "63%" [ref=f16e444]
+                - cell "8" [ref=f16e445]
+              - row [ref=f16e446]:
+                - cell "week 31" [ref=f16e447]
+                - cell "+ 0.63R" [ref=f16e448]
+                - cell "50%" [ref=f16e449]
+                - cell "8" [ref=f16e450]
+              - row [ref=f16e451]:
+                - cell "week 32" [ref=f16e452]
+                - cell "-5.29R" [ref=f16e453]
+                - cell "22%" [ref=f16e454]
+                - cell "9" [ref=f16e455]
+        - generic [ref=f16e456]:
+          - heading "/ reflection" [level=2] [ref=f16e457]
+          - generic [ref=f16e458]: no reflection written for this period.
+        - generic [ref=f16e460]:
+          - heading "/ comparison · from verified data" [level=2] [ref=f16e461]
+          - generic [ref=f16e462]:
+            - generic [ref=f16e463]:
+              - paragraph [ref=f16e464]: "· sum R: -5.29 vs 0.63 (-941%)"
+              - paragraph [ref=f16e465]: "· expectancy: -0.59 vs 0.08 (-848%)"
+              - paragraph [ref=f16e466]: "· win rate: 0.22 vs 0.50 (-56%)"
+              - paragraph [ref=f16e467]: "· profit factor: 0.32 vs 1.14 (-72%)"
+              - paragraph [ref=f16e468]: "· trades: 9.00 vs 8.00 (+13%)"
+              - paragraph [ref=f16e469]: "· traded days: 4.00 vs 5.00 (-20%)"
+            - generic [ref=f16e470]:
+              - paragraph [ref=f16e471]: rolling trend
+              - paragraph [ref=f16e472]: week 25 +8.19R · week 26 +0.71R · week 27 +3.55R · week 28 +6.95R · week 29 +9.27R · week 30 +5.32R · week 31 +0.63R · week 32 -5.29R
+        - generic [ref=f16e473]:
+          - heading "/ journal entries" [level=2] [ref=f16e474]
+          - generic [ref=f16e475]:
+            - 'link "wed | 05-aug-2026 Day 727 this is the beginning of a public experiment. #intro #rules" [ref=f16e476] [cursor=pointer]':
+              - /url: /day/05-aug-2026
+              - generic [ref=f16e477]: wed | 05-aug-2026
+              - generic [ref=f16e478]: Day 727
+              - paragraph [ref=f16e479]: this is the beginning of a public experiment.
+              - generic [ref=f16e480]:
+                - generic [ref=f16e481]: "#intro"
+                - generic [ref=f16e482]: "#rules"
+            - 'link "fri | 07-aug-2026 Day 729 the mental side of trading, public. #mental #mood" [ref=f16e483] [cursor=pointer]':
+              - /url: /day/07-aug-2026
+              - generic [ref=f16e484]: fri | 07-aug-2026
+              - generic [ref=f16e485]: Day 729
+              - paragraph [ref=f16e486]: the mental side of trading, public.
+              - generic [ref=f16e487]:
+                - generic [ref=f16e488]: "#mental"
+                - generic [ref=f16e489]: "#mood"
+        - generic [ref=f16e490]:
+          - heading "/ stream moments" [level=2] [ref=f16e491]
+          - generic [ref=f16e492]:
+            - generic [ref=f16e493]:
+              - generic [ref=f16e494]:
+                - generic [ref=f16e495]: 11:15 hkt
+                - generic [ref=f16e496]: trade
+                - link "06-aug-2026" [ref=f16e497] [cursor=pointer]:
+                  - /url: /day/06-aug-2026
+              - generic [ref=f16e498]:
+                - generic [ref=f16e499]: ▼ MNQ
+                - generic [ref=f16e500]: ny-pm · orb-drive
+                - generic [ref=f16e501]: "-1.20R"
+              - paragraph [ref=f16e503]: held the runner to the close — the plan said let it run.
+            - generic [ref=f16e504]:
+              - generic [ref=f16e505]:
+                - generic [ref=f16e506]: 11:15 hkt
+                - generic [ref=f16e507]: trade
+                - link "05-aug-2026" [ref=f16e508] [cursor=pointer]:
+                  - /url: /day/05-aug-2026
+              - generic [ref=f16e509]:
+                - generic [ref=f16e510]: ▼ MNQ
+                - generic [ref=f16e511]: ny-pm · pullback-continuation
+                - generic [ref=f16e512]: +0.77R
+              - paragraph [ref=f16e514]: second attempt after the sweep — that one was clean.
+            - generic [ref=f16e515]:
+              - generic [ref=f16e516]:
+                - generic [ref=f16e517]: 08:20 hkt
+                - generic [ref=f16e518]: note
+                - link "04-aug-2026" [ref=f16e519] [cursor=pointer]:
+                  - /url: /day/04-aug-2026
+              - paragraph [ref=f16e521]: range is tight, waiting for the drive to pick a side.
+  - contentinfo [ref=f16e522]:
+    - generic [ref=f16e523]:
+      - generic [ref=f16e524]: 1edge — everything public, nothing hidden
+      - generic [ref=f16e525]: R is the only metric that matters.
+    - group [ref=f16e527]:
+      - generic "market sat | 08-aug-2026 CME Globex closed · reopens in 1d 14h ▾" [ref=f16e528] [cursor=pointer]:
+        - generic [ref=f16e529]: market
+        - generic [ref=f16e530]: sat | 08-aug-2026
+        - generic [ref=f16e531]: CME Globex closed · reopens in 1d 14h
+        - generic [ref=f16e532]: ▾

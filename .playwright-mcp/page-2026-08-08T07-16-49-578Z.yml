@@ -1,0 +1,135 @@
+- generic [active] [ref=f9e1]:
+  - navigation [ref=f9e2]:
+    - link "1edge — home" [ref=f9e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f9e4]: 1edge_
+    - generic [ref=f9e5]:
+      - link "[00] today" [ref=f9e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f9e7]: "[00]"
+        - text: today
+      - link "[01] stream" [ref=f9e8] [cursor=pointer]:
+        - /url: /stream
+        - generic [ref=f9e9]: "[01]"
+        - text: stream
+      - link "[02] journal" [ref=f9e10] [cursor=pointer]:
+        - /url: /journal
+        - generic [ref=f9e11]: "[02]"
+        - text: journal
+      - link "[03] calendar" [ref=f9e12] [cursor=pointer]:
+        - /url: /calendar
+        - generic [ref=f9e13]: "[03]"
+        - text: calendar
+      - link "[04] performance" [ref=f9e14] [cursor=pointer]:
+        - /url: /performance
+        - generic [ref=f9e15]: "[04]"
+        - text: performance
+      - link "[05] tape" [ref=f9e16] [cursor=pointer]:
+        - /url: /week
+        - generic [ref=f9e17]: "[05]"
+        - text: tape
+      - link "[06] models" [ref=f9e18] [cursor=pointer]:
+        - /url: /models
+        - generic [ref=f9e19]: "[06]"
+        - text: models
+      - link "[07] accounts" [ref=f9e20] [cursor=pointer]:
+        - /url: /accounts
+        - generic [ref=f9e21]: "[07]"
+        - text: accounts
+      - link "[08] about" [ref=f9e22] [cursor=pointer]:
+        - /url: /about
+        - generic [ref=f9e23]: "[08]"
+        - text: about
+  - main [ref=f9e24]:
+    - generic [ref=f9e25]:
+      - generic [ref=f9e26]:
+        - heading "/ about" [level=1] [ref=f9e27]
+        - generic [ref=f9e28]: why this exists
+      - paragraph [ref=f9e29]: i want to run a hedge fund. but before anyone — including me — should trust me with money, i need to prove i can trade. properly. consistently. without hiding the bad days.
+      - paragraph [ref=f9e30]: so everything goes public. every trade. every account. every journal entry. every habit logged. the numbers are the numbers, and R — points risked vs points made — is the centerpiece. it is the one metric that survives changing account sizes, changing firms, and changing bankrolls.
+      - heading "/ the rules" [level=2] [ref=f9e31]
+      - list [ref=f9e32]:
+        - listitem [ref=f9e33]:
+          - generic [ref=f9e34]: "01"
+          - generic [ref=f9e35]: risk the same fixed $ amount every single trade. no scaling into size when angry.
+        - listitem [ref=f9e36]:
+          - generic [ref=f9e37]: "02"
+          - generic [ref=f9e38]: only my A+ setups. if it is not a setup, it is not a trade.
+        - listitem [ref=f9e39]:
+          - generic [ref=f9e40]: "03"
+          - generic [ref=f9e41]: no revenge trades. no "getting it back" in the same session.
+        - listitem [ref=f9e42]:
+          - generic [ref=f9e43]: "04"
+          - generic [ref=f9e44]: a loss is information, not an insult. log it like a win.
+        - listitem [ref=f9e45]:
+          - generic [ref=f9e46]: "05"
+          - generic [ref=f9e47]: if i would not publish it, i do not do it.
+        - listitem [ref=f9e48]:
+          - generic [ref=f9e49]: "06"
+          - generic [ref=f9e50]: drawdown is the killer. the account buffer is the seatbelt.
+      - heading "/ the accounts" [level=2] [ref=f9e51]
+      - paragraph [ref=f9e52]:
+        - text: trading mnq through prop firms. the live P&L of every account is on
+        - link "/performance" [ref=f9e53] [cursor=pointer]:
+          - /url: /performance
+        - text: .
+      - table [ref=f9e55]:
+        - rowgroup [ref=f9e56]:
+          - row [ref=f9e57]:
+            - columnheader "firm" [ref=f9e58]
+            - columnheader "size" [ref=f9e59]
+            - columnheader "drawdown" [ref=f9e60]
+            - columnheader "status" [ref=f9e61]
+        - rowgroup [ref=f9e62]:
+          - row [ref=f9e63]:
+            - cell "Lucid" [ref=f9e64]
+            - cell "25k" [ref=f9e65]
+            - cell "$1,000" [ref=f9e66]
+            - cell "failed" [ref=f9e67]
+          - row [ref=f9e68]:
+            - cell "TakeProfitTrader" [ref=f9e69]
+            - cell "25k" [ref=f9e70]
+            - cell "$1,000" [ref=f9e71]
+            - cell "failed" [ref=f9e72]
+          - row [ref=f9e73]:
+            - cell "Lucid" [ref=f9e74]
+            - cell "50k" [ref=f9e75]
+            - cell "$2,000" [ref=f9e76]
+            - cell "eval" [ref=f9e77]
+          - row [ref=f9e78]:
+            - cell "Lucid" [ref=f9e79]
+            - cell "50k" [ref=f9e80]
+            - cell "$2,000" [ref=f9e81]
+            - cell "eval" [ref=f9e82]
+          - row [ref=f9e83]:
+            - cell "TakeProfitTrader" [ref=f9e84]
+            - cell "25k" [ref=f9e85]
+            - cell "$1,000" [ref=f9e86]
+            - cell "eval" [ref=f9e87]
+          - row [ref=f9e88]:
+            - cell "TakeProfitTrader" [ref=f9e89]
+            - cell "50k" [ref=f9e90]
+            - cell "$2,000" [ref=f9e91]
+            - cell "eval" [ref=f9e92]
+      - heading "/ the plan" [level=2] [ref=f9e93]
+      - generic [ref=f9e94]:
+        - generic [ref=f9e95]:
+          - generic [ref=f9e96]: now
+          - generic [ref=f9e97]: every day, public
+        - generic [ref=f9e98]:
+          - generic [ref=f9e99]: 2y
+          - generic [ref=f9e100]: proven record, in public, with R as the unit of truth
+        - generic [ref=f9e101]:
+          - generic [ref=f9e102]: 3y
+          - generic [ref=f9e103]: a real fund, managed with the same rules
+      - paragraph [ref=f9e105]: "disclaimer: nothing here is financial advice. i am not a licensed advisor. these are the trades of one person proving himself in public. do your own work. prop accounts can and do fail — that is part of the record."
+  - contentinfo [ref=f9e106]:
+    - generic [ref=f9e107]:
+      - generic [ref=f9e108]: 1edge — everything public, nothing hidden
+      - generic [ref=f9e109]: R is the only metric that matters.
+    - group [ref=f9e111]:
+      - generic "market sat | 08-aug-2026 CME Globex closed · reopens in 1d 14h ▾" [ref=f9e112] [cursor=pointer]:
+        - generic [ref=f9e113]: market
+        - generic [ref=f9e114]: sat | 08-aug-2026
+        - generic [ref=f9e115]: CME Globex closed · reopens in 1d 14h
+        - generic [ref=f9e116]: ▾

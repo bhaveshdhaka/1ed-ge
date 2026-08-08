@@ -1,0 +1,133 @@
+- generic [active] [ref=f15e1]:
+  - navigation [ref=f15e2]:
+    - link "1edge — home" [ref=f15e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f15e4]: 1edge_
+    - group [ref=f15e5]:
+      - generic "menu" [ref=f15e6] [cursor=pointer]
+  - main [ref=f15e11]:
+    - generic [ref=f15e12]:
+      - generic [ref=f15e13]:
+        - generic [ref=f15e14]:
+          - generic [ref=f15e15]: day
+          - generic [ref=f15e16]: thu | 06-aug-2026
+        - generic [ref=f15e17]: ○ open · halt 05:00–06:00 hkt
+      - navigation [ref=f15e18]:
+        - link "← 05-aug-2026" [ref=f15e19] [cursor=pointer]:
+          - /url: /day/05-aug-2026
+        - generic [ref=f15e20]: day 728 of 730
+        - link "07-aug-2026 →" [ref=f15e21] [cursor=pointer]:
+          - /url: /day/07-aug-2026
+      - generic [ref=f15e22]:
+        - heading "/ day facts" [level=2] [ref=f15e23]
+        - generic [ref=f15e25]:
+          - generic [ref=f15e26]:
+            - generic [ref=f15e27]: mood
+            - generic [ref=f15e28]: 2/5
+          - generic [ref=f15e29]:
+            - generic [ref=f15e30]: sleep
+            - generic [ref=f15e31]: 6.1h
+          - generic [ref=f15e32]:
+            - generic [ref=f15e33]: screen
+            - generic [ref=f15e34]: 4.2h
+          - generic [ref=f15e35]:
+            - generic [ref=f15e36]: mac
+            - generic [ref=f15e37]: 4.5h
+          - generic [ref=f15e38]:
+            - generic [ref=f15e39]: habits
+            - generic [ref=f15e40]: 7/14
+          - generic [ref=f15e41]:
+            - generic [ref=f15e42]: trades
+            - generic [ref=f15e43]: "2"
+          - generic [ref=f15e44]:
+            - generic [ref=f15e45]: R
+            - generic [ref=f15e46]: "-2.20"
+      - generic [ref=f15e47]:
+        - heading "/ moments" [level=2] [ref=f15e48]
+        - generic [ref=f15e50]:
+          - generic [ref=f15e51]:
+            - generic [ref=f15e52]: 11:15 hkt
+            - generic [ref=f15e53]: trade
+          - generic [ref=f15e54]:
+            - generic [ref=f15e55]: ▼ MNQ
+            - generic [ref=f15e56]: ny-pm · orb-drive
+            - generic [ref=f15e57]: "-1.20R"
+          - paragraph [ref=f15e59]: held the runner to the close — the plan said let it run.
+      - generic [ref=f15e60]:
+        - heading "/ trades (2)" [level=2] [ref=f15e61]
+        - generic [ref=f15e62]:
+          - generic [ref=f15e63]:
+            - generic [ref=f15e64]:
+              - generic [ref=f15e65]: ▼ MNQ
+              - generic [ref=f15e66]: ny-pm · ORB
+              - generic [ref=f15e67]: orb-drive
+              - generic [ref=f15e68]: "-1.20R"
+              - generic [ref=f15e69]: $-12
+            - generic [ref=f15e70]:
+              - generic [ref=f15e71]: entry 19875.25
+              - generic [ref=f15e72]: exit 19881.25
+              - generic [ref=f15e73]: stop 19880.25
+              - generic [ref=f15e74]: points -6
+            - generic [ref=f15e75]: "accounts: TakeProfitTrader 50k — stopped at the open — that level meant nothing"
+          - generic [ref=f15e76]:
+            - generic [ref=f15e77]:
+              - generic [ref=f15e78]: ▲ MNQ
+              - generic [ref=f15e79]: ny-pm · vwap-reclaim
+              - generic [ref=f15e80]: vwap-reclaim
+              - generic [ref=f15e81]: "-1.00R"
+              - generic [ref=f15e82]: $-17.5
+            - generic [ref=f15e83]:
+              - generic [ref=f15e84]: entry 19930
+              - generic [ref=f15e85]: exit 19921.25
+              - generic [ref=f15e86]: stop 19921.25
+              - generic [ref=f15e87]: points -8.75
+            - generic [ref=f15e88]: "accounts: TakeProfitTrader 25k — scaled in on the confirmation candle"
+      - generic [ref=f15e89]:
+        - heading "/ habits" [level=2] [ref=f15e90]
+        - generic [ref=f15e91]:
+          - generic [ref=f15e92]: 🎨 Create Art ×
+          - generic [ref=f15e93]: 🧘 Meditate ✓
+          - generic [ref=f15e94]: 📰 No News Trades ✓
+          - generic [ref=f15e95]: 📵 No Social Morning ×
+          - generic [ref=f15e96]: 🗺️ Plan Before Open ×
+          - generic [ref=f15e97]: 🥗 Eat Clean ✓
+          - generic [ref=f15e98]: 🌫️ Quiet Time ✓
+          - generic [ref=f15e99]: 📖 Read ✓
+          - generic [ref=f15e100]: 🔍 Review Evening ×
+          - generic [ref=f15e101]: 😴 Sleep 7+ ✓
+          - generic [ref=f15e102]: 🧍 Stand Up ×
+          - generic [ref=f15e103]: 🎯 Trade Clean ✓
+          - generic [ref=f15e104]: 🏋️ Work Out ×
+          - generic [ref=f15e105]: ✍️ Write ×
+      - generic [ref=f15e106]:
+        - heading "/ screen time — notes" [level=2] [ref=f15e107]
+        - paragraph [ref=f15e108]: used the social blocker for the first time — worked
+      - group [ref=f15e109]:
+        - generic "USD news 04:30 ▾" [ref=f15e110] [cursor=pointer]:
+          - generic [ref=f15e111]:
+            - generic [ref=f15e112]: USD news
+            - generic [ref=f15e113]: 04:30
+          - generic [ref=f15e115]: ▾
+        - generic [ref=f15e116]:
+          - generic [ref=f15e118]:
+            - generic "orange" [ref=f15e119]
+            - generic [ref=f15e120]: 🗣️04:30
+            - generic [ref=f15e121]: President Trump Speaks[FF]
+          - generic [ref=f15e123]:
+            - generic "orange" [ref=f15e124]
+            - generic [ref=f15e125]: 💼20:30
+            - generic [ref=f15e126]: Unemployment Claims[FF]
+      - separator [ref=f15e127]
+      - generic [ref=f15e128]:
+        - heading "/ coach" [level=2] [ref=f15e129]
+        - paragraph [ref=f15e130]: no coaching session this day.
+  - contentinfo [ref=f15e131]:
+    - generic [ref=f15e132]:
+      - generic [ref=f15e133]: 1edge — everything public, nothing hidden
+      - generic [ref=f15e134]: R is the only metric that matters.
+    - group [ref=f15e136]:
+      - generic "market sat | 08-aug-2026 CME Globex closed · reopens in 1d 14h ▾" [ref=f15e137] [cursor=pointer]:
+        - generic [ref=f15e138]: market
+        - generic [ref=f15e139]: sat | 08-aug-2026
+        - generic [ref=f15e140]: CME Globex closed · reopens in 1d 14h
+        - generic [ref=f15e141]: ▾

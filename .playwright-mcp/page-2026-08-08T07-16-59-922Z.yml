@@ -1,0 +1,584 @@
+- generic [active] [ref=f10e1]:
+  - navigation [ref=f10e2]:
+    - link "1edge — home" [ref=f10e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f10e4]: 1edge_
+    - generic [ref=f10e5]:
+      - link "[00] today" [ref=f10e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f10e7]: "[00]"
+        - text: today
+      - link "[01] stream" [ref=f10e8] [cursor=pointer]:
+        - /url: /stream
+        - generic [ref=f10e9]: "[01]"
+        - text: stream
+      - link "[02] journal" [ref=f10e10] [cursor=pointer]:
+        - /url: /journal
+        - generic [ref=f10e11]: "[02]"
+        - text: journal
+      - link "[03] calendar" [ref=f10e12] [cursor=pointer]:
+        - /url: /calendar
+        - generic [ref=f10e13]: "[03]"
+        - text: calendar
+      - link "[04] performance" [ref=f10e14] [cursor=pointer]:
+        - /url: /performance
+        - generic [ref=f10e15]: "[04]"
+        - text: performance
+      - link "[05] tape" [ref=f10e16] [cursor=pointer]:
+        - /url: /week
+        - generic [ref=f10e17]: "[05]"
+        - text: tape
+      - link "[06] models" [ref=f10e18] [cursor=pointer]:
+        - /url: /models
+        - generic [ref=f10e19]: "[06]"
+        - text: models
+      - link "[07] accounts" [ref=f10e20] [cursor=pointer]:
+        - /url: /accounts
+        - generic [ref=f10e21]: "[07]"
+        - text: accounts
+      - link "[08] about" [ref=f10e22] [cursor=pointer]:
+        - /url: /about
+        - generic [ref=f10e23]: "[08]"
+        - text: about
+  - main [ref=f10e24]:
+    - generic [ref=f10e25]:
+      - generic [ref=f10e26]:
+        - generic [ref=f10e27]:
+          - heading "/ the tape" [level=1] [ref=f10e28]
+          - generic [ref=f10e29]: 5 days logged
+        - generic [ref=f10e30]: week 32 · mon | 03-aug-2026 → fri | 07-aug-2026
+      - navigation [ref=f10e31]:
+        - generic [ref=f10e32]:
+          - link "← week 31" [ref=f10e33] [cursor=pointer]:
+            - /url: /week/2026-31
+          - link "week 33 →" [ref=f10e34] [cursor=pointer]:
+            - /url: /week/2026-33
+        - generic [ref=f10e35]:
+          - link "week" [ref=f10e36] [cursor=pointer]:
+            - /url: /week
+          - link "month" [ref=f10e37] [cursor=pointer]:
+            - /url: /month
+          - link "q1" [ref=f10e38] [cursor=pointer]:
+            - /url: /q1
+          - link "q2" [ref=f10e39] [cursor=pointer]:
+            - /url: /q2
+          - link "q3" [ref=f10e40] [cursor=pointer]:
+            - /url: /q3
+          - link "q4" [ref=f10e41] [cursor=pointer]:
+            - /url: /q4
+          - link "h1" [ref=f10e42] [cursor=pointer]:
+            - /url: /h1
+          - link "h2" [ref=f10e43] [cursor=pointer]:
+            - /url: /h2
+          - link "year" [ref=f10e44] [cursor=pointer]:
+            - /url: /year
+      - generic [ref=f10e45]:
+        - heading "/ the tape" [level=2] [ref=f10e46]
+        - img "the tape — cumulative R by period" [ref=f10e48]:
+          - 'link "w32: +3.02R" [ref=f10e50] [cursor=pointer]':
+            - /url: /week/2024-32
+          - 'link "w33: +1.31R" [ref=f10e52] [cursor=pointer]':
+            - /url: /week/2024-33
+          - 'link "w34: +2.35R" [ref=f10e54] [cursor=pointer]':
+            - /url: /week/2024-34
+          - 'link "w35: +0.39R" [ref=f10e56] [cursor=pointer]':
+            - /url: /week/2024-35
+          - 'link "w36: +0.50R" [ref=f10e58] [cursor=pointer]':
+            - /url: /week/2024-36
+          - 'link "w37: +5.28R" [ref=f10e60] [cursor=pointer]':
+            - /url: /week/2024-37
+          - 'link "w38: -6.72R" [ref=f10e62] [cursor=pointer]':
+            - /url: /week/2024-38
+          - 'link "w39: -1.61R" [ref=f10e64] [cursor=pointer]':
+            - /url: /week/2024-39
+          - 'link "w40: +3.68R" [ref=f10e66] [cursor=pointer]':
+            - /url: /week/2024-40
+          - 'link "w41: +3.64R" [ref=f10e68] [cursor=pointer]':
+            - /url: /week/2024-41
+          - 'link "w42: -2.83R" [ref=f10e70] [cursor=pointer]':
+            - /url: /week/2024-42
+          - 'link "w43: +0.68R" [ref=f10e72] [cursor=pointer]':
+            - /url: /week/2024-43
+          - 'link "w44: +2.93R" [ref=f10e74] [cursor=pointer]':
+            - /url: /week/2024-44
+          - 'link "w45: +1.44R" [ref=f10e76] [cursor=pointer]':
+            - /url: /week/2024-45
+          - 'link "w46: +0.94R" [ref=f10e78] [cursor=pointer]':
+            - /url: /week/2024-46
+          - 'link "w47: -3.28R" [ref=f10e80] [cursor=pointer]':
+            - /url: /week/2024-47
+          - 'link "w48: -1.00R" [ref=f10e82] [cursor=pointer]':
+            - /url: /week/2024-48
+          - 'link "w49: -0.05R" [ref=f10e84] [cursor=pointer]':
+            - /url: /week/2024-49
+          - 'link "w50: -0.55R" [ref=f10e86] [cursor=pointer]':
+            - /url: /week/2024-50
+          - 'link "w51: -3.19R" [ref=f10e88] [cursor=pointer]':
+            - /url: /week/2024-51
+          - 'link "w52: +1.63R" [ref=f10e90] [cursor=pointer]':
+            - /url: /week/2024-52
+          - 'link "w1: -0.92R" [ref=f10e92] [cursor=pointer]':
+            - /url: /week/2025-01
+          - 'link "w2: -1.02R" [ref=f10e94] [cursor=pointer]':
+            - /url: /week/2025-02
+          - 'link "w3: +4.22R" [ref=f10e96] [cursor=pointer]':
+            - /url: /week/2025-03
+          - 'link "w4: +2.06R" [ref=f10e98] [cursor=pointer]':
+            - /url: /week/2025-04
+          - 'link "w5: +2.33R" [ref=f10e100] [cursor=pointer]':
+            - /url: /week/2025-05
+          - 'link "w6: -1.91R" [ref=f10e102] [cursor=pointer]':
+            - /url: /week/2025-06
+          - 'link "w7: +2.54R" [ref=f10e104] [cursor=pointer]':
+            - /url: /week/2025-07
+          - 'link "w8: +3.18R" [ref=f10e106] [cursor=pointer]':
+            - /url: /week/2025-08
+          - 'link "w9: +4.61R" [ref=f10e108] [cursor=pointer]':
+            - /url: /week/2025-09
+          - 'link "w10: -2.19R" [ref=f10e110] [cursor=pointer]':
+            - /url: /week/2025-10
+          - 'link "w11: +1.46R" [ref=f10e112] [cursor=pointer]':
+            - /url: /week/2025-11
+          - 'link "w12: -0.36R" [ref=f10e114] [cursor=pointer]':
+            - /url: /week/2025-12
+          - 'link "w13: +6.53R" [ref=f10e116] [cursor=pointer]':
+            - /url: /week/2025-13
+          - 'link "w14: +1.41R" [ref=f10e118] [cursor=pointer]':
+            - /url: /week/2025-14
+          - 'link "w15: +6.17R" [ref=f10e120] [cursor=pointer]':
+            - /url: /week/2025-15
+          - 'link "w16: +2.60R" [ref=f10e122] [cursor=pointer]':
+            - /url: /week/2025-16
+          - 'link "w17: -1.77R" [ref=f10e124] [cursor=pointer]':
+            - /url: /week/2025-17
+          - 'link "w18: -5.19R" [ref=f10e126] [cursor=pointer]':
+            - /url: /week/2025-18
+          - 'link "w19: -3.59R" [ref=f10e128] [cursor=pointer]':
+            - /url: /week/2025-19
+          - 'link "w20: +3.97R" [ref=f10e130] [cursor=pointer]':
+            - /url: /week/2025-20
+          - 'link "w21: -5.70R" [ref=f10e132] [cursor=pointer]':
+            - /url: /week/2025-21
+          - 'link "w22: -2.33R" [ref=f10e134] [cursor=pointer]':
+            - /url: /week/2025-22
+          - 'link "w23: -5.02R" [ref=f10e136] [cursor=pointer]':
+            - /url: /week/2025-23
+          - 'link "w24: +1.52R" [ref=f10e138] [cursor=pointer]':
+            - /url: /week/2025-24
+          - 'link "w25: -0.21R" [ref=f10e140] [cursor=pointer]':
+            - /url: /week/2025-25
+          - 'link "w26: +1.13R" [ref=f10e142] [cursor=pointer]':
+            - /url: /week/2025-26
+          - 'link "w27: -2.49R" [ref=f10e144] [cursor=pointer]':
+            - /url: /week/2025-27
+          - 'link "w28: +5.89R" [ref=f10e146] [cursor=pointer]':
+            - /url: /week/2025-28
+          - 'link "w29: -1.10R" [ref=f10e148] [cursor=pointer]':
+            - /url: /week/2025-29
+          - 'link "w30: +1.01R" [ref=f10e150] [cursor=pointer]':
+            - /url: /week/2025-30
+          - 'link "w31: -4.58R" [ref=f10e152] [cursor=pointer]':
+            - /url: /week/2025-31
+          - 'link "w32: +0.50R" [ref=f10e154] [cursor=pointer]':
+            - /url: /week/2025-32
+          - 'link "w33: -3.29R" [ref=f10e156] [cursor=pointer]':
+            - /url: /week/2025-33
+          - 'link "w34: +3.00R" [ref=f10e158] [cursor=pointer]':
+            - /url: /week/2025-34
+          - 'link "w35: +4.92R" [ref=f10e160] [cursor=pointer]':
+            - /url: /week/2025-35
+          - 'link "w36: -1.36R" [ref=f10e162] [cursor=pointer]':
+            - /url: /week/2025-36
+          - 'link "w37: +2.33R" [ref=f10e164] [cursor=pointer]':
+            - /url: /week/2025-37
+          - 'link "w38: -0.77R" [ref=f10e166] [cursor=pointer]':
+            - /url: /week/2025-38
+          - 'link "w39: -2.10R" [ref=f10e168] [cursor=pointer]':
+            - /url: /week/2025-39
+          - 'link "w40: -4.40R" [ref=f10e170] [cursor=pointer]':
+            - /url: /week/2025-40
+          - 'link "w41: +5.09R" [ref=f10e172] [cursor=pointer]':
+            - /url: /week/2025-41
+          - 'link "w42: +1.10R" [ref=f10e174] [cursor=pointer]':
+            - /url: /week/2025-42
+          - 'link "w43: +0.39R" [ref=f10e176] [cursor=pointer]':
+            - /url: /week/2025-43
+          - 'link "w44: +4.74R" [ref=f10e178] [cursor=pointer]':
+            - /url: /week/2025-44
+          - 'link "w45: -1.16R" [ref=f10e180] [cursor=pointer]':
+            - /url: /week/2025-45
+          - 'link "w46: -4.77R" [ref=f10e182] [cursor=pointer]':
+            - /url: /week/2025-46
+          - 'link "w47: -5.43R" [ref=f10e184] [cursor=pointer]':
+            - /url: /week/2025-47
+          - 'link "w48: +1.24R" [ref=f10e186] [cursor=pointer]':
+            - /url: /week/2025-48
+          - 'link "w49: -0.54R" [ref=f10e188] [cursor=pointer]':
+            - /url: /week/2025-49
+          - 'link "w50: -0.03R" [ref=f10e190] [cursor=pointer]':
+            - /url: /week/2025-50
+          - 'link "w51: +2.40R" [ref=f10e192] [cursor=pointer]':
+            - /url: /week/2025-51
+          - 'link "w52: +3.11R" [ref=f10e194] [cursor=pointer]':
+            - /url: /week/2025-52
+          - 'link "w1: -2.33R" [ref=f10e196] [cursor=pointer]':
+            - /url: /week/2026-01
+          - 'link "w2: -0.10R" [ref=f10e198] [cursor=pointer]':
+            - /url: /week/2026-02
+          - 'link "w3: +10.57R" [ref=f10e200] [cursor=pointer]':
+            - /url: /week/2026-03
+          - 'link "w4: +2.41R" [ref=f10e202] [cursor=pointer]':
+            - /url: /week/2026-04
+          - 'link "w5: +0.06R" [ref=f10e204] [cursor=pointer]':
+            - /url: /week/2026-05
+          - 'link "w6: -0.98R" [ref=f10e206] [cursor=pointer]':
+            - /url: /week/2026-06
+          - 'link "w7: +5.69R" [ref=f10e208] [cursor=pointer]':
+            - /url: /week/2026-07
+          - 'link "w8: +2.68R" [ref=f10e210] [cursor=pointer]':
+            - /url: /week/2026-08
+          - 'link "w9: -0.68R" [ref=f10e212] [cursor=pointer]':
+            - /url: /week/2026-09
+          - 'link "w10: +0.42R" [ref=f10e214] [cursor=pointer]':
+            - /url: /week/2026-10
+          - 'link "w11: +5.26R" [ref=f10e216] [cursor=pointer]':
+            - /url: /week/2026-11
+          - 'link "w12: +0.81R" [ref=f10e218] [cursor=pointer]':
+            - /url: /week/2026-12
+          - 'link "w13: +7.01R" [ref=f10e220] [cursor=pointer]':
+            - /url: /week/2026-13
+          - 'link "w14: +5.78R" [ref=f10e222] [cursor=pointer]':
+            - /url: /week/2026-14
+          - 'link "w15: +1.54R" [ref=f10e224] [cursor=pointer]':
+            - /url: /week/2026-15
+          - 'link "w16: -1.15R" [ref=f10e226] [cursor=pointer]':
+            - /url: /week/2026-16
+          - 'link "w17: +6.88R" [ref=f10e228] [cursor=pointer]':
+            - /url: /week/2026-17
+          - 'link "w18: -1.43R" [ref=f10e230] [cursor=pointer]':
+            - /url: /week/2026-18
+          - 'link "w19: +0.96R" [ref=f10e232] [cursor=pointer]':
+            - /url: /week/2026-19
+          - 'link "w20: +2.07R" [ref=f10e234] [cursor=pointer]':
+            - /url: /week/2026-20
+          - 'link "w21: -2.91R" [ref=f10e236] [cursor=pointer]':
+            - /url: /week/2026-21
+          - 'link "w22: +2.51R" [ref=f10e238] [cursor=pointer]':
+            - /url: /week/2026-22
+          - 'link "w23: +5.68R" [ref=f10e240] [cursor=pointer]':
+            - /url: /week/2026-23
+          - 'link "w24: +3.17R" [ref=f10e242] [cursor=pointer]':
+            - /url: /week/2026-24
+          - 'link "w25: +8.19R" [ref=f10e244] [cursor=pointer]':
+            - /url: /week/2026-25
+          - 'link "w26: +0.71R" [ref=f10e246] [cursor=pointer]':
+            - /url: /week/2026-26
+          - 'link "w27: +3.55R" [ref=f10e248] [cursor=pointer]':
+            - /url: /week/2026-27
+          - 'link "w28: +6.95R" [ref=f10e250] [cursor=pointer]':
+            - /url: /week/2026-28
+          - 'link "w29: +9.27R" [ref=f10e252] [cursor=pointer]':
+            - /url: /week/2026-29
+          - 'link "w30: +5.32R" [ref=f10e254] [cursor=pointer]':
+            - /url: /week/2026-30
+          - 'link "w31: +0.63R" [ref=f10e256] [cursor=pointer]':
+            - /url: /week/2026-31
+          - 'link "w32: -5.29R" [ref=f10e258] [cursor=pointer]':
+            - /url: /week/2026-32
+          - generic [ref=f10e260]: w36
+          - generic [ref=f10e261]: w41
+          - generic [ref=f10e262]: w46
+          - generic [ref=f10e263]: w51
+          - generic [ref=f10e264]: w4
+          - generic [ref=f10e265]: w9
+          - generic [ref=f10e266]: w14
+          - generic [ref=f10e267]: w19
+          - generic [ref=f10e268]: w24
+          - generic [ref=f10e269]: w29
+          - generic [ref=f10e270]: w34
+          - generic [ref=f10e271]: w39
+          - generic [ref=f10e272]: w44
+          - generic [ref=f10e273]: w49
+          - generic [ref=f10e274]: w2
+          - generic [ref=f10e275]: w7
+          - generic [ref=f10e276]: w12
+          - generic [ref=f10e277]: w17
+          - generic [ref=f10e278]: w22
+          - generic [ref=f10e279]: w27
+          - generic [ref=f10e280]: w32
+          - generic [ref=f10e281]: now
+        - generic [ref=f10e283]:
+          - generic [ref=f10e284]: day +0.0R
+          - generic [ref=f10e285]: week -5.3R
+          - generic [ref=f10e286]: month -5.3R
+          - generic [ref=f10e287]: quarter +15.9R
+          - generic [ref=f10e288]: year +84.5R
+      - generic [ref=f10e289]:
+        - generic [ref=f10e290]:
+          - heading "/ the numbers" [level=2] [ref=f10e291]
+          - generic [ref=f10e292]:
+            - generic [ref=f10e293]:
+              - generic [ref=f10e294]: sum R
+              - generic [ref=f10e295]: "-5.29R"
+            - generic [ref=f10e296]:
+              - generic [ref=f10e297]: expectancy
+              - generic [ref=f10e298]: "-0.59R"
+            - generic [ref=f10e299]:
+              - generic [ref=f10e300]: win rate
+              - generic [ref=f10e301]: 22%
+            - generic [ref=f10e302]:
+              - generic [ref=f10e303]: profit factor
+              - generic [ref=f10e304]: "0.32"
+            - generic [ref=f10e305]:
+              - generic [ref=f10e306]: trades
+              - generic [ref=f10e307]: "9"
+            - generic [ref=f10e308]:
+              - generic [ref=f10e309]: traded days
+              - generic [ref=f10e310]: "4"
+        - generic [ref=f10e311]:
+          - generic [ref=f10e312]:
+            - heading "/ per-account p&l" [level=3] [ref=f10e313]
+            - table [ref=f10e315]:
+              - rowgroup [ref=f10e316]:
+                - row [ref=f10e317]:
+                  - columnheader "account" [ref=f10e318]
+                  - columnheader "pnl" [ref=f10e319]
+              - rowgroup [ref=f10e320]:
+                - row [ref=f10e321]:
+                  - cell "tpt-25k-a" [ref=f10e322]
+                  - cell "$-67" [ref=f10e323]
+                - row [ref=f10e324]:
+                  - cell "lucid-50k-b" [ref=f10e325]
+                  - cell "$-10" [ref=f10e326]
+                - row [ref=f10e327]:
+                  - cell "lucid-25k-a" [ref=f10e328]
+                  - cell "+$10.5" [ref=f10e329]
+                - row [ref=f10e330]:
+                  - cell "tpt-25k-b" [ref=f10e331]
+                  - cell "$-7.5" [ref=f10e332]
+                - row [ref=f10e333]:
+                  - cell "tpt-50k-a" [ref=f10e334]
+                  - cell "$-12" [ref=f10e335]
+          - generic [ref=f10e336]:
+            - heading "/ per-model" [level=3] [ref=f10e337]
+            - table [ref=f10e339]:
+              - rowgroup [ref=f10e340]:
+                - row [ref=f10e341]:
+                  - columnheader "model" [ref=f10e342]
+                  - columnheader "trades" [ref=f10e343]
+                  - columnheader "sum R" [ref=f10e344]
+              - rowgroup [ref=f10e345]:
+                - row [ref=f10e346]:
+                  - cell "orb-drive" [ref=f10e347]
+                  - cell "3" [ref=f10e349]
+                  - cell "-3.49R" [ref=f10e350]
+                - row [ref=f10e351]:
+                  - cell "vwap-reclaim" [ref=f10e352]
+                  - cell "3" [ref=f10e354]
+                  - cell "-3.32R" [ref=f10e355]
+                - row [ref=f10e356]:
+                  - cell "pullback-continuation" [ref=f10e357]
+                  - cell "2" [ref=f10e359]
+                  - cell "+ 2.51R" [ref=f10e360]
+                - row [ref=f10e361]:
+                  - cell "liquidity-breakdown" [ref=f10e362]
+                  - cell "1" [ref=f10e364]
+                  - cell "-1.00R" [ref=f10e365]
+        - generic [ref=f10e366]:
+          - heading "/ life metrics" [level=2] [ref=f10e367]
+          - generic [ref=f10e368]:
+            - generic [ref=f10e369]:
+              - generic [ref=f10e370]: avg sleep
+              - generic [ref=f10e371]: 6.6h
+            - generic [ref=f10e372]:
+              - generic [ref=f10e373]: avg mood
+              - generic [ref=f10e374]: 2.2/5
+            - generic [ref=f10e375]:
+              - generic [ref=f10e376]: avg screen
+              - generic [ref=f10e377]: 9.9h
+            - generic [ref=f10e378]:
+              - generic [ref=f10e379]: habits tracked
+              - generic [ref=f10e380]: "14"
+          - generic [ref=f10e381]:
+            - generic [ref=f10e382]:
+              - text: create-art
+              - generic [ref=f10e383]: 60%
+            - generic [ref=f10e384]:
+              - text: meditate
+              - generic [ref=f10e385]: 20%
+            - generic [ref=f10e386]:
+              - text: no-news-trades
+              - generic [ref=f10e387]: 60%
+            - generic [ref=f10e388]:
+              - text: no-social-morning
+              - generic [ref=f10e389]: 40%
+            - generic [ref=f10e390]:
+              - text: plan-before-open
+              - generic [ref=f10e391]: 20%
+            - generic [ref=f10e392]:
+              - text: eat-clean
+              - generic [ref=f10e393]: 40%
+            - generic [ref=f10e394]:
+              - text: quiet-time
+              - generic [ref=f10e395]: 40%
+            - generic [ref=f10e396]:
+              - text: read
+              - generic [ref=f10e397]: 60%
+            - generic [ref=f10e398]:
+              - text: review-evening
+              - generic [ref=f10e399]: 40%
+            - generic [ref=f10e400]:
+              - text: sleep
+              - generic [ref=f10e401]: 20%
+            - generic [ref=f10e402]:
+              - text: stand-up
+              - generic [ref=f10e403]: 0%
+            - generic [ref=f10e404]:
+              - text: trade-clean
+              - generic [ref=f10e405]: 40%
+            - generic [ref=f10e406]:
+              - text: work-out
+              - generic [ref=f10e407]: 0%
+            - generic [ref=f10e408]:
+              - text: write
+              - generic [ref=f10e409]: 80%
+        - generic [ref=f10e410]:
+          - heading "/ days" [level=2] [ref=f10e411]
+          - generic [ref=f10e412]:
+            - link "mon | 03-aug-2026" [ref=f10e413] [cursor=pointer]:
+              - /url: /day/03-aug-2026
+            - link "tue | 04-aug-2026" [ref=f10e414] [cursor=pointer]:
+              - /url: /day/04-aug-2026
+            - link "wed | 05-aug-2026" [ref=f10e415] [cursor=pointer]:
+              - /url: /day/05-aug-2026
+            - link "thu | 06-aug-2026" [ref=f10e416] [cursor=pointer]:
+              - /url: /day/06-aug-2026
+            - link "fri | 07-aug-2026" [ref=f10e417] [cursor=pointer]:
+              - /url: /day/07-aug-2026
+        - generic [ref=f10e418]:
+          - heading "/ trend" [level=2] [ref=f10e419]
+          - table [ref=f10e421]:
+            - rowgroup [ref=f10e422]:
+              - row [ref=f10e423]:
+                - columnheader "period" [ref=f10e424]
+                - columnheader "sum R" [ref=f10e425]
+                - columnheader "win rate" [ref=f10e426]
+                - columnheader "trades" [ref=f10e427]
+            - rowgroup [ref=f10e428]:
+              - row [ref=f10e429]:
+                - cell "week 25" [ref=f10e430]
+                - cell "+ 8.19R" [ref=f10e431]
+                - cell "86%" [ref=f10e432]
+                - cell "7" [ref=f10e433]
+              - row [ref=f10e434]:
+                - cell "week 26" [ref=f10e435]
+                - cell "+ 0.71R" [ref=f10e436]
+                - cell "50%" [ref=f10e437]
+                - cell "8" [ref=f10e438]
+              - row [ref=f10e439]:
+                - cell "week 27" [ref=f10e440]
+                - cell "+ 3.55R" [ref=f10e441]
+                - cell "60%" [ref=f10e442]
+                - cell "5" [ref=f10e443]
+              - row [ref=f10e444]:
+                - cell "week 28" [ref=f10e445]
+                - cell "+ 6.95R" [ref=f10e446]
+                - cell "75%" [ref=f10e447]
+                - cell "8" [ref=f10e448]
+              - row [ref=f10e449]:
+                - cell "week 29" [ref=f10e450]
+                - cell "+ 9.27R" [ref=f10e451]
+                - cell "67%" [ref=f10e452]
+                - cell "9" [ref=f10e453]
+              - row [ref=f10e454]:
+                - cell "week 30" [ref=f10e455]
+                - cell "+ 5.32R" [ref=f10e456]
+                - cell "63%" [ref=f10e457]
+                - cell "8" [ref=f10e458]
+              - row [ref=f10e459]:
+                - cell "week 31" [ref=f10e460]
+                - cell "+ 0.63R" [ref=f10e461]
+                - cell "50%" [ref=f10e462]
+                - cell "8" [ref=f10e463]
+              - row [ref=f10e464]:
+                - cell "week 32" [ref=f10e465]
+                - cell "-5.29R" [ref=f10e466]
+                - cell "22%" [ref=f10e467]
+                - cell "9" [ref=f10e468]
+        - generic [ref=f10e469]:
+          - heading "/ reflection" [level=2] [ref=f10e470]
+          - generic [ref=f10e471]: no reflection written for this period.
+        - generic [ref=f10e473]:
+          - heading "/ comparison · from verified data" [level=2] [ref=f10e474]
+          - generic [ref=f10e475]:
+            - generic [ref=f10e476]:
+              - paragraph [ref=f10e477]: "· sum R: -5.29 vs 0.63 (-941%)"
+              - paragraph [ref=f10e478]: "· expectancy: -0.59 vs 0.08 (-848%)"
+              - paragraph [ref=f10e479]: "· win rate: 0.22 vs 0.50 (-56%)"
+              - paragraph [ref=f10e480]: "· profit factor: 0.32 vs 1.14 (-72%)"
+              - paragraph [ref=f10e481]: "· trades: 9.00 vs 8.00 (+13%)"
+              - paragraph [ref=f10e482]: "· traded days: 4.00 vs 5.00 (-20%)"
+            - generic [ref=f10e483]:
+              - paragraph [ref=f10e484]: rolling trend
+              - paragraph [ref=f10e485]: week 25 +8.19R · week 26 +0.71R · week 27 +3.55R · week 28 +6.95R · week 29 +9.27R · week 30 +5.32R · week 31 +0.63R · week 32 -5.29R
+        - generic [ref=f10e486]:
+          - heading "/ journal entries" [level=2] [ref=f10e487]
+          - generic [ref=f10e488]:
+            - 'link "wed | 05-aug-2026 Day 727 this is the beginning of a public experiment. #intro #rules" [ref=f10e489] [cursor=pointer]':
+              - /url: /day/05-aug-2026
+              - generic [ref=f10e490]: wed | 05-aug-2026
+              - generic [ref=f10e491]: Day 727
+              - paragraph [ref=f10e492]: this is the beginning of a public experiment.
+              - generic [ref=f10e493]:
+                - generic [ref=f10e494]: "#intro"
+                - generic [ref=f10e495]: "#rules"
+            - 'link "fri | 07-aug-2026 Day 729 the mental side of trading, public. #mental #mood" [ref=f10e496] [cursor=pointer]':
+              - /url: /day/07-aug-2026
+              - generic [ref=f10e497]: fri | 07-aug-2026
+              - generic [ref=f10e498]: Day 729
+              - paragraph [ref=f10e499]: the mental side of trading, public.
+              - generic [ref=f10e500]:
+                - generic [ref=f10e501]: "#mental"
+                - generic [ref=f10e502]: "#mood"
+        - generic [ref=f10e503]:
+          - heading "/ stream moments" [level=2] [ref=f10e504]
+          - generic [ref=f10e505]:
+            - generic [ref=f10e506]:
+              - generic [ref=f10e507]:
+                - generic [ref=f10e508]: 11:15 hkt
+                - generic [ref=f10e509]: trade
+                - link "06-aug-2026" [ref=f10e510] [cursor=pointer]:
+                  - /url: /day/06-aug-2026
+              - generic [ref=f10e511]:
+                - generic [ref=f10e512]: ▼ MNQ
+                - generic [ref=f10e513]: ny-pm · orb-drive
+                - generic [ref=f10e514]: "-1.20R"
+              - paragraph [ref=f10e516]: held the runner to the close — the plan said let it run.
+            - generic [ref=f10e517]:
+              - generic [ref=f10e518]:
+                - generic [ref=f10e519]: 11:15 hkt
+                - generic [ref=f10e520]: trade
+                - link "05-aug-2026" [ref=f10e521] [cursor=pointer]:
+                  - /url: /day/05-aug-2026
+              - generic [ref=f10e522]:
+                - generic [ref=f10e523]: ▼ MNQ
+                - generic [ref=f10e524]: ny-pm · pullback-continuation
+                - generic [ref=f10e525]: +0.77R
+              - paragraph [ref=f10e527]: second attempt after the sweep — that one was clean.
+            - generic [ref=f10e528]:
+              - generic [ref=f10e529]:
+                - generic [ref=f10e530]: 08:20 hkt
+                - generic [ref=f10e531]: note
+                - link "04-aug-2026" [ref=f10e532] [cursor=pointer]:
+                  - /url: /day/04-aug-2026
+              - paragraph [ref=f10e534]: range is tight, waiting for the drive to pick a side.
+  - contentinfo [ref=f10e535]:
+    - generic [ref=f10e536]:
+      - generic [ref=f10e537]: 1edge — everything public, nothing hidden
+      - generic [ref=f10e538]: R is the only metric that matters.
+    - group [ref=f10e540]:
+      - generic "market sat | 08-aug-2026 CME Globex closed · reopens in 1d 14h ▾" [ref=f10e541] [cursor=pointer]:
+        - generic [ref=f10e542]: market
+        - generic [ref=f10e543]: sat | 08-aug-2026
+        - generic [ref=f10e544]: CME Globex closed · reopens in 1d 14h
+        - generic [ref=f10e545]: ▾

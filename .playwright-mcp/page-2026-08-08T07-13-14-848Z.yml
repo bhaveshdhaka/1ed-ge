@@ -1,0 +1,157 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - link "1edge — home" [ref=e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e4]: 1edge_
+    - generic [ref=e5]:
+      - link "[00] today" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: "[00]"
+        - text: today
+      - link "[01] stream" [ref=e8] [cursor=pointer]:
+        - /url: /stream
+        - generic [ref=e9]: "[01]"
+        - text: stream
+      - link "[02] journal" [ref=e10] [cursor=pointer]:
+        - /url: /journal
+        - generic [ref=e11]: "[02]"
+        - text: journal
+      - link "[03] calendar" [ref=e12] [cursor=pointer]:
+        - /url: /calendar
+        - generic [ref=e13]: "[03]"
+        - text: calendar
+      - link "[04] performance" [ref=e14] [cursor=pointer]:
+        - /url: /performance
+        - generic [ref=e15]: "[04]"
+        - text: performance
+      - link "[05] tape" [ref=e16] [cursor=pointer]:
+        - /url: /week
+        - generic [ref=e17]: "[05]"
+        - text: tape
+      - link "[06] models" [ref=e18] [cursor=pointer]:
+        - /url: /models
+        - generic [ref=e19]: "[06]"
+        - text: models
+      - link "[07] accounts" [ref=e20] [cursor=pointer]:
+        - /url: /accounts
+        - generic [ref=e21]: "[07]"
+        - text: accounts
+      - link "[08] about" [ref=e22] [cursor=pointer]:
+        - /url: /about
+        - generic [ref=e23]: "[08]"
+        - text: about
+  - main [ref=e24]:
+    - generic [ref=e25]:
+      - heading "1edge — a public trading journal." [level=1] [ref=e26]
+      - paragraph [ref=e27]: Everything public. Every trade, every account, every R — live and uncensored, the misses included. R is points risked vs points made; it is the only metric that matters.
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - generic [ref=e32]: market
+          - generic [ref=e33]: sat | 08-aug-2026
+        - generic [ref=e34]: ✕ CME Globex closed · reopens in 1d 14h
+      - generic [ref=e36]:
+        - generic "now (HKT)" [ref=e37]: 15:13:14
+        - generic [ref=e41]:
+          - generic [ref=e43]: "00"
+          - generic [ref=e50]: "06"
+          - generic [ref=e57]: "12"
+          - generic [ref=e64]: "18"
+          - generic [ref=e71]: "24"
+      - generic [ref=e74]:
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - generic [ref=e77]: 📈
+            - generic [ref=e78]: CME Globex
+          - generic [ref=e79]:
+            - generic [ref=e80]: closed · reopens in
+            - generic [ref=e81]: 1d 14h
+            - generic [ref=e82]: closed
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - generic [ref=e85]: 🇯🇵
+            - generic [ref=e86]: Tokyo · TSE
+          - generic [ref=e87]:
+            - generic [ref=e88]: opens in
+            - generic [ref=e89]: 1d 16h
+            - generic [ref=e90]: —
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - generic [ref=e93]: 🇬🇧
+            - generic [ref=e94]: London · LSE
+          - generic [ref=e95]:
+            - generic [ref=e96]: opens in
+            - generic [ref=e97]: 1d 23h
+            - generic [ref=e98]: —
+        - generic [ref=e99]:
+          - generic [ref=e100]:
+            - generic [ref=e101]: 🇺🇸
+            - generic [ref=e102]: New York · NYSE
+          - generic [ref=e103]:
+            - generic [ref=e104]: opens in
+            - generic [ref=e105]: 2d 6h
+            - generic [ref=e106]: —
+      - paragraph [ref=e107]: all times HKT · CME Globex is the master clock
+    - generic [ref=e109]:
+      - generic [ref=e110]:
+        - generic [ref=e111]: the day · sat | 08-aug-2026
+        - generic [ref=e112]: ✕ closed · weekend
+      - paragraph [ref=e113]: no USD red/orange events today.
+    - generic [ref=e114]:
+      - generic [ref=e115]:
+        - heading "/ today · sat | 08-aug-2026" [level=2] [ref=e116]
+        - link "last logged day 06-aug-2026 →" [ref=e117] [cursor=pointer]:
+          - /url: /day/06-aug-2026
+      - generic [ref=e119]:
+        - generic [ref=e120]:
+          - generic [ref=e121]: mood
+          - generic [ref=e122]: 2/5
+        - generic [ref=e123]:
+          - generic [ref=e124]: sleep
+          - generic [ref=e125]: 5.8h
+        - generic [ref=e126]:
+          - generic [ref=e127]: screen
+          - generic [ref=e128]: 2h
+        - generic [ref=e129]:
+          - generic [ref=e130]: mac
+          - generic [ref=e131]: 2.1h
+        - generic [ref=e132]:
+          - generic [ref=e133]: habits
+          - generic [ref=e134]: 7/14
+        - generic [ref=e135]:
+          - generic [ref=e136]: trades
+          - generic [ref=e137]: —
+        - generic [ref=e138]:
+          - generic [ref=e139]: R
+          - generic [ref=e140]: —
+    - generic [ref=e141]:
+      - generic [ref=e142]:
+        - heading "/ today's stream" [level=2] [ref=e143]
+        - generic [ref=e144]: trader is offline · trader has 404 days' pending end of day reflection · week 32 reflection missing · week 33 reflection missing · week 34 reflection missing · week 35 reflection missing · week 36 reflection missing · week 37 reflection missing · week 38 reflection missing · week 39 reflection missing · week 40 reflection missing · week 41 reflection missing · week 42 reflection missing · week 43 reflection missing · week 44 reflection missing · week 45 reflection missing · week 46 reflection missing · week 47 reflection missing · week 48 reflection missing · week 49 reflection missing · week 50 reflection missing · week 51 reflection missing · week 52 reflection missing · week 1 reflection missing · week 2 reflection missing · week 3 reflection missing · week 4 reflection missing · week 5 reflection missing · week 6 reflection missing · week 7 reflection missing · week 8 reflection missing · week 9 reflection missing · week 10 reflection missing · week 11 reflection missing · week 12 reflection missing · week 13 reflection missing · week 14 reflection missing · week 15 reflection missing · week 16 reflection missing · week 17 reflection missing · week 18 reflection missing · week 19 reflection missing · week 20 reflection missing · week 21 reflection missing · week 22 reflection missing · week 23 reflection missing · week 24 reflection missing · week 25 reflection missing · week 26 reflection missing · week 27 reflection missing · week 28 reflection missing · week 29 reflection missing · week 30 reflection missing · week 31 reflection missing · week 32 reflection missing · week 33 reflection missing · week 34 reflection missing · week 35 reflection missing · week 36 reflection missing · week 37 reflection missing · week 38 reflection missing · week 39 reflection missing · week 40 reflection missing · week 41 reflection missing · week 42 reflection missing · week 43 reflection missing · week 44 reflection missing · week 45 reflection missing · week 46 reflection missing · week 47 reflection missing · week 48 reflection missing · week 49 reflection missing · week 50 reflection missing · week 51 reflection missing · week 52 reflection missing · week 1 reflection missing · week 2 reflection missing · week 3 reflection missing · week 4 reflection missing · week 5 reflection missing · week 6 reflection missing · week 7 reflection missing · week 8 reflection missing · week 9 reflection missing · week 10 reflection missing · week 11 reflection missing · week 12 reflection missing · week 13 reflection missing · week 14 reflection missing · week 15 reflection missing · week 16 reflection missing · week 17 reflection missing · week 18 reflection missing · week 19 reflection missing · week 20 reflection missing · week 21 reflection missing · week 22 reflection missing · week 23 reflection missing · week 24 reflection missing · week 25 reflection missing · week 26 reflection missing · week 27 reflection missing · week 28 reflection missing · week 29 reflection missing · week 30 reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · month reflection missing · quarter reflection missing · quarter reflection missing · quarter reflection missing · quarter reflection missing · quarter reflection missing · quarter reflection missing · quarter reflection missing · half reflection missing · half reflection missing · half reflection missing · half reflection missing · year reflection missing
+        - link "all stream →" [ref=e146] [cursor=pointer]:
+          - /url: /stream
+      - generic [ref=e147]:
+        - paragraph [ref=e148]: no stream yet today — nothing logged.
+        - generic [ref=e149]:
+          - paragraph [ref=e150]: latest from 06-aug-2026
+          - generic [ref=e152]:
+            - generic [ref=e153]:
+              - generic [ref=e154]: 11:15 hkt
+              - generic [ref=e155]: trade
+              - link "06-aug-2026" [ref=e156] [cursor=pointer]:
+                - /url: /day/06-aug-2026
+            - generic [ref=e157]:
+              - generic [ref=e158]: ▼ MNQ
+              - generic [ref=e159]: ny-pm · orb-drive
+              - generic [ref=e160]: "-1.20R"
+            - paragraph [ref=e162]: held the runner to the close — the plan said let it run.
+  - contentinfo [ref=e163]:
+    - generic [ref=e164]:
+      - generic [ref=e165]: 1edge — everything public, nothing hidden
+      - generic [ref=e166]: R is the only metric that matters.
+    - group [ref=e168]:
+      - generic "market sat | 08-aug-2026 CME Globex closed · reopens in 1d 14h ▾" [ref=e169] [cursor=pointer]:
+        - generic [ref=e170]: market
+        - generic [ref=e171]: sat | 08-aug-2026
+        - generic [ref=e172]: CME Globex closed · reopens in 1d 14h
+        - generic [ref=e173]: ▾

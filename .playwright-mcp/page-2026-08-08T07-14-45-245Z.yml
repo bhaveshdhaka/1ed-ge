@@ -1,0 +1,2314 @@
+- generic [active] [ref=f4e1]:
+  - navigation [ref=f4e2]:
+    - link "1edge — home" [ref=f4e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f4e4]: 1edge_
+    - generic [ref=f4e5]:
+      - link "[00] today" [ref=f4e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f4e7]: "[00]"
+        - text: today
+      - link "[01] stream" [ref=f4e8] [cursor=pointer]:
+        - /url: /stream
+        - generic [ref=f4e9]: "[01]"
+        - text: stream
+      - link "[02] journal" [ref=f4e10] [cursor=pointer]:
+        - /url: /journal
+        - generic [ref=f4e11]: "[02]"
+        - text: journal
+      - link "[03] calendar" [ref=f4e12] [cursor=pointer]:
+        - /url: /calendar
+        - generic [ref=f4e13]: "[03]"
+        - text: calendar
+      - link "[04] performance" [ref=f4e14] [cursor=pointer]:
+        - /url: /performance
+        - generic [ref=f4e15]: "[04]"
+        - text: performance
+      - link "[05] tape" [ref=f4e16] [cursor=pointer]:
+        - /url: /week
+        - generic [ref=f4e17]: "[05]"
+        - text: tape
+      - link "[06] models" [ref=f4e18] [cursor=pointer]:
+        - /url: /models
+        - generic [ref=f4e19]: "[06]"
+        - text: models
+      - link "[07] accounts" [ref=f4e20] [cursor=pointer]:
+        - /url: /accounts
+        - generic [ref=f4e21]: "[07]"
+        - text: accounts
+      - link "[08] about" [ref=f4e22] [cursor=pointer]:
+        - /url: /about
+        - generic [ref=f4e23]: "[08]"
+        - text: about
+  - main [ref=f4e24]:
+    - generic [ref=f4e25]:
+      - generic [ref=f4e26]:
+        - heading "/ journal" [level=1] [ref=f4e27]
+        - generic [ref=f4e28]: 151 entries
+      - generic [ref=f4e29]:
+        - search [ref=f4e30]:
+          - searchbox "search journal" [ref=f4e32]
+        - generic [ref=f4e33]:
+          - generic [ref=f4e34]: "jump to day:"
+          - textbox "jump to day:" [ref=f4e35]
+      - generic [ref=f4e37]:
+        - link "aug 2026" [ref=f4e38] [cursor=pointer]:
+          - /url: "#m-2026-08"
+        - link "jul 2026" [ref=f4e39] [cursor=pointer]:
+          - /url: "#m-2026-07"
+        - link "jun 2026" [ref=f4e40] [cursor=pointer]:
+          - /url: "#m-2026-06"
+        - link "may 2026" [ref=f4e41] [cursor=pointer]:
+          - /url: "#m-2026-05"
+        - link "apr 2026" [ref=f4e42] [cursor=pointer]:
+          - /url: "#m-2026-04"
+        - link "mar 2026" [ref=f4e43] [cursor=pointer]:
+          - /url: "#m-2026-03"
+        - link "feb 2026" [ref=f4e44] [cursor=pointer]:
+          - /url: "#m-2026-02"
+        - link "jan 2026" [ref=f4e45] [cursor=pointer]:
+          - /url: "#m-2026-01"
+        - link "dec 2025" [ref=f4e46] [cursor=pointer]:
+          - /url: "#m-2025-12"
+        - link "nov 2025" [ref=f4e47] [cursor=pointer]:
+          - /url: "#m-2025-11"
+        - link "oct 2025" [ref=f4e48] [cursor=pointer]:
+          - /url: "#m-2025-10"
+        - link "sep 2025" [ref=f4e49] [cursor=pointer]:
+          - /url: "#m-2025-09"
+        - link "aug 2025" [ref=f4e50] [cursor=pointer]:
+          - /url: "#m-2025-08"
+        - link "jul 2025" [ref=f4e51] [cursor=pointer]:
+          - /url: "#m-2025-07"
+        - link "jun 2025" [ref=f4e52] [cursor=pointer]:
+          - /url: "#m-2025-06"
+        - link "may 2025" [ref=f4e53] [cursor=pointer]:
+          - /url: "#m-2025-05"
+        - link "apr 2025" [ref=f4e54] [cursor=pointer]:
+          - /url: "#m-2025-04"
+        - link "mar 2025" [ref=f4e55] [cursor=pointer]:
+          - /url: "#m-2025-03"
+        - link "feb 2025" [ref=f4e56] [cursor=pointer]:
+          - /url: "#m-2025-02"
+        - link "jan 2025" [ref=f4e57] [cursor=pointer]:
+          - /url: "#m-2025-01"
+        - link "dec 2024" [ref=f4e58] [cursor=pointer]:
+          - /url: "#m-2024-12"
+        - link "nov 2024" [ref=f4e59] [cursor=pointer]:
+          - /url: "#m-2024-11"
+        - link "oct 2024" [ref=f4e60] [cursor=pointer]:
+          - /url: "#m-2024-10"
+        - link "sep 2024" [ref=f4e61] [cursor=pointer]:
+          - /url: "#m-2024-09"
+        - link "aug 2024" [ref=f4e62] [cursor=pointer]:
+          - /url: "#m-2024-08"
+      - generic [ref=f4e63]:
+        - generic [ref=f4e64]:
+          - generic [ref=f4e65]:
+            - text: aug 2026
+            - generic [ref=f4e66]: · 2
+          - generic [ref=f4e67]:
+            - 'link "151 Day 729 2026-08-07 the mental side of trading, public. mood 1/5 #mental #mood" [ref=f4e68] [cursor=pointer]':
+              - /url: /day/07-aug-2026
+              - generic [ref=f4e69]:
+                - generic [ref=f4e70]:
+                  - generic [ref=f4e71]:
+                    - generic [ref=f4e72]: "151"
+                    - generic [ref=f4e73]: Day 729
+                  - generic [ref=f4e74]: 2026-08-07
+                - paragraph [ref=f4e75]: the mental side of trading, public.
+                - generic [ref=f4e76]:
+                  - generic [ref=f4e77]: mood 1/5
+                  - generic [ref=f4e78]: "#mental"
+                  - generic [ref=f4e79]: "#mood"
+            - 'link "150 Day 727 2026-08-05 this is the beginning of a public experiment. 3 trades mood 2/5 #intro #rules" [ref=f4e80] [cursor=pointer]':
+              - /url: /day/05-aug-2026
+              - generic [ref=f4e81]:
+                - generic [ref=f4e82]:
+                  - generic [ref=f4e83]:
+                    - generic [ref=f4e84]: "150"
+                    - generic [ref=f4e85]: Day 727
+                  - generic [ref=f4e86]: 2026-08-05
+                - paragraph [ref=f4e87]: this is the beginning of a public experiment.
+                - generic [ref=f4e88]:
+                  - generic [ref=f4e89]: 3 trades
+                  - generic [ref=f4e90]: mood 2/5
+                  - generic [ref=f4e91]: "#intro"
+                  - generic [ref=f4e92]: "#rules"
+        - generic [ref=f4e93]:
+          - separator [ref=f4e94]
+          - generic [ref=f4e95]:
+            - text: jul 2026
+            - generic [ref=f4e96]: · 8
+          - generic [ref=f4e97]:
+            - 'link "149 Day 721 2026-07-30 a quiet green day, filed honestly. 1 trades mood 2/5 #wins #process" [ref=f4e98] [cursor=pointer]':
+              - /url: /day/30-jul-2026
+              - generic [ref=f4e99]:
+                - generic [ref=f4e100]:
+                  - generic [ref=f4e101]:
+                    - generic [ref=f4e102]: "149"
+                    - generic [ref=f4e103]: Day 721
+                  - generic [ref=f4e104]: 2026-07-30
+                - paragraph [ref=f4e105]: a quiet green day, filed honestly.
+                - generic [ref=f4e106]:
+                  - generic [ref=f4e107]: 1 trades
+                  - generic [ref=f4e108]: mood 2/5
+                  - generic [ref=f4e109]: "#wins"
+                  - generic [ref=f4e110]: "#process"
+            - 'link "148 Day 719 2026-07-28 a quiet green day, filed honestly. 2 trades mood 2/5 #wins #process" [ref=f4e111] [cursor=pointer]':
+              - /url: /day/28-jul-2026
+              - generic [ref=f4e112]:
+                - generic [ref=f4e113]:
+                  - generic [ref=f4e114]:
+                    - generic [ref=f4e115]: "148"
+                    - generic [ref=f4e116]: Day 719
+                  - generic [ref=f4e117]: 2026-07-28
+                - paragraph [ref=f4e118]: a quiet green day, filed honestly.
+                - generic [ref=f4e119]:
+                  - generic [ref=f4e120]: 2 trades
+                  - generic [ref=f4e121]: mood 2/5
+                  - generic [ref=f4e122]: "#wins"
+                  - generic [ref=f4e123]: "#process"
+            - 'link "147 Day 713 2026-07-22 seven hours for seven days. results are in. mood 4/5 #sleep #habits #data" [ref=f4e124] [cursor=pointer]':
+              - /url: /day/22-jul-2026
+              - generic [ref=f4e125]:
+                - generic [ref=f4e126]:
+                  - generic [ref=f4e127]:
+                    - generic [ref=f4e128]: "147"
+                    - generic [ref=f4e129]: Day 713
+                  - generic [ref=f4e130]: 2026-07-22
+                - paragraph [ref=f4e131]: seven hours for seven days. results are in.
+                - generic [ref=f4e132]:
+                  - generic [ref=f4e133]: mood 4/5
+                  - generic [ref=f4e134]: "#sleep"
+                  - generic [ref=f4e135]: "#habits"
+                  - generic [ref=f4e136]: "#data"
+            - 'link "146 Day 711 2026-07-20 one setup, held like the plan said, banked the move. 2 trades mood 3/5 #wins #process #or-b" [ref=f4e137] [cursor=pointer]':
+              - /url: /day/20-jul-2026
+              - generic [ref=f4e138]:
+                - generic [ref=f4e139]:
+                  - generic [ref=f4e140]:
+                    - generic [ref=f4e141]: "146"
+                    - generic [ref=f4e142]: Day 711
+                  - generic [ref=f4e143]: 2026-07-20
+                - paragraph [ref=f4e144]: one setup, held like the plan said, banked the move.
+                - generic [ref=f4e145]:
+                  - generic [ref=f4e146]: 2 trades
+                  - generic [ref=f4e147]: mood 3/5
+                  - generic [ref=f4e148]: "#wins"
+                  - generic [ref=f4e149]: "#process"
+                  - generic [ref=f4e150]: "#or-b"
+            - 'link "145 Day 709 2026-07-18 no trades worth taking, and that is the win. mood 4/5 #patience #no-trade" [ref=f4e151] [cursor=pointer]':
+              - /url: /day/18-jul-2026
+              - generic [ref=f4e152]:
+                - generic [ref=f4e153]:
+                  - generic [ref=f4e154]:
+                    - generic [ref=f4e155]: "145"
+                    - generic [ref=f4e156]: Day 709
+                  - generic [ref=f4e157]: 2026-07-18
+                - paragraph [ref=f4e158]: no trades worth taking, and that is the win.
+                - generic [ref=f4e159]:
+                  - generic [ref=f4e160]: mood 4/5
+                  - generic [ref=f4e161]: "#patience"
+                  - generic [ref=f4e162]: "#no-trade"
+            - 'link "144 Day 704 2026-07-13 a normal, boring loss, handled correctly. 1 trades mood 2/5 #losses #process" [ref=f4e163] [cursor=pointer]':
+              - /url: /day/13-jul-2026
+              - generic [ref=f4e164]:
+                - generic [ref=f4e165]:
+                  - generic [ref=f4e166]:
+                    - generic [ref=f4e167]: "144"
+                    - generic [ref=f4e168]: Day 704
+                  - generic [ref=f4e169]: 2026-07-13
+                - paragraph [ref=f4e170]: a normal, boring loss, handled correctly.
+                - generic [ref=f4e171]:
+                  - generic [ref=f4e172]: 1 trades
+                  - generic [ref=f4e173]: mood 2/5
+                  - generic [ref=f4e174]: "#losses"
+                  - generic [ref=f4e175]: "#process"
+            - 'link "143 Day 702 2026-07-11 no trades worth taking, and that is the win. mood 2/5 #patience #no-trade" [ref=f4e176] [cursor=pointer]':
+              - /url: /day/11-jul-2026
+              - generic [ref=f4e177]:
+                - generic [ref=f4e178]:
+                  - generic [ref=f4e179]:
+                    - generic [ref=f4e180]: "143"
+                    - generic [ref=f4e181]: Day 702
+                  - generic [ref=f4e182]: 2026-07-11
+                - paragraph [ref=f4e183]: no trades worth taking, and that is the win.
+                - generic [ref=f4e184]:
+                  - generic [ref=f4e185]: mood 2/5
+                  - generic [ref=f4e186]: "#patience"
+                  - generic [ref=f4e187]: "#no-trade"
+            - 'link "142 Day 701 2026-07-10 took the day off. mood 4/5 #rest #habits" [ref=f4e188] [cursor=pointer]':
+              - /url: /day/10-jul-2026
+              - generic [ref=f4e189]:
+                - generic [ref=f4e190]:
+                  - generic [ref=f4e191]:
+                    - generic [ref=f4e192]: "142"
+                    - generic [ref=f4e193]: Day 701
+                  - generic [ref=f4e194]: 2026-07-10
+                - paragraph [ref=f4e195]: took the day off.
+                - generic [ref=f4e196]:
+                  - generic [ref=f4e197]: mood 4/5
+                  - generic [ref=f4e198]: "#rest"
+                  - generic [ref=f4e199]: "#habits"
+        - generic [ref=f4e200]:
+          - separator [ref=f4e201]
+          - generic [ref=f4e202]:
+            - text: jun 2026
+            - generic [ref=f4e203]: · 7
+          - generic [ref=f4e204]:
+            - 'link "141 Day 681 2026-06-20 no trades worth taking, and that is the win. mood 5/5 #patience #no-trade" [ref=f4e205] [cursor=pointer]':
+              - /url: /day/20-jun-2026
+              - generic [ref=f4e206]:
+                - generic [ref=f4e207]:
+                  - generic [ref=f4e208]:
+                    - generic [ref=f4e209]: "141"
+                    - generic [ref=f4e210]: Day 681
+                  - generic [ref=f4e211]: 2026-06-20
+                - paragraph [ref=f4e212]: no trades worth taking, and that is the win.
+                - generic [ref=f4e213]:
+                  - generic [ref=f4e214]: mood 5/5
+                  - generic [ref=f4e215]: "#patience"
+                  - generic [ref=f4e216]: "#no-trade"
+            - 'link "140 Day 675 2026-06-14 seven hours for seven days. results are in. mood 4/5 #sleep #habits #data" [ref=f4e217] [cursor=pointer]':
+              - /url: /day/14-jun-2026
+              - generic [ref=f4e218]:
+                - generic [ref=f4e219]:
+                  - generic [ref=f4e220]:
+                    - generic [ref=f4e221]: "140"
+                    - generic [ref=f4e222]: Day 675
+                  - generic [ref=f4e223]: 2026-06-14
+                - paragraph [ref=f4e224]: seven hours for seven days. results are in.
+                - generic [ref=f4e225]:
+                  - generic [ref=f4e226]: mood 4/5
+                  - generic [ref=f4e227]: "#sleep"
+                  - generic [ref=f4e228]: "#habits"
+                  - generic [ref=f4e229]: "#data"
+            - 'link "139 Day 674 2026-06-13 no trades worth taking, and that is the win. mood 4/5 #patience #no-trade" [ref=f4e230] [cursor=pointer]':
+              - /url: /day/13-jun-2026
+              - generic [ref=f4e231]:
+                - generic [ref=f4e232]:
+                  - generic [ref=f4e233]:
+                    - generic [ref=f4e234]: "139"
+                    - generic [ref=f4e235]: Day 674
+                  - generic [ref=f4e236]: 2026-06-13
+                - paragraph [ref=f4e237]: no trades worth taking, and that is the win.
+                - generic [ref=f4e238]:
+                  - generic [ref=f4e239]: mood 4/5
+                  - generic [ref=f4e240]: "#patience"
+                  - generic [ref=f4e241]: "#no-trade"
+            - 'link "138 Day 669 2026-06-08 what I am trying to get better at, in public. mood 4/5 #process #mindset" [ref=f4e242] [cursor=pointer]':
+              - /url: /day/08-jun-2026
+              - generic [ref=f4e243]:
+                - generic [ref=f4e244]:
+                  - generic [ref=f4e245]:
+                    - generic [ref=f4e246]: "138"
+                    - generic [ref=f4e247]: Day 669
+                  - generic [ref=f4e248]: 2026-06-08
+                - paragraph [ref=f4e249]: what I am trying to get better at, in public.
+                - generic [ref=f4e250]:
+                  - generic [ref=f4e251]: mood 4/5
+                  - generic [ref=f4e252]: "#process"
+                  - generic [ref=f4e253]: "#mindset"
+            - 'link "137 Day 668 2026-06-07 no trades worth taking, and that is the win. mood 3/5 #patience #no-trade" [ref=f4e254] [cursor=pointer]':
+              - /url: /day/07-jun-2026
+              - generic [ref=f4e255]:
+                - generic [ref=f4e256]:
+                  - generic [ref=f4e257]:
+                    - generic [ref=f4e258]: "137"
+                    - generic [ref=f4e259]: Day 668
+                  - generic [ref=f4e260]: 2026-06-07
+                - paragraph [ref=f4e261]: no trades worth taking, and that is the win.
+                - generic [ref=f4e262]:
+                  - generic [ref=f4e263]: mood 3/5
+                  - generic [ref=f4e264]: "#patience"
+                  - generic [ref=f4e265]: "#no-trade"
+            - 'link "136 Day 666 2026-06-05 unexciting, disciplined, in the black. 1 trades mood 4/5 #process #wins" [ref=f4e266] [cursor=pointer]':
+              - /url: /day/05-jun-2026
+              - generic [ref=f4e267]:
+                - generic [ref=f4e268]:
+                  - generic [ref=f4e269]:
+                    - generic [ref=f4e270]: "136"
+                    - generic [ref=f4e271]: Day 666
+                  - generic [ref=f4e272]: 2026-06-05
+                - paragraph [ref=f4e273]: unexciting, disciplined, in the black.
+                - generic [ref=f4e274]:
+                  - generic [ref=f4e275]: 1 trades
+                  - generic [ref=f4e276]: mood 4/5
+                  - generic [ref=f4e277]: "#process"
+                  - generic [ref=f4e278]: "#wins"
+            - 'link "135 Day 664 2026-06-03 a quiet green day, filed honestly. 2 trades mood 3/5 #wins #process" [ref=f4e279] [cursor=pointer]':
+              - /url: /day/03-jun-2026
+              - generic [ref=f4e280]:
+                - generic [ref=f4e281]:
+                  - generic [ref=f4e282]:
+                    - generic [ref=f4e283]: "135"
+                    - generic [ref=f4e284]: Day 664
+                  - generic [ref=f4e285]: 2026-06-03
+                - paragraph [ref=f4e286]: a quiet green day, filed honestly.
+                - generic [ref=f4e287]:
+                  - generic [ref=f4e288]: 2 trades
+                  - generic [ref=f4e289]: mood 3/5
+                  - generic [ref=f4e290]: "#wins"
+                  - generic [ref=f4e291]: "#process"
+        - generic [ref=f4e292]:
+          - separator [ref=f4e293]
+          - generic [ref=f4e294]:
+            - text: may 2026
+            - generic [ref=f4e295]: · 9
+          - generic [ref=f4e296]:
+            - 'link "134 Day 660 2026-05-30 seven hours for seven days. results are in. mood 5/5 #sleep #habits #data" [ref=f4e297] [cursor=pointer]':
+              - /url: /day/30-may-2026
+              - generic [ref=f4e298]:
+                - generic [ref=f4e299]:
+                  - generic [ref=f4e300]:
+                    - generic [ref=f4e301]: "134"
+                    - generic [ref=f4e302]: Day 660
+                  - generic [ref=f4e303]: 2026-05-30
+                - paragraph [ref=f4e304]: seven hours for seven days. results are in.
+                - generic [ref=f4e305]:
+                  - generic [ref=f4e306]: mood 5/5
+                  - generic [ref=f4e307]: "#sleep"
+                  - generic [ref=f4e308]: "#habits"
+                  - generic [ref=f4e309]: "#data"
+            - 'link "133 Day 656 2026-05-26 unexciting, disciplined, in the black. 1 trades mood 1/5 #process #wins" [ref=f4e310] [cursor=pointer]':
+              - /url: /day/26-may-2026
+              - generic [ref=f4e311]:
+                - generic [ref=f4e312]:
+                  - generic [ref=f4e313]:
+                    - generic [ref=f4e314]: "133"
+                    - generic [ref=f4e315]: Day 656
+                  - generic [ref=f4e316]: 2026-05-26
+                - paragraph [ref=f4e317]: unexciting, disciplined, in the black.
+                - generic [ref=f4e318]:
+                  - generic [ref=f4e319]: 1 trades
+                  - generic [ref=f4e320]: mood 1/5
+                  - generic [ref=f4e321]: "#process"
+                  - generic [ref=f4e322]: "#wins"
+            - 'link "132 Day 655 2026-05-25 no trades worth taking, and that is the win. mood 2/5 #patience #no-trade" [ref=f4e323] [cursor=pointer]':
+              - /url: /day/25-may-2026
+              - generic [ref=f4e324]:
+                - generic [ref=f4e325]:
+                  - generic [ref=f4e326]:
+                    - generic [ref=f4e327]: "132"
+                    - generic [ref=f4e328]: Day 655
+                  - generic [ref=f4e329]: 2026-05-25
+                - paragraph [ref=f4e330]: no trades worth taking, and that is the win.
+                - generic [ref=f4e331]:
+                  - generic [ref=f4e332]: mood 2/5
+                  - generic [ref=f4e333]: "#patience"
+                  - generic [ref=f4e334]: "#no-trade"
+            - 'link "131 Day 654 2026-05-24 no trades worth taking, and that is the win. mood 4/5 #patience #no-trade" [ref=f4e335] [cursor=pointer]':
+              - /url: /day/24-may-2026
+              - generic [ref=f4e336]:
+                - generic [ref=f4e337]:
+                  - generic [ref=f4e338]:
+                    - generic [ref=f4e339]: "131"
+                    - generic [ref=f4e340]: Day 654
+                  - generic [ref=f4e341]: 2026-05-24
+                - paragraph [ref=f4e342]: no trades worth taking, and that is the win.
+                - generic [ref=f4e343]:
+                  - generic [ref=f4e344]: mood 4/5
+                  - generic [ref=f4e345]: "#patience"
+                  - generic [ref=f4e346]: "#no-trade"
+            - 'link "130 Day 653 2026-05-23 no trades worth taking, and that is the win. mood 2/5 #patience #no-trade" [ref=f4e347] [cursor=pointer]':
+              - /url: /day/23-may-2026
+              - generic [ref=f4e348]:
+                - generic [ref=f4e349]:
+                  - generic [ref=f4e350]:
+                    - generic [ref=f4e351]: "130"
+                    - generic [ref=f4e352]: Day 653
+                  - generic [ref=f4e353]: 2026-05-23
+                - paragraph [ref=f4e354]: no trades worth taking, and that is the win.
+                - generic [ref=f4e355]:
+                  - generic [ref=f4e356]: mood 2/5
+                  - generic [ref=f4e357]: "#patience"
+                  - generic [ref=f4e358]: "#no-trade"
+            - 'link "129 Day 651 2026-05-21 I almost revenge traded. I walked instead. 1 trades mood 2/5 #discipline #mental" [ref=f4e359] [cursor=pointer]':
+              - /url: /day/21-may-2026
+              - generic [ref=f4e360]:
+                - generic [ref=f4e361]:
+                  - generic [ref=f4e362]:
+                    - generic [ref=f4e363]: "129"
+                    - generic [ref=f4e364]: Day 651
+                  - generic [ref=f4e365]: 2026-05-21
+                - paragraph [ref=f4e366]: I almost revenge traded. I walked instead.
+                - generic [ref=f4e367]:
+                  - generic [ref=f4e368]: 1 trades
+                  - generic [ref=f4e369]: mood 2/5
+                  - generic [ref=f4e370]: "#discipline"
+                  - generic [ref=f4e371]: "#mental"
+            - 'link "128 Day 644 2026-05-14 unexciting, disciplined, in the black. 1 trades mood 3/5 #process #wins" [ref=f4e372] [cursor=pointer]':
+              - /url: /day/14-may-2026
+              - generic [ref=f4e373]:
+                - generic [ref=f4e374]:
+                  - generic [ref=f4e375]:
+                    - generic [ref=f4e376]: "128"
+                    - generic [ref=f4e377]: Day 644
+                  - generic [ref=f4e378]: 2026-05-14
+                - paragraph [ref=f4e379]: unexciting, disciplined, in the black.
+                - generic [ref=f4e380]:
+                  - generic [ref=f4e381]: 1 trades
+                  - generic [ref=f4e382]: mood 3/5
+                  - generic [ref=f4e383]: "#process"
+                  - generic [ref=f4e384]: "#wins"
+            - 'link "127 Day 641 2026-05-11 I almost revenge traded. I walked instead. 2 trades mood 3/5 #discipline #mental" [ref=f4e385] [cursor=pointer]':
+              - /url: /day/11-may-2026
+              - generic [ref=f4e386]:
+                - generic [ref=f4e387]:
+                  - generic [ref=f4e388]:
+                    - generic [ref=f4e389]: "127"
+                    - generic [ref=f4e390]: Day 641
+                  - generic [ref=f4e391]: 2026-05-11
+                - paragraph [ref=f4e392]: I almost revenge traded. I walked instead.
+                - generic [ref=f4e393]:
+                  - generic [ref=f4e394]: 2 trades
+                  - generic [ref=f4e395]: mood 3/5
+                  - generic [ref=f4e396]: "#discipline"
+                  - generic [ref=f4e397]: "#mental"
+            - 'link "126 Day 631 2026-05-01 some days the win is just showing up and logging. 2 trades mood 2/5 #mental #habits" [ref=f4e398] [cursor=pointer]':
+              - /url: /day/01-may-2026
+              - generic [ref=f4e399]:
+                - generic [ref=f4e400]:
+                  - generic [ref=f4e401]:
+                    - generic [ref=f4e402]: "126"
+                    - generic [ref=f4e403]: Day 631
+                  - generic [ref=f4e404]: 2026-05-01
+                - paragraph [ref=f4e405]: some days the win is just showing up and logging.
+                - generic [ref=f4e406]:
+                  - generic [ref=f4e407]: 2 trades
+                  - generic [ref=f4e408]: mood 2/5
+                  - generic [ref=f4e409]: "#mental"
+                  - generic [ref=f4e410]: "#habits"
+        - generic [ref=f4e411]:
+          - separator [ref=f4e412]
+          - generic [ref=f4e413]:
+            - text: apr 2026
+            - generic [ref=f4e414]: · 8
+          - generic [ref=f4e415]:
+            - 'link "125 Day 622 2026-04-22 some days the win is just showing up and logging. 3 trades mood 2/5 #mental #habits" [ref=f4e416] [cursor=pointer]':
+              - /url: /day/22-apr-2026
+              - generic [ref=f4e417]:
+                - generic [ref=f4e418]:
+                  - generic [ref=f4e419]:
+                    - generic [ref=f4e420]: "125"
+                    - generic [ref=f4e421]: Day 622
+                  - generic [ref=f4e422]: 2026-04-22
+                - paragraph [ref=f4e423]: some days the win is just showing up and logging.
+                - generic [ref=f4e424]:
+                  - generic [ref=f4e425]: 3 trades
+                  - generic [ref=f4e426]: mood 2/5
+                  - generic [ref=f4e427]: "#mental"
+                  - generic [ref=f4e428]: "#habits"
+            - 'link "124 Day 621 2026-04-21 a quiet green day, filed honestly. 1 trades mood 3/5 #wins #process" [ref=f4e429] [cursor=pointer]':
+              - /url: /day/21-apr-2026
+              - generic [ref=f4e430]:
+                - generic [ref=f4e431]:
+                  - generic [ref=f4e432]:
+                    - generic [ref=f4e433]: "124"
+                    - generic [ref=f4e434]: Day 621
+                  - generic [ref=f4e435]: 2026-04-21
+                - paragraph [ref=f4e436]: a quiet green day, filed honestly.
+                - generic [ref=f4e437]:
+                  - generic [ref=f4e438]: 1 trades
+                  - generic [ref=f4e439]: mood 3/5
+                  - generic [ref=f4e440]: "#wins"
+                  - generic [ref=f4e441]: "#process"
+            - 'link "123 Day 619 2026-04-19 no trades worth taking, and that is the win. mood 4/5 #patience #no-trade" [ref=f4e442] [cursor=pointer]':
+              - /url: /day/19-apr-2026
+              - generic [ref=f4e443]:
+                - generic [ref=f4e444]:
+                  - generic [ref=f4e445]:
+                    - generic [ref=f4e446]: "123"
+                    - generic [ref=f4e447]: Day 619
+                  - generic [ref=f4e448]: 2026-04-19
+                - paragraph [ref=f4e449]: no trades worth taking, and that is the win.
+                - generic [ref=f4e450]:
+                  - generic [ref=f4e451]: mood 4/5
+                  - generic [ref=f4e452]: "#patience"
+                  - generic [ref=f4e453]: "#no-trade"
+            - 'link "122 Day 616 2026-04-16 quick and clean. 1 trades mood 3/5 #wins" [ref=f4e454] [cursor=pointer]':
+              - /url: /day/16-apr-2026
+              - generic [ref=f4e455]:
+                - generic [ref=f4e456]:
+                  - generic [ref=f4e457]:
+                    - generic [ref=f4e458]: "122"
+                    - generic [ref=f4e459]: Day 616
+                  - generic [ref=f4e460]: 2026-04-16
+                - paragraph [ref=f4e461]: quick and clean.
+                - generic [ref=f4e462]:
+                  - generic [ref=f4e463]: 1 trades
+                  - generic [ref=f4e464]: mood 3/5
+                  - generic [ref=f4e465]: "#wins"
+            - 'link "121 Day 615 2026-04-15 a quiet green day, filed honestly. 1 trades mood 3/5 #wins #process" [ref=f4e466] [cursor=pointer]':
+              - /url: /day/15-apr-2026
+              - generic [ref=f4e467]:
+                - generic [ref=f4e468]:
+                  - generic [ref=f4e469]:
+                    - generic [ref=f4e470]: "121"
+                    - generic [ref=f4e471]: Day 615
+                  - generic [ref=f4e472]: 2026-04-15
+                - paragraph [ref=f4e473]: a quiet green day, filed honestly.
+                - generic [ref=f4e474]:
+                  - generic [ref=f4e475]: 1 trades
+                  - generic [ref=f4e476]: mood 3/5
+                  - generic [ref=f4e477]: "#wins"
+                  - generic [ref=f4e478]: "#process"
+            - 'link "120 Day 607 2026-04-07 why fewer trades made me more money. 1 trades mood 3/5 #discipline #process" [ref=f4e479] [cursor=pointer]':
+              - /url: /day/07-apr-2026
+              - generic [ref=f4e480]:
+                - generic [ref=f4e481]:
+                  - generic [ref=f4e482]:
+                    - generic [ref=f4e483]: "120"
+                    - generic [ref=f4e484]: Day 607
+                  - generic [ref=f4e485]: 2026-04-07
+                - paragraph [ref=f4e486]: why fewer trades made me more money.
+                - generic [ref=f4e487]:
+                  - generic [ref=f4e488]: 1 trades
+                  - generic [ref=f4e489]: mood 3/5
+                  - generic [ref=f4e490]: "#discipline"
+                  - generic [ref=f4e491]: "#process"
+            - 'link "119 Day 606 2026-04-06 some days the win is just showing up and logging. 3 trades mood 2/5 #mental #habits" [ref=f4e492] [cursor=pointer]':
+              - /url: /day/06-apr-2026
+              - generic [ref=f4e493]:
+                - generic [ref=f4e494]:
+                  - generic [ref=f4e495]:
+                    - generic [ref=f4e496]: "119"
+                    - generic [ref=f4e497]: Day 606
+                  - generic [ref=f4e498]: 2026-04-06
+                - paragraph [ref=f4e499]: some days the win is just showing up and logging.
+                - generic [ref=f4e500]:
+                  - generic [ref=f4e501]: 3 trades
+                  - generic [ref=f4e502]: mood 2/5
+                  - generic [ref=f4e503]: "#mental"
+                  - generic [ref=f4e504]: "#habits"
+            - 'link "118 Day 602 2026-04-02 one line for the one that stung. 1 trades mood 3/5 #losses" [ref=f4e505] [cursor=pointer]':
+              - /url: /day/02-apr-2026
+              - generic [ref=f4e506]:
+                - generic [ref=f4e507]:
+                  - generic [ref=f4e508]:
+                    - generic [ref=f4e509]: "118"
+                    - generic [ref=f4e510]: Day 602
+                  - generic [ref=f4e511]: 2026-04-02
+                - paragraph [ref=f4e512]: one line for the one that stung.
+                - generic [ref=f4e513]:
+                  - generic [ref=f4e514]: 1 trades
+                  - generic [ref=f4e515]: mood 3/5
+                  - generic [ref=f4e516]: "#losses"
+        - generic [ref=f4e517]:
+          - separator [ref=f4e518]
+          - generic [ref=f4e519]:
+            - text: mar 2026
+            - generic [ref=f4e520]: · 8
+          - generic [ref=f4e521]:
+            - 'link "117 Day 593 2026-03-24 what the correlation table actually said. 3 trades mood 1/5 #trends #data" [ref=f4e522] [cursor=pointer]':
+              - /url: /day/24-mar-2026
+              - generic [ref=f4e523]:
+                - generic [ref=f4e524]:
+                  - generic [ref=f4e525]:
+                    - generic [ref=f4e526]: "117"
+                    - generic [ref=f4e527]: Day 593
+                  - generic [ref=f4e528]: 2026-03-24
+                - paragraph [ref=f4e529]: what the correlation table actually said.
+                - generic [ref=f4e530]:
+                  - generic [ref=f4e531]: 3 trades
+                  - generic [ref=f4e532]: mood 1/5
+                  - generic [ref=f4e533]: "#trends"
+                  - generic [ref=f4e534]: "#data"
+            - 'link "116 Day 591 2026-03-22 what I am trying to get better at, in public. mood 5/5 #process #mindset" [ref=f4e535] [cursor=pointer]':
+              - /url: /day/22-mar-2026
+              - generic [ref=f4e536]:
+                - generic [ref=f4e537]:
+                  - generic [ref=f4e538]:
+                    - generic [ref=f4e539]: "116"
+                    - generic [ref=f4e540]: Day 591
+                  - generic [ref=f4e541]: 2026-03-22
+                - paragraph [ref=f4e542]: what I am trying to get better at, in public.
+                - generic [ref=f4e543]:
+                  - generic [ref=f4e544]: mood 5/5
+                  - generic [ref=f4e545]: "#process"
+                  - generic [ref=f4e546]: "#mindset"
+            - 'link "115 Day 590 2026-03-21 off the clock, thinking about the week. mood 5/5 #reflection #mental" [ref=f4e547] [cursor=pointer]':
+              - /url: /day/21-mar-2026
+              - generic [ref=f4e548]:
+                - generic [ref=f4e549]:
+                  - generic [ref=f4e550]:
+                    - generic [ref=f4e551]: "115"
+                    - generic [ref=f4e552]: Day 590
+                  - generic [ref=f4e553]: 2026-03-21
+                - paragraph [ref=f4e554]: off the clock, thinking about the week.
+                - generic [ref=f4e555]:
+                  - generic [ref=f4e556]: mood 5/5
+                  - generic [ref=f4e557]: "#reflection"
+                  - generic [ref=f4e558]: "#mental"
+            - 'link "114 Day 588 2026-03-19 a normal, boring loss, handled correctly. 1 trades mood 3/5 #losses #process" [ref=f4e559] [cursor=pointer]':
+              - /url: /day/19-mar-2026
+              - generic [ref=f4e560]:
+                - generic [ref=f4e561]:
+                  - generic [ref=f4e562]:
+                    - generic [ref=f4e563]: "114"
+                    - generic [ref=f4e564]: Day 588
+                  - generic [ref=f4e565]: 2026-03-19
+                - paragraph [ref=f4e566]: a normal, boring loss, handled correctly.
+                - generic [ref=f4e567]:
+                  - generic [ref=f4e568]: 1 trades
+                  - generic [ref=f4e569]: mood 3/5
+                  - generic [ref=f4e570]: "#losses"
+                  - generic [ref=f4e571]: "#process"
+            - 'link "113 Day 581 2026-03-12 R, expectancy, and why the mundane wins. 2 trades mood 3/5 #process #edge" [ref=f4e572] [cursor=pointer]':
+              - /url: /day/12-mar-2026
+              - generic [ref=f4e573]:
+                - generic [ref=f4e574]:
+                  - generic [ref=f4e575]:
+                    - generic [ref=f4e576]: "113"
+                    - generic [ref=f4e577]: Day 581
+                  - generic [ref=f4e578]: 2026-03-12
+                - paragraph [ref=f4e579]: R, expectancy, and why the mundane wins.
+                - generic [ref=f4e580]:
+                  - generic [ref=f4e581]: 2 trades
+                  - generic [ref=f4e582]: mood 3/5
+                  - generic [ref=f4e583]: "#process"
+                  - generic [ref=f4e584]: "#edge"
+            - 'link "112 Day 576 2026-03-07 off the clock, thinking about the week. mood 3/5 #reflection #mental" [ref=f4e585] [cursor=pointer]':
+              - /url: /day/07-mar-2026
+              - generic [ref=f4e586]:
+                - generic [ref=f4e587]:
+                  - generic [ref=f4e588]:
+                    - generic [ref=f4e589]: "112"
+                    - generic [ref=f4e590]: Day 576
+                  - generic [ref=f4e591]: 2026-03-07
+                - paragraph [ref=f4e592]: off the clock, thinking about the week.
+                - generic [ref=f4e593]:
+                  - generic [ref=f4e594]: mood 3/5
+                  - generic [ref=f4e595]: "#reflection"
+                  - generic [ref=f4e596]: "#mental"
+            - 'link "111 Day 574 2026-03-05 a normal, boring loss, handled correctly. 3 trades mood 3/5 #losses #process" [ref=f4e597] [cursor=pointer]':
+              - /url: /day/05-mar-2026
+              - generic [ref=f4e598]:
+                - generic [ref=f4e599]:
+                  - generic [ref=f4e600]:
+                    - generic [ref=f4e601]: "111"
+                    - generic [ref=f4e602]: Day 574
+                  - generic [ref=f4e603]: 2026-03-05
+                - paragraph [ref=f4e604]: a normal, boring loss, handled correctly.
+                - generic [ref=f4e605]:
+                  - generic [ref=f4e606]: 3 trades
+                  - generic [ref=f4e607]: mood 3/5
+                  - generic [ref=f4e608]: "#losses"
+                  - generic [ref=f4e609]: "#process"
+            - 'link "110 Day 570 2026-03-01 took the day off. mood 4/5 #rest #habits" [ref=f4e610] [cursor=pointer]':
+              - /url: /day/01-mar-2026
+              - generic [ref=f4e611]:
+                - generic [ref=f4e612]:
+                  - generic [ref=f4e613]:
+                    - generic [ref=f4e614]: "110"
+                    - generic [ref=f4e615]: Day 570
+                  - generic [ref=f4e616]: 2026-03-01
+                - paragraph [ref=f4e617]: took the day off.
+                - generic [ref=f4e618]:
+                  - generic [ref=f4e619]: mood 4/5
+                  - generic [ref=f4e620]: "#rest"
+                  - generic [ref=f4e621]: "#habits"
+        - generic [ref=f4e622]:
+          - separator [ref=f4e623]
+          - generic [ref=f4e624]:
+            - text: feb 2026
+            - generic [ref=f4e625]: · 1
+          - 'link "109 Day 560 2026-02-19 the mental side of trading, public. 3 trades mood 2/5 #mental #mood" [ref=f4e627] [cursor=pointer]':
+            - /url: /day/19-feb-2026
+            - generic [ref=f4e628]:
+              - generic [ref=f4e629]:
+                - generic [ref=f4e630]:
+                  - generic [ref=f4e631]: "109"
+                  - generic [ref=f4e632]: Day 560
+                - generic [ref=f4e633]: 2026-02-19
+              - paragraph [ref=f4e634]: the mental side of trading, public.
+              - generic [ref=f4e635]:
+                - generic [ref=f4e636]: 3 trades
+                - generic [ref=f4e637]: mood 2/5
+                - generic [ref=f4e638]: "#mental"
+                - generic [ref=f4e639]: "#mood"
+        - generic [ref=f4e640]:
+          - separator [ref=f4e641]
+          - generic [ref=f4e642]:
+            - text: jan 2026
+            - generic [ref=f4e643]: · 1
+          - 'link "108 Day 537 2026-01-27 a normal, boring loss, handled correctly. 1 trades mood 2/5 #losses #process" [ref=f4e645] [cursor=pointer]':
+            - /url: /day/27-jan-2026
+            - generic [ref=f4e646]:
+              - generic [ref=f4e647]:
+                - generic [ref=f4e648]:
+                  - generic [ref=f4e649]: "108"
+                  - generic [ref=f4e650]: Day 537
+                - generic [ref=f4e651]: 2026-01-27
+              - paragraph [ref=f4e652]: a normal, boring loss, handled correctly.
+              - generic [ref=f4e653]:
+                - generic [ref=f4e654]: 1 trades
+                - generic [ref=f4e655]: mood 2/5
+                - generic [ref=f4e656]: "#losses"
+                - generic [ref=f4e657]: "#process"
+        - generic [ref=f4e658]:
+          - separator [ref=f4e659]
+          - generic [ref=f4e660]:
+            - text: dec 2025
+            - generic [ref=f4e661]: · 4
+          - generic [ref=f4e662]:
+            - 'link "107 Day 510 2025-12-31 I almost revenge traded. I walked instead. 1 trades mood 3/5 #discipline #mental" [ref=f4e663] [cursor=pointer]':
+              - /url: /day/31-dec-2025
+              - generic [ref=f4e664]:
+                - generic [ref=f4e665]:
+                  - generic [ref=f4e666]:
+                    - generic [ref=f4e667]: "107"
+                    - generic [ref=f4e668]: Day 510
+                  - generic [ref=f4e669]: 2025-12-31
+                - paragraph [ref=f4e670]: I almost revenge traded. I walked instead.
+                - generic [ref=f4e671]:
+                  - generic [ref=f4e672]: 1 trades
+                  - generic [ref=f4e673]: mood 3/5
+                  - generic [ref=f4e674]: "#discipline"
+                  - generic [ref=f4e675]: "#mental"
+            - 'link "106 Day 498 2025-12-19 the mental side of trading, public. mood 2/5 #mental #mood" [ref=f4e676] [cursor=pointer]':
+              - /url: /day/19-dec-2025
+              - generic [ref=f4e677]:
+                - generic [ref=f4e678]:
+                  - generic [ref=f4e679]:
+                    - generic [ref=f4e680]: "106"
+                    - generic [ref=f4e681]: Day 498
+                  - generic [ref=f4e682]: 2025-12-19
+                - paragraph [ref=f4e683]: the mental side of trading, public.
+                - generic [ref=f4e684]:
+                  - generic [ref=f4e685]: mood 2/5
+                  - generic [ref=f4e686]: "#mental"
+                  - generic [ref=f4e687]: "#mood"
+            - 'link "105 Day 496 2025-12-17 why fewer trades made me more money. 2 trades mood 2/5 #discipline #process" [ref=f4e688] [cursor=pointer]':
+              - /url: /day/17-dec-2025
+              - generic [ref=f4e689]:
+                - generic [ref=f4e690]:
+                  - generic [ref=f4e691]:
+                    - generic [ref=f4e692]: "105"
+                    - generic [ref=f4e693]: Day 496
+                  - generic [ref=f4e694]: 2025-12-17
+                - paragraph [ref=f4e695]: why fewer trades made me more money.
+                - generic [ref=f4e696]:
+                  - generic [ref=f4e697]: 2 trades
+                  - generic [ref=f4e698]: mood 2/5
+                  - generic [ref=f4e699]: "#discipline"
+                  - generic [ref=f4e700]: "#process"
+            - 'link "104 Day 493 2025-12-14 social hours are the silent tax on focus. mood 2/5 #screen-time #habits" [ref=f4e701] [cursor=pointer]':
+              - /url: /day/14-dec-2025
+              - generic [ref=f4e702]:
+                - generic [ref=f4e703]:
+                  - generic [ref=f4e704]:
+                    - generic [ref=f4e705]: "104"
+                    - generic [ref=f4e706]: Day 493
+                  - generic [ref=f4e707]: 2025-12-14
+                - paragraph [ref=f4e708]: social hours are the silent tax on focus.
+                - generic [ref=f4e709]:
+                  - generic [ref=f4e710]: mood 2/5
+                  - generic [ref=f4e711]: "#screen-time"
+                  - generic [ref=f4e712]: "#habits"
+        - generic [ref=f4e713]:
+          - separator [ref=f4e714]
+          - generic [ref=f4e715]:
+            - text: nov 2025
+            - generic [ref=f4e716]: · 4
+          - generic [ref=f4e717]:
+            - 'link "103 Day 466 2025-11-17 the mental side of trading, public. 1 trades mood 2/5 #mental #mood" [ref=f4e718] [cursor=pointer]':
+              - /url: /day/17-nov-2025
+              - generic [ref=f4e719]:
+                - generic [ref=f4e720]:
+                  - generic [ref=f4e721]:
+                    - generic [ref=f4e722]: "103"
+                    - generic [ref=f4e723]: Day 466
+                  - generic [ref=f4e724]: 2025-11-17
+                - paragraph [ref=f4e725]: the mental side of trading, public.
+                - generic [ref=f4e726]:
+                  - generic [ref=f4e727]: 1 trades
+                  - generic [ref=f4e728]: mood 2/5
+                  - generic [ref=f4e729]: "#mental"
+                  - generic [ref=f4e730]: "#mood"
+            - 'link "102 Day 460 2025-11-11 one line for the one that stung. 1 trades mood 3/5 #losses" [ref=f4e731] [cursor=pointer]':
+              - /url: /day/11-nov-2025
+              - generic [ref=f4e732]:
+                - generic [ref=f4e733]:
+                  - generic [ref=f4e734]:
+                    - generic [ref=f4e735]: "102"
+                    - generic [ref=f4e736]: Day 460
+                  - generic [ref=f4e737]: 2025-11-11
+                - paragraph [ref=f4e738]: one line for the one that stung.
+                - generic [ref=f4e739]:
+                  - generic [ref=f4e740]: 1 trades
+                  - generic [ref=f4e741]: mood 3/5
+                  - generic [ref=f4e742]: "#losses"
+            - 'link "101 Day 459 2025-11-10 some days the win is just showing up and logging. 1 trades mood 2/5 #mental #habits" [ref=f4e743] [cursor=pointer]':
+              - /url: /day/10-nov-2025
+              - generic [ref=f4e744]:
+                - generic [ref=f4e745]:
+                  - generic [ref=f4e746]:
+                    - generic [ref=f4e747]: "101"
+                    - generic [ref=f4e748]: Day 459
+                  - generic [ref=f4e749]: 2025-11-10
+                - paragraph [ref=f4e750]: some days the win is just showing up and logging.
+                - generic [ref=f4e751]:
+                  - generic [ref=f4e752]: 1 trades
+                  - generic [ref=f4e753]: mood 2/5
+                  - generic [ref=f4e754]: "#mental"
+                  - generic [ref=f4e755]: "#habits"
+            - 'link "100 Day 454 2025-11-05 one line for the one that stung. 2 trades mood 3/5 #losses" [ref=f4e756] [cursor=pointer]':
+              - /url: /day/05-nov-2025
+              - generic [ref=f4e757]:
+                - generic [ref=f4e758]:
+                  - generic [ref=f4e759]:
+                    - generic [ref=f4e760]: "100"
+                    - generic [ref=f4e761]: Day 454
+                  - generic [ref=f4e762]: 2025-11-05
+                - paragraph [ref=f4e763]: one line for the one that stung.
+                - generic [ref=f4e764]:
+                  - generic [ref=f4e765]: 2 trades
+                  - generic [ref=f4e766]: mood 3/5
+                  - generic [ref=f4e767]: "#losses"
+        - generic [ref=f4e768]:
+          - separator [ref=f4e769]
+          - generic [ref=f4e770]:
+            - text: oct 2025
+            - generic [ref=f4e771]: · 6
+          - generic [ref=f4e772]:
+            - 'link "99 Day 449 2025-10-31 a quiet green day, filed honestly. 1 trades mood 3/5 #wins #process" [ref=f4e773] [cursor=pointer]':
+              - /url: /day/31-oct-2025
+              - generic [ref=f4e774]:
+                - generic [ref=f4e775]:
+                  - generic [ref=f4e776]:
+                    - generic [ref=f4e777]: "99"
+                    - generic [ref=f4e778]: Day 449
+                  - generic [ref=f4e779]: 2025-10-31
+                - paragraph [ref=f4e780]: a quiet green day, filed honestly.
+                - generic [ref=f4e781]:
+                  - generic [ref=f4e782]: 1 trades
+                  - generic [ref=f4e783]: mood 3/5
+                  - generic [ref=f4e784]: "#wins"
+                  - generic [ref=f4e785]: "#process"
+            - 'link "98 Day 445 2025-10-27 some days the win is just showing up and logging. mood 2/5 #mental #habits" [ref=f4e786] [cursor=pointer]':
+              - /url: /day/27-oct-2025
+              - generic [ref=f4e787]:
+                - generic [ref=f4e788]:
+                  - generic [ref=f4e789]:
+                    - generic [ref=f4e790]: "98"
+                    - generic [ref=f4e791]: Day 445
+                  - generic [ref=f4e792]: 2025-10-27
+                - paragraph [ref=f4e793]: some days the win is just showing up and logging.
+                - generic [ref=f4e794]:
+                  - generic [ref=f4e795]: mood 2/5
+                  - generic [ref=f4e796]: "#mental"
+                  - generic [ref=f4e797]: "#habits"
+            - 'link "97 Day 443 2025-10-25 off the clock, thinking about the week. mood 1/5 #reflection #mental" [ref=f4e798] [cursor=pointer]':
+              - /url: /day/25-oct-2025
+              - generic [ref=f4e799]:
+                - generic [ref=f4e800]:
+                  - generic [ref=f4e801]:
+                    - generic [ref=f4e802]: "97"
+                    - generic [ref=f4e803]: Day 443
+                  - generic [ref=f4e804]: 2025-10-25
+                - paragraph [ref=f4e805]: off the clock, thinking about the week.
+                - generic [ref=f4e806]:
+                  - generic [ref=f4e807]: mood 1/5
+                  - generic [ref=f4e808]: "#reflection"
+                  - generic [ref=f4e809]: "#mental"
+            - 'link "96 Day 435 2025-10-17 some days the win is just showing up and logging. 1 trades mood 2/5 #mental #habits" [ref=f4e810] [cursor=pointer]':
+              - /url: /day/17-oct-2025
+              - generic [ref=f4e811]:
+                - generic [ref=f4e812]:
+                  - generic [ref=f4e813]:
+                    - generic [ref=f4e814]: "96"
+                    - generic [ref=f4e815]: Day 435
+                  - generic [ref=f4e816]: 2025-10-17
+                - paragraph [ref=f4e817]: some days the win is just showing up and logging.
+                - generic [ref=f4e818]:
+                  - generic [ref=f4e819]: 1 trades
+                  - generic [ref=f4e820]: mood 2/5
+                  - generic [ref=f4e821]: "#mental"
+                  - generic [ref=f4e822]: "#habits"
+            - 'link "95 Day 434 2025-10-16 one line for the one that stung. 1 trades mood 2/5 #losses" [ref=f4e823] [cursor=pointer]':
+              - /url: /day/16-oct-2025
+              - generic [ref=f4e824]:
+                - generic [ref=f4e825]:
+                  - generic [ref=f4e826]:
+                    - generic [ref=f4e827]: "95"
+                    - generic [ref=f4e828]: Day 434
+                  - generic [ref=f4e829]: 2025-10-16
+                - paragraph [ref=f4e830]: one line for the one that stung.
+                - generic [ref=f4e831]:
+                  - generic [ref=f4e832]: 1 trades
+                  - generic [ref=f4e833]: mood 2/5
+                  - generic [ref=f4e834]: "#losses"
+            - 'link "94 Day 423 2025-10-05 some days the win is just showing up and logging. mood 2/5 #mental #habits" [ref=f4e835] [cursor=pointer]':
+              - /url: /day/05-oct-2025
+              - generic [ref=f4e836]:
+                - generic [ref=f4e837]:
+                  - generic [ref=f4e838]:
+                    - generic [ref=f4e839]: "94"
+                    - generic [ref=f4e840]: Day 423
+                  - generic [ref=f4e841]: 2025-10-05
+                - paragraph [ref=f4e842]: some days the win is just showing up and logging.
+                - generic [ref=f4e843]:
+                  - generic [ref=f4e844]: mood 2/5
+                  - generic [ref=f4e845]: "#mental"
+                  - generic [ref=f4e846]: "#habits"
+        - generic [ref=f4e847]:
+          - separator [ref=f4e848]
+          - generic [ref=f4e849]:
+            - text: sep 2025
+            - generic [ref=f4e850]: · 12
+          - generic [ref=f4e851]:
+            - 'link "93 Day 413 2025-09-25 the mental side of trading, public. 1 trades mood 2/5 #mental #mood" [ref=f4e852] [cursor=pointer]':
+              - /url: /day/25-sep-2025
+              - generic [ref=f4e853]:
+                - generic [ref=f4e854]:
+                  - generic [ref=f4e855]:
+                    - generic [ref=f4e856]: "93"
+                    - generic [ref=f4e857]: Day 413
+                  - generic [ref=f4e858]: 2025-09-25
+                - paragraph [ref=f4e859]: the mental side of trading, public.
+                - generic [ref=f4e860]:
+                  - generic [ref=f4e861]: 1 trades
+                  - generic [ref=f4e862]: mood 2/5
+                  - generic [ref=f4e863]: "#mental"
+                  - generic [ref=f4e864]: "#mood"
+            - 'link "92 Day 412 2025-09-24 I almost revenge traded. I walked instead. 1 trades mood 3/5 #discipline #mental" [ref=f4e865] [cursor=pointer]':
+              - /url: /day/24-sep-2025
+              - generic [ref=f4e866]:
+                - generic [ref=f4e867]:
+                  - generic [ref=f4e868]:
+                    - generic [ref=f4e869]: "92"
+                    - generic [ref=f4e870]: Day 412
+                  - generic [ref=f4e871]: 2025-09-24
+                - paragraph [ref=f4e872]: I almost revenge traded. I walked instead.
+                - generic [ref=f4e873]:
+                  - generic [ref=f4e874]: 1 trades
+                  - generic [ref=f4e875]: mood 3/5
+                  - generic [ref=f4e876]: "#discipline"
+                  - generic [ref=f4e877]: "#mental"
+            - 'link "91 Day 410 2025-09-22 some days the win is just showing up and logging. mood 1/5 #mental #habits" [ref=f4e878] [cursor=pointer]':
+              - /url: /day/22-sep-2025
+              - generic [ref=f4e879]:
+                - generic [ref=f4e880]:
+                  - generic [ref=f4e881]:
+                    - generic [ref=f4e882]: "91"
+                    - generic [ref=f4e883]: Day 410
+                  - generic [ref=f4e884]: 2025-09-22
+                - paragraph [ref=f4e885]: some days the win is just showing up and logging.
+                - generic [ref=f4e886]:
+                  - generic [ref=f4e887]: mood 1/5
+                  - generic [ref=f4e888]: "#mental"
+                  - generic [ref=f4e889]: "#habits"
+            - 'link "90 Day 407 2025-09-19 why fewer trades made me more money. 1 trades mood 3/5 #discipline #process" [ref=f4e890] [cursor=pointer]':
+              - /url: /day/19-sep-2025
+              - generic [ref=f4e891]:
+                - generic [ref=f4e892]:
+                  - generic [ref=f4e893]:
+                    - generic [ref=f4e894]: "90"
+                    - generic [ref=f4e895]: Day 407
+                  - generic [ref=f4e896]: 2025-09-19
+                - paragraph [ref=f4e897]: why fewer trades made me more money.
+                - generic [ref=f4e898]:
+                  - generic [ref=f4e899]: 1 trades
+                  - generic [ref=f4e900]: mood 3/5
+                  - generic [ref=f4e901]: "#discipline"
+                  - generic [ref=f4e902]: "#process"
+            - 'link "89 Day 406 2025-09-18 took the day off. mood 3/5 #rest #habits" [ref=f4e903] [cursor=pointer]':
+              - /url: /day/18-sep-2025
+              - generic [ref=f4e904]:
+                - generic [ref=f4e905]:
+                  - generic [ref=f4e906]:
+                    - generic [ref=f4e907]: "89"
+                    - generic [ref=f4e908]: Day 406
+                  - generic [ref=f4e909]: 2025-09-18
+                - paragraph [ref=f4e910]: took the day off.
+                - generic [ref=f4e911]:
+                  - generic [ref=f4e912]: mood 3/5
+                  - generic [ref=f4e913]: "#rest"
+                  - generic [ref=f4e914]: "#habits"
+            - 'link "88 Day 405 2025-09-17 social hours are the silent tax on focus. mood 1/5 #screen-time #habits" [ref=f4e915] [cursor=pointer]':
+              - /url: /day/17-sep-2025
+              - generic [ref=f4e916]:
+                - generic [ref=f4e917]:
+                  - generic [ref=f4e918]:
+                    - generic [ref=f4e919]: "88"
+                    - generic [ref=f4e920]: Day 405
+                  - generic [ref=f4e921]: 2025-09-17
+                - paragraph [ref=f4e922]: social hours are the silent tax on focus.
+                - generic [ref=f4e923]:
+                  - generic [ref=f4e924]: mood 1/5
+                  - generic [ref=f4e925]: "#screen-time"
+                  - generic [ref=f4e926]: "#habits"
+            - 'link "87 Day 404 2025-09-16 what I am trying to get better at, in public. 2 trades mood 4/5 #process #mindset" [ref=f4e927] [cursor=pointer]':
+              - /url: /day/16-sep-2025
+              - generic [ref=f4e928]:
+                - generic [ref=f4e929]:
+                  - generic [ref=f4e930]:
+                    - generic [ref=f4e931]: "87"
+                    - generic [ref=f4e932]: Day 404
+                  - generic [ref=f4e933]: 2025-09-16
+                - paragraph [ref=f4e934]: what I am trying to get better at, in public.
+                - generic [ref=f4e935]:
+                  - generic [ref=f4e936]: 2 trades
+                  - generic [ref=f4e937]: mood 4/5
+                  - generic [ref=f4e938]: "#process"
+                  - generic [ref=f4e939]: "#mindset"
+            - 'link "86 Day 400 2025-09-12 I almost revenge traded. I walked instead. 3 trades mood 3/5 #discipline #mental" [ref=f4e940] [cursor=pointer]':
+              - /url: /day/12-sep-2025
+              - generic [ref=f4e941]:
+                - generic [ref=f4e942]:
+                  - generic [ref=f4e943]:
+                    - generic [ref=f4e944]: "86"
+                    - generic [ref=f4e945]: Day 400
+                  - generic [ref=f4e946]: 2025-09-12
+                - paragraph [ref=f4e947]: I almost revenge traded. I walked instead.
+                - generic [ref=f4e948]:
+                  - generic [ref=f4e949]: 3 trades
+                  - generic [ref=f4e950]: mood 3/5
+                  - generic [ref=f4e951]: "#discipline"
+                  - generic [ref=f4e952]: "#mental"
+            - 'link "85 Day 393 2025-09-05 no trades worth taking, and that is the win. mood 4/5 #patience #no-trade" [ref=f4e953] [cursor=pointer]':
+              - /url: /day/05-sep-2025
+              - generic [ref=f4e954]:
+                - generic [ref=f4e955]:
+                  - generic [ref=f4e956]:
+                    - generic [ref=f4e957]: "85"
+                    - generic [ref=f4e958]: Day 393
+                  - generic [ref=f4e959]: 2025-09-05
+                - paragraph [ref=f4e960]: no trades worth taking, and that is the win.
+                - generic [ref=f4e961]:
+                  - generic [ref=f4e962]: mood 4/5
+                  - generic [ref=f4e963]: "#patience"
+                  - generic [ref=f4e964]: "#no-trade"
+            - 'link "84 Day 392 2025-09-04 the mental side of trading, public. 3 trades mood 2/5 #mental #mood" [ref=f4e965] [cursor=pointer]':
+              - /url: /day/04-sep-2025
+              - generic [ref=f4e966]:
+                - generic [ref=f4e967]:
+                  - generic [ref=f4e968]:
+                    - generic [ref=f4e969]: "84"
+                    - generic [ref=f4e970]: Day 392
+                  - generic [ref=f4e971]: 2025-09-04
+                - paragraph [ref=f4e972]: the mental side of trading, public.
+                - generic [ref=f4e973]:
+                  - generic [ref=f4e974]: 3 trades
+                  - generic [ref=f4e975]: mood 2/5
+                  - generic [ref=f4e976]: "#mental"
+                  - generic [ref=f4e977]: "#mood"
+            - 'link "83 Day 391 2025-09-03 seven hours for seven days. results are in. 2 trades mood 2/5 #sleep #habits #data" [ref=f4e978] [cursor=pointer]':
+              - /url: /day/03-sep-2025
+              - generic [ref=f4e979]:
+                - generic [ref=f4e980]:
+                  - generic [ref=f4e981]:
+                    - generic [ref=f4e982]: "83"
+                    - generic [ref=f4e983]: Day 391
+                  - generic [ref=f4e984]: 2025-09-03
+                - paragraph [ref=f4e985]: seven hours for seven days. results are in.
+                - generic [ref=f4e986]:
+                  - generic [ref=f4e987]: 2 trades
+                  - generic [ref=f4e988]: mood 2/5
+                  - generic [ref=f4e989]: "#sleep"
+                  - generic [ref=f4e990]: "#habits"
+                  - generic [ref=f4e991]: "#data"
+            - 'link "82 Day 390 2025-09-02 a normal, boring loss, handled correctly. 3 trades mood 3/5 #losses #process" [ref=f4e992] [cursor=pointer]':
+              - /url: /day/02-sep-2025
+              - generic [ref=f4e993]:
+                - generic [ref=f4e994]:
+                  - generic [ref=f4e995]:
+                    - generic [ref=f4e996]: "82"
+                    - generic [ref=f4e997]: Day 390
+                  - generic [ref=f4e998]: 2025-09-02
+                - paragraph [ref=f4e999]: a normal, boring loss, handled correctly.
+                - generic [ref=f4e1000]:
+                  - generic [ref=f4e1001]: 3 trades
+                  - generic [ref=f4e1002]: mood 3/5
+                  - generic [ref=f4e1003]: "#losses"
+                  - generic [ref=f4e1004]: "#process"
+        - generic [ref=f4e1005]:
+          - separator [ref=f4e1006]
+          - generic [ref=f4e1007]:
+            - text: aug 2025
+            - generic [ref=f4e1008]: · 7
+          - generic [ref=f4e1009]:
+            - 'link "81 Day 387 2025-08-30 some days the win is just showing up and logging. mood 2/5 #mental #habits" [ref=f4e1010] [cursor=pointer]':
+              - /url: /day/30-aug-2025
+              - generic [ref=f4e1011]:
+                - generic [ref=f4e1012]:
+                  - generic [ref=f4e1013]:
+                    - generic [ref=f4e1014]: "81"
+                    - generic [ref=f4e1015]: Day 387
+                  - generic [ref=f4e1016]: 2025-08-30
+                - paragraph [ref=f4e1017]: some days the win is just showing up and logging.
+                - generic [ref=f4e1018]:
+                  - generic [ref=f4e1019]: mood 2/5
+                  - generic [ref=f4e1020]: "#mental"
+                  - generic [ref=f4e1021]: "#habits"
+            - 'link "80 Day 379 2025-08-22 what the correlation table actually said. 2 trades mood 3/5 #trends #data" [ref=f4e1022] [cursor=pointer]':
+              - /url: /day/22-aug-2025
+              - generic [ref=f4e1023]:
+                - generic [ref=f4e1024]:
+                  - generic [ref=f4e1025]:
+                    - generic [ref=f4e1026]: "80"
+                    - generic [ref=f4e1027]: Day 379
+                  - generic [ref=f4e1028]: 2025-08-22
+                - paragraph [ref=f4e1029]: what the correlation table actually said.
+                - generic [ref=f4e1030]:
+                  - generic [ref=f4e1031]: 2 trades
+                  - generic [ref=f4e1032]: mood 3/5
+                  - generic [ref=f4e1033]: "#trends"
+                  - generic [ref=f4e1034]: "#data"
+            - 'link "79 Day 373 2025-08-16 the mental side of trading, public. mood 1/5 #mental #mood" [ref=f4e1035] [cursor=pointer]':
+              - /url: /day/16-aug-2025
+              - generic [ref=f4e1036]:
+                - generic [ref=f4e1037]:
+                  - generic [ref=f4e1038]:
+                    - generic [ref=f4e1039]: "79"
+                    - generic [ref=f4e1040]: Day 373
+                  - generic [ref=f4e1041]: 2025-08-16
+                - paragraph [ref=f4e1042]: the mental side of trading, public.
+                - generic [ref=f4e1043]:
+                  - generic [ref=f4e1044]: mood 1/5
+                  - generic [ref=f4e1045]: "#mental"
+                  - generic [ref=f4e1046]: "#mood"
+            - 'link "78 Day 371 2025-08-14 one line for the one that stung. 1 trades mood 2/5 #losses" [ref=f4e1047] [cursor=pointer]':
+              - /url: /day/14-aug-2025
+              - generic [ref=f4e1048]:
+                - generic [ref=f4e1049]:
+                  - generic [ref=f4e1050]:
+                    - generic [ref=f4e1051]: "78"
+                    - generic [ref=f4e1052]: Day 371
+                  - generic [ref=f4e1053]: 2025-08-14
+                - paragraph [ref=f4e1054]: one line for the one that stung.
+                - generic [ref=f4e1055]:
+                  - generic [ref=f4e1056]: 1 trades
+                  - generic [ref=f4e1057]: mood 2/5
+                  - generic [ref=f4e1058]: "#losses"
+            - 'link "77 Day 370 2025-08-13 social hours are the silent tax on focus. 1 trades mood 2/5 #screen-time #habits" [ref=f4e1059] [cursor=pointer]':
+              - /url: /day/13-aug-2025
+              - generic [ref=f4e1060]:
+                - generic [ref=f4e1061]:
+                  - generic [ref=f4e1062]:
+                    - generic [ref=f4e1063]: "77"
+                    - generic [ref=f4e1064]: Day 370
+                  - generic [ref=f4e1065]: 2025-08-13
+                - paragraph [ref=f4e1066]: social hours are the silent tax on focus.
+                - generic [ref=f4e1067]:
+                  - generic [ref=f4e1068]: 1 trades
+                  - generic [ref=f4e1069]: mood 2/5
+                  - generic [ref=f4e1070]: "#screen-time"
+                  - generic [ref=f4e1071]: "#habits"
+            - 'link "76 Day 361 2025-08-04 some days the win is just showing up and logging. 2 trades mood 2/5 #mental #habits" [ref=f4e1072] [cursor=pointer]':
+              - /url: /day/04-aug-2025
+              - generic [ref=f4e1073]:
+                - generic [ref=f4e1074]:
+                  - generic [ref=f4e1075]:
+                    - generic [ref=f4e1076]: "76"
+                    - generic [ref=f4e1077]: Day 361
+                  - generic [ref=f4e1078]: 2025-08-04
+                - paragraph [ref=f4e1079]: some days the win is just showing up and logging.
+                - generic [ref=f4e1080]:
+                  - generic [ref=f4e1081]: 2 trades
+                  - generic [ref=f4e1082]: mood 2/5
+                  - generic [ref=f4e1083]: "#mental"
+                  - generic [ref=f4e1084]: "#habits"
+            - 'link "75 Day 358 2025-08-01 the mental side of trading, public. 2 trades mood 2/5 #mental #mood" [ref=f4e1085] [cursor=pointer]':
+              - /url: /day/01-aug-2025
+              - generic [ref=f4e1086]:
+                - generic [ref=f4e1087]:
+                  - generic [ref=f4e1088]:
+                    - generic [ref=f4e1089]: "75"
+                    - generic [ref=f4e1090]: Day 358
+                  - generic [ref=f4e1091]: 2025-08-01
+                - paragraph [ref=f4e1092]: the mental side of trading, public.
+                - generic [ref=f4e1093]:
+                  - generic [ref=f4e1094]: 2 trades
+                  - generic [ref=f4e1095]: mood 2/5
+                  - generic [ref=f4e1096]: "#mental"
+                  - generic [ref=f4e1097]: "#mood"
+        - generic [ref=f4e1098]:
+          - separator [ref=f4e1099]
+          - generic [ref=f4e1100]:
+            - text: jul 2025
+            - generic [ref=f4e1101]: · 6
+          - generic [ref=f4e1102]:
+            - 'link "74 Day 357 2025-07-31 one line for the one that stung. 1 trades mood 3/5 #losses" [ref=f4e1103] [cursor=pointer]':
+              - /url: /day/31-jul-2025
+              - generic [ref=f4e1104]:
+                - generic [ref=f4e1105]:
+                  - generic [ref=f4e1106]:
+                    - generic [ref=f4e1107]: "74"
+                    - generic [ref=f4e1108]: Day 357
+                  - generic [ref=f4e1109]: 2025-07-31
+                - paragraph [ref=f4e1110]: one line for the one that stung.
+                - generic [ref=f4e1111]:
+                  - generic [ref=f4e1112]: 1 trades
+                  - generic [ref=f4e1113]: mood 3/5
+                  - generic [ref=f4e1114]: "#losses"
+            - 'link "73 Day 344 2025-07-18 why fewer trades made me more money. 1 trades mood 3/5 #discipline #process" [ref=f4e1115] [cursor=pointer]':
+              - /url: /day/18-jul-2025
+              - generic [ref=f4e1116]:
+                - generic [ref=f4e1117]:
+                  - generic [ref=f4e1118]:
+                    - generic [ref=f4e1119]: "73"
+                    - generic [ref=f4e1120]: Day 344
+                  - generic [ref=f4e1121]: 2025-07-18
+                - paragraph [ref=f4e1122]: why fewer trades made me more money.
+                - generic [ref=f4e1123]:
+                  - generic [ref=f4e1124]: 1 trades
+                  - generic [ref=f4e1125]: mood 3/5
+                  - generic [ref=f4e1126]: "#discipline"
+                  - generic [ref=f4e1127]: "#process"
+            - 'link "72 Day 342 2025-07-16 R, expectancy, and why the mundane wins. 2 trades mood 3/5 #process #edge" [ref=f4e1128] [cursor=pointer]':
+              - /url: /day/16-jul-2025
+              - generic [ref=f4e1129]:
+                - generic [ref=f4e1130]:
+                  - generic [ref=f4e1131]:
+                    - generic [ref=f4e1132]: "72"
+                    - generic [ref=f4e1133]: Day 342
+                  - generic [ref=f4e1134]: 2025-07-16
+                - paragraph [ref=f4e1135]: R, expectancy, and why the mundane wins.
+                - generic [ref=f4e1136]:
+                  - generic [ref=f4e1137]: 2 trades
+                  - generic [ref=f4e1138]: mood 3/5
+                  - generic [ref=f4e1139]: "#process"
+                  - generic [ref=f4e1140]: "#edge"
+            - 'link "71 Day 330 2025-07-04 off the clock, thinking about the week. mood 2/5 #reflection #mental" [ref=f4e1141] [cursor=pointer]':
+              - /url: /day/04-jul-2025
+              - generic [ref=f4e1142]:
+                - generic [ref=f4e1143]:
+                  - generic [ref=f4e1144]:
+                    - generic [ref=f4e1145]: "71"
+                    - generic [ref=f4e1146]: Day 330
+                  - generic [ref=f4e1147]: 2025-07-04
+                - paragraph [ref=f4e1148]: off the clock, thinking about the week.
+                - generic [ref=f4e1149]:
+                  - generic [ref=f4e1150]: mood 2/5
+                  - generic [ref=f4e1151]: "#reflection"
+                  - generic [ref=f4e1152]: "#mental"
+            - 'link "70 Day 329 2025-07-03 quick and clean. 3 trades mood 2/5 #wins" [ref=f4e1153] [cursor=pointer]':
+              - /url: /day/03-jul-2025
+              - generic [ref=f4e1154]:
+                - generic [ref=f4e1155]:
+                  - generic [ref=f4e1156]:
+                    - generic [ref=f4e1157]: "70"
+                    - generic [ref=f4e1158]: Day 329
+                  - generic [ref=f4e1159]: 2025-07-03
+                - paragraph [ref=f4e1160]: quick and clean.
+                - generic [ref=f4e1161]:
+                  - generic [ref=f4e1162]: 3 trades
+                  - generic [ref=f4e1163]: mood 2/5
+                  - generic [ref=f4e1164]: "#wins"
+            - 'link "69 Day 327 2025-07-01 I almost revenge traded. I walked instead. 1 trades mood 3/5 #discipline #mental" [ref=f4e1165] [cursor=pointer]':
+              - /url: /day/01-jul-2025
+              - generic [ref=f4e1166]:
+                - generic [ref=f4e1167]:
+                  - generic [ref=f4e1168]:
+                    - generic [ref=f4e1169]: "69"
+                    - generic [ref=f4e1170]: Day 327
+                  - generic [ref=f4e1171]: 2025-07-01
+                - paragraph [ref=f4e1172]: I almost revenge traded. I walked instead.
+                - generic [ref=f4e1173]:
+                  - generic [ref=f4e1174]: 1 trades
+                  - generic [ref=f4e1175]: mood 3/5
+                  - generic [ref=f4e1176]: "#discipline"
+                  - generic [ref=f4e1177]: "#mental"
+        - generic [ref=f4e1178]:
+          - separator [ref=f4e1179]
+          - generic [ref=f4e1180]:
+            - text: jun 2025
+            - generic [ref=f4e1181]: · 9
+          - generic [ref=f4e1182]:
+            - 'link "68 tpt-25k-a — closed 2025-06-30 The account went green too early and I got careless. 2 trades mood 4/5 #post-mortem #discipline" [ref=f4e1183] [cursor=pointer]':
+              - /url: /day/30-jun-2025
+              - generic [ref=f4e1184]:
+                - generic [ref=f4e1185]:
+                  - generic [ref=f4e1186]:
+                    - generic [ref=f4e1187]: "68"
+                    - generic [ref=f4e1188]: tpt-25k-a — closed
+                  - generic [ref=f4e1189]: 2025-06-30
+                - paragraph [ref=f4e1190]: The account went green too early and I got careless.
+                - generic [ref=f4e1191]:
+                  - generic [ref=f4e1192]: 2 trades
+                  - generic [ref=f4e1193]: mood 4/5
+                  - generic [ref=f4e1194]: "#post-mortem"
+                  - generic [ref=f4e1195]: "#discipline"
+            - 'link "67 Day 323 2025-06-27 quick and clean. 1 trades mood 3/5 #wins" [ref=f4e1196] [cursor=pointer]':
+              - /url: /day/27-jun-2025
+              - generic [ref=f4e1197]:
+                - generic [ref=f4e1198]:
+                  - generic [ref=f4e1199]:
+                    - generic [ref=f4e1200]: "67"
+                    - generic [ref=f4e1201]: Day 323
+                  - generic [ref=f4e1202]: 2025-06-27
+                - paragraph [ref=f4e1203]: quick and clean.
+                - generic [ref=f4e1204]:
+                  - generic [ref=f4e1205]: 1 trades
+                  - generic [ref=f4e1206]: mood 3/5
+                  - generic [ref=f4e1207]: "#wins"
+            - 'link "66 Day 312 2025-06-16 I almost revenge traded. I walked instead. 3 trades mood 2/5 #discipline #mental" [ref=f4e1208] [cursor=pointer]':
+              - /url: /day/16-jun-2025
+              - generic [ref=f4e1209]:
+                - generic [ref=f4e1210]:
+                  - generic [ref=f4e1211]:
+                    - generic [ref=f4e1212]: "66"
+                    - generic [ref=f4e1213]: Day 312
+                  - generic [ref=f4e1214]: 2025-06-16
+                - paragraph [ref=f4e1215]: I almost revenge traded. I walked instead.
+                - generic [ref=f4e1216]:
+                  - generic [ref=f4e1217]: 3 trades
+                  - generic [ref=f4e1218]: mood 2/5
+                  - generic [ref=f4e1219]: "#discipline"
+                  - generic [ref=f4e1220]: "#mental"
+            - 'link "65 Day 307 2025-06-11 some days the win is just showing up and logging. mood 1/5 #mental #habits" [ref=f4e1221] [cursor=pointer]':
+              - /url: /day/11-jun-2025
+              - generic [ref=f4e1222]:
+                - generic [ref=f4e1223]:
+                  - generic [ref=f4e1224]:
+                    - generic [ref=f4e1225]: "65"
+                    - generic [ref=f4e1226]: Day 307
+                  - generic [ref=f4e1227]: 2025-06-11
+                - paragraph [ref=f4e1228]: some days the win is just showing up and logging.
+                - generic [ref=f4e1229]:
+                  - generic [ref=f4e1230]: mood 1/5
+                  - generic [ref=f4e1231]: "#mental"
+                  - generic [ref=f4e1232]: "#habits"
+            - 'link "64 Day 306 2025-06-10 the mental side of trading, public. mood 1/5 #mental #mood" [ref=f4e1233] [cursor=pointer]':
+              - /url: /day/10-jun-2025
+              - generic [ref=f4e1234]:
+                - generic [ref=f4e1235]:
+                  - generic [ref=f4e1236]:
+                    - generic [ref=f4e1237]: "64"
+                    - generic [ref=f4e1238]: Day 306
+                  - generic [ref=f4e1239]: 2025-06-10
+                - paragraph [ref=f4e1240]: the mental side of trading, public.
+                - generic [ref=f4e1241]:
+                  - generic [ref=f4e1242]: mood 1/5
+                  - generic [ref=f4e1243]: "#mental"
+                  - generic [ref=f4e1244]: "#mood"
+            - 'link "63 Day 305 2025-06-09 took the day off. mood 1/5 #rest #habits" [ref=f4e1245] [cursor=pointer]':
+              - /url: /day/09-jun-2025
+              - generic [ref=f4e1246]:
+                - generic [ref=f4e1247]:
+                  - generic [ref=f4e1248]:
+                    - generic [ref=f4e1249]: "63"
+                    - generic [ref=f4e1250]: Day 305
+                  - generic [ref=f4e1251]: 2025-06-09
+                - paragraph [ref=f4e1252]: took the day off.
+                - generic [ref=f4e1253]:
+                  - generic [ref=f4e1254]: mood 1/5
+                  - generic [ref=f4e1255]: "#rest"
+                  - generic [ref=f4e1256]: "#habits"
+            - 'link "62 Day 302 2025-06-06 one line for the one that stung. 1 trades mood 3/5 #losses" [ref=f4e1257] [cursor=pointer]':
+              - /url: /day/06-jun-2025
+              - generic [ref=f4e1258]:
+                - generic [ref=f4e1259]:
+                  - generic [ref=f4e1260]:
+                    - generic [ref=f4e1261]: "62"
+                    - generic [ref=f4e1262]: Day 302
+                  - generic [ref=f4e1263]: 2025-06-06
+                - paragraph [ref=f4e1264]: one line for the one that stung.
+                - generic [ref=f4e1265]:
+                  - generic [ref=f4e1266]: 1 trades
+                  - generic [ref=f4e1267]: mood 3/5
+                  - generic [ref=f4e1268]: "#losses"
+            - 'link "61 Day 299 2025-06-03 the mental side of trading, public. 1 trades mood 2/5 #mental #mood" [ref=f4e1269] [cursor=pointer]':
+              - /url: /day/03-jun-2025
+              - generic [ref=f4e1270]:
+                - generic [ref=f4e1271]:
+                  - generic [ref=f4e1272]:
+                    - generic [ref=f4e1273]: "61"
+                    - generic [ref=f4e1274]: Day 299
+                  - generic [ref=f4e1275]: 2025-06-03
+                - paragraph [ref=f4e1276]: the mental side of trading, public.
+                - generic [ref=f4e1277]:
+                  - generic [ref=f4e1278]: 1 trades
+                  - generic [ref=f4e1279]: mood 2/5
+                  - generic [ref=f4e1280]: "#mental"
+                  - generic [ref=f4e1281]: "#mood"
+            - 'link "60 Day 298 2025-06-02 seven hours for seven days. results are in. 1 trades mood 4/5 #sleep #habits #data" [ref=f4e1282] [cursor=pointer]':
+              - /url: /day/02-jun-2025
+              - generic [ref=f4e1283]:
+                - generic [ref=f4e1284]:
+                  - generic [ref=f4e1285]:
+                    - generic [ref=f4e1286]: "60"
+                    - generic [ref=f4e1287]: Day 298
+                  - generic [ref=f4e1288]: 2025-06-02
+                - paragraph [ref=f4e1289]: seven hours for seven days. results are in.
+                - generic [ref=f4e1290]:
+                  - generic [ref=f4e1291]: 1 trades
+                  - generic [ref=f4e1292]: mood 4/5
+                  - generic [ref=f4e1293]: "#sleep"
+                  - generic [ref=f4e1294]: "#habits"
+                  - generic [ref=f4e1295]: "#data"
+        - generic [ref=f4e1296]:
+          - separator [ref=f4e1297]
+          - generic [ref=f4e1298]:
+            - text: may 2025
+            - generic [ref=f4e1299]: · 6
+          - generic [ref=f4e1300]:
+            - 'link "59 Day 295 2025-05-30 social hours are the silent tax on focus. mood 2/5 #screen-time #habits" [ref=f4e1301] [cursor=pointer]':
+              - /url: /day/30-may-2025
+              - generic [ref=f4e1302]:
+                - generic [ref=f4e1303]:
+                  - generic [ref=f4e1304]:
+                    - generic [ref=f4e1305]: "59"
+                    - generic [ref=f4e1306]: Day 295
+                  - generic [ref=f4e1307]: 2025-05-30
+                - paragraph [ref=f4e1308]: social hours are the silent tax on focus.
+                - generic [ref=f4e1309]:
+                  - generic [ref=f4e1310]: mood 2/5
+                  - generic [ref=f4e1311]: "#screen-time"
+                  - generic [ref=f4e1312]: "#habits"
+            - 'link "58 Day 294 2025-05-29 a normal, boring loss, handled correctly. 1 trades mood 2/5 #losses #process" [ref=f4e1313] [cursor=pointer]':
+              - /url: /day/29-may-2025
+              - generic [ref=f4e1314]:
+                - generic [ref=f4e1315]:
+                  - generic [ref=f4e1316]:
+                    - generic [ref=f4e1317]: "58"
+                    - generic [ref=f4e1318]: Day 294
+                  - generic [ref=f4e1319]: 2025-05-29
+                - paragraph [ref=f4e1320]: a normal, boring loss, handled correctly.
+                - generic [ref=f4e1321]:
+                  - generic [ref=f4e1322]: 1 trades
+                  - generic [ref=f4e1323]: mood 2/5
+                  - generic [ref=f4e1324]: "#losses"
+                  - generic [ref=f4e1325]: "#process"
+            - 'link "57 Day 289 2025-05-24 off the clock, thinking about the week. mood 1/5 #reflection #mental" [ref=f4e1326] [cursor=pointer]':
+              - /url: /day/24-may-2025
+              - generic [ref=f4e1327]:
+                - generic [ref=f4e1328]:
+                  - generic [ref=f4e1329]:
+                    - generic [ref=f4e1330]: "57"
+                    - generic [ref=f4e1331]: Day 289
+                  - generic [ref=f4e1332]: 2025-05-24
+                - paragraph [ref=f4e1333]: off the clock, thinking about the week.
+                - generic [ref=f4e1334]:
+                  - generic [ref=f4e1335]: mood 1/5
+                  - generic [ref=f4e1336]: "#reflection"
+                  - generic [ref=f4e1337]: "#mental"
+            - 'link "56 Day 287 2025-05-22 took the day off. mood 1/5 #rest #habits" [ref=f4e1338] [cursor=pointer]':
+              - /url: /day/22-may-2025
+              - generic [ref=f4e1339]:
+                - generic [ref=f4e1340]:
+                  - generic [ref=f4e1341]:
+                    - generic [ref=f4e1342]: "56"
+                    - generic [ref=f4e1343]: Day 287
+                  - generic [ref=f4e1344]: 2025-05-22
+                - paragraph [ref=f4e1345]: took the day off.
+                - generic [ref=f4e1346]:
+                  - generic [ref=f4e1347]: mood 1/5
+                  - generic [ref=f4e1348]: "#rest"
+                  - generic [ref=f4e1349]: "#habits"
+            - 'link "55 Day 282 2025-05-17 no trades worth taking, and that is the win. mood 3/5 #patience #no-trade" [ref=f4e1350] [cursor=pointer]':
+              - /url: /day/17-may-2025
+              - generic [ref=f4e1351]:
+                - generic [ref=f4e1352]:
+                  - generic [ref=f4e1353]:
+                    - generic [ref=f4e1354]: "55"
+                    - generic [ref=f4e1355]: Day 282
+                  - generic [ref=f4e1356]: 2025-05-17
+                - paragraph [ref=f4e1357]: no trades worth taking, and that is the win.
+                - generic [ref=f4e1358]:
+                  - generic [ref=f4e1359]: mood 3/5
+                  - generic [ref=f4e1360]: "#patience"
+                  - generic [ref=f4e1361]: "#no-trade"
+            - 'link "54 Day 266 2025-05-01 took the day off. mood 4/5 #rest #habits" [ref=f4e1362] [cursor=pointer]':
+              - /url: /day/01-may-2025
+              - generic [ref=f4e1363]:
+                - generic [ref=f4e1364]:
+                  - generic [ref=f4e1365]:
+                    - generic [ref=f4e1366]: "54"
+                    - generic [ref=f4e1367]: Day 266
+                  - generic [ref=f4e1368]: 2025-05-01
+                - paragraph [ref=f4e1369]: took the day off.
+                - generic [ref=f4e1370]:
+                  - generic [ref=f4e1371]: mood 4/5
+                  - generic [ref=f4e1372]: "#rest"
+                  - generic [ref=f4e1373]: "#habits"
+        - generic [ref=f4e1374]:
+          - separator [ref=f4e1375]
+          - generic [ref=f4e1376]:
+            - text: apr 2025
+            - generic [ref=f4e1377]: · 8
+          - generic [ref=f4e1378]:
+            - 'link "53 Day 262 2025-04-27 off the clock, thinking about the week. mood 2/5 #reflection #mental" [ref=f4e1379] [cursor=pointer]':
+              - /url: /day/27-apr-2025
+              - generic [ref=f4e1380]:
+                - generic [ref=f4e1381]:
+                  - generic [ref=f4e1382]:
+                    - generic [ref=f4e1383]: "53"
+                    - generic [ref=f4e1384]: Day 262
+                  - generic [ref=f4e1385]: 2025-04-27
+                - paragraph [ref=f4e1386]: off the clock, thinking about the week.
+                - generic [ref=f4e1387]:
+                  - generic [ref=f4e1388]: mood 2/5
+                  - generic [ref=f4e1389]: "#reflection"
+                  - generic [ref=f4e1390]: "#mental"
+            - 'link "52 Day 257 2025-04-22 a normal, boring loss, handled correctly. 1 trades mood 3/5 #losses #process" [ref=f4e1391] [cursor=pointer]':
+              - /url: /day/22-apr-2025
+              - generic [ref=f4e1392]:
+                - generic [ref=f4e1393]:
+                  - generic [ref=f4e1394]:
+                    - generic [ref=f4e1395]: "52"
+                    - generic [ref=f4e1396]: Day 257
+                  - generic [ref=f4e1397]: 2025-04-22
+                - paragraph [ref=f4e1398]: a normal, boring loss, handled correctly.
+                - generic [ref=f4e1399]:
+                  - generic [ref=f4e1400]: 1 trades
+                  - generic [ref=f4e1401]: mood 3/5
+                  - generic [ref=f4e1402]: "#losses"
+                  - generic [ref=f4e1403]: "#process"
+            - 'link "51 Day 254 2025-04-19 took the day off. mood 4/5 #rest #habits" [ref=f4e1404] [cursor=pointer]':
+              - /url: /day/19-apr-2025
+              - generic [ref=f4e1405]:
+                - generic [ref=f4e1406]:
+                  - generic [ref=f4e1407]:
+                    - generic [ref=f4e1408]: "51"
+                    - generic [ref=f4e1409]: Day 254
+                  - generic [ref=f4e1410]: 2025-04-19
+                - paragraph [ref=f4e1411]: took the day off.
+                - generic [ref=f4e1412]:
+                  - generic [ref=f4e1413]: mood 4/5
+                  - generic [ref=f4e1414]: "#rest"
+                  - generic [ref=f4e1415]: "#habits"
+            - 'link "50 Day 252 2025-04-17 a quiet green day, filed honestly. 2 trades mood 3/5 #wins #process" [ref=f4e1416] [cursor=pointer]':
+              - /url: /day/17-apr-2025
+              - generic [ref=f4e1417]:
+                - generic [ref=f4e1418]:
+                  - generic [ref=f4e1419]:
+                    - generic [ref=f4e1420]: "50"
+                    - generic [ref=f4e1421]: Day 252
+                  - generic [ref=f4e1422]: 2025-04-17
+                - paragraph [ref=f4e1423]: a quiet green day, filed honestly.
+                - generic [ref=f4e1424]:
+                  - generic [ref=f4e1425]: 2 trades
+                  - generic [ref=f4e1426]: mood 3/5
+                  - generic [ref=f4e1427]: "#wins"
+                  - generic [ref=f4e1428]: "#process"
+            - 'link "49 Day 246 2025-04-11 a quiet green day, filed honestly. 3 trades mood 3/5 #wins #process" [ref=f4e1429] [cursor=pointer]':
+              - /url: /day/11-apr-2025
+              - generic [ref=f4e1430]:
+                - generic [ref=f4e1431]:
+                  - generic [ref=f4e1432]:
+                    - generic [ref=f4e1433]: "49"
+                    - generic [ref=f4e1434]: Day 246
+                  - generic [ref=f4e1435]: 2025-04-11
+                - paragraph [ref=f4e1436]: a quiet green day, filed honestly.
+                - generic [ref=f4e1437]:
+                  - generic [ref=f4e1438]: 3 trades
+                  - generic [ref=f4e1439]: mood 3/5
+                  - generic [ref=f4e1440]: "#wins"
+                  - generic [ref=f4e1441]: "#process"
+            - 'link "48 Day 243 2025-04-08 R, expectancy, and why the mundane wins. 1 trades mood 3/5 #process #edge" [ref=f4e1442] [cursor=pointer]':
+              - /url: /day/08-apr-2025
+              - generic [ref=f4e1443]:
+                - generic [ref=f4e1444]:
+                  - generic [ref=f4e1445]:
+                    - generic [ref=f4e1446]: "48"
+                    - generic [ref=f4e1447]: Day 243
+                  - generic [ref=f4e1448]: 2025-04-08
+                - paragraph [ref=f4e1449]: R, expectancy, and why the mundane wins.
+                - generic [ref=f4e1450]:
+                  - generic [ref=f4e1451]: 1 trades
+                  - generic [ref=f4e1452]: mood 3/5
+                  - generic [ref=f4e1453]: "#process"
+                  - generic [ref=f4e1454]: "#edge"
+            - 'link "47 Day 239 2025-04-04 R, expectancy, and why the mundane wins. 2 trades mood 2/5 #process #edge" [ref=f4e1455] [cursor=pointer]':
+              - /url: /day/04-apr-2025
+              - generic [ref=f4e1456]:
+                - generic [ref=f4e1457]:
+                  - generic [ref=f4e1458]:
+                    - generic [ref=f4e1459]: "47"
+                    - generic [ref=f4e1460]: Day 239
+                  - generic [ref=f4e1461]: 2025-04-04
+                - paragraph [ref=f4e1462]: R, expectancy, and why the mundane wins.
+                - generic [ref=f4e1463]:
+                  - generic [ref=f4e1464]: 2 trades
+                  - generic [ref=f4e1465]: mood 2/5
+                  - generic [ref=f4e1466]: "#process"
+                  - generic [ref=f4e1467]: "#edge"
+            - 'link "46 Day 236 2025-04-01 what I am trying to get better at, in public. mood 4/5 #process #mindset" [ref=f4e1468] [cursor=pointer]':
+              - /url: /day/01-apr-2025
+              - generic [ref=f4e1469]:
+                - generic [ref=f4e1470]:
+                  - generic [ref=f4e1471]:
+                    - generic [ref=f4e1472]: "46"
+                    - generic [ref=f4e1473]: Day 236
+                  - generic [ref=f4e1474]: 2025-04-01
+                - paragraph [ref=f4e1475]: what I am trying to get better at, in public.
+                - generic [ref=f4e1476]:
+                  - generic [ref=f4e1477]: mood 4/5
+                  - generic [ref=f4e1478]: "#process"
+                  - generic [ref=f4e1479]: "#mindset"
+        - generic [ref=f4e1480]:
+          - separator [ref=f4e1481]
+          - generic [ref=f4e1482]:
+            - text: mar 2025
+            - generic [ref=f4e1483]: · 5
+          - generic [ref=f4e1484]:
+            - 'link "45 Day 229 2025-03-25 the mental side of trading, public. 2 trades mood 2/5 #mental #mood" [ref=f4e1485] [cursor=pointer]':
+              - /url: /day/25-mar-2025
+              - generic [ref=f4e1486]:
+                - generic [ref=f4e1487]:
+                  - generic [ref=f4e1488]:
+                    - generic [ref=f4e1489]: "45"
+                    - generic [ref=f4e1490]: Day 229
+                  - generic [ref=f4e1491]: 2025-03-25
+                - paragraph [ref=f4e1492]: the mental side of trading, public.
+                - generic [ref=f4e1493]:
+                  - generic [ref=f4e1494]: 2 trades
+                  - generic [ref=f4e1495]: mood 2/5
+                  - generic [ref=f4e1496]: "#mental"
+                  - generic [ref=f4e1497]: "#mood"
+            - 'link "44 Day 222 2025-03-18 I almost revenge traded. I walked instead. 2 trades mood 3/5 #discipline #mental" [ref=f4e1498] [cursor=pointer]':
+              - /url: /day/18-mar-2025
+              - generic [ref=f4e1499]:
+                - generic [ref=f4e1500]:
+                  - generic [ref=f4e1501]:
+                    - generic [ref=f4e1502]: "44"
+                    - generic [ref=f4e1503]: Day 222
+                  - generic [ref=f4e1504]: 2025-03-18
+                - paragraph [ref=f4e1505]: I almost revenge traded. I walked instead.
+                - generic [ref=f4e1506]:
+                  - generic [ref=f4e1507]: 2 trades
+                  - generic [ref=f4e1508]: mood 3/5
+                  - generic [ref=f4e1509]: "#discipline"
+                  - generic [ref=f4e1510]: "#mental"
+            - 'link "43 Day 221 2025-03-17 the mental side of trading, public. 1 trades mood 2/5 #mental #mood" [ref=f4e1511] [cursor=pointer]':
+              - /url: /day/17-mar-2025
+              - generic [ref=f4e1512]:
+                - generic [ref=f4e1513]:
+                  - generic [ref=f4e1514]:
+                    - generic [ref=f4e1515]: "43"
+                    - generic [ref=f4e1516]: Day 221
+                  - generic [ref=f4e1517]: 2025-03-17
+                - paragraph [ref=f4e1518]: the mental side of trading, public.
+                - generic [ref=f4e1519]:
+                  - generic [ref=f4e1520]: 1 trades
+                  - generic [ref=f4e1521]: mood 2/5
+                  - generic [ref=f4e1522]: "#mental"
+                  - generic [ref=f4e1523]: "#mood"
+            - 'link "42 Day 215 2025-03-11 social hours are the silent tax on focus. 3 trades mood 2/5 #screen-time #habits" [ref=f4e1524] [cursor=pointer]':
+              - /url: /day/11-mar-2025
+              - generic [ref=f4e1525]:
+                - generic [ref=f4e1526]:
+                  - generic [ref=f4e1527]:
+                    - generic [ref=f4e1528]: "42"
+                    - generic [ref=f4e1529]: Day 215
+                  - generic [ref=f4e1530]: 2025-03-11
+                - paragraph [ref=f4e1531]: social hours are the silent tax on focus.
+                - generic [ref=f4e1532]:
+                  - generic [ref=f4e1533]: 3 trades
+                  - generic [ref=f4e1534]: mood 2/5
+                  - generic [ref=f4e1535]: "#screen-time"
+                  - generic [ref=f4e1536]: "#habits"
+            - 'link "41 Day 208 2025-03-04 the honest doubt post, because the curve is not a personality. 2 trades mood 3/5 #mental #doubt" [ref=f4e1537] [cursor=pointer]':
+              - /url: /day/04-mar-2025
+              - generic [ref=f4e1538]:
+                - generic [ref=f4e1539]:
+                  - generic [ref=f4e1540]:
+                    - generic [ref=f4e1541]: "41"
+                    - generic [ref=f4e1542]: Day 208
+                  - generic [ref=f4e1543]: 2025-03-04
+                - paragraph [ref=f4e1544]: the honest doubt post, because the curve is not a personality.
+                - generic [ref=f4e1545]:
+                  - generic [ref=f4e1546]: 2 trades
+                  - generic [ref=f4e1547]: mood 3/5
+                  - generic [ref=f4e1548]: "#mental"
+                  - generic [ref=f4e1549]: "#doubt"
+        - generic [ref=f4e1550]:
+          - separator [ref=f4e1551]
+          - generic [ref=f4e1552]:
+            - text: feb 2025
+            - generic [ref=f4e1553]: · 4
+          - generic [ref=f4e1554]:
+            - 'link "40 Day 196 2025-02-20 some days the win is just showing up and logging. 2 trades mood 2/5 #mental #habits" [ref=f4e1555] [cursor=pointer]':
+              - /url: /day/20-feb-2025
+              - generic [ref=f4e1556]:
+                - generic [ref=f4e1557]:
+                  - generic [ref=f4e1558]:
+                    - generic [ref=f4e1559]: "40"
+                    - generic [ref=f4e1560]: Day 196
+                  - generic [ref=f4e1561]: 2025-02-20
+                - paragraph [ref=f4e1562]: some days the win is just showing up and logging.
+                - generic [ref=f4e1563]:
+                  - generic [ref=f4e1564]: 2 trades
+                  - generic [ref=f4e1565]: mood 2/5
+                  - generic [ref=f4e1566]: "#mental"
+                  - generic [ref=f4e1567]: "#habits"
+            - 'link "39 Day 187 2025-02-11 the mental side of trading, public. mood 1/5 #mental #mood" [ref=f4e1568] [cursor=pointer]':
+              - /url: /day/11-feb-2025
+              - generic [ref=f4e1569]:
+                - generic [ref=f4e1570]:
+                  - generic [ref=f4e1571]:
+                    - generic [ref=f4e1572]: "39"
+                    - generic [ref=f4e1573]: Day 187
+                  - generic [ref=f4e1574]: 2025-02-11
+                - paragraph [ref=f4e1575]: the mental side of trading, public.
+                - generic [ref=f4e1576]:
+                  - generic [ref=f4e1577]: mood 1/5
+                  - generic [ref=f4e1578]: "#mental"
+                  - generic [ref=f4e1579]: "#mood"
+            - 'link "38 Day 183 2025-02-07 full stop on the revenge trade, logged honestly. 2 trades mood 3/5 #losses #discipline #revenge-trading" [ref=f4e1580] [cursor=pointer]':
+              - /url: /day/07-feb-2025
+              - generic [ref=f4e1581]:
+                - generic [ref=f4e1582]:
+                  - generic [ref=f4e1583]:
+                    - generic [ref=f4e1584]: "38"
+                    - generic [ref=f4e1585]: Day 183
+                  - generic [ref=f4e1586]: 2025-02-07
+                - paragraph [ref=f4e1587]: full stop on the revenge trade, logged honestly.
+                - generic [ref=f4e1588]:
+                  - generic [ref=f4e1589]: 2 trades
+                  - generic [ref=f4e1590]: mood 3/5
+                  - generic [ref=f4e1591]: "#losses"
+                  - generic [ref=f4e1592]: "#discipline"
+                  - generic [ref=f4e1593]: "#revenge-trading"
+            - 'link "37 Day 180 2025-02-04 a normal, boring loss, handled correctly. 1 trades mood 4/5 #losses #process" [ref=f4e1594] [cursor=pointer]':
+              - /url: /day/04-feb-2025
+              - generic [ref=f4e1595]:
+                - generic [ref=f4e1596]:
+                  - generic [ref=f4e1597]:
+                    - generic [ref=f4e1598]: "37"
+                    - generic [ref=f4e1599]: Day 180
+                  - generic [ref=f4e1600]: 2025-02-04
+                - paragraph [ref=f4e1601]: a normal, boring loss, handled correctly.
+                - generic [ref=f4e1602]:
+                  - generic [ref=f4e1603]: 1 trades
+                  - generic [ref=f4e1604]: mood 4/5
+                  - generic [ref=f4e1605]: "#losses"
+                  - generic [ref=f4e1606]: "#process"
+        - generic [ref=f4e1607]:
+          - separator [ref=f4e1608]
+          - generic [ref=f4e1609]:
+            - text: jan 2025
+            - generic [ref=f4e1610]: · 8
+          - generic [ref=f4e1611]:
+            - 'link "36 Day 174 2025-01-29 a quiet green day, filed honestly. 3 trades mood 2/5 #wins #process" [ref=f4e1612] [cursor=pointer]':
+              - /url: /day/29-jan-2025
+              - generic [ref=f4e1613]:
+                - generic [ref=f4e1614]:
+                  - generic [ref=f4e1615]:
+                    - generic [ref=f4e1616]: "36"
+                    - generic [ref=f4e1617]: Day 174
+                  - generic [ref=f4e1618]: 2025-01-29
+                - paragraph [ref=f4e1619]: a quiet green day, filed honestly.
+                - generic [ref=f4e1620]:
+                  - generic [ref=f4e1621]: 3 trades
+                  - generic [ref=f4e1622]: mood 2/5
+                  - generic [ref=f4e1623]: "#wins"
+                  - generic [ref=f4e1624]: "#process"
+            - 'link "35 Day 172 2025-01-27 what I am trying to get better at, in public. mood 4/5 #process #mindset" [ref=f4e1625] [cursor=pointer]':
+              - /url: /day/27-jan-2025
+              - generic [ref=f4e1626]:
+                - generic [ref=f4e1627]:
+                  - generic [ref=f4e1628]:
+                    - generic [ref=f4e1629]: "35"
+                    - generic [ref=f4e1630]: Day 172
+                  - generic [ref=f4e1631]: 2025-01-27
+                - paragraph [ref=f4e1632]: what I am trying to get better at, in public.
+                - generic [ref=f4e1633]:
+                  - generic [ref=f4e1634]: mood 4/5
+                  - generic [ref=f4e1635]: "#process"
+                  - generic [ref=f4e1636]: "#mindset"
+            - 'link "34 Day 165 2025-01-20 took the day off. mood 2/5 #rest #habits" [ref=f4e1637] [cursor=pointer]':
+              - /url: /day/20-jan-2025
+              - generic [ref=f4e1638]:
+                - generic [ref=f4e1639]:
+                  - generic [ref=f4e1640]:
+                    - generic [ref=f4e1641]: "34"
+                    - generic [ref=f4e1642]: Day 165
+                  - generic [ref=f4e1643]: 2025-01-20
+                - paragraph [ref=f4e1644]: took the day off.
+                - generic [ref=f4e1645]:
+                  - generic [ref=f4e1646]: mood 2/5
+                  - generic [ref=f4e1647]: "#rest"
+                  - generic [ref=f4e1648]: "#habits"
+            - 'link "33 Day 163 2025-01-18 seven hours for seven days. results are in. mood 4/5 #sleep #habits #data" [ref=f4e1649] [cursor=pointer]':
+              - /url: /day/18-jan-2025
+              - generic [ref=f4e1650]:
+                - generic [ref=f4e1651]:
+                  - generic [ref=f4e1652]:
+                    - generic [ref=f4e1653]: "33"
+                    - generic [ref=f4e1654]: Day 163
+                  - generic [ref=f4e1655]: 2025-01-18
+                - paragraph [ref=f4e1656]: seven hours for seven days. results are in.
+                - generic [ref=f4e1657]:
+                  - generic [ref=f4e1658]: mood 4/5
+                  - generic [ref=f4e1659]: "#sleep"
+                  - generic [ref=f4e1660]: "#habits"
+                  - generic [ref=f4e1661]: "#data"
+            - 'link "32 Day 159 2025-01-14 the mental side of trading, public. 2 trades mood 1/5 #mental #mood" [ref=f4e1662] [cursor=pointer]':
+              - /url: /day/14-jan-2025
+              - generic [ref=f4e1663]:
+                - generic [ref=f4e1664]:
+                  - generic [ref=f4e1665]:
+                    - generic [ref=f4e1666]: "32"
+                    - generic [ref=f4e1667]: Day 159
+                  - generic [ref=f4e1668]: 2025-01-14
+                - paragraph [ref=f4e1669]: the mental side of trading, public.
+                - generic [ref=f4e1670]:
+                  - generic [ref=f4e1671]: 2 trades
+                  - generic [ref=f4e1672]: mood 1/5
+                  - generic [ref=f4e1673]: "#mental"
+                  - generic [ref=f4e1674]: "#mood"
+            - 'link "31 Day 156 2025-01-11 social hours are the silent tax on focus. mood 2/5 #screen-time #habits" [ref=f4e1675] [cursor=pointer]':
+              - /url: /day/11-jan-2025
+              - generic [ref=f4e1676]:
+                - generic [ref=f4e1677]:
+                  - generic [ref=f4e1678]:
+                    - generic [ref=f4e1679]: "31"
+                    - generic [ref=f4e1680]: Day 156
+                  - generic [ref=f4e1681]: 2025-01-11
+                - paragraph [ref=f4e1682]: social hours are the silent tax on focus.
+                - generic [ref=f4e1683]:
+                  - generic [ref=f4e1684]: mood 2/5
+                  - generic [ref=f4e1685]: "#screen-time"
+                  - generic [ref=f4e1686]: "#habits"
+            - 'link "30 Day 154 2025-01-09 the honest doubt post, because the curve is not a personality. 2 trades mood 3/5 #mental #doubt" [ref=f4e1687] [cursor=pointer]':
+              - /url: /day/09-jan-2025
+              - generic [ref=f4e1688]:
+                - generic [ref=f4e1689]:
+                  - generic [ref=f4e1690]:
+                    - generic [ref=f4e1691]: "30"
+                    - generic [ref=f4e1692]: Day 154
+                  - generic [ref=f4e1693]: 2025-01-09
+                - paragraph [ref=f4e1694]: the honest doubt post, because the curve is not a personality.
+                - generic [ref=f4e1695]:
+                  - generic [ref=f4e1696]: 2 trades
+                  - generic [ref=f4e1697]: mood 3/5
+                  - generic [ref=f4e1698]: "#mental"
+                  - generic [ref=f4e1699]: "#doubt"
+            - 'link "29 Day 147 2025-01-02 social hours are the silent tax on focus. 1 trades mood 2/5 #screen-time #habits" [ref=f4e1700] [cursor=pointer]':
+              - /url: /day/02-jan-2025
+              - generic [ref=f4e1701]:
+                - generic [ref=f4e1702]:
+                  - generic [ref=f4e1703]:
+                    - generic [ref=f4e1704]: "29"
+                    - generic [ref=f4e1705]: Day 147
+                  - generic [ref=f4e1706]: 2025-01-02
+                - paragraph [ref=f4e1707]: social hours are the silent tax on focus.
+                - generic [ref=f4e1708]:
+                  - generic [ref=f4e1709]: 1 trades
+                  - generic [ref=f4e1710]: mood 2/5
+                  - generic [ref=f4e1711]: "#screen-time"
+                  - generic [ref=f4e1712]: "#habits"
+        - generic [ref=f4e1713]:
+          - separator [ref=f4e1714]
+          - generic [ref=f4e1715]:
+            - text: dec 2024
+            - generic [ref=f4e1716]: · 9
+          - generic [ref=f4e1717]:
+            - 'link "28 Day 144 2024-12-30 quick and clean. 2 trades mood 2/5 #wins" [ref=f4e1718] [cursor=pointer]':
+              - /url: /day/30-dec-2024
+              - generic [ref=f4e1719]:
+                - generic [ref=f4e1720]:
+                  - generic [ref=f4e1721]:
+                    - generic [ref=f4e1722]: "28"
+                    - generic [ref=f4e1723]: Day 144
+                  - generic [ref=f4e1724]: 2024-12-30
+                - paragraph [ref=f4e1725]: quick and clean.
+                - generic [ref=f4e1726]:
+                  - generic [ref=f4e1727]: 2 trades
+                  - generic [ref=f4e1728]: mood 2/5
+                  - generic [ref=f4e1729]: "#wins"
+            - 'link "27 Day 142 2024-12-28 no trades worth taking, and that is the win. mood 4/5 #patience #no-trade" [ref=f4e1730] [cursor=pointer]':
+              - /url: /day/28-dec-2024
+              - generic [ref=f4e1731]:
+                - generic [ref=f4e1732]:
+                  - generic [ref=f4e1733]:
+                    - generic [ref=f4e1734]: "27"
+                    - generic [ref=f4e1735]: Day 142
+                  - generic [ref=f4e1736]: 2024-12-28
+                - paragraph [ref=f4e1737]: no trades worth taking, and that is the win.
+                - generic [ref=f4e1738]:
+                  - generic [ref=f4e1739]: mood 4/5
+                  - generic [ref=f4e1740]: "#patience"
+                  - generic [ref=f4e1741]: "#no-trade"
+            - 'link "26 Day 139 2024-12-25 no trades worth taking, and that is the win. mood 2/5 #patience #no-trade" [ref=f4e1742] [cursor=pointer]':
+              - /url: /day/25-dec-2024
+              - generic [ref=f4e1743]:
+                - generic [ref=f4e1744]:
+                  - generic [ref=f4e1745]:
+                    - generic [ref=f4e1746]: "26"
+                    - generic [ref=f4e1747]: Day 139
+                  - generic [ref=f4e1748]: 2024-12-25
+                - paragraph [ref=f4e1749]: no trades worth taking, and that is the win.
+                - generic [ref=f4e1750]:
+                  - generic [ref=f4e1751]: mood 2/5
+                  - generic [ref=f4e1752]: "#patience"
+                  - generic [ref=f4e1753]: "#no-trade"
+            - 'link "25 Day 136 2024-12-22 no trades worth taking, and that is the win. mood 2/5 #patience #no-trade" [ref=f4e1754] [cursor=pointer]':
+              - /url: /day/22-dec-2024
+              - generic [ref=f4e1755]:
+                - generic [ref=f4e1756]:
+                  - generic [ref=f4e1757]:
+                    - generic [ref=f4e1758]: "25"
+                    - generic [ref=f4e1759]: Day 136
+                  - generic [ref=f4e1760]: 2024-12-22
+                - paragraph [ref=f4e1761]: no trades worth taking, and that is the win.
+                - generic [ref=f4e1762]:
+                  - generic [ref=f4e1763]: mood 2/5
+                  - generic [ref=f4e1764]: "#patience"
+                  - generic [ref=f4e1765]: "#no-trade"
+            - 'link "24 Day 134 2024-12-20 off the clock, thinking about the week. mood 2/5 #reflection #mental" [ref=f4e1766] [cursor=pointer]':
+              - /url: /day/20-dec-2024
+              - generic [ref=f4e1767]:
+                - generic [ref=f4e1768]:
+                  - generic [ref=f4e1769]:
+                    - generic [ref=f4e1770]: "24"
+                    - generic [ref=f4e1771]: Day 134
+                  - generic [ref=f4e1772]: 2024-12-20
+                - paragraph [ref=f4e1773]: off the clock, thinking about the week.
+                - generic [ref=f4e1774]:
+                  - generic [ref=f4e1775]: mood 2/5
+                  - generic [ref=f4e1776]: "#reflection"
+                  - generic [ref=f4e1777]: "#mental"
+            - 'link "23 Day 125 2024-12-11 a quiet green day, filed honestly. 2 trades mood 2/5 #wins #process" [ref=f4e1778] [cursor=pointer]':
+              - /url: /day/11-dec-2024
+              - generic [ref=f4e1779]:
+                - generic [ref=f4e1780]:
+                  - generic [ref=f4e1781]:
+                    - generic [ref=f4e1782]: "23"
+                    - generic [ref=f4e1783]: Day 125
+                  - generic [ref=f4e1784]: 2024-12-11
+                - paragraph [ref=f4e1785]: a quiet green day, filed honestly.
+                - generic [ref=f4e1786]:
+                  - generic [ref=f4e1787]: 2 trades
+                  - generic [ref=f4e1788]: mood 2/5
+                  - generic [ref=f4e1789]: "#wins"
+                  - generic [ref=f4e1790]: "#process"
+            - 'link "22 Day 119 2024-12-05 social hours are the silent tax on focus. 1 trades mood 1/5 #screen-time #habits" [ref=f4e1791] [cursor=pointer]':
+              - /url: /day/05-dec-2024
+              - generic [ref=f4e1792]:
+                - generic [ref=f4e1793]:
+                  - generic [ref=f4e1794]:
+                    - generic [ref=f4e1795]: "22"
+                    - generic [ref=f4e1796]: Day 119
+                  - generic [ref=f4e1797]: 2024-12-05
+                - paragraph [ref=f4e1798]: social hours are the silent tax on focus.
+                - generic [ref=f4e1799]:
+                  - generic [ref=f4e1800]: 1 trades
+                  - generic [ref=f4e1801]: mood 1/5
+                  - generic [ref=f4e1802]: "#screen-time"
+                  - generic [ref=f4e1803]: "#habits"
+            - 'link "21 Day 118 2024-12-04 one line for the one that stung. 1 trades mood 3/5 #losses" [ref=f4e1804] [cursor=pointer]':
+              - /url: /day/04-dec-2024
+              - generic [ref=f4e1805]:
+                - generic [ref=f4e1806]:
+                  - generic [ref=f4e1807]:
+                    - generic [ref=f4e1808]: "21"
+                    - generic [ref=f4e1809]: Day 118
+                  - generic [ref=f4e1810]: 2024-12-04
+                - paragraph [ref=f4e1811]: one line for the one that stung.
+                - generic [ref=f4e1812]:
+                  - generic [ref=f4e1813]: 1 trades
+                  - generic [ref=f4e1814]: mood 3/5
+                  - generic [ref=f4e1815]: "#losses"
+            - 'link "20 Day 115 2024-12-01 some days the win is just showing up and logging. mood 2/5 #mental #habits" [ref=f4e1816] [cursor=pointer]':
+              - /url: /day/01-dec-2024
+              - generic [ref=f4e1817]:
+                - generic [ref=f4e1818]:
+                  - generic [ref=f4e1819]:
+                    - generic [ref=f4e1820]: "20"
+                    - generic [ref=f4e1821]: Day 115
+                  - generic [ref=f4e1822]: 2024-12-01
+                - paragraph [ref=f4e1823]: some days the win is just showing up and logging.
+                - generic [ref=f4e1824]:
+                  - generic [ref=f4e1825]: mood 2/5
+                  - generic [ref=f4e1826]: "#mental"
+                  - generic [ref=f4e1827]: "#habits"
+        - generic [ref=f4e1828]:
+          - separator [ref=f4e1829]
+          - generic [ref=f4e1830]:
+            - text: nov 2024
+            - generic [ref=f4e1831]: · 3
+          - generic [ref=f4e1832]:
+            - 'link "19 Day 102 2024-11-18 I almost revenge traded. I walked instead. 1 trades mood 2/5 #discipline #mental" [ref=f4e1833] [cursor=pointer]':
+              - /url: /day/18-nov-2024
+              - generic [ref=f4e1834]:
+                - generic [ref=f4e1835]:
+                  - generic [ref=f4e1836]:
+                    - generic [ref=f4e1837]: "19"
+                    - generic [ref=f4e1838]: Day 102
+                  - generic [ref=f4e1839]: 2024-11-18
+                - paragraph [ref=f4e1840]: I almost revenge traded. I walked instead.
+                - generic [ref=f4e1841]:
+                  - generic [ref=f4e1842]: 1 trades
+                  - generic [ref=f4e1843]: mood 2/5
+                  - generic [ref=f4e1844]: "#discipline"
+                  - generic [ref=f4e1845]: "#mental"
+            - 'link "18 Day 101 2024-11-17 took the day off. mood 3/5 #rest #habits" [ref=f4e1846] [cursor=pointer]':
+              - /url: /day/17-nov-2024
+              - generic [ref=f4e1847]:
+                - generic [ref=f4e1848]:
+                  - generic [ref=f4e1849]:
+                    - generic [ref=f4e1850]: "18"
+                    - generic [ref=f4e1851]: Day 101
+                  - generic [ref=f4e1852]: 2024-11-17
+                - paragraph [ref=f4e1853]: took the day off.
+                - generic [ref=f4e1854]:
+                  - generic [ref=f4e1855]: mood 3/5
+                  - generic [ref=f4e1856]: "#rest"
+                  - generic [ref=f4e1857]: "#habits"
+            - 'link "17 Day 95 2024-11-11 a normal, boring loss, handled correctly. 2 trades mood 1/5 #losses #process" [ref=f4e1858] [cursor=pointer]':
+              - /url: /day/11-nov-2024
+              - generic [ref=f4e1859]:
+                - generic [ref=f4e1860]:
+                  - generic [ref=f4e1861]:
+                    - generic [ref=f4e1862]: "17"
+                    - generic [ref=f4e1863]: Day 95
+                  - generic [ref=f4e1864]: 2024-11-11
+                - paragraph [ref=f4e1865]: a normal, boring loss, handled correctly.
+                - generic [ref=f4e1866]:
+                  - generic [ref=f4e1867]: 2 trades
+                  - generic [ref=f4e1868]: mood 1/5
+                  - generic [ref=f4e1869]: "#losses"
+                  - generic [ref=f4e1870]: "#process"
+        - generic [ref=f4e1871]:
+          - separator [ref=f4e1872]
+          - generic [ref=f4e1873]:
+            - text: oct 2024
+            - generic [ref=f4e1874]: · 7
+          - generic [ref=f4e1875]:
+            - 'link "16 Day 76 2024-10-23 some days the win is just showing up and logging. 1 trades mood 2/5 #mental #habits" [ref=f4e1876] [cursor=pointer]':
+              - /url: /day/23-oct-2024
+              - generic [ref=f4e1877]:
+                - generic [ref=f4e1878]:
+                  - generic [ref=f4e1879]:
+                    - generic [ref=f4e1880]: "16"
+                    - generic [ref=f4e1881]: Day 76
+                  - generic [ref=f4e1882]: 2024-10-23
+                - paragraph [ref=f4e1883]: some days the win is just showing up and logging.
+                - generic [ref=f4e1884]:
+                  - generic [ref=f4e1885]: 1 trades
+                  - generic [ref=f4e1886]: mood 2/5
+                  - generic [ref=f4e1887]: "#mental"
+                  - generic [ref=f4e1888]: "#habits"
+            - 'link "15 Day 75 2024-10-22 R, expectancy, and why the mundane wins. 1 trades mood 3/5 #process #edge" [ref=f4e1889] [cursor=pointer]':
+              - /url: /day/22-oct-2024
+              - generic [ref=f4e1890]:
+                - generic [ref=f4e1891]:
+                  - generic [ref=f4e1892]:
+                    - generic [ref=f4e1893]: "15"
+                    - generic [ref=f4e1894]: Day 75
+                  - generic [ref=f4e1895]: 2024-10-22
+                - paragraph [ref=f4e1896]: R, expectancy, and why the mundane wins.
+                - generic [ref=f4e1897]:
+                  - generic [ref=f4e1898]: 1 trades
+                  - generic [ref=f4e1899]: mood 3/5
+                  - generic [ref=f4e1900]: "#process"
+                  - generic [ref=f4e1901]: "#edge"
+            - 'link "14 Day 70 2024-10-17 some days the win is just showing up and logging. 1 trades mood 1/5 #mental #habits" [ref=f4e1902] [cursor=pointer]':
+              - /url: /day/17-oct-2024
+              - generic [ref=f4e1903]:
+                - generic [ref=f4e1904]:
+                  - generic [ref=f4e1905]:
+                    - generic [ref=f4e1906]: "14"
+                    - generic [ref=f4e1907]: Day 70
+                  - generic [ref=f4e1908]: 2024-10-17
+                - paragraph [ref=f4e1909]: some days the win is just showing up and logging.
+                - generic [ref=f4e1910]:
+                  - generic [ref=f4e1911]: 1 trades
+                  - generic [ref=f4e1912]: mood 1/5
+                  - generic [ref=f4e1913]: "#mental"
+                  - generic [ref=f4e1914]: "#habits"
+            - 'link "13 Day 69 2024-10-16 some days the win is just showing up and logging. 2 trades mood 3/5 #mental #habits" [ref=f4e1915] [cursor=pointer]':
+              - /url: /day/16-oct-2024
+              - generic [ref=f4e1916]:
+                - generic [ref=f4e1917]:
+                  - generic [ref=f4e1918]:
+                    - generic [ref=f4e1919]: "13"
+                    - generic [ref=f4e1920]: Day 69
+                  - generic [ref=f4e1921]: 2024-10-16
+                - paragraph [ref=f4e1922]: some days the win is just showing up and logging.
+                - generic [ref=f4e1923]:
+                  - generic [ref=f4e1924]: 2 trades
+                  - generic [ref=f4e1925]: mood 3/5
+                  - generic [ref=f4e1926]: "#mental"
+                  - generic [ref=f4e1927]: "#habits"
+            - 'link "12 Day 66 2024-10-13 off the clock, thinking about the week. mood 5/5 #reflection #mental" [ref=f4e1928] [cursor=pointer]':
+              - /url: /day/13-oct-2024
+              - generic [ref=f4e1929]:
+                - generic [ref=f4e1930]:
+                  - generic [ref=f4e1931]:
+                    - generic [ref=f4e1932]: "12"
+                    - generic [ref=f4e1933]: Day 66
+                  - generic [ref=f4e1934]: 2024-10-13
+                - paragraph [ref=f4e1935]: off the clock, thinking about the week.
+                - generic [ref=f4e1936]:
+                  - generic [ref=f4e1937]: mood 5/5
+                  - generic [ref=f4e1938]: "#reflection"
+                  - generic [ref=f4e1939]: "#mental"
+            - 'link "11 Day 65 2024-10-12 off the clock, thinking about the week. mood 4/5 #reflection #mental" [ref=f4e1940] [cursor=pointer]':
+              - /url: /day/12-oct-2024
+              - generic [ref=f4e1941]:
+                - generic [ref=f4e1942]:
+                  - generic [ref=f4e1943]:
+                    - generic [ref=f4e1944]: "11"
+                    - generic [ref=f4e1945]: Day 65
+                  - generic [ref=f4e1946]: 2024-10-12
+                - paragraph [ref=f4e1947]: off the clock, thinking about the week.
+                - generic [ref=f4e1948]:
+                  - generic [ref=f4e1949]: mood 4/5
+                  - generic [ref=f4e1950]: "#reflection"
+                  - generic [ref=f4e1951]: "#mental"
+            - 'link "10 Day 62 2024-10-09 R, expectancy, and why the mundane wins. 1 trades mood 3/5 #process #edge" [ref=f4e1952] [cursor=pointer]':
+              - /url: /day/09-oct-2024
+              - generic [ref=f4e1953]:
+                - generic [ref=f4e1954]:
+                  - generic [ref=f4e1955]:
+                    - generic [ref=f4e1956]: "10"
+                    - generic [ref=f4e1957]: Day 62
+                  - generic [ref=f4e1958]: 2024-10-09
+                - paragraph [ref=f4e1959]: R, expectancy, and why the mundane wins.
+                - generic [ref=f4e1960]:
+                  - generic [ref=f4e1961]: 1 trades
+                  - generic [ref=f4e1962]: mood 3/5
+                  - generic [ref=f4e1963]: "#process"
+                  - generic [ref=f4e1964]: "#edge"
+        - generic [ref=f4e1965]:
+          - separator [ref=f4e1966]
+          - generic [ref=f4e1967]:
+            - text: sep 2024
+            - generic [ref=f4e1968]: · 7
+          - generic [ref=f4e1969]:
+            - 'link "09 Day 50 2024-09-27 some days the win is just showing up and logging. 1 trades mood 2/5 #mental #habits" [ref=f4e1970] [cursor=pointer]':
+              - /url: /day/27-sep-2024
+              - generic [ref=f4e1971]:
+                - generic [ref=f4e1972]:
+                  - generic [ref=f4e1973]:
+                    - generic [ref=f4e1974]: "09"
+                    - generic [ref=f4e1975]: Day 50
+                  - generic [ref=f4e1976]: 2024-09-27
+                - paragraph [ref=f4e1977]: some days the win is just showing up and logging.
+                - generic [ref=f4e1978]:
+                  - generic [ref=f4e1979]: 1 trades
+                  - generic [ref=f4e1980]: mood 2/5
+                  - generic [ref=f4e1981]: "#mental"
+                  - generic [ref=f4e1982]: "#habits"
+            - 'link "08 Day 47 2024-09-24 the mental side of trading, public. mood 2/5 #mental #mood" [ref=f4e1983] [cursor=pointer]':
+              - /url: /day/24-sep-2024
+              - generic [ref=f4e1984]:
+                - generic [ref=f4e1985]:
+                  - generic [ref=f4e1986]:
+                    - generic [ref=f4e1987]: "08"
+                    - generic [ref=f4e1988]: Day 47
+                  - generic [ref=f4e1989]: 2024-09-24
+                - paragraph [ref=f4e1990]: the mental side of trading, public.
+                - generic [ref=f4e1991]:
+                  - generic [ref=f4e1992]: mood 2/5
+                  - generic [ref=f4e1993]: "#mental"
+                  - generic [ref=f4e1994]: "#mood"
+            - 'link "07 Day 44 2024-09-21 social hours are the silent tax on focus. mood 2/5 #screen-time #habits" [ref=f4e1995] [cursor=pointer]':
+              - /url: /day/21-sep-2024
+              - generic [ref=f4e1996]:
+                - generic [ref=f4e1997]:
+                  - generic [ref=f4e1998]:
+                    - generic [ref=f4e1999]: "07"
+                    - generic [ref=f4e2000]: Day 44
+                  - generic [ref=f4e2001]: 2024-09-21
+                - paragraph [ref=f4e2002]: social hours are the silent tax on focus.
+                - generic [ref=f4e2003]:
+                  - generic [ref=f4e2004]: mood 2/5
+                  - generic [ref=f4e2005]: "#screen-time"
+                  - generic [ref=f4e2006]: "#habits"
+            - 'link "06 Day 43 2024-09-20 seven hours for seven days. results are in. 2 trades mood 2/5 #sleep #habits #data" [ref=f4e2007] [cursor=pointer]':
+              - /url: /day/20-sep-2024
+              - generic [ref=f4e2008]:
+                - generic [ref=f4e2009]:
+                  - generic [ref=f4e2010]:
+                    - generic [ref=f4e2011]: "06"
+                    - generic [ref=f4e2012]: Day 43
+                  - generic [ref=f4e2013]: 2024-09-20
+                - paragraph [ref=f4e2014]: seven hours for seven days. results are in.
+                - generic [ref=f4e2015]:
+                  - generic [ref=f4e2016]: 2 trades
+                  - generic [ref=f4e2017]: mood 2/5
+                  - generic [ref=f4e2018]: "#sleep"
+                  - generic [ref=f4e2019]: "#habits"
+                  - generic [ref=f4e2020]: "#data"
+            - 'link "05 Day 38 2024-09-15 no trades worth taking, and that is the win. mood 3/5 #patience #no-trade" [ref=f4e2021] [cursor=pointer]':
+              - /url: /day/15-sep-2024
+              - generic [ref=f4e2022]:
+                - generic [ref=f4e2023]:
+                  - generic [ref=f4e2024]:
+                    - generic [ref=f4e2025]: "05"
+                    - generic [ref=f4e2026]: Day 38
+                  - generic [ref=f4e2027]: 2024-09-15
+                - paragraph [ref=f4e2028]: no trades worth taking, and that is the win.
+                - generic [ref=f4e2029]:
+                  - generic [ref=f4e2030]: mood 3/5
+                  - generic [ref=f4e2031]: "#patience"
+                  - generic [ref=f4e2032]: "#no-trade"
+            - 'link "04 Day 37 2024-09-14 off the clock, thinking about the week. mood 3/5 #reflection #mental" [ref=f4e2033] [cursor=pointer]':
+              - /url: /day/14-sep-2024
+              - generic [ref=f4e2034]:
+                - generic [ref=f4e2035]:
+                  - generic [ref=f4e2036]:
+                    - generic [ref=f4e2037]: "04"
+                    - generic [ref=f4e2038]: Day 37
+                  - generic [ref=f4e2039]: 2024-09-14
+                - paragraph [ref=f4e2040]: off the clock, thinking about the week.
+                - generic [ref=f4e2041]:
+                  - generic [ref=f4e2042]: mood 3/5
+                  - generic [ref=f4e2043]: "#reflection"
+                  - generic [ref=f4e2044]: "#mental"
+            - 'link "03 Day 36 2024-09-13 a quiet green day, filed honestly. 2 trades mood 3/5 #wins #process" [ref=f4e2045] [cursor=pointer]':
+              - /url: /day/13-sep-2024
+              - generic [ref=f4e2046]:
+                - generic [ref=f4e2047]:
+                  - generic [ref=f4e2048]:
+                    - generic [ref=f4e2049]: "03"
+                    - generic [ref=f4e2050]: Day 36
+                  - generic [ref=f4e2051]: 2024-09-13
+                - paragraph [ref=f4e2052]: a quiet green day, filed honestly.
+                - generic [ref=f4e2053]:
+                  - generic [ref=f4e2054]: 2 trades
+                  - generic [ref=f4e2055]: mood 3/5
+                  - generic [ref=f4e2056]: "#wins"
+                  - generic [ref=f4e2057]: "#process"
+        - generic [ref=f4e2058]:
+          - separator [ref=f4e2059]
+          - generic [ref=f4e2060]:
+            - text: aug 2024
+            - generic [ref=f4e2061]: · 2
+          - generic [ref=f4e2062]:
+            - 'link "02 Day 13 2024-08-21 social hours are the silent tax on focus. 2 trades mood 2/5 #screen-time #habits" [ref=f4e2063] [cursor=pointer]':
+              - /url: /day/21-aug-2024
+              - generic [ref=f4e2064]:
+                - generic [ref=f4e2065]:
+                  - generic [ref=f4e2066]:
+                    - generic [ref=f4e2067]: "02"
+                    - generic [ref=f4e2068]: Day 13
+                  - generic [ref=f4e2069]: 2024-08-21
+                - paragraph [ref=f4e2070]: social hours are the silent tax on focus.
+                - generic [ref=f4e2071]:
+                  - generic [ref=f4e2072]: 2 trades
+                  - generic [ref=f4e2073]: mood 2/5
+                  - generic [ref=f4e2074]: "#screen-time"
+                  - generic [ref=f4e2075]: "#habits"
+            - 'link "01 Day Zero 2024-08-09 what the correlation table actually said. 2 trades mood 3/5 #trends #data" [ref=f4e2076] [cursor=pointer]':
+              - /url: /day/09-aug-2024
+              - generic [ref=f4e2077]:
+                - generic [ref=f4e2078]:
+                  - generic [ref=f4e2079]:
+                    - generic [ref=f4e2080]: "01"
+                    - generic [ref=f4e2081]: Day Zero
+                  - generic [ref=f4e2082]: 2024-08-09
+                - paragraph [ref=f4e2083]: what the correlation table actually said.
+                - generic [ref=f4e2084]:
+                  - generic [ref=f4e2085]: 2 trades
+                  - generic [ref=f4e2086]: mood 3/5
+                  - generic [ref=f4e2087]: "#trends"
+                  - generic [ref=f4e2088]: "#data"
+  - contentinfo [ref=f4e2089]:
+    - generic [ref=f4e2090]:
+      - generic [ref=f4e2091]: 1edge — everything public, nothing hidden
+      - generic [ref=f4e2092]: R is the only metric that matters.
+    - group [ref=f4e2094]:
+      - generic "market sat | 08-aug-2026 CME Globex closed · reopens in 1d 14h ▾" [ref=f4e2095] [cursor=pointer]:
+        - generic [ref=f4e2096]: market
+        - generic [ref=f4e2097]: sat | 08-aug-2026
+        - generic [ref=f4e2098]: CME Globex closed · reopens in 1d 14h
+        - generic [ref=f4e2099]: ▾
