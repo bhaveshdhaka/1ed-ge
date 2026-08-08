@@ -171,9 +171,18 @@ fi
 if [ ${#DELETED[@]} -gt 0 ]; then
   echo "→ removing (deleted on preprod):"
   for f in "${DELETED[@]}"; do echo "    $f"; done
-  git rm -q -- "${DELETED[@]}"
+  # --ignore-unmatch: tolerate paths already absent from the index (e.g. a
+  # prior partial checkout removed them); git rm errors otherwise.
+  git rm -q --ignore-unmatch -- "${DELETED[@]}"
 fi
-git add "${ALLOWED[@]}"
+# Stage the allowed set, skipping paths already gone from index AND disk —
+# those deletions were staged by `git rm` above, and a bare `git add` on a
+# missing path errors under set -e, aborting the sync before the commit.
+for f in "${ALLOWED[@]}"; do
+  if git ls-files --error-unmatch -- "$f" >/dev/null 2>&1 || [ -e "$f" ] || [ -L "$f" ]; then
+    git add -- "$f"
+  fi
+done
 git commit -m "sync: bring preprod cleanups to main ($(printf '%d' "${#ALLOWED[@]}") files)
 
 Code-only sync from preprod @ $(git rev-parse --short FETCH_HEAD).
