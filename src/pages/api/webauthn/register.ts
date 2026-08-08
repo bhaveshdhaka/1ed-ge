@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
 import { json, error, setupKeyOk } from '../../../lib/auth'
-import { registerBegin, registerVerify, issueSession, sessionCookie } from '../../../lib/webauthn'
+import { registerBegin, registerVerify, issueSession, sessionCookieHeader } from '../../../lib/webauthn'
 
 export const prerender = false
 
@@ -19,11 +19,16 @@ export const POST: APIRoute = async ({ request }) => {
       return error('registration failed', 400)
     }
     if (!ok) return error('registration failed', 400)
-    const token = issueSession()
-    const { value, opts } = sessionCookie(token)
-    return json({ ok: true }, 200, { 'Set-Cookie': `${'zen_session'}=${value}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${opts.maxAge}` })
+    return json({ ok: true }, 200, { 'Set-Cookie': sessionCookieHeader(issueSession()) })
   }
 
-  const { options, nonce } = await registerBegin()
-  return json({ ok: true, options, nonce })
+  // registerBegin can throw too (e.g. corrupted credential id in the store) —
+  // same clean 400 instead of an unhandled rejection.
+  let begun: Awaited<ReturnType<typeof registerBegin>> | null = null
+  try {
+    begun = await registerBegin()
+  } catch {
+    return error('registration failed', 400)
+  }
+  return json({ ok: true, options: begun.options, nonce: begun.nonce })
 }

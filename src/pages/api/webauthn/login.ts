@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
 import { json, error } from '../../../lib/auth'
-import { loginBegin, loginVerify, issueSession, sessionCookie } from '../../../lib/webauthn'
+import { loginBegin, loginVerify, issueSession, sessionCookieHeader } from '../../../lib/webauthn'
 
 export const prerender = false
 
@@ -17,12 +17,17 @@ export const POST: APIRoute = async ({ request }) => {
       return error('authentication failed', 401)
     }
     if (!ok) return error('authentication failed', 401)
-    const token = issueSession()
-    const { value, opts } = sessionCookie(token)
-    return json({ ok: true }, 200, { 'Set-Cookie': `${'zen_session'}=${value}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${opts.maxAge}` })
+    return json({ ok: true }, 200, { 'Set-Cookie': sessionCookieHeader(issueSession()) })
   }
 
-  const begun = await loginBegin()
+  // loginBegin can throw too (e.g. corrupted credential id in the store) —
+  // same clean 401 instead of an unhandled rejection.
+  let begun: Awaited<ReturnType<typeof loginBegin>> = null
+  try {
+    begun = await loginBegin()
+  } catch {
+    return error('authentication failed', 401)
+  }
   if (!begun) return error('no passkey registered — use /zen/setup', 400)
   return json({ ok: true, options: begun.options, nonce: begun.nonce })
 }

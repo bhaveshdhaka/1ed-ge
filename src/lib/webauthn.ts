@@ -17,12 +17,13 @@ import {
   clearSessions,
   saveSession,
   touchSession,
+  readSessions,
   setChallenge,
   getChallenge,
 } from './passkeys'
 
 const SESSION_TTL = 30 * 24 * 3600 * 1000
-const COOKIE = 'zen_session'
+export const COOKIE = 'zen_session'
 const RP_NAME = '1ed.ge'
 const USER_ID = new Uint8Array([1]) // single-user site
 
@@ -52,6 +53,10 @@ export function sessionCookie(token: string) {
     opts: { httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 30 * 24 * 3600 },
   }
 }
+/** Full Set-Cookie header value for a session token (single source of truth for the string). */
+export function sessionCookieHeader(token: string): string {
+  return `${COOKIE}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${30 * 24 * 3600}`
+}
 export function sessionOk(request: Request): boolean {
   const cookie = request.headers.get('cookie') ?? ''
   const m = cookie.split(';').map((s) => s.trim()).find((s) => s.startsWith(`${COOKIE}=`))
@@ -59,6 +64,17 @@ export function sessionOk(request: Request): boolean {
   const token = m.slice(COOKIE.length + 1)
   if (!token) return false
   return touchSession(token, SESSION_TTL)
+}
+/** Read-only session check: token present + unexpired. No sliding, no disk write. */
+export function sessionPresent(request: Request): boolean {
+  const cookie = request.headers.get('cookie') ?? ''
+  const m = cookie.split(';').map((s) => s.trim()).find((s) => s.startsWith(`${COOKIE}=`))
+  if (!m) return false
+  const token = m.slice(COOKIE.length + 1)
+  if (!token) return false
+  const session = readSessions().find((s) => s.token === token)
+  if (!session) return false
+  return Date.now() <= session.expiresAt
 }
 
 // --- registration ---
