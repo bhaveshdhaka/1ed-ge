@@ -97,7 +97,7 @@ export interface StructuredDay {
 
 const TRADE_SHAPE = `{
   "market": "MNQ",
-  "session": "asia|london|ny-am|ny-pm|ny or null",
+  "session": "asia|london|ny-am|ny-pm or null",
   "direction": "long|short or null",
   "setup": "short setup name or null",
   "entry": "number or null",

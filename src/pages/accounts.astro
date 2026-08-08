@@ -144,7 +144,7 @@ const active = sorted.filter((a) => a.active)
               <tr>
                 <td class="td text-dim">{p.data.date}</td>
                 <td class="td">{acc?.data.firm ?? ''} {acc?.data.sizeLabel ?? ''} <span class="text-faint">·{p.data.account}</span></td>
-                <td class="td text-right num-up">{fmtPnl(p.data.amount)}</td>
+                <td class="td text-right num-up">{fmtPnl(p.data.amount).replace(/^\+/, '')}</td>
                 <td class="td"><span class={p.data.status === 'paid' ? 'text-up' : 'text-warn'}>{p.data.status}</span></td>
                 <td class="td text-dim">{p.data.note ?? ''}</td>
               </tr>

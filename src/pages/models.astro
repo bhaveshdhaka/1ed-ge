@@ -21,7 +21,7 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
 >
   <div class="shell pt-12 pb-20">
     <header class="flex items-baseline gap-3 text-[13px]">
-      <span class="text-ink">models</span>
+      <h1 class="text-ink">models</h1>
       <span class="text-faint">{stats.length} models · {stats.reduce((s, m) => s + m.count, 0)} tagged trades</span>
     </header>
 
