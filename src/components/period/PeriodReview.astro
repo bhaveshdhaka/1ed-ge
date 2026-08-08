@@ -5,12 +5,12 @@
  * reflection + AI comparison + journal entries + stream moments.
  */
 import { render } from 'astro:content'
-import { periodHeader, REFLECTION, COMPARISON, THE_NUMBERS, TREND, EMPTY_PERIOD } from '../lib/copy'
-import { fmtDay, fmtDayW } from '../lib/dates'
-import { slugFromType, periodRange, PERIOD_TYPES, type PeriodRange } from '../lib/periods'
-import { periodDelta, type PeriodStats, type TrendPoint } from '../lib/period-stats'
-import { todayHkt } from '../lib/sessions'
-import type { ResolvedMoment } from '../lib/stream'
+import { periodHeader, REFLECTION, COMPARISON, THE_NUMBERS, TREND, EMPTY_PERIOD } from '../../lib/copy'
+import { fmtDay, fmtDayW } from '../../lib/dates'
+import { slugFromType, periodRange, PERIOD_TYPES, type PeriodRange } from '../../lib/periods'
+import { periodDelta, type PeriodStats, type TrendPoint } from '../../lib/period-stats'
+import { todayHkt } from '../../lib/sessions'
+import type { ResolvedMoment } from '../../lib/stream'
 import Card from '../ui/Card.astro'
 import StatCard from '../ui/StatCard.astro'
 import Table from '../ui/Table.astro'
