@@ -253,7 +253,11 @@ export function daySessionWindows(iso: string): Record<MarketKey, string> {
   } else if (cm.status === 'early') {
     cme = 'early close 1:15pm ct'
   } else {
-    const cmeHalt = first('cme', 'halt')
+    // CME 16:00 CT maintenance halt lands at 05:00 HKT the FOLLOWING day.
+    // For a CME trading day `iso`, the halt event is emitted with HKT-day = iso+1.
+    // Look it up by that HKT day, not by `iso` itself.
+    const haltHktDay = addDaysIso(iso, 1)
+    const cmeHalt = evs.find((e) => e.market === 'cme' && e.type === 'halt' && day(e.hkt) === haltHktDay)
     const cmeResume = cmeHalt ? after('cme', 'resume', cmeHalt.hkt) : undefined
     cme = cmeHalt && cmeResume ? `halt ${t(cmeHalt.hkt)}–${t(cmeResume.hkt)}` : '~23h'
   }
