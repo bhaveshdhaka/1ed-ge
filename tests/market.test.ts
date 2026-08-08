@@ -122,7 +122,7 @@ test('nextModifiedHoursDay: respects withinDays horizon', () => {
   assert.equal(within20, null)
 })
 
-test('nextModifiedHoursDay: pins the next 2 years of known dates (regression guard)', () => {
+test('nextModifiedHoursDay: pins the next ~24 months of known dates (regression guard)', () => {
   // These are the dates the owner provided in the 2026 CME schedule.
   // If the rules drift, this test fails — the nudge would show a wrong day.
   assert.equal(nextModifiedHoursDay('2026-01-01')?.iso, '2026-01-19') // MLK
