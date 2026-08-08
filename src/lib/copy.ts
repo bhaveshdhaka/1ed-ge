@@ -63,6 +63,7 @@ export const REFLECTION = 'reflection'
 export const COMPARISON = 'comparison · from verified data'
 export const THE_NUMBERS = 'the numbers'
 export const TREND = 'trend'
+export const VIEW_REVIEW = 'view review →'
 
 /** Empty states. */
 export const EMPTY_PERIOD = 'no days logged in this period.'

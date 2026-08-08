@@ -17,7 +17,7 @@ for (const route of PUBLIC_ROUTES) {
 }
 
 test('a11y: admin day workspace has no critical/serious violations', async ({ page }) => {
-  await page.goto(`/admin/${process.env.ADMIN_SECRET ?? ''}`)
+  await page.goto(`/zen/${process.env.ADMIN_SECRET ?? ''}`)
   await expect(page.locator('button:has-text("overview")').first()).toBeVisible({ timeout: 20000 })
   await page.keyboard.press('2')
   await expect(page.locator('h1:has-text("/ day")')).toBeVisible()

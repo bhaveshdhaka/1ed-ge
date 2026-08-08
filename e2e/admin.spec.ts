@@ -13,7 +13,7 @@ test.beforeEach(async () => {
 // Admin is a React island that hydrates after SSR — wait for the tab bar (React-rendered)
 // before pressing keyboard shortcuts, or the keydown handler isn't attached yet.
 async function gotoAdmin(page: import('@playwright/test').Page) {
-  await page.goto(`/admin/${SECRET}`)
+  await page.goto(`/zen/${SECRET}`)
   await expect(page.locator('button:has-text("overview")').first()).toBeVisible({ timeout: 20000 })
 }
 

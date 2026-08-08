@@ -16,20 +16,24 @@ if (!ok) {
 
 // zen reminder — pending end-of-day + period reflections greet the owner on
 // login. Server-side (SSR) so it is computed from fresh collection data; the
-// owner-locked line comes from copy.ts (null → nothing renders).
-const [dayEntries, journalEntries, reviewEntries] = await Promise.all([
-  getCollection('days'),
-  getCollection('journal'),
-  getCollection('reviews'),
-])
-const nowIso = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 16)
-const account = accountabilityStatus(
-  dayEntries.map((d) => d.data as DayData),
-  journalEntries.map((j) => j.data.date),
-  reviewEntries.map((r) => ({ type: r.data.type, anchor: r.data.anchor })),
-  nowIso,
-)
-const zenLine = pendingReflectionsLine(account.pendingDays, account.pendingPeriods)
+// owner-locked line comes from copy.ts (null → nothing renders). Only computed
+// when the secret is valid — wrong secrets get a bare 404.
+let zenLine: string | null = null
+if (ok) {
+  const [dayEntries, journalEntries, reviewEntries] = await Promise.all([
+    getCollection('days'),
+    getCollection('journal'),
+    getCollection('reviews'),
+  ])
+  const nowIso = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 16)
+  const account = accountabilityStatus(
+    dayEntries.map((d) => d.data as DayData),
+    journalEntries.map((j) => j.data.date),
+    reviewEntries.map((r) => ({ type: r.data.type, anchor: r.data.anchor })),
+    nowIso,
+  )
+  zenLine = pendingReflectionsLine(account.pendingDays, account.pendingPeriods)
+}
 ---
 
 <Bare title={ok ? 'zen — 1ed.ge' : 'not found'}>

@@ -8,12 +8,11 @@ import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
 import { periodRangesBetween, slugFromType, PERIOD_TYPES, type PeriodType, type PeriodRange } from '../lib/periods'
 import { aggregatePeriod, type PeriodStats } from '../lib/period-stats'
-import { periodHeader, EMPTY_REVIEWS, REFLECTION, COMPARISON } from '../lib/copy'
+import { periodHeader, EMPTY_REVIEWS, REFLECTION, COMPARISON, VIEW_REVIEW } from '../lib/copy'
 import { todayHkt } from '../lib/sessions'
 import { fmtDayW } from '../lib/dates'
 import { readEntry } from '../lib/content'
 import type { DayData } from '../lib/stream'
-import Card from '../components/ui/Card.astro'
 import EmptyState from '../components/ui/EmptyState.astro'
 
 export const prerender = false
@@ -28,11 +27,10 @@ interface PeriodRow {
   hasComparison: boolean
 }
 
-const [dayEntries, habitEntries, accountEntries, reviewEntries] = await Promise.all([
+const [dayEntries, habitEntries, accountEntries] = await Promise.all([
   getCollection('days'),
   getCollection('habits'),
   getCollection('accounts'),
-  getCollection('reviews'),
 ])
 
 const days = dayEntries.map((d) => d.data as DayData)
@@ -113,7 +111,7 @@ for (const type of PERIOD_TYPES) {
 rows.sort((a, b) => {
   const d = b.range.endIso.localeCompare(a.range.endIso)
   if (d !== 0) return d
-  const ti = PERIOD_TYPES.indexOf(a.type) - PERIOD_TYPES.indexOf(b.type)
+  const ti = PERIOD_TYPES.indexOf(b.type) - PERIOD_TYPES.indexOf(a.type)
   if (ti !== 0) return ti
   return b.range.startIso.localeCompare(a.range.startIso)
 })
@@ -136,7 +134,9 @@ for (const t of PERIOD_TYPES) countByType.set(t, rows.filter((r) => r.type === t
   <section class="shell pt-12 pb-20">
     <div class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl text-ink">/ lookback</h1>
-      <span class="text-[12px] text-faint">{rows.length} period{rows.length === 1 ? '' : 's'} logged</span>
+      <span class="text-[12px] text-faint">
+        {validType !== 'all' ? `${filtered.length} of ${rows.length} period${rows.length === 1 ? '' : 's'} logged` : `${rows.length} period${rows.length === 1 ? '' : 's'} logged`}
+      </span>
     </div>
 
     <div class="mt-6 flex flex-wrap gap-1.5">
@@ -217,7 +217,7 @@ for (const t of PERIOD_TYPES) countByType.set(t, rows.filter((r) => r.type === t
               )}
 
               <div class="mt-auto flex items-center justify-between pt-1">
-                <span class="text-2xs text-faint group-hover:text-accent transition-colors">view review →</span>
+                <span class="text-2xs text-faint group-hover:text-accent transition-colors">{VIEW_REVIEW}</span>
                 <span class="text-2xs text-faint">{fmtDayW(row.range.startIso)}</span>
               </div>
             </a>
