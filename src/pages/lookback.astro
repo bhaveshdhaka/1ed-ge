@@ -1,0 +1,229 @@
+---
+/**
+ * /lookback — aggregated archive of every period review.
+ * Zero-JS, SSR. Type filter chips; newest first; stats + reflection +
+ * comparison snippets; links to /week/2026-32-style anchors.
+ */
+import Base from '../layouts/Base.astro'
+import { getCollection } from 'astro:content'
+import { periodRangesBetween, slugFromType, PERIOD_TYPES, type PeriodType, type PeriodRange } from '../lib/periods'
+import { aggregatePeriod, type PeriodStats } from '../lib/period-stats'
+import { periodHeader, EMPTY_REVIEWS, REFLECTION, COMPARISON } from '../lib/copy'
+import { todayHkt } from '../lib/sessions'
+import { fmtDayW } from '../lib/dates'
+import { readEntry } from '../lib/content'
+import type { DayData } from '../lib/stream'
+import Card from '../components/ui/Card.astro'
+import EmptyState from '../components/ui/EmptyState.astro'
+
+export const prerender = false
+
+interface PeriodRow {
+  type: PeriodType
+  range: PeriodRange
+  stats: PeriodStats
+  reviewSnippet: string
+  comparisonSnippet: string
+  hasReview: boolean
+  hasComparison: boolean
+}
+
+const [dayEntries, habitEntries, accountEntries, reviewEntries] = await Promise.all([
+  getCollection('days'),
+  getCollection('habits'),
+  getCollection('accounts'),
+  getCollection('reviews'),
+])
+
+const days = dayEntries.map((d) => d.data as DayData)
+const ctx = {
+  habits: habitEntries
+    .filter((h) => h.data.active)
+    .map((h) => ({ id: h.id, kind: h.data.kind as 'bool' | 'count', target: h.data.target })),
+  accounts: accountEntries.map((a) => ({ id: a.data.id, pointsValue: a.data.pointsValue })),
+}
+
+const today = todayHkt()
+const earliestIso = days.length > 0
+  ? days.map((d) => d.date).sort()[0]
+  : today
+
+function reviewFile(type: PeriodType, anchor: string): string {
+  return `${type}-${anchor}.md`
+}
+
+function cmpFile(type: PeriodType, anchor: string): string {
+  return `${type}-${anchor}.cmp.md`
+}
+
+function firstBullet(body: string): string {
+  const line = body
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)[0]
+  return line ? line.replace(/^[-*]+\s*/, '') : ''
+}
+
+function plainSnippet(body: string, max = 120): string {
+  const t = body.replace(/\s+/g, ' ').trim()
+  return t.length > max ? `${t.slice(0, max).trim()}…` : t
+}
+
+function reviewSnippet(type: PeriodType, anchor: string): { text: string; found: boolean } {
+  try {
+    const e = readEntry('reviews', reviewFile(type, anchor))
+    const body = e.body || ''
+    return body.trim() ? { text: plainSnippet(body), found: true } : { text: '', found: false }
+  } catch {
+    return { text: '', found: false }
+  }
+}
+
+function comparisonSnippet(type: PeriodType, anchor: string): { text: string; found: boolean } {
+  try {
+    const e = readEntry('reviews', cmpFile(type, anchor))
+    const bullet = firstBullet(e.body || '')
+    return bullet ? { text: bullet, found: true } : { text: '', found: false }
+  } catch {
+    return { text: '', found: false }
+  }
+}
+
+const rows: PeriodRow[] = []
+for (const type of PERIOD_TYPES) {
+  const ranges = periodRangesBetween(type, earliestIso, today)
+  for (const range of ranges) {
+    const stats = aggregatePeriod(days, range, ctx)
+    if (stats.daysCount === 0) continue
+    const rev = reviewSnippet(type, range.anchor)
+    const cmp = comparisonSnippet(type, range.anchor)
+    rows.push({
+      type,
+      range,
+      stats,
+      reviewSnippet: rev.text,
+      comparisonSnippet: cmp.text,
+      hasReview: rev.found,
+      hasComparison: cmp.found,
+    })
+  }
+}
+
+// Newest first; tie-break by type order so the larger horizon comes first.
+rows.sort((a, b) => {
+  const d = b.range.endIso.localeCompare(a.range.endIso)
+  if (d !== 0) return d
+  const ti = PERIOD_TYPES.indexOf(a.type) - PERIOD_TYPES.indexOf(b.type)
+  if (ti !== 0) return ti
+  return b.range.startIso.localeCompare(a.range.startIso)
+})
+
+const typeParam = (Astro.url.searchParams.get('type') ?? 'all') as PeriodType | 'all'
+const TYPES: (PeriodType | 'all')[] = ['all', 'week', 'month', 'quarter', 'half', 'year']
+const validType = TYPES.includes(typeParam) ? typeParam : 'all'
+
+const filtered = validType === 'all' ? rows : rows.filter((r) => r.type === validType)
+
+const countByType = new Map<PeriodType | 'all', number>()
+countByType.set('all', rows.length)
+for (const t of PERIOD_TYPES) countByType.set(t, rows.filter((r) => r.type === t).length)
+---
+
+<Base
+  title="lookback — 1ed.ge"
+  description="Every period review in one place — week, month, quarter, half, year. Newest first."
+>
+  <section class="shell pt-12 pb-20">
+    <div class="flex flex-wrap items-baseline gap-3">
+      <h1 class="text-2xl text-ink">/ lookback</h1>
+      <span class="text-[12px] text-faint">{rows.length} period{rows.length === 1 ? '' : 's'} logged</span>
+    </div>
+
+    <div class="mt-6 flex flex-wrap gap-1.5">
+      {TYPES.map((t) => {
+        const count = countByType.get(t) ?? 0
+        const href = t === 'all' ? '/lookback' : `/lookback?type=${t}`
+        return (
+          <a
+            href={href}
+            aria-current={validType === t ? 'page' : undefined}
+            class:list={[
+              'border px-2.5 py-1 text-2xs transition-colors',
+              validType === t ? 'border-accent text-accent' : 'border-line2 text-dim hover:border-accent hover:text-accent',
+            ]}
+          >
+            {t} <span class="text-faint">{count}</span>
+          </a>
+        )
+      })}
+    </div>
+
+    {filtered.length === 0 ? (
+      <div class="mt-10">
+        <EmptyState text={EMPTY_REVIEWS} />
+      </div>
+    ) : (
+      <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((row) => {
+          const winPct = row.stats.winRate * 100
+          const sumR = row.stats.sumR
+          const href = `/${slugFromType(row.type, row.range.index)}/${row.range.anchor}`
+          return (
+            <a
+              href={href}
+              class="group flex flex-col gap-4 border border-line bg-panel p-4 transition-colors hover:border-accent"
+            >
+              <div>
+                <div class="text-2xs uppercase tracking-widest text-dim">{row.type}</div>
+                <div class="mt-1 text-sm text-ink">{periodHeader(row.range)}</div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div class="border border-line2 px-2.5 py-2">
+                  <div class:list={['text-base tabular-nums', sumR > 0 ? 'num-up' : sumR < 0 ? 'num-down' : 'text-ink']}>
+                    {sumR >= 0 ? '+' : ''}{sumR.toFixed(2)}R
+                  </div>
+                  <div class="text-2xs text-dim">sum R</div>
+                </div>
+                <div class="border border-line2 px-2.5 py-2">
+                  <div class="text-base tabular-nums text-ink">{winPct.toFixed(0)}%</div>
+                  <div class="text-2xs text-dim">win rate</div>
+                </div>
+                <div class="border border-line2 px-2.5 py-2">
+                  <div class="text-base tabular-nums text-ink">{row.stats.trades}</div>
+                  <div class="text-2xs text-dim">trades</div>
+                </div>
+                <div class="border border-line2 px-2.5 py-2">
+                  <div class="text-base tabular-nums text-ink">{row.stats.tradedDays}</div>
+                  <div class="text-2xs text-dim">traded days</div>
+                </div>
+              </div>
+
+              {(row.hasReview || row.hasComparison) && (
+                <div class="flex flex-col gap-2 border-t border-line/50 pt-3">
+                  {row.hasReview && (
+                    <div>
+                      <div class="text-2xs uppercase tracking-widest text-dim">/ {REFLECTION}</div>
+                      <p class="mt-1 text-[13px] leading-relaxed text-soft">{row.reviewSnippet}</p>
+                    </div>
+                  )}
+                  {row.hasComparison && (
+                    <div>
+                      <div class="text-2xs uppercase tracking-widest text-dim">/ {COMPARISON}</div>
+                      <p class="mt-1 text-[13px] leading-relaxed text-soft">· {row.comparisonSnippet}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div class="mt-auto flex items-center justify-between pt-1">
+                <span class="text-2xs text-faint group-hover:text-accent transition-colors">view review →</span>
+                <span class="text-2xs text-faint">{fmtDayW(row.range.startIso)}</span>
+              </div>
+            </a>
+          )
+        })}
+      </div>
+    )}
+  </section>
+</Base>
