@@ -14,10 +14,10 @@ export function setupKeyOk(given: string | null): boolean {
   return constantTimeEqual(given, env.adminSecret())
 }
 
-export function json(data: unknown, status = 200) {
+export function json(data: unknown, status = 200, headers: Record<string, string> = {}) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...headers },
   })
 }
 
