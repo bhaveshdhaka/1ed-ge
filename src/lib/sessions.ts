@@ -168,6 +168,11 @@ export function marketEvents(startHkt: string, days: number): MarketEvent[] {
 
       if (cm.status === 'early') {
         out.push({ market: 'cme', type: 'close', hkt: hktIso(wallToUTC('America/Chicago', d, 13, 15)), label: 'early close' })
+      } else if (cm.status === 'early-halt') {
+        // MLK / Presidents / Memorial: morning session, halt ~12:00 PM CT,
+        // reopen ~5:00 PM CT for the normal afternoon session.
+        out.push({ market: 'cme', type: 'halt', hkt: hktIso(wallToUTC('America/Chicago', d, 12, 0)), label: 'early halt' })
+        out.push({ market: 'cme', type: 'resume', hkt: hktIso(wallToUTC('America/Chicago', d, 17, 0)), label: 'reopen' })
       } else if (w === 5) {
         out.push({ market: 'cme', type: 'close', hkt: hktIso(wallToUTC('America/Chicago', d, 16, 0)), label: 'weekend close' })
       } else if (w !== 0 && w !== 6) {
@@ -225,6 +230,7 @@ export interface DayMarker {
 export function scheduledDayMarker(iso: string): DayMarker {
   const m = cmeDay(iso)
   if (m.status === 'closed') return { glyph: '✕', text: `closed · ${m.label}`, cls: 'text-down', live: false }
+  if (m.status === 'early-halt') return { glyph: '◐', text: 'early halt 12pm ct', cls: 'text-warn', live: false }
   if (m.status === 'early') return { glyph: '◐', text: 'early close 1:15pm ct', cls: 'text-warn', live: false }
   if (iso === todayHkt()) return { glyph: '●', text: 'open', cls: 'text-up', live: true }
   return { glyph: '○', text: 'open', cls: 'text-dim', live: false }
@@ -255,6 +261,8 @@ export function daySessionWindows(iso: string): Record<MarketKey, string> {
   let cme: string
   if (cm.status === 'closed') {
     cme = 'closed'
+  } else if (cm.status === 'early-halt') {
+    cme = 'early halt 12pm ct'
   } else if (cm.status === 'early') {
     cme = 'early close 1:15pm ct'
   } else {

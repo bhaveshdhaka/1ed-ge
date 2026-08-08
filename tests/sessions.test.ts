@@ -98,6 +98,32 @@ test('sessions: scheduledDayMarker for an early-close day is the ◐ glyph', () 
   assert.equal(mk.cls, 'text-warn')
 })
 
+test('sessions: scheduledDayMarker for an early-halt day (MLK/Presidents/Memorial) is "◐ early halt 12pm ct"', () => {
+  // The owner trades from Asia and wants these flagged because volume
+  // is thin. The header is the at-a-glance state; the live ticker
+  // (MarketWidget) shows the live countdown.
+  const mlk = scheduledDayMarker('2027-01-18')       // MLK Day 2027
+  const pres = scheduledDayMarker('2026-02-16')      // Presidents' Day 2026
+  const mem = scheduledDayMarker('2026-05-25')       // Memorial Day 2026
+  for (const mk of [mlk, pres, mem]) {
+    assert.equal(mk.glyph, '◐')
+    assert.equal(mk.text, 'early halt 12pm ct')
+    assert.equal(mk.cls, 'text-warn')
+    assert.equal(mk.live, false)
+  }
+})
+
+test('sessions: daySessionWindows for an early-halt day returns "early halt 12pm ct"', () => {
+  assert.equal(daySessionWindows('2027-01-18').cme, 'early halt 12pm ct')
+  assert.equal(daySessionWindows('2026-02-16').cme, 'early halt 12pm ct')
+  assert.equal(daySessionWindows('2026-05-25').cme, 'early halt 12pm ct')
+})
+
+test('sessions: daySessionWindows for the Jul 2 2026 early-close returns "early close 1:15pm ct"', () => {
+  // Jul 2 2026 is early close (day before Friday-observed Independence Day).
+  assert.equal(daySessionWindows('2026-07-02').cme, 'early close 1:15pm ct')
+})
+
 test('sessions: addDaysIso handles month/year boundaries', () => {
   assert.equal(addDaysIso('2026-08-31', 1), '2026-09-01')
   assert.equal(addDaysIso('2026-12-31', 1), '2027-01-01')

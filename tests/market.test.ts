@@ -17,9 +17,28 @@ test('cmeDay: Christmas is a CME holiday (closed · holiday)', () => {
   assert.deepEqual(cmeDay('2026-12-25'), { status: 'closed', label: 'holiday' })
 })
 
-test('cmeDay: MLK is NOT a CME holiday (CME trades bank holidays)', () => {
-  // 3rd Monday of Jan 2027 = 2027-01-18 — a normal CME day
-  assert.deepEqual(cmeDay('2027-01-18'), { status: 'open', label: 'open' })
+test('cmeDay: MLK Day is an early-halt day (NYSE holiday, CME shortened session)', () => {
+  // 3rd Monday of Jan 2027 = 2027-01-18. CME doesn't close, but the
+  // session is shortened: halt ~12:00 PM CT, reopen ~5:00 PM CT. The
+  // owner trades from Asia and wants these flagged because volume is
+  // thin and price action is messy.
+  assert.deepEqual(cmeDay('2027-01-18'), { status: 'early-halt', label: 'early halt 12pm ct' })
+})
+
+test('cmeDay: Presidents Day is an early-halt day', () => {
+  // 3rd Monday of Feb 2026 = 2026-02-16
+  assert.deepEqual(cmeDay('2026-02-16'), { status: 'early-halt', label: 'early halt 12pm ct' })
+})
+
+test('cmeDay: Memorial Day is an early-halt day', () => {
+  // Last Monday of May 2026 = 2026-05-25
+  assert.deepEqual(cmeDay('2026-05-25'), { status: 'early-halt', label: 'early halt 12pm ct' })
+})
+
+test('cmeDay: Jul 2 2026 is an early-close day (day before Friday-observed Independence Day)', () => {
+  // Jul 4 2026 is a Saturday → Independence Day observed on Fri Jul 3 (closed).
+  // The Thursday before (Jul 2) is an early close 1:15pm CT.
+  assert.deepEqual(cmeDay('2026-07-02'), { status: 'early', label: 'early close' })
 })
 
 test('cmeDay: day after Thanksgiving is an early close', () => {

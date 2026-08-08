@@ -1,4 +1,4 @@
-export type MarketStatus = 'open' | 'early' | 'closed'
+export type MarketStatus = 'open' | 'early' | 'early-halt' | 'closed'
 
 export interface MarketDay {
   status: MarketStatus
@@ -101,6 +101,23 @@ const cmeEarlyCloseRules = [
   (y: number) => addDays(nthWeekday(y, 10, 4, 4), 1), // day after Thanksgiving
   (y: number) => new Date(y, 11, 24), // Christmas Eve
   (y: number) => new Date(y, 11, 31), // New Year's Eve
+  // Day before Independence Day when July 4 falls on Saturday
+  // (Independence Day observed on Friday Jul 3 → Thursday Jul 2 is early close 12pm CT).
+  (y: number) => {
+    const jul4 = new Date(y, 6, 4)
+    return jul4.getDay() === 6 ? addDays(jul4, -2) : null
+  },
+]
+
+/* CME equity-index futures: low-volume / modified-hours days. These are
+ * NYSE-observed bank holidays that the CME does NOT close for, but it
+ * shortens the session to a morning half (halt ~12:00 PM CT, reopen
+ * ~5:00 PM CT). The owner trades from Asia and wants these flagged
+ * because volume is thin and price action is messy. */
+const cmeEarlyHaltRules = [
+  (y: number) => nthWeekday(y, 0, 1, 3),  // MLK Day — 3rd Monday of January
+  (y: number) => nthWeekday(y, 1, 1, 3),  // Presidents' Day — 3rd Monday of February
+  (y: number) => lastWeekday(y, 4, 1),    // Memorial Day — last Monday of May
 ]
 
 /** Deterministic CME equity-index-futures day status (master clock). */
@@ -115,9 +132,17 @@ export function cmeDay(iso: string): MarketDay {
       if (isoFromDate(h) === iso) return { status: 'closed', label: 'holiday' }
     }
   }
+  // Early-halt (MLK / Presidents / Memorial): the morning session runs,
+  // a 5-hour halt starts ~12:00 PM CT, then a normal afternoon session.
+  for (const rule of cmeEarlyHaltRules) {
+    const e = rule(y)
+    if (e && isoFromDate(e) === iso && e.getDay() !== 0 && e.getDay() !== 6) {
+      return { status: 'early-halt', label: 'early halt 12pm ct' }
+    }
+  }
   for (const rule of cmeEarlyCloseRules) {
     const e = rule(y)
-    if (isoFromDate(e) === iso && e.getDay() !== 0 && e.getDay() !== 6) {
+    if (e && isoFromDate(e) === iso && e.getDay() !== 0 && e.getDay() !== 6) {
       return { status: 'early', label: 'early close' }
     }
   }
