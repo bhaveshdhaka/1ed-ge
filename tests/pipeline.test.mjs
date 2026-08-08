@@ -125,5 +125,63 @@ test('sync-to-prod.sh refuses when SITE_ENV is prod', () => {
   ok(/refusing/.test(r.stderr), 'stderr says refusing')
 })
 
+test('ship.sh --help prints usage', () => {
+  const r = run('bash', ['scripts/ship.sh', '--help'])
+  ok(r.code === 0, 'exit 0')
+  ok(/preprod-to-main|main-to-preprod/.test(r.stdout), 'prints the subcommands')
+  ok(/the pre-push git hook/.test(r.stdout), 'mentions the hook')
+})
+
+test('ship.sh with no arg prints usage and exits 0 (help behavior)', () => {
+  const r = run('bash', ['scripts/ship.sh'])
+  ok(r.code === 0, 'exit 0 (no-arg is help)')
+  ok(/usage:/.test(r.stdout), 'stdout says usage')
+})
+
+test('ship.sh with unknown arg exits 2', () => {
+  const r = run('bash', ['scripts/ship.sh', 'bogus'])
+  ok(r.code === 2, 'exit 2')
+  ok(/unknown command: bogus/.test(r.stderr), 'stderr names the bad arg')
+})
+
+test('ship.sh prod-only branch guard logic', () => {
+  // The prod-only case checks `git rev-parse --abbrev-ref HEAD` and refuses
+  // when it isn't 'main'. Test the script's logic by running it on the
+  // preprod branch (this repo's current branch when on preprod worktree).
+  // We test by checking the script's source has the guard (defensive +
+  // executable) — the runtime path is covered by the prod-only deploy path.
+  const r = run('bash', ['-c', 'grep -A8 "prod-only)" scripts/ship.sh | head -15'])
+  ok(r.code === 0, 'grep returns 0')
+  ok(/prod-only must run from the main branch/.test(r.stdout), 'script has the branch guard')
+  ok(/deploy-prod\.sh/.test(r.stdout), 'script invokes deploy-prod.sh')
+})
+
+test('pre-push hook refuses push to main', () => {
+  // Simulate git's pre-push stdin: "<local_ref> <local_sha> <remote_ref> <remote_sha>"
+  const r = run('bash', ['-c', 'echo "refs/heads/main abc123 refs/heads/main 000000" | bash .githooks/pre-push'])
+  ok(r.code === 1, 'exit 1 on push to main')
+  ok(/refusing: direct push to 'main' is blocked/.test(r.stderr), 'stderr names the refusal')
+  ok(/scripts\/ship\.sh preprod-to-main/.test(r.stderr), 'stderr points to ship.sh')
+})
+
+test('pre-push hook refuses push to preprod', () => {
+  const r = run('bash', ['-c', 'echo "refs/heads/preprod abc123 refs/heads/preprod 000000" | bash .githooks/pre-push'])
+  ok(r.code === 1, 'exit 1 on push to preprod')
+  ok(/refusing: direct push to 'preprod' is blocked/.test(r.stderr), 'stderr names the refusal')
+  ok(/scripts\/ship\.sh main-to-preprod/.test(r.stderr), 'stderr points to ship.sh')
+})
+
+test('pre-push hook allows push to feature branch', () => {
+  const r = run('bash', ['-c', 'echo "refs/heads/feat/foo abc123 refs/heads/feat/foo 000000" | bash .githooks/pre-push'])
+  ok(r.code === 0, 'exit 0 on feature branch')
+  ok(!/refusing:/.test(r.stderr), 'no refusal in stderr')
+})
+
+test('pre-push hook allows push to tag', () => {
+  // tags are refs/tags/* — should be allowed
+  const r = run('bash', ['-c', 'echo "refs/tags/v0.5.0 abc123 refs/tags/v0.5.0 000000" | bash .githooks/pre-push'])
+  ok(r.code === 0, 'exit 0 on tag push')
+})
+
 console.log(`\n${pass} pass · ${fail} fail`)
 process.exit(fail === 0 ? 0 : 1)
