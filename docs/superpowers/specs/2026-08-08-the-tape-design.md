@@ -11,9 +11,18 @@ live together. Name: **the tape** (owner-chosen; the brand wordmark is a tape).
 
 One page at the existing locked period URLs (`/week`, `/month`, `/q1..q4`, `/h1/h2`,
 `/year` + canonical anchors): the deep-dive dossier of a period AND the chronological
-arc of every period — "the tape" — above it. `/lookback` is absorbed: the old URL
-301-redirects to `/week`; the nav entry becomes `[05] tape`; the words "review" and
-"lookback" leave the public copy.
+arc of every period — "the tape" — above it. `/lookback` is absorbed and **deleted — the old URL 404s, no redirect** (owner
+2026-08-08: fresh new slate, no old compatibility shims — build it right); the nav
+entry becomes `[05] tape`; the words "review" and "lookback" leave the public copy.
+
+## Principle (owner, 2026-08-08)
+
+Progress is day by day, week by week — and slow. The UI must not make the trader
+feel that. **Each day counts**, working toward the week, the month, the quarter.
+The tape therefore renders progress as a **compounding arc** (a cumulative line
+that builds), never as flat per-period marks, and the page carries a **to-date
+ladder** (day · week · month · quarter · year) so the current accumulation is
+always visible.
 
 ## Design (approved)
 
@@ -22,16 +31,21 @@ arc of every period — "the tape" — above it. `/lookback` is absorbed: the ol
 - **Header:** `/ the tape` + days-logged count (was "/ review").
 - **Horizon switcher:** the 9 chips (week · month · q1..q4 · h1 h2 · year) stay —
   they choose which tape is shown (each links to the current period of that horizon).
-- **THE TAPE** (new): a horizontal ribbon of every period of the selected horizon
-  that has data — a chronograph-style ticker in the site's rail language:
-  - One small vertical bar per period; bar height ∝ |sumR| relative to the largest
-    |sumR| in the tape, capped 28px, min 4px; green (`#4ade80`) when sumR > 0,
-    red (`#f87171`) when < 0, dim when 0.
-  - The current period is marked (caret + brighter bar).
-  - Sparse labels (a label under every 4th–6th bar) + `title`/`aria-label` on every
-    bar; native horizontal scroll (`overflow-x`).
-  - Every bar is an `<a>` to that period's canonical anchored URL (e.g.
-    `/week/2026-33`, `/q1/2026`) — zero-JS, plain SSR links.
+- **THE TAPE** (new): the chronological arc of the selected horizon, drawn as a
+  **compounding line** — a server-rendered SVG polyline of cumulative R from the
+  first data period to now (zero-JS, the site's chart language):
+  - One clickable point per period (an `<a>` to that period's canonical anchored
+    URL, e.g. `/week/2026-33`); the line connects them — the journey building.
+  - Point color by that period's sumR sign (green `#4ade80` / red `#f87171` /
+    dim at 0); the line color by the cumulative sign.
+  - The **current period is live**: the rightmost point carries the caret +
+    "now" marker (the pulsing now-dot language), so the tape extends to the
+    present, in progress.
+  - Sparse labels along the tape + `title`/`aria-label` per point; native
+    horizontal scroll (`overflow-x`) for long horizons.
+- **The to-date ladder** (one line under the tape): `day +0.4R · week +2.3R ·
+  month +5.1R · quarter +8.4R · year +21.6R` — cumulative R at each horizon
+  containing today. Each day visibly feeds the week, the month, the quarter.
 - The dossier below, unchanged: period line + prev/next → R centerpiece
   (sumR/expectancy/win rate/PF/trades/traded days) → per-account P&L → per-model →
   life metrics → days chips → trend table → reflection → AI comparison → journal
@@ -51,9 +65,9 @@ arc of every period — "the tape" — above it. `/lookback` is absorbed: the ol
 - **No new route.** The merged page lives at the existing
   `[periodType]/[...anchor]` route — all locked URL semantics preserved (bare `/q1`
   = current-year q1; canonical-only public anchors; malformed → 404).
-- `/lookback` → **301 redirect to `/week`** (replace the current `lookback.astro`
-  page content with the redirect; the `?type=` query is dropped — the horizon chips
-  replace it).
+- `/lookback` is **deleted — no redirect** (owner 2026-08-08: fresh new slate, no
+  old compatibility shims — the URL simply 404s). The horizon chips replace the old
+  `?type=` filter entirely.
 - Nav (`src/components/Nav.astro`): `[05] review` → `[05] tape` (href `/week`);
   `[06] lookback` deleted; renumber models → 06, accounts → 07, about → 08.
 - Public copy: the route `<title>` becomes `${range.label} — 1ed.ge` (drop
@@ -63,14 +77,17 @@ arc of every period — "the tape" — above it. `/lookback` is absorbed: the ol
 
 ### 4. Data + tests
 
-- New pure, tested helper in `src/lib/period-stats.ts`:
-  `buildTape(type, days, ctx, todayIso): { label, anchor, sumR }[]` — chronological
-  (oldest first), periods with data only, `sumR` per period via `aggregatePeriod`.
-- Tests: a multi-period fixture asserting chronological order, the data-only
-  filter, and the sumR values (extend `tests/period-stats.test.ts`).
+- New pure, tested helpers in `src/lib/period-stats.ts`:
+  - `buildTape(type, days, ctx, todayIso): { label, anchor, sumR, cumulative }[]`
+    — chronological (oldest first), periods with data only; `cumulative` = the
+    running sumR (the compounding arc the SVG draws).
+  - `toDateLadder(days, todayIso, ctx): { label, sumR }[]` — day · week · month ·
+    quarter · year cumulative R for the periods containing today.
+- Tests: chronological order, data-only filter, sumR + cumulative values, and the
+  ladder's horizon sums (extend `tests/period-stats.test.ts`).
 - Route cost: the tape computes one `aggregatePeriod` per period of the horizon
-  (~100 for 2 years of weeks) per request — the same cost /lookback already had
-  (<50ms, accepted, documented).
+  (~100 for 2 years of weeks) + the 5 ladder aggregates per request — the same
+  cost /lookback already had (<50ms, accepted, documented).
 
 ### 5. Out of scope
 
@@ -86,7 +103,7 @@ arc of every period — "the tape" — above it. `/lookback` is absorbed: the ol
   title), `src/pages/[periodType]/[...anchor].astro` (`buildTape` + title/meta
   copy), `src/components/Nav.astro` (tape + renumber), `src/lib/copy.ts`
   (cleanup), `src/lib/period-stats.ts` (`buildTape`), tests.
-- Replace: `src/pages/lookback.astro` (→ 301 redirect to `/week`).
+- Delete: `src/pages/lookback.astro` (no redirect — `/lookback` 404s; fresh slate).
 
 ## Constraints
 
