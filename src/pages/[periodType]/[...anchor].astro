@@ -21,7 +21,14 @@ if (!type) return new Response(null, { status: 404 })
 
 const anchor = Astro.params.anchor
 const index = type === 'quarter' ? Number(slug.slice(1)) : type === 'half' ? Number(slug.slice(1)) : undefined
-const representativeIso = anchor ? isoFromAnchor(type, anchor, index) : todayHkt()
+// Nested paths (e.g. /week/2026-32/extra) land in the [...anchor] rest param as
+// '2026-32/extra' and will throw from isoFromAnchor — return 404 instead of 500.
+let representativeIso: string
+try {
+  representativeIso = anchor ? isoFromAnchor(type, anchor, index) : todayHkt()
+} catch {
+  return new Response(null, { status: 404 })
+}
 const range: PeriodRange = periodRange(type, representativeIso)
 
 const [dayEntries, habitEntries, accountEntries, journalEntries, reviewEntries] = await Promise.all([
@@ -41,7 +48,7 @@ const ctx = {
 }
 
 const stats: PeriodStats = aggregatePeriod(days, range, ctx)
-const prevStats: PeriodStats | null = stats.daysCount > 0 && range.prev ? aggregatePeriod(days, range.prev, ctx) : null
+const prevStats: PeriodStats | null = stats.daysCount > 0 ? aggregatePeriod(days, range.prev, ctx) : null
 const trend: TrendPoint[] = stats.daysCount > 0 ? trendSeries(type, days, 8, ctx) : []
 
 const reviewEntry = reviewEntries.find((r) => r.data.type === type && r.data.anchor === range.anchor) ?? null

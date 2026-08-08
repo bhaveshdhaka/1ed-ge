@@ -5,6 +5,7 @@
  * reflection + AI comparison + journal entries + stream moments.
  */
 import { render } from 'astro:content'
+import type { CollectionEntry } from 'astro:content'
 import { periodHeader, REFLECTION, COMPARISON, THE_NUMBERS, TREND, EMPTY_PERIOD } from '../../lib/copy'
 import { fmtDay, fmtDayW } from '../../lib/dates'
 import { slugFromType, periodRange, PERIOD_TYPES, type PeriodRange } from '../../lib/periods'
@@ -24,9 +25,9 @@ interface Props {
   prevStats: PeriodStats | null
   trend: TrendPoint[]
   dayIsos: string[]
-  reviewEntry: any
+  reviewEntry: CollectionEntry<'reviews'> | null
   comparisonBody: string
-  journals: any[]
+  journals: CollectionEntry<'journal'>[]
   moments: ResolvedMoment[]
 }
 
@@ -48,6 +49,8 @@ const deltaLabels: Record<string, string> = {
   trades: 'trades',
   tradedDays: 'traded days',
 }
+
+const fmtDelta = (v: number) => (!Number.isFinite(v) ? (v > 0 ? '∞' : '−∞') : v.toFixed(2))
 
 const winPct = stats.winRate * 100
 const pfText = stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2)
@@ -274,8 +277,10 @@ const nextUrl = `/${slugFromType(range.next.type, range.next.index)}/${range.nex
               <div class="flex flex-col gap-1">
                 {deltas.map((d) => (
                   <p class="text-sm text-soft">
-                    · {deltaLabels[d.field] ?? d.field}: {d.cur.toFixed(2)} vs {d.prev.toFixed(2)}
-                    {d.pct !== null ? ` (${d.pct > 0 ? '+' : ''}${(d.pct * 100).toFixed(0)}%)` : ''}
+                    · {deltaLabels[d.field] ?? d.field}: {fmtDelta(d.cur)} vs {fmtDelta(d.prev)}
+                    {d.pct !== null && Number.isFinite(d.pct)
+                      ? ` (${d.pct > 0 ? '+' : ''}${(d.pct * 100).toFixed(0)}%)`
+                      : ''}
                   </p>
                 ))}
               </div>
