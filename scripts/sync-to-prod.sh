@@ -148,6 +148,10 @@ fi
 
 # 6. Apply: checkout the allowed files from preprod, commit.
 # MEMORY is opt-in (handled above).
+# GIT_LITERAL_PATHSPECS: paths like src/pages/admin/[secret]/index.astro contain
+# brackets that git pathspecs interpret as glob character classes — treat every
+# path literally so deletions (files absent from FETCH_HEAD) propagate correctly.
+export GIT_LITERAL_PATHSPECS=1
 git checkout FETCH_HEAD -- "${ALLOWED[@]}"
 git add "${ALLOWED[@]}"
 git commit -m "sync: bring preprod cleanups to main ($(printf '%d' "${#ALLOWED[@]}") files)
