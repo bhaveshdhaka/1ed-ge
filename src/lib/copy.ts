@@ -63,6 +63,8 @@ export const REFLECTION = 'reflection'
 export const COMPARISON = 'comparison · from verified data'
 export const THE_NUMBERS = 'the numbers'
 export const TREND = 'trend'
+
+export const TAPE = 'the tape'
 export const VIEW_REVIEW = 'view review →'
 
 /** Empty states. */

@@ -493,3 +493,10 @@
 .lb-close { right: 0.5rem; }
 .lb-prev { left: 0.5rem; top: 50%; transform: translateY(-50%); }
 .lb-next { right: 0.5rem; top: 50%; transform: translateY(-50%); }
+
+/* the tape — live current-period dot */
+@keyframes tape-pulse {
+  0%, 100% { opacity: 1 }
+  50% { opacity: 0.35 }
+}
+.tape-dot-now { animation: tape-pulse 2s ease-in-out infinite; }
