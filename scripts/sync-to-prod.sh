@@ -171,7 +171,9 @@ fi
 if [ ${#DELETED[@]} -gt 0 ]; then
   echo "→ removing (deleted on preprod):"
   for f in "${DELETED[@]}"; do echo "    $f"; done
-  git rm -q -- "${DELETED[@]}"
+  # --ignore-unmatch: tolerate paths already absent from the index (e.g. a
+  # prior partial checkout removed them); git rm errors otherwise.
+  git rm -q --ignore-unmatch -- "${DELETED[@]}"
 fi
 git add "${ALLOWED[@]}"
 git commit -m "sync: bring preprod cleanups to main ($(printf '%d' "${#ALLOWED[@]}") files)
