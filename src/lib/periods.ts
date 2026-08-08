@@ -79,7 +79,9 @@ export function periodRange(type: PeriodType, representativeIso: string): Period
     // prev/next are lazy getters: eager evaluation would recurse infinitely
     // (periodRange → base → periodRange has no base case). A getter computes
     // exactly one adjacent range on access, so .prev/.next chains terminate.
-    const range: PeriodRange = {
+    // Custom inspect: the getters make every range's object graph infinitely
+    // deep, which would hang util.inspect (assertion diff messages, debugging).
+    const range = {
       type,
       anchor,
       label,
@@ -88,7 +90,8 @@ export function periodRange(type: PeriodType, representativeIso: string): Period
       index,
       get prev() { return periodRange(type, rep(-1)) },
       get next() { return periodRange(type, rep(1)) },
-    }
+      [Symbol.for('nodejs.util.inspect.custom')]: () => `PeriodRange(${type} ${anchor}: ${startIso}..${endIso})`,
+    } as PeriodRange
     return range
   }
   switch (type) {
@@ -137,24 +140,37 @@ export function periodRangesBetween(type: PeriodType, fromIso: string, toIso: st
 /** Public-route URL resolution: slug + optional anchor → period range, or null (404).
  *  Bare quarter/half slugs resolve to that index of the current year; week/month/year
  *  bare slugs are the current period. Quarter/half anchors are canonical year-only
- *  (`/q1/2026`); anything else returns null. Malformed anchors → null. */
-export function resolvePeriod(slug: string, anchor: string | undefined, todayIso: string): PeriodRange | null {
+ *  (`/q1/2026`); anything else returns null. Malformed anchors → null.
+ *  FUTURE PERIODS DON'T EXIST: a period whose startIso is after todayIso returns null
+ *  (the caller decides 404 vs redirect). Pass `{ allowFuture: true }` to get the
+ *  range anyway — used to detect that a null was caused by futurity (→ redirect to
+ *  today's period) rather than by a bad URL (→ 404). */
+export function resolvePeriod(
+  slug: string,
+  anchor: string | undefined,
+  todayIso: string,
+  opts?: { allowFuture?: boolean },
+): PeriodRange | null {
   const type = periodTypeFromSlug(slug)
   if (!type) return null
   try {
+    let range: PeriodRange
     if (anchor === undefined || anchor === '') {
       if (type === 'quarter' || type === 'half') {
         const index = Number(slug.slice(1))
-        return periodRange(type, isoFromAnchor(type, todayIso.slice(0, 4), index))
+        range = periodRange(type, isoFromAnchor(type, todayIso.slice(0, 4), index))
+      } else {
+        range = periodRange(type, todayIso)
       }
-      return periodRange(type, todayIso)
-    }
-    if (type === 'quarter' || type === 'half') {
+    } else if (type === 'quarter' || type === 'half') {
       if (!/^\d{4}$/.test(anchor)) return null
       const index = Number(slug.slice(1))
-      return periodRange(type, isoFromAnchor(type, anchor, index))
+      range = periodRange(type, isoFromAnchor(type, anchor, index))
+    } else {
+      range = periodRange(type, isoFromAnchor(type, anchor))
     }
-    return periodRange(type, isoFromAnchor(type, anchor))
+    if (!opts?.allowFuture && range.startIso > todayIso) return null
+    return range
   } catch {
     return null
   }

@@ -21,18 +21,18 @@ const habitStats = buildHabitStats(habits, days)
 const trends = buildTrends(days, accounts)
 const s = overall
 
-const cards = [
-  { label: 'cumulative R', value: s.totalTrades ? `${s.sumR > 0 ? '+' : ''}${s.sumR.toFixed(2)}R` : '—', up: s.sumR >= 0 },
+const cards: { label: string; value: string; up?: boolean; dim?: boolean }[] = [
+  { label: 'cumulative R', value: s.totalTrades ? `${s.sumR > 0 ? '+' : ''}${s.sumR.toFixed(2)}R` : '—', up: s.sumR > 0 ? true : s.sumR < 0 ? false : undefined },
   { label: 'trades', value: String(s.totalTrades || 0) },
-  { label: 'win rate', value: s.totalTrades ? `${s.winRate!.toFixed(1)}%` : '—' },
+  { label: 'win rate', value: s.winRate === null ? '—' : `${s.winRate.toFixed(1)}%` },
   { label: 'profit factor', value: s.totalTrades ? (s.profitFactor === Infinity ? '∞' : s.profitFactor === null ? '—' : s.profitFactor.toFixed(2)) : '—' },
-  { label: 'expectancy', value: s.totalTrades ? `${s.expectancy > 0 ? '+' : ''}${s.expectancy.toFixed(2)}R` : '—', up: s.expectancy >= 0 },
-  { label: 'avg R', value: s.totalTrades ? `${s.avgR > 0 ? '+' : ''}${s.avgR.toFixed(2)}R` : '—', up: s.avgR >= 0 },
-  { label: 'best trade', value: s.totalTrades ? `+${s.bestR.toFixed(2)}R` : '—' },
-  { label: 'worst trade', value: s.totalTrades ? `${s.worstR.toFixed(2)}R` : '—', up: false },
+  { label: 'expectancy', value: s.totalTrades ? `${s.expectancy > 0 ? '+' : ''}${s.expectancy.toFixed(2)}R` : '—', up: s.expectancy > 0 ? true : s.expectancy < 0 ? false : undefined },
+  { label: 'avg R', value: s.totalTrades ? `${s.avgR > 0 ? '+' : ''}${s.avgR.toFixed(2)}R` : '—', up: s.avgR > 0 ? true : s.avgR < 0 ? false : undefined },
+  { label: 'best trade', value: s.totalTrades ? `${s.bestR > 0 ? '+' : ''}${s.bestR.toFixed(2)}R` : '—', up: s.bestR > 0 ? true : s.bestR < 0 ? false : undefined },
+  { label: 'worst trade', value: s.totalTrades ? `${s.worstR > 0 ? '+' : ''}${s.worstR.toFixed(2)}R` : '—', up: s.worstR > 0 ? true : s.worstR < 0 ? false : undefined },
   { label: 'max dd (R)', value: s.totalTrades ? `${s.maxDrawdownR.toFixed(2)}R` : '—', up: false },
   { label: 'gross $ pnl', value: s.totalTrades ? fmtPnl(sumPnl) : '—' },
-  { label: 'payouts taken', value: payoutTotal ? fmtPnl(payoutTotal) : '—' },
+  { label: 'payouts taken', value: payoutTotal ? fmtPnl(payoutTotal).replace('+', '') : '—', dim: true },
   { label: 'days traded', value: String(s.daysWithTrades || 0) },
 ]
 
@@ -48,7 +48,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       <span class="text-[12px] text-faint">R = points risked vs points made</span>
     </div>
 
-    <div class="sticky top-[76px] z-10 mt-6 -mx-1 border-b border-line bg-bg/95 px-1 py-1 backdrop-blur md:top-[84px]">
+    <div class="sticky top-0 z-10 mt-6 -mx-1 border-b border-line bg-bg/95 px-1 py-1 backdrop-blur">
       <div class="flex gap-1 overflow-x-auto text-[12px]" tabindex="0">
         {[
           ['summary', 'stats'],
@@ -69,7 +69,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       {cards.map((c) => (
         <div class="bg-bg p-4">
           <div class="text-[10px] uppercase tracking-widest text-dim">{c.label}</div>
-          <div class:list={['mt-1.5 text-lg', c.up === undefined ? 'text-ink' : c.up ? 'num-up' : 'num-down']}>{c.value}</div>
+          <div class:list={['mt-1.5 text-lg', c.dim ? 'text-dim' : c.up === undefined ? 'text-ink' : c.up ? 'num-up' : 'num-down']}>{c.value}</div>
         </div>
       ))}
     </div>
@@ -79,7 +79,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
         <EquityCurve points={s.equityR} color="var(--color-up)" label="equity curve — cumulative R" />
       </div>
       <div class="panel p-5">
-        <EquityCurve points={s.equityPnl} color="var(--chart-alt)" label="equity curve — $ pnl (all accounts)" />
+        <EquityCurve points={s.equityPnl} color="var(--chart-alt)" label="equity curve — $ pnl (all accounts)" footer={`${s.equityPnl.length} executions`} />
       </div>
     </div>
 
@@ -184,9 +184,9 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
     </div>
 
     <h2 id="habits" class="mt-14 scroll-mt-28 text-lg">/ habits</h2>
-    <div class="mt-4 grid gap-10 lg:grid-cols-2">
+    <div class="mt-4 grid min-w-0 gap-10 lg:grid-cols-2">
       {habitStats.map((h) => (
-        <div class="panel p-5">
+        <div class="min-w-0 panel p-5">
           <div class="flex items-baseline justify-between">
             <div class="flex items-baseline gap-2"><span class="text-[15px] text-ink">{h.emoji ?? '·'} {h.name}</span></div>
             <span class="text-[11px] uppercase tracking-widest text-faint">streak</span>
@@ -222,13 +222,13 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       </table>
     </div>
 
-    <div class="mt-10 grid gap-10 lg:grid-cols-2">
-      <div><h2 class="text-lg">/ R by sleep</h2><div class="mt-4 panel"><CorrTable label="bucket" rows={trends.correlations.sleep} /></div></div>
-      <div><h2 class="text-lg">/ R by mood</h2><div class="mt-4 panel"><CorrTable label="bucket" rows={trends.correlations.mood} /></div></div>
-      <div><h2 class="text-lg">/ R by habits</h2><div class="mt-4 panel"><CorrTable label="bucket" rows={trends.correlations.habits} /></div></div>
-      <div><h2 class="text-lg">/ R by screen</h2><div class="mt-4 panel"><CorrTable label="bucket" rows={trends.correlations.screen} /></div></div>
-      <div><h2 class="text-lg">/ R by session</h2><div class="mt-4 panel"><CorrTable label="session" rows={trends.correlations.session} /></div></div>
-      <div><h2 class="text-lg">/ R by setup</h2><div class="mt-4 panel"><CorrTable label="setup" rows={trends.correlations.setup} /></div></div>
+    <div class="mt-10 grid min-w-0 gap-10 lg:grid-cols-2">
+      <div class="min-w-0"><h2 class="text-lg">/ R by sleep</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.sleep} /></div></div>
+      <div class="min-w-0"><h2 class="text-lg">/ R by mood</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.mood} /></div></div>
+      <div class="min-w-0"><h2 class="text-lg">/ R by habits</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.habits} /></div></div>
+      <div class="min-w-0"><h2 class="text-lg">/ R by screen</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.screen} /></div></div>
+      <div class="min-w-0"><h2 class="text-lg">/ R by session</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="session" rows={trends.correlations.session} /></div></div>
+      <div class="min-w-0"><h2 class="text-lg">/ R by setup</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="setup" rows={trends.correlations.setup} /></div></div>
     </div>
 
     {trends.flags.length > 0 && (

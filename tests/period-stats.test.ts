@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { periodRange, periodRangesBetween } from '../src/lib/periods'
-import { aggregatePeriod, buildTape, periodDelta, toDateLadder, trendSeries, type PeriodStats, type PeriodStatsCtx } from '../src/lib/period-stats'
+import { aggregatePeriod, buildTape, hasPeriodData, periodDelta, toDateLadder, trendSeries, type PeriodStats, type PeriodStatsCtx } from '../src/lib/period-stats'
 import type { DayData, DayTrade } from '../src/lib/stream'
 
 const approx = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) < eps
@@ -110,6 +110,32 @@ test('aggregatePeriod: profitFactor ∞ when there are winners but no losers', (
   assert.equal(aggregatePeriod(winOnly, range, ctx).profitFactor, Infinity)
 })
 
+test('aggregatePeriod: break-even (R 0) is excluded from the win-rate denominator', () => {
+  const beDays: DayData[] = [
+    day('2026-08-03', [
+      trade({ points: 2, riskPoints: 1 }), // win R 2
+      trade({ points: 1, riskPoints: 1 }), // win R 1
+      trade({ points: -1, riskPoints: 1 }), // loss R -1
+      trade({ points: 0, riskPoints: 1 }), // break-even R 0
+    ]),
+  ]
+  const s = aggregatePeriod(beDays, range, ctx)
+  assert.equal(s.trades, 4)
+  assert.ok(approx(s.winRate, 2 / 3), `winRate = ${s.winRate}`)
+})
+
+test('aggregatePeriod: mid-period habit introduction is not diluted', () => {
+  const introDays: DayData[] = [
+    // 'quiet-time' is not tracked on 03-aug (no key in the habits object)
+    day('2026-08-03', [trade({ points: 1 })], { habits: { read: 45 } }),
+    day('2026-08-04', [trade({ points: 1 })], { habits: { 'quiet-time': true, read: 10 } }),
+  ]
+  const s = aggregatePeriod(introDays, range, ctx)
+  const byHabit = Object.fromEntries(s.habitAdherence.map((h) => [h.habit, h.pct]))
+  assert.equal(byHabit['quiet-time'], 100) // 1 tracked day, 1 done — not 50%
+  assert.equal(byHabit['read'], 50) // 45 ≥ 30 ✓, 10 < 30 ✗ → 1/2
+})
+
 function base(over: Partial<PeriodStats> = {}): PeriodStats {
   return {
     daysCount: 5,
@@ -162,6 +188,17 @@ test('periodDelta: pct is null when prev is 0', () => {
   assert.equal(byField.profitFactor.pct, null)
   assert.equal(byField.tradedDays.pct, null)
   assert.equal(byField.expectancyR.pct, null)
+})
+
+test('hasPeriodData: an empty previous period is the caller guard point (contract)', () => {
+  const empty = aggregatePeriod([], range, ctx)
+  assert.equal(hasPeriodData(null), false)
+  assert.equal(hasPeriodData(empty), false) // daysCount 0 → no phantom deltas
+  assert.equal(hasPeriodData(base({ daysCount: 5 })), true)
+  // periodDelta against a daysCount-0 prev is dumb arithmetic that WOULD run —
+  // that is exactly why the caller must guard with hasPeriodData first.
+  const cur = aggregatePeriod(days, range, ctx)
+  assert.ok(periodDelta(empty, cur).length > 0)
 })
 
 test('trendSeries: last n weeks oldest→newest', () => {

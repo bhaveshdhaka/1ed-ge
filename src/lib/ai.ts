@@ -442,8 +442,8 @@ Rules:
 
 export async function dailyBrief(snapshot: string): Promise<string> {
   const system = `You write the daily pre-market brief for 1ed.ge, a trader's public journal on the road to a hedge fund. R is the centerpiece.
-Write ONE short markdown brief (~100-140 words) covering: today's market sessions, the key red/orange USD events with their HKT times, and the trading context from the most recent day.
-Tone: plain, honest, focused, zero hype. Ground EVERYTHING in the data you're given — never invent numbers, events, times or prices. Mention the red/orange events by name and HKT time exactly as given. One short intro line, a line on the day's shape, a line on the red events, a closing line. No headings, no lists, no emojis.`
+Write ONE short markdown brief (~100-140 words) covering: today's market sessions, the key USD news events with their HKT times, and the trading context from the most recent day.
+Tone: plain, honest, focused, zero hype. Ground EVERYTHING in the data you're given — never invent numbers, events, times or prices. Mention the news events by name and HKT time exactly as given. One short intro line, a line on the day's shape, a line on the news events, a closing line. No headings, no lists, no emojis.`
   const raw = await orChat(
     [
       { role: 'system', content: system },

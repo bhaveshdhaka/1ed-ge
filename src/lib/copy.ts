@@ -36,10 +36,14 @@ export function liveLine(live: boolean, lastSeenDays: number | null): string {
 /**
  * The pending-reflection nudge line, or null when nothing is due.
  *
+ * ONE compact line, always: period fragments are aggregated by type with
+ * counts instead of listed individually (a year of missed weeks must not
+ * render as a wall of text).
+ *
  * - `trader has 1 day's pending end of day reflection`
  * - `trader has 2 days' pending end of day reflection`
- * - `week 31 reflection missing` / `month reflection missing` / …
- * - Combined: `trader has 2 days' pending end of day reflection · week 31 reflection missing`
+ * - `1 weekly reflection missing`
+ * - Combined: `trader has 2 days' pending end of day reflection · 1 weekly · 1 monthly reflections missing`
  */
 export function pendingReflectionsLine(pendingDays: number, pendingPeriods: string[]): string | null {
   const parts: string[] = []
@@ -47,8 +51,21 @@ export function pendingReflectionsLine(pendingDays: number, pendingPeriods: stri
     const dayWord = pendingDays === 1 ? "1 day's" : `${pendingDays} days'`
     parts.push(`trader has ${dayWord} pending end of day reflection`)
   }
+  const counts = { weekly: 0, monthly: 0, quarterly: 0, 'half-year': 0, yearly: 0 }
+  let total = 0
   for (const p of pendingPeriods) {
-    if (p) parts.push(`${p} reflection missing`)
+    if (!p) continue
+    total++
+    if (p.startsWith('week ')) counts.weekly++
+    else if (p === 'month') counts.monthly++
+    else if (p === 'quarter') counts.quarterly++
+    else if (p === 'half') counts['half-year']++
+    else if (p === 'year') counts.yearly++
+    else counts.weekly++ // unknown fragment — still counted, don't drop it
+  }
+  if (total > 0) {
+    const agg = Object.entries(counts).filter(([, n]) => n > 0).map(([word, n]) => `${n} ${word}`)
+    if (agg.length > 0) parts.push(`${agg.join(' · ')} reflection${total === 1 ? '' : 's'} missing`)
   }
   return parts.length === 0 ? null : parts.join(' · ')
 }

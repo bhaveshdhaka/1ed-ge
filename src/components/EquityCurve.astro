@@ -4,9 +4,11 @@ interface Props {
   height?: number
   color?: string
   label?: string
+  /** Footer count label; defaults to "{points.length} trades". */
+  footer?: string
 }
 
-const { points, height = 220, color = 'var(--color-up)', label } = Astro.props
+const { points, height = 220, color = 'var(--color-up)', label, footer } = Astro.props
 const W = 900
 const H = height
 const padX = 8
@@ -49,7 +51,7 @@ const last = points[points.length - 1]
           {minY < 0 ? minY.toFixed(0) : `+${minY.toFixed(0)}`}
         </text>
         <text x={W - padX - 3} y={H - 4} fill="var(--color-faint)" font-size="10" text-anchor="end">
-          {points.length} trades
+          {footer ?? `${points.length} trades`}
         </text>
       </svg>
     </div>

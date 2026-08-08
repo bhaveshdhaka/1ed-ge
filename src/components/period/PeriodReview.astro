@@ -8,7 +8,8 @@ import { render } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
 import { periodHeader, TAPE, REFLECTION, COMPARISON, THE_NUMBERS, TREND, EMPTY_PERIOD } from '../../lib/copy'
 import { fmtDay, fmtDayW } from '../../lib/dates'
-import { slugFromType, publicAnchor, type PeriodRange } from '../../lib/periods'
+import { slugFromType, publicAnchor, resolvePeriod, type PeriodRange } from '../../lib/periods'
+import { todayHkt } from '../../lib/sessions'
 import { periodDelta, type TapePoint, type LadderEntry, type PeriodStats, type TrendPoint } from '../../lib/period-stats'
 import type { ResolvedMoment } from '../../lib/stream'
 import Card from '../ui/Card.astro'
@@ -51,16 +52,30 @@ const deltaLabels: Record<string, string> = {
   tradedDays: 'traded days',
 }
 
-const fmtDelta = (v: number) => (Number.isNaN(v) ? '—' : !Number.isFinite(v) ? (v > 0 ? '∞' : '−∞') : v.toFixed(2))
+/** Per-field formatting for the verified-data comparison: win rate as %, counts as integers, R/expectancy/PF as decimals. */
+const fmtCmp = (field: string, v: number) => {
+  if (Number.isNaN(v)) return '—'
+  if (!Number.isFinite(v)) return v > 0 ? '∞' : '−∞'
+  if (field === 'winRate') return `${(v * 100).toFixed(0)}%`
+  if (field === 'trades' || field === 'tradedDays') return String(Math.round(v))
+  return v.toFixed(2)
+}
 
 const winPct = stats.winRate * 100
 const pfText = stats.profitFactor === Infinity ? '∞' : stats.profitFactor.toFixed(2)
 
 const pathType = Astro.url.pathname.split('/')[1] ?? ''
-const switcher = ['week', 'month', 'q1', 'q2', 'q3', 'q4', 'h1', 'h2', 'year'].map((slug) => ({ slug, label: slug }))
+const today = todayHkt()
+const switcher = ['week', 'month', 'q1', 'q2', 'q3', 'q4', 'h1', 'h2', 'year'].map((slug) => ({
+  slug,
+  label: slug,
+  // A period that starts after today doesn't exist yet — its chip is disabled.
+  future: resolvePeriod(slug, undefined, today) === null,
+}))
 
 const prevUrl = `/${slugFromType(range.prev.type, range.prev.index)}/${publicAnchor(range.prev.type, range.prev.anchor)}`
 const nextUrl = `/${slugFromType(range.next.type, range.next.index)}/${publicAnchor(range.next.type, range.next.anchor)}`
+const nextIsFuture = range.next.startIso > today
 
 const SPACING = 30
 const TAPE_H = 140
@@ -95,17 +110,23 @@ const last = tape.length - 1
       >
         ← {range.prev.label}
       </a>
-      <a
-        href={nextUrl}
-        class="flex h-10 items-center border border-line px-3 text-xs text-dim transition-colors hover:border-accent hover:text-ink"
-      >
-        {range.next.label} →
-      </a>
+      {nextIsFuture ? (
+        <span class="flex h-10 items-center px-3 text-xs text-faint">{range.next.label} →</span>
+      ) : (
+        <a
+          href={nextUrl}
+          class="flex h-10 items-center border border-line px-3 text-xs text-dim transition-colors hover:border-accent hover:text-ink"
+        >
+          {range.next.label} →
+        </a>
+      )}
     </div>
     <div class="flex flex-wrap gap-1.5">
       {switcher.map((s) => {
         const active = pathType === s.slug
-        return (
+        return s.future ? (
+          <span class="cursor-not-allowed border border-line px-2.5 py-1 text-2xs text-faint opacity-60">{s.label}</span>
+        ) : (
           <a
             href={`/${s.slug}`}
             aria-current={active ? 'page' : undefined}
@@ -123,7 +144,7 @@ const last = tape.length - 1
 
   {tape.length > 0 && (
     <section class="mt-10">
-      <h2 class="text-lg text-ink">/ {TAPE}</h2>
+      <h2 class="text-lg text-ink">/ cumulative R</h2>
       <div class="mt-3 overflow-x-auto">
         <svg
           viewBox={`0 0 ${tWidth} ${TAPE_H}`}
@@ -184,7 +205,7 @@ const last = tape.length - 1
             value={`${stats.expectancyR >= 0 ? '+' : ''}${stats.expectancyR.toFixed(2)}R`}
             tone={stats.expectancyR > 0 ? 'up' : stats.expectancyR < 0 ? 'down' : 'default'}
           />
-          <StatCard label="win rate" value={`${winPct.toFixed(0)}%`} />
+          <StatCard label="win rate" value={stats.winRate > 0 ? `${winPct.toFixed(0)}%` : '—'} />
           <StatCard label="profit factor" value={pfText} />
           <StatCard label="trades" value={String(stats.trades)} />
           <StatCard label="traded days" value={String(stats.tradedDays)} />
@@ -292,7 +313,7 @@ const last = tape.length - 1
                   {pt.sumR > 0 ? '+' : ''}
                   {pt.sumR.toFixed(2)}R
                 </td>
-                <td class="td text-right tabular-nums">{(pt.winRate * 100).toFixed(0)}%</td>
+                <td class="td text-right tabular-nums">{pt.winRate > 0 ? `${(pt.winRate * 100).toFixed(0)}%` : '—'}</td>
                 <td class="td text-right tabular-nums">{pt.trades}</td>
               </tr>
             ))}
@@ -336,7 +357,7 @@ const last = tape.length - 1
               <div class="flex flex-col gap-1">
                 {deltas.map((d) => (
                   <p class="text-sm text-soft">
-                    · {deltaLabels[d.field] ?? d.field}: {fmtDelta(d.cur)} vs {fmtDelta(d.prev)}
+                    · {deltaLabels[d.field] ?? d.field}: {fmtCmp(d.field, d.cur)} vs {fmtCmp(d.field, d.prev)}
                     {d.pct !== null && Number.isFinite(d.pct)
                       ? ` (${d.pct > 0 ? '+' : ''}${(d.pct * 100).toFixed(0)}%)`
                       : ''}
@@ -370,7 +391,6 @@ const last = tape.length - 1
                 class="block border border-line bg-panel p-4 transition-colors hover:border-accent"
               >
                 <div class="text-2xs text-faint">{fmtDayW(j.data.date)}</div>
-                {j.data.day && <div class="mt-1 text-sm text-ink">{j.data.day}</div>}
                 {j.data.summary && <p class="mt-1 text-sm text-soft">{j.data.summary}</p>}
                 {j.data.tags && j.data.tags.length > 0 && (
                   <div class="mt-2 flex flex-wrap gap-1.5">

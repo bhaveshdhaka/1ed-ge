@@ -56,9 +56,9 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
 
             <div class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
               <StatCard label="trades" value={String(m.count)} />
-              <StatCard label="total R" value={`${m.sumR >= 0 ? '+' : ''}${m.sumR.toFixed(2)}`} tone={m.sumR >= 0 ? 'up' : 'down'} />
-              <StatCard label="avg R" value={`${m.avgR >= 0 ? '+' : ''}${m.avgR.toFixed(2)}`} tone={m.avgR >= 0 ? 'up' : 'down'} />
-              <StatCard label="win rate" value={`${Math.round(m.winRate * 100)}%`} />
+              <StatCard label="total R" value={`${m.sumR > 0 ? '+' : ''}${m.sumR.toFixed(2)}`} tone={m.sumR > 0 ? 'up' : m.sumR < 0 ? 'down' : 'default'} />
+              <StatCard label="avg R" value={`${m.avgR > 0 ? '+' : ''}${m.avgR.toFixed(2)}`} tone={m.avgR > 0 ? 'up' : m.avgR < 0 ? 'down' : 'default'} />
+              <StatCard label="win rate" value={m.winRate > 0 ? `${Math.round(m.winRate * 100)}%` : '—'} />
             </div>
 
             {m.count > 0 && (
@@ -75,8 +75,8 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
                       <td class="td">{t.direction === 'long' ? '▲' : '▼'}</td>
                       <td class="td">{t.setup ?? '—'}</td>
                       <td class="td">{t.session ?? '—'}</td>
-                      <td class="td" class:list={[t.R >= 0 ? 'text-up' : 'text-down']}>{t.R >= 0 ? '+' : ''}{t.R.toFixed(2)}</td>
-                      <td class="td" class:list={[t.points >= 0 ? 'text-up' : 'text-down']}>{t.points >= 0 ? '+' : ''}{t.points}</td>
+                      <td class="td" class:list={[t.R > 0 ? 'text-up' : t.R < 0 ? 'text-down' : 'text-dim']}>{t.R > 0 ? '+' : ''}{t.R.toFixed(2)}</td>
+                      <td class="td" class:list={[t.points > 0 ? 'text-up' : t.points < 0 ? 'text-down' : 'text-dim']}>{t.points > 0 ? '+' : ''}{t.points}</td>
                     </tr>
                   ))}
                 </Table>

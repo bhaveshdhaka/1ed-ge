@@ -5,6 +5,8 @@ import ThemeBackground from '../components/ThemeBackground.astro'
 import MarketLive from '../components/MarketLive.astro'
 import MarketFooter from '../components/MarketFooter.astro'
 import Lightbox from '../components/Lightbox.astro'
+import { todayHkt } from '../lib/sessions'
+import { parseDay } from '../lib/dates'
 
 interface Props {
   title?: string
@@ -24,6 +26,14 @@ const noindex = noindexProp || (typeof process !== 'undefined' && process.env.SI
 const theme = 'summit'
 const SITE = 'https://1ed.ge'
 const canonical = new URL(Astro.url.pathname, SITE)
+
+// The live market footer + ticker only belong on today's pages — a past-day
+// archive must not render today's "opens in / closes in" countdowns as live.
+const dayIso = (() => {
+  const m = Astro.url.pathname.match(/^\/day\/([a-z0-9-]+)\/?$/)
+  return m ? parseDay(m[1]) : null
+})()
+const showLiveMarket = dayIso === null || dayIso === todayHkt()
 ---
 
 <!doctype html>
@@ -77,11 +87,13 @@ const canonical = new URL(Astro.url.pathname, SITE)
         <span>1edge — everything public, nothing hidden</span>
         <span class="text-faint">R is the only metric that matters.</span>
       </div>
-      <div class="mt-4 border-t border-line/50 pt-2 text-[12px]">
-        <MarketFooter />
-      </div>
+      {showLiveMarket && (
+        <div class="mt-4 border-t border-line/50 pt-2 text-[12px]">
+          <MarketFooter />
+        </div>
+      )}
     </footer>
-    <MarketLive />
+    {showLiveMarket && <MarketLive />}
     <Lightbox />
   </body>
 </html>

@@ -143,7 +143,7 @@ export function RebuildBar() {
           )}
           {running ? (
             <p className="py-1 text-[12px] text-faint">
-              rebuilding the site — static pages update in place, no restart needed. you can keep working.
+              rebuilding the site — static pages update in place · / , /stream, /accounts and the tape refresh on deploy. you can keep working.
             </p>
           ) : pending.length === 0 ? (
             <p className="py-1 text-[12px] text-faint">nothing queued — the site reflects the latest build.</p>

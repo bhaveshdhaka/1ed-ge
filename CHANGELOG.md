@@ -6,6 +6,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (QA bug batch — 2026-08-08, pre-prod)
+
+- **Day-page section order** matches the spec: facts → trades → news events →
+  brief → reflection → moments → habits → screen-time → coach (was
+  facts → moments → trades → habits → screen-time → news → reflection → coach).
+- **"day {N}" without "of {total}"** — the 730 framing is gone from `/day`.
+- **"USD news" → "News events"** everywhere (day page, home widget, calendar,
+  day panel — which also dropped the "red/orange" severity words).
+- **Live market footer suppressed on past-day pages** — the "opens in / closes
+  in" countdown no longer pretends to be live on `/day/<past>`.
+- **Homepage/zen nudge is ONE compact line** — pending reflections aggregate by
+  type with counts instead of a wall of every missing week/month/quarter.
+- **/performance no longer overflows horizontally on mobile** (habit heatmap
+  cards + trend tables clip inside their panels via `min-w-0`).
+- **/journal**: month counts labeled ("· N posts"), "1 trade" singular, and the
+  project-day counter ("Day 666") removed from cards and the search index —
+  entries show their date only.
+- **Tape comparison card** formats win rate as % and counts without decimals;
+  the duplicate "/ the tape" heading is gone (h2 is now "/ cumulative R");
+  empty previous periods no longer render phantom "vs 0.00" deltas.
+- **Stats engine**: drawdown/buffer is now payout-timing-aware (a chronological
+  net-equity walk); idea $ = Σ of all its executions so profit factor
+  reconciles with gross $ pnl; habits/trends run on the HKT clock (not UTC);
+  `pctAll`/`pct30` use per-habit tracked days; break-even trades no longer count
+  as losses in win rate; "7d/30d/90d" windows are exact; the overtrading flag
+  counts trade ideas, not executions; unknown-account executions no longer
+  invent $ in totals.
+- **Future periods don't render** — `/week/2026-33`, `/q4`, `/year/2027`, …
+  return a 307 redirect to today's period of the same type (`/week`, `/q3`,
+  `/year`); malformed URLs still 404; the tape's next-arrow and switcher chips
+  for not-yet-started periods are disabled. (Also: `PeriodRange` got a custom
+  `util.inspect` — the lazy prev/next getters previously hung any failing
+  assertion or debug print that inspected a range object.)
+- **Copy/terminology**: payouts shown without a gain-style "+", equity $ curve
+  footer says "N executions", `/about` "trading mnq (micro e-mini nasdaq-100)"
+  and the "2y" milestone reworded, accounts lifecycle header includes `funded`,
+  AI brief prompts say "CME Globex" and "news events".
+- **A11y**: h1s on `/day` and `/models`, lightbox `<dialog>` named, zen
+  ImageDropZone keyboard-operable, media delete button labeled, sticky subnav
+  offset removed, RebuildBar copy accurate about SSR refresh-on-deploy.
+
 ### Changed (The tape — one holistic period recap)
 
 - **`/lookback` + the period review merge into ONE page — "the tape"** — at the

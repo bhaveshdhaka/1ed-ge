@@ -120,11 +120,55 @@ test('resolvePeriod — malformed/mismatched anchors → null', () => {
   assert.equal(resolvePeriod('month', '2026', '2026-08-08'), null) // year-style anchor in month
   assert.equal(resolvePeriod('bogus', undefined, '2026-08-08'), null) // unknown slug
 })
-test('public URLs round-trip through resolvePeriod (prev/next + archive links)', () => {
+test('resolvePeriod — future periods do not resolve by default (caller 404s or redirects)', () => {
+  // entirely-future anchored periods
+  assert.equal(resolvePeriod('week', '2026-33', '2026-08-08'), null) // starts mon 10-aug
+  assert.equal(resolvePeriod('week', '2026-40', '2026-08-08'), null)
+  assert.equal(resolvePeriod('month', '2026-09', '2026-08-08'), null)
+  assert.equal(resolvePeriod('month', '2027-01', '2026-08-08'), null)
+  assert.equal(resolvePeriod('year', '2027', '2026-08-08'), null)
+  // future quarters/halves of the current year (bare + anchored)
+  assert.equal(resolvePeriod('q4', undefined, '2026-08-08'), null) // q4 2026 starts 01-oct
+  assert.equal(resolvePeriod('q4', '2026', '2026-08-08'), null)
+  assert.equal(resolvePeriod('h2', '2027', '2026-08-08'), null)
+  // past + in-progress periods still resolve
+  assert.equal(resolvePeriod('q3', undefined, '2026-08-08')!.anchor, '2026-q3') // in progress (01-jul..30-sep)
+  assert.equal(resolvePeriod('h2', undefined, '2026-08-08')!.anchor, '2026-h2') // in progress
+  assert.equal(resolvePeriod('week', undefined, '2026-08-08')!.anchor, '2026-32') // current week
+  assert.equal(resolvePeriod('month', '2026-08', '2026-08-08')!.anchor, '2026-08') // current month
+  assert.equal(resolvePeriod('q1', '2026', '2026-08-08')!.anchor, '2026-q1') // past
+  // boundary: a period that STARTS today is not future (it resolves); the day
+  // before its start is still future
+  assert.equal(resolvePeriod('week', '2026-33', '2026-08-09'), null) // 09-aug, day before week 33 starts
+  assert.equal(resolvePeriod('week', '2026-33', '2026-08-10')?.anchor ?? null, '2026-33') // starts exactly today
+})
+
+test('resolvePeriod — allowFuture returns the future range (caller detects futurity → redirects)', () => {
+  // future periods resolve with the opt — the redirect target is today's period of the same type
+  const futureWeek = resolvePeriod('week', '2026-33', '2026-08-08', { allowFuture: true })
+  assert.ok(futureWeek)
+  assert.equal(futureWeek!.startIso, '2026-08-10')
+  const currentWeek = periodRange('week', '2026-08-08')
+  assert.equal(slugFromType(currentWeek.type, currentWeek.index), 'week') // → /week
+  const futureQ4 = resolvePeriod('q4', undefined, '2026-08-08', { allowFuture: true })
+  assert.ok(futureQ4)
+  assert.equal(futureQ4!.anchor, '2026-q4')
+  const currentQuarter = periodRange('quarter', '2026-08-08')
+  assert.equal(slugFromType(currentQuarter.type, currentQuarter.index), 'q3') // → /q3
+  const futureYear = resolvePeriod('year', '2027', '2026-08-08', { allowFuture: true })
+  assert.ok(futureYear)
+  assert.equal(futureYear!.anchor, '2027')
+  // malformed anchors stay null even with allowFuture
+  assert.equal(resolvePeriod('q1', '2026-q1', '2026-08-08', { allowFuture: true }), null) // alias → 404, not redirect
+  assert.equal(resolvePeriod('week', '2026-32/extra', '2026-08-08', { allowFuture: true }), null)
+})
+test('public URLs round-trip through resolvePeriod (prev + archive links)', () => {
   const today = '2026-08-08'
   for (const type of ['week', 'month', 'quarter', 'half', 'year'] as const) {
     const range = periodRange(type, today)
-    for (const r of [range, range.prev, range.next]) {
+    // range.next is the FUTURE period here (today is 08-aug-2026) — it must not resolve
+    assert.equal(resolvePeriod(slugFromType(range.next.type, range.next.index), publicAnchor(range.next.type, range.next.anchor), today), null, `${type}: future next must 404`)
+    for (const r of [range, range.prev]) {
       const slug = slugFromType(r.type, r.index)
       const anchor = publicAnchor(r.type, r.anchor)
       const rt = resolvePeriod(slug, anchor, today)
