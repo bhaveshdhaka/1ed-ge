@@ -5,11 +5,15 @@ export function ImageDropZone({
   label,
   className = '',
   accept = 'image/*',
+  helperText,
+  ariaLabel,
 }: {
   onFiles: (files: File[]) => void
   label?: string
   className?: string
   accept?: string
+  helperText?: string
+  ariaLabel?: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -34,7 +38,7 @@ export function ImageDropZone({
         type="file"
         accept={accept}
         multiple
-        aria-label={label ?? 'upload images'}
+        aria-label={ariaLabel ?? label ?? 'upload images'}
         className="hidden"
         onChange={(e) => {
           const files = Array.from(e.target.files ?? [])
@@ -43,7 +47,7 @@ export function ImageDropZone({
         }}
       />
       <span>{label ?? 'click, drag, or paste screenshots here'}</span>
-      <span className="text-[11px] text-faint">images are compressed to webp automatically</span>
+      <span className="text-[11px] text-faint">{helperText ?? 'images are compressed to webp automatically'}</span>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { Card, Button, Field, TextInput, NumInput, TextArea, Select } from '../u
 import { MarketCard } from '../MarketCard'
 import { ImageDropZone } from '../ImageDropZone'
 import { MarkdownEditor } from '../MarkdownEditor'
+import { IngestPanel } from '../IngestPanel'
 
 interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 interface HabitDef { slug: string; name: string; emoji?: string; color: string }
@@ -813,6 +814,9 @@ export function DayWorkspace({
                   )}
                 </Card>
               </div>
+
+              {/* ---------- IMPORT ---------- */}
+              <IngestPanel notify={notify} markDirty={markDirty} date={date} onImported={load} />
 
               {/* ---------- DAY SUMMARY (evidence-first, direct-click edit) ---------- */}
               <div id="sec-day" className="scroll-mt-20">
