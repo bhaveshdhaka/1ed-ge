@@ -35,8 +35,8 @@ const nextIso = dayIdx >= 0 && dayIdx < allDates.length - 1 ? allDates[dayIdx + 
 
 const d = entry?.data ?? null
 const activeHabits = habits.filter((h) => h.data.active !== false)
-const facts = dayFacts(d as any, activeHabits.length)
-const moments = d ? resolveMoments(d as any) : []
+const facts = dayFacts(d, activeHabits.length)
+const moments = d ? resolveMoments(d) : []
 const trades = d?.trades ?? []
 const mk = scheduledDayMarker(iso)
 
@@ -84,7 +84,7 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
       ) : (
         <div class="mt-4 space-y-4">
           {trades.map((t, ti) => {
-            const R = ROf(t as any)
+            const R = ROf(t)
             const ex = t.executions ?? []
             const totalPnl = ex.reduce((s, e) => s + t.points * (accMap.get(e.account)?.pointsValue ?? 2) * (e.size ?? 1), 0)
             return (
