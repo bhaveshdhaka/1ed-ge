@@ -14,9 +14,6 @@
 #   tests/
 #   .gitignore
 #   nginx/  (nginx vhost configs; both envs have them)
-#   package.json / package-lock.json   (dependency pins — e.g. the passkey
-#       auth feature's @simplewebauthn/server + docker-compose.yml below)
-#   docker-compose.yml   (the data/ volume mount for passkey sessions/creds)
 #
 # MEMORY.md is intentionally excluded: prod MEMORY is the owner's authoritative
 # log, preprod MEMORY has the session log + cleanups. Pass --with-memory to
@@ -31,24 +28,29 @@
 
 set -euo pipefail
 
-# Guard: this script only runs from the preprod (test) worktree.
+# Guard: this script must run from the prod worktree (main checked out) —
+# its mechanism (git checkout FETCH_HEAD -- files && git commit) lands the
+# commit on the CURRENT branch, so it must be main for the sync to reach prod.
 cd "$(dirname "$0")/.."
 # shellcheck source=lib/env.sh
 source scripts/lib/env.sh
-require_env test
+require_env prod
 
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-if [ "$branch" != "preprod" ]; then
-  echo "✗ refusing: this script must run on the preprod branch (got: ${branch:-<no git>})" >&2
+if [ "$branch" != "main" ]; then
+  echo "✗ refusing: this script must run on the main branch (got: ${branch:-<no git>})" >&2
+  echo "  run it from the prod worktree (/root/1ed.ge), not the preprod worktree" >&2
   exit 1
 fi
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
-ALLOWLIST_REGEX='^(src/[^c]|src/c[^o]|src/co[^n]|src/con[^t]|src/cont[^e]|src/conte[^n]|src/conten[^t]|src/content/($|.n(ext|ot-used))|tests/|\.gitignore|nginx/|package\.json|package-lock\.json|docker-compose\.yml)'
-# ^ allows src/* EXCEPT src/content/*, plus tests/, .gitignore, nginx/,
-# package.json, package-lock.json and docker-compose.yml.
+ALLOWLIST_REGEX='^(src/[^c]|src/c[^o]|src/co[^n]|src/con[^t]|src/cont[^e]|src/conte[^n]|src/conten[^t]|src/content/($|.n(ext|ot-used))|tests/|\.gitignore|nginx/1ed\.ge\.conf|package\.json|package-lock\.json|docker-compose\.yml)'
+# ^ allows src/* EXCEPT src/content/*, plus tests/, .gitignore,
+# nginx/1ed.ge.conf (the PROD vhost only — test.1ed.ge.conf is preprod-only
+# and must NEVER sync to main), package.json, package-lock.json,
+# docker-compose.yml (dependency pins + volumes for the passkey feature).
 # The content/ exclusion is the guard. The src/content/( ... .n(ext|ot-used))
 # branch is a safety hatch for "I really do want to sync one specific content
 # file" — but in normal use, nothing under src/content/ should sync.
@@ -109,20 +111,26 @@ echo "✓ allowed (${#ALLOWED[@]}):"
 for f in "${ALLOWED[@]:-}"; do echo "    $f"; done
 echo
 if [ ${#BLOCKED[@]} -gt 0 ]; then
-  echo "✗ BLOCKED (${#BLOCKED[@]}) — refused, outside the allowlist:"
+  echo "⏭  SKIPPED (${#BLOCKED[@]}) — preprod-only, never synced:"
   for f in "${BLOCKED[@]}"; do echo "    $f"; done
   echo
-  echo "The allowlist is: src/* (except src/content/*), tests/, .gitignore, nginx/."
-  echo "Anything else (e.g. AGENTS.md, CHANGELOG.md, scripts/, docs/) needs an explicit"
-  echo "decision — edit this script's ALLOWLIST_REGEX, or pass --with-memory to include"
-  echo "MEMORY.md, or sync those paths by hand and explain why."
-  exit 1
+  echo "The allowlist is: src/* (except src/content/*), tests/, .gitignore,"
+  echo "nginx/1ed.ge.conf, package.json, package-lock.json, docker-compose.yml."
+  echo "Everything else (the sandbox filler, media, AGENTS/CHANGELOG/docs,"
+  echo "scripts/) stays preprod-only by design — this is what keeps test data"
+  echo "off prod. These are skipped, not an error."
 fi
 
 if [ "$MEMORY_CHANGED" = 1 ] && [ "$WITH_MEMORY" = 0 ]; then
   echo "! MEMORY.md is in the diff but --with-memory not set. Skipping MEMORY.md."
   echo "  pass --with-memory to include it (e.g., after a cleanup that should land on both envs)."
   ALLOWED=("${ALLOWED[@]/MEMORY.md/}")
+fi
+
+if [ ${#ALLOWED[@]} -eq 0 ]; then
+  echo
+  echo "✗ nothing to sync — all changes are outside the allowlist (preprod-only)."
+  exit 1
 fi
 
 if [ "$DRY_RUN" = 1 ]; then
@@ -154,4 +162,4 @@ MEMORY.md, --dry-run to preview, -y to skip the confirmation prompt."
 
 echo
 echo "✓ synced. review the commit, then deploy:"
-echo "    bash scripts/deploy.sh"
+echo "    bash scripts/deploy-prod.sh"
