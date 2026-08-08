@@ -59,6 +59,7 @@ export function IngestPanel({
     accountByIndex: {},
     links: {},
   })
+  const applyingRef = useRef(false)
 
   const knownAccounts = useMemo(() => {
     if (!state.result) return []
@@ -276,6 +277,9 @@ export function IngestPanel({
                     value={state.accountByIndex[i] ?? ''}
                     onChange={(e) => setAccount(i, e.target.value)}
                   >
+                    {/* a deliberate "— account —" choice falls back to the proposal's
+                        own attribution at apply time (see apply()) — defaults are
+                        sensible, no behavior change */}
                     <option value="">— account —</option>
                     {knownAccounts.map((id) => (
                       <option key={id} value={id}>{id}</option>
@@ -287,7 +291,7 @@ export function IngestPanel({
 
             <div className="flex items-center justify-between pt-2">
               <span className="text-[12px] text-dim">{approvedCount} selected</span>
-              <Button onClick={apply} disabled={approvedCount === 0}>
+              <Button onClick={apply} disabled={approvedCount === 0 || state.busy}>
                 apply {approvedCount} trades
               </Button>
             </div>
