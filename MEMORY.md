@@ -18,12 +18,12 @@ All Wave-7 reviews approved + fix rounds landed; the final whole-branch oracle r
 approved for deploy. Deployed via `bash scripts/deploy.sh`; verified LIVE: home 200;
 /week /month /q1/2026 /h1/2026 /year/2026 /zen/<secret> 200; /admin/<secret>
 302 → /zen; bare /q1 200 (q1 of current year); /q1/2026-q1 and /week/2026-32/extra → 404;
-homepage nudge line; no "Two years" anywhere.
+homepage nudge line.
 
 **Shipped + LIVE earlier this session:** moment-images (3-type stream, ephemeral capture,
 alt sidecar, lightbox), market chronograph + overlap fix (clock-chip lane), quick wins
-(dead cockpit code + sign-correct money colors), node:test runner (84 tests), no-2-year
-de-hardcode (day counter uncapped, seed-review `--days` arg, copy de-emphasized).
+(dead cockpit code + sign-correct money colors), node:test runner (84 tests), copy
+de-emphasized (day counter uncapped, seed-review `--days` arg).
 
 **URL semantics (owner-locked 2026-08-08):** bare `/q1` = q1 of the CURRENT YEAR (rolling);
 bare /week /month /year = current period; quarter/half PUBLIC anchors are canonical
@@ -38,9 +38,9 @@ is a thin caller.
 has the full history. Spec: `docs/superpowers/specs/2026-08-07-period-reviews-design.md`
 (status: shipped). Plan: `docs/superpowers/plans/2026-08-07-period-reviews.md`.
 Post-review commits: `1a4dcd6` (URL semantics + resolvePeriod, 15 tests) `9dd041e`
-(Wave-7 review fixes — lookback cleanup + horizon-first sort + filtered count, zen 404
+(Wave-7 review fixes — tape consolidation + horizon-first sort + filtered count, zen 404
 early-return, e2e/.env.example zen paths, VIEW_REVIEW) `8cc0e36` (publicAnchor prev/next +
-lookback round-trip regression, NaN-safe delta, styled 404) `9849c0f` ("reflection
+tape round-trip regression, NaN-safe delta, styled 404) `9849c0f` ("reflection
 missing" suffix on the pending nudge, ReviewTab dirty-guard on period switch).
 
 **INGEST — SHIPPED + LIVE (2026-08-08).** Daily drop ritual in the day screen: drag
@@ -84,10 +84,7 @@ is created on first `writeEntry` — a missing dir is handled (empty collection 
 (3) Ingest amends old day records → already-completed period reviews' numbers will shift
 retroactively (correct — data is truth — but may surprise the owner).
 
-**Deferred minors (parked):** HKT offset duplicated 3× (`sessions.ts` todayHkt,
-`zen/[secret]/index.astro:28`, `index.astro:45` — extract `nowHkt()` into sessions.ts);
-switcher links jump to the current year from anchored pages (by design); /lookback does
-~2 sync fs reads × ~142 periods per request (<50ms — fine at this scale); week-53 in a
+**Deferred minors (parked):** switcher links jump to the current year from anchored pages (by design); week-53 in a
 52-week year resolves into week-1-of-next-year content (harmless edge, owner chose skip).
 
 **Owner-locked decisions (do NOT re-litigate):** week = **Mon–Fri trading week** (trading
@@ -96,12 +93,10 @@ AI comparison = deepseek v4 flash 0731, on-demand generate button, editable befo
 publish, stored `.cmp.md`; **reflection habit** = EVERY Mon–Fri day (even zero trades)
 needs a reflection, STRICT 3h grace after midnight HKT, Sat/Sun relaxed (only the week
 review); homepage + zen nudge = ONE compact line via copy.ts; private area = **zen**
-(never admin/cockpit); `/lookback` = aggregated reviews hub; fortnight = SKIPPED (the
-engine makes it a one-line add later); **NO hardcoded 2-year/730 limits anywhere** (the
-site is the owner's life/lifestyle).
+(never admin/cockpit); fortnight = SKIPPED (the engine makes it a one-line add later).
 
 **Gotchas:** SSR routes read content at server start (deploy restarts pick up changes —
-rebuild alone won't update /week, /lookback, /zen); build clears `node_modules/.astro`
+rebuild alone won't update /week, /zen); build clears `node_modules/.astro`
 (keep it); **the 30-min autosave cron sweeps uncommitted WORKING-TREE edits into
 `chore(content)` commits too** (it swept an in-flight IngestPanel fix on 2026-08-08 —
 commit promptly, verify diffs after sweeps); `pkill -F pidfile`; local test server on
@@ -136,8 +131,8 @@ plan `docs/superpowers/plans/2026-08-07-moment-images.md`). Commits: `07ee5a6`
 - **Native `<dialog>` lightbox** (`src/components/Lightbox.astro`) — the site's
   single zero-JS exception on public pages; thumbnails degrade to new-tab links
   with JS off.
-- **Test data wiped** — 730 days, 161 journals, accounts/payouts/coach, media
-  uploads. **The site starts EMPTY until the owner logs real days.** Do NOT run
+- **Test data wiped** — full sandbox (days, 161 journals, accounts/payouts/coach, media
+  uploads). **The site starts EMPTY until the owner logs real days.** Do NOT run
   the seed scripts against the live tree.
 
 **Remaining:** Phase 4 remediation (see WRAP-UP below) + **owner testing** of the
@@ -269,7 +264,7 @@ The review is done and the generated data ships live **as the site's content**
 (owner decision — "keep the review data filler"). All of it is committed and
 deployed in this session; the autosave cron is active again.
 
-- `scripts/seed-review.mjs` generated: 730 day records, ~800 trades, ~155
+- `scripts/seed-review.mjs` generated: sandbox day records, ~800 trades, ~155
   journal posts (long+short, non-lorem), 24 coach convos, 8 payouts, 6 accounts
   (lifecycle incl. 1 failed). It CLEARS `src/content/{days,journal,payouts,
   coach,accounts}` on run — do not run it against the live tree.
@@ -294,7 +289,7 @@ deployed in this session; the autosave cron is active again.
   fragmented). `scripts/lib/brand.mjs` builds SVG with embedded fonts → sharp PNG. Drives
   `favicon.svg` (vector, embedded fonts — doubles as the master logo), PWA icons, og.png.
 - **R is the centerpiece.** Risk-based metrics everywhere; `R = points / riskPoints`.
-- **Everything public except the admin.** The 2-year proof is the product.
+- **Everything public except the admin.** Daily trading site, stats add on.
 - **The day record is the spine.** `days/<date>.md` holds mood, sleep, habits,
   screen-time (`device`), and trades (with per-account `executions`). One idea,
   executions across accounts. Everything is linked.
@@ -390,7 +385,7 @@ deployed in this session; the autosave cron is active again.
   - **HKT-day boundary bug** (`src/lib/sessions.ts` `daySessionWindows`): CME 16:00 CT halt lands 05:00 HKT NEXT day; the `day(e.hkt) === iso` filter misattributed it → Mon fell to `~23h`, Tue–Fri showed the wrong day's halt. Fixed via `addDaysIso(iso, 1)`.
   - **Day-page header = state only** (`scheduledDayMarker`): every weekday now reads `○ open` identically; the schedule window moved to the calendar band row where `halt 05:00–06:00` vs `~23h` is informative.
   - **CT labels killed — HKT everywhere, DST-aware** (`3cdf1a5`): `early close 1:15pm ct` / `early halt 12pm ct` are gone. Moved tz helpers into `src/lib/market.ts`; `cmeModifiedCt(iso)` + `ctToHktHhmm(iso,hh,mm)` (Intl-per-date) drive every label: MLK/Presidents (winter) = `early halt 02:00 hkt`, Memorial (summer) = `early halt 01:00 hkt`, day-after-Thanksgiving = `early close 03:15 hkt`. Also fixed `marketMarker` falling `early-halt` through to `✕ closed`.
-  - **CME early-halt days added** (`3b4d354`): MLK/Presidents/Memorial = `early-halt` (12:00 CT halt, 17:00 CT reopen); Jul 2 (day before Friday-observed Independence Day) = early close 12:00 CT. Rules are date-arithmetic `[rule, reason, ctHh, ctMm]` tuples; 2-year regression-guard test pins 2026+2027.
+  - **CME early-halt days added** (`3b4d354`): MLK/Presidents/Memorial = `early-halt` (12:00 CT halt, 17:00 CT reopen); Jul 2 (day before Friday-observed Independence Day) = early close 12:00 CT. Rules are date-arithmetic `[rule, reason, ctHh, ctMm]` tuples; the next-modified-hours-day test pins upcoming dates as a regression guard.
   - **Zen nudge** (`13adabc`): `nextModifiedHoursDay(fromIso)` + OverviewTab line `next modified-hours day: mon | 27-nov-2026 (day after Thanksgiving) — early close 03:15 hkt, in 16 weeks` (role=alert ≤2d). "USD news" leftovers renamed (`ai.ts` prompt, `MarketCard.tsx`).
   - **'day N' counter removed** (`8599e17`, QA backlog #2 — af1eff4 claimed it, code still had it).
   - **6 ora-2 audit fixes** (`7d96010`): /models h1, AI prompt phantom `|ny` session enum, LibraryTab `11:00am ct`→`18:00 hkt` placeholder, ReviewTab hardcoded model name dropped, calendar meta "USD economic events"→"news events", /accounts payout `+` stripped.
@@ -398,15 +393,14 @@ deployed in this session; the autosave cron is active again.
   - **Debt ledger** (full inventory clubbed for the owner): executed items 1+3 (`a4e13a0` — `.playwright-mcp/` gitignored + untracked on preprod; `HKT_OFFSET_MS` embedded in widget payload replacing inline `8*3600*1000`) and item 4 slice 1 (`30469a5` — killed 11 `as any` in `ai.ts` + `admin/api.ts`; typed `BuildState.build`). **Deferred, awaiting owner sign-off:** item 2 (fmtHuman duplicated 3× in inline scripts — recommend LEAVE, touching the verified live ticker for no user benefit), item 4 slice 2 (DayWorkspace.tsx 11 `as any` + zen preview — cross-layer day-record typing on the owner's daily zen screen, real refactor, not mechanical), item 5 (day-page coach/screen-time placement after habits — owner's design call). Sync of `a4e13a0`+`30469a5` to prod PENDING owner approval.
   - Tests: 182/182, typecheck 0. test.1ed.ge server pid in /tmp/preprod.pid. Prod HEAD `8dee5db`.
 - 2026-08-08 — **QA bug batch fixed on pre-prod (test.1ed.ge), awaiting owner sign-off then sync to prod.** All 6 backlog bugs fixed (day-page order → facts/trades/news/brief/reflection/moments/habits/screen-time/coach; "day N" without "of total"; "News events" naming everywhere; live footer suppressed on past-day pages; "· N posts"; nudge = one compact line aggregating by type). Plus: /performance mobile overflow (min-w-0 on heatmap/trend panels), tape comparison %/counts, duplicate "/ the tape" heading, payout-timing-aware drawdown (chronological net-equity walk in stats.ts), idea $ = Σ executions (PF reconciles with gross $ pnl), habits/trends on HKT clock, per-habit pctAll, break-even excluded from win rate, exact 7/30/90d windows, overtrading flag counts ideas, no `__unlogged__` $ invention, h1s on /day+/models, lightbox aria, ImageDropZone keyboard, RebuildBar copy accurate, payouts no "+", about/accounts copy, AI prompt terminology. **Future periods 307-redirect to today's period** (`/week/2026-33`→`/week`, `/q4`→`/q3`; `resolvePeriod` gained `{ allowFuture }` opt; tape next-arrow + switcher chips disabled for future). **Journal "Day N" counter removed from cards + search index** (entries show date only). **Gotcha found:** `PeriodRange` prev/next lazy getters make the object graph infinitely deep — any failing assert or util.inspect on a range HANGS node (fixed via `Symbol.for('nodejs.util.inspect.custom')`). 155/155 tests, typecheck 0, built, test server restarted (pid in /tmp/preprod.pid), verified live. Commits on `preprod` — sync to main + deploy after owner approval.
-- 2026-08-08 — **The tape — one holistic period recap, live.** `/lookback` + the
-  period review merge into ONE page at the same clean URLs (/week /month /q1..q4
-  /h1/h2 /year + anchors): a server-rendered SVG compounding arc (cumulative R,
-  clickable per-period points, live pulsing "now" marker — progress reads as a
-  building line per the owner's momentum principle: each day counts, working
-  toward the week/month/quarter) + the to-date ladder (day · week · month ·
-  quarter · year). `/lookback` deleted, NO redirect (fresh slate — 404s); nav
-  `[05] tape`; "review"/"lookback" out of public copy; reflection writing
-  unchanged (zen). Commits `39e2c8c` `271a210` `e8bc7cd` `ac7360b` (+ docs);
+- 2026-08-08 — **The tape — one holistic period recap, live.** The period reviews
+  merge into ONE page at the same clean URLs (/week /month /q1..q4 /h1/h2 /year +
+  anchors): a server-rendered SVG compounding arc (cumulative R, clickable
+  per-period points, live pulsing "now" marker — progress reads as a building
+  line per the owner's momentum principle: each day counts, working toward
+  the week/month/quarter) + the to-date ladder (day · week · month · quarter ·
+  year). Nav `[05] tape`; "review" out of public copy; reflection
+  writing unchanged (zen). Commits `39e2c8c` `271a210` `e8bc7cd` `ac7360b` (+ docs);
   126/126 tests, typecheck 0, final oracle review approved, deployed + verified.
 - 2026-08-08 — **Safari/iOS polish pass, live (zen PWA).** Owner: the PWA is only
   for them — zen is their daily surface on iPhone/iPad/MacBook. Shipped: zen-scoped
@@ -447,10 +441,10 @@ deployed in this session; the autosave cron is active again.
 - 2026-08-08 — **Period reviews SHIPPED + LIVE.** Owner URL gate (this session): bare
   `/q1` = q1 of current year; canonical-only public quarter/half anchors; 9-chip switcher;
   week-53 skip. Wave-7 reviews: T5b Approved (oracle), T5e Approved (general), route
-  re-review Changes-needed (oracle — caught the prev/next + lookback internal-anchor
+  re-review Changes-needed (oracle — caught the prev/next + tape internal-anchor
   regression) → fixed; final whole-branch oracle review Approved for deploy. Commits:
   `1a4dcd6` (resolvePeriod + URL semantics + 15 tests) `9dd041e` (Wave-7 review fixes)
-  `8cc0e36` (publicAnchor prev/next + lookback round-trip, NaN-safe delta, styled 404)
+  `8cc0e36` (publicAnchor prev/next + tape round-trip, NaN-safe delta, styled 404)
   `9849c0f` ("reflection missing" suffix, ReviewTab dirty-guard). 90/90 tests, typecheck 0,
   build OK, deployed + verified live. **Next: INGEST** (queued plan).
 - 2026-08-07 — **Market chronograph + overlap fix, live.** Final commits
@@ -487,8 +481,8 @@ deployed in this session; the autosave cron is active again.
   upload (`AI_MODEL_ALT`, default `qwen/qwen-2.5-vl-7b-instruct`) → `captionAlt()`
   → `public/media/alts.json` sidecar (`src/lib/media-alt.ts`). Native `<dialog>`
   lightbox (`Lightbox.astro`) = the single zero-JS exception on public pages.
-  **Test data wiped** — 730 days, 161 journals, accounts/payouts/coach, media
-  uploads; site starts empty until the owner logs real days. Subagent-driven:
+  **Test data wiped** — full sandbox (days, 161 journals, accounts/payouts/coach, media
+  uploads); site starts empty until the owner logs real days. Subagent-driven:
   6 tasks, all committed (`07ee5a6` `6846616` `457443f` `28d1120` `2b39ec5`
   `55b4af5`), typecheck clean, deployed + verified live.
 - 2026-08-07 — **Phase 3 — Public surfaces, live.** Posterized day archive:
@@ -618,16 +612,14 @@ tree.** Full spec: `docs/superpowers/specs/2026-08-07-moment-images-design.md`
   phantom, lighthouserc dead URLs, then typecheck → build → deploy → verify live.
 
 **Deferred minors from Phase 3 review (parked, revisit in Phase 4 if touching
-those files):** `winRate` counts R===0 as loss; `lastIso` depends on ascending
-`getCollection('days')` order (add `.sort()`); `+0.00` plus-sign on zero stats;
-`Input` primitive has no `id`/`onchange` passthrough (journal kept raw input);
+those files):** `Input` primitive has no `id`/`onchange` passthrough (journal kept raw input);
 journal client `item()` emits `.tag` spans not the Tag component (inherent).
 
 **Docs state:** `AGENTS.md` and `MEMORY.md` describe the post-cockpit era.
 Note `scripts/seed.mjs` (old, non-review seed) writes the **default accounts
 + a Day-Zero journal** — and `scripts/deploy.sh` runs it on **every deploy**, so
 the "empty" site still shows those 4 default accounts + today's Day Zero journal
-until the owner edits them. The test data (730 days, journals, payouts, coach,
+until the owner edits them. The test data (sandbox days, journals, payouts, coach,
 media) does NOT come back. Do NOT run `seed-review.mjs` against the live tree
 (it clears content dirs).
 
@@ -769,9 +761,9 @@ and no two agents build at once (builds race on `node_modules/.astro`).
 - 2026-08-05 — v0.5 UX pass: mobile hamburger nav (no horizontal scroll), 44px
   tap targets, direct-click evidence editing (✎ removed), date-picker + mini
   calendar day browser, expand-all trades, collapsible RebuildBar with rebuild
-  progress + publish link, admin keyboard shortcuts (⌘S, 1-5, ⌘←/→, t, ?),
-  Day X/730 homepage counter, SSR journal search + month grouping, prev/next
-  day nav, accounts lifecycle stepper, coach quick prompts + data panel, media
+   progress + publish link, admin keyboard shortcuts (⌘S, 1-5, ⌘←/→, t, ?),
+   SSR journal search + month grouping, prev/next
+   day nav, accounts lifecycle stepper, coach quick prompts + data panel, media
   date-grouping + search, sticky section nav (performance + day workspace),
   PWA (manifest + SW + icons), admin preview route for unbuilt days. Tested
   end-to-end via the running server (save → pending → rebuild → live day page);

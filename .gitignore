@@ -19,6 +19,3 @@ test-results/
 
 # brainstorm scratch (visual companion mockups)
 .superpowers/
-
-# tape demo — temporary dummy day files (removed after owner review)
-src/content/days/demo-*.md

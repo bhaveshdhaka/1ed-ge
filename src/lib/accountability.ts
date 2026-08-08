@@ -55,7 +55,7 @@ function periodDueIso(range: PeriodRange): string {
   return `${addDays(range.endIso, lag)}T03:00:00`
 }
 
-/** Data horizon = earliest day/journal date; bounds the periods we ever consider (no hardcoded 2-year/730 cap, no pre-history phantom periods). */
+/** Data horizon = earliest day/journal date; bounds the periods we ever consider. */
 function earliestIso(days: DayData[], journalDates: string[]): string | null {
   let min: string | null = null
   for (const d of days) if (min === null || d.date < min) min = d.date
