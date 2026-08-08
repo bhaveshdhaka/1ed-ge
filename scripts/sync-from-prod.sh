@@ -37,8 +37,13 @@ for arg in "$@"; do
   esac
 done
 
-# Preprod-only files: preserve across the merge
-PREPROD_ONLY=(
+# Preprod-only files: preserve across the merge. .env is gitignored (never in
+# the merge), but listed for the report. The tracked files are stashed.
+PREPROD_ONLY_TRACKED=(
+  "nginx/test.1ed.ge.conf"
+  "scripts/seed-review.mjs"
+)
+PREPROD_ONLY_ALL=(
   ".env"
   "nginx/test.1ed.ge.conf"
   "scripts/seed-review.mjs"
@@ -59,9 +64,10 @@ echo "main HEAD:    $(cd "$PROD_WORKTREE" && git rev-parse --short main)"
 echo
 
 # 1. Stash preprod-only files so the merge doesn't conflict
-echo "→ stashing preprod-only files:"
-for f in "${PREPROD_ONLY[@]}"; do echo "    $f"; done
-git stash push -m "preprod-only: $(date -u +%FT%TZ)" -- "${PREPROD_ONLY[@]}"
+echo "→ stashing preprod-only files (tracked):"
+for f in "${PREPROD_ONLY_TRACKED[@]}"; do echo "    $f"; done
+echo "  (.env is gitignored — never in the merge)"
+git stash push -m "preprod-only: $(date -u +%FT%TZ)" -- "${PREPROD_ONLY_TRACKED[@]}"
 
 # 2. Fetch main from the prod worktree
 echo "→ fetching main from $PROD_WORKTREE"
@@ -98,7 +104,7 @@ fi
 # touched scripts/seed-review.mjs), prefer the preprod version.
 if ! git stash pop >/dev/null 2>&1; then
   echo "! stash pop conflicted on a preprod-only file — using preprod's version"
-  for f in "${PREPROD_ONLY[@]}"; do
+  for f in "${PREPROD_ONLY_TRACKED[@]}"; do
     if git ls-files --error-unmatch "$f" >/dev/null 2>&1; then
       git checkout --theirs -- "$f" 2>/dev/null || true
       git add "$f" 2>/dev/null || true
