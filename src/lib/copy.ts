@@ -48,7 +48,7 @@ export function pendingReflectionsLine(pendingDays: number, pendingPeriods: stri
     parts.push(`trader has ${dayWord} pending end of day reflection`)
   }
   for (const p of pendingPeriods) {
-    if (p) parts.push(p)
+    if (p) parts.push(`${p} reflection missing`)
   }
   return parts.length === 0 ? null : parts.join(' · ')
 }

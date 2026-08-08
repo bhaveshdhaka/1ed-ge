@@ -80,6 +80,7 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
   }, [sel, loadReview])
 
   const pickType = (t: PeriodType) => {
+    if (dirty && !confirm('unsaved review changes — discard and switch period?')) return
     const list = periods[t] ?? []
     setSel(list[0] ? { type: t, anchor: list[0].anchor } : null)
   }
@@ -151,7 +152,10 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
           <Field label="anchor">
             <Select
               value={sel?.anchor ?? ''}
-              onChange={(e) => setSel({ type: sel?.type ?? 'week', anchor: e.target.value })}
+              onChange={(e) => {
+                if (dirty && !confirm('unsaved review changes — discard and switch period?')) return
+                setSel({ type: sel?.type ?? 'week', anchor: e.target.value })
+              }}
               disabled={!list.length}
             >
               {list.map((p) => (

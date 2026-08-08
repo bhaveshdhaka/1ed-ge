@@ -50,28 +50,28 @@ test('pendingReflectionsLine: plural days → {n} days\'', () => {
   )
 })
 
-test('pendingReflectionsLine: period fragments only, joined with ·', () => {
+test('pendingReflectionsLine: period fragments only, joined with · and "reflection missing" suffix', () => {
   assert.equal(
-    pendingReflectionsLine(0, ['week 31 reflection missing']),
+    pendingReflectionsLine(0, ['week 31']),
     'week 31 reflection missing',
   )
   assert.equal(
-    pendingReflectionsLine(0, ['week 31 reflection missing', 'month reflection missing']),
+    pendingReflectionsLine(0, ['week 31', 'month']),
     'week 31 reflection missing · month reflection missing',
   )
   assert.equal(
-    pendingReflectionsLine(0, ['month reflection missing', 'quarter reflection missing', 'half reflection missing', 'year reflection missing']),
+    pendingReflectionsLine(0, ['month', 'quarter', 'half', 'year']),
     'month reflection missing · quarter reflection missing · half reflection missing · year reflection missing',
   )
 })
 
 test('pendingReflectionsLine: combined days + period fragments', () => {
   assert.equal(
-    pendingReflectionsLine(2, ['week 31 reflection missing']),
+    pendingReflectionsLine(2, ['week 31']),
     "trader has 2 days' pending end of day reflection · week 31 reflection missing",
   )
   assert.equal(
-    pendingReflectionsLine(1, ['week 31 reflection missing', 'month reflection missing']),
+    pendingReflectionsLine(1, ['week 31', 'month']),
     "trader has 1 day's pending end of day reflection · week 31 reflection missing · month reflection missing",
   )
 })
