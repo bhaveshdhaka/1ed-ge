@@ -68,3 +68,8 @@ export const VIEW_REVIEW = 'view review →'
 /** Empty states. */
 export const EMPTY_PERIOD = 'no days logged in this period.'
 export const EMPTY_REVIEWS = 'no period reviews yet.'
+
+/** `imported N trades` — ingest apply-confirm line (plan-locked, exact string). */
+export function importedTrades(n: number): string {
+  return `imported ${n} trades`
+}

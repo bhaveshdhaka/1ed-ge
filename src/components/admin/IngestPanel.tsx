@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { api, fileToDataUrl } from './api'
 import { Card, Button, Select } from './ui'
 import { ImageDropZone } from './ImageDropZone'
+import { importedTrades } from '../../lib/copy'
 
 interface PositionProposal {
   market: string
@@ -88,7 +89,12 @@ export function IngestPanel({
       const accountByIndex: Record<number, string> = {}
       res.result.proposals.forEach((p, i) => {
         approved[i] = true
-        accountByIndex[i] = p.account.internalId ?? res.result.aliasProposal?.suggested ?? ''
+        // Seed with the proposal's own attribution ONLY — never the alias
+        // suggestion. If the alias suggestion were seeded here, the alias
+        // confirm's choice below would be ignored for this batch (per-position
+        // seed short-circuits the recompute and apply). The suggested account
+        // still applies by default via `links[platformId]` at apply time.
+        accountByIndex[i] = p.account.internalId ?? ''
       })
       const links: Record<string, string> = {}
       if (res.result.aliasProposal?.platformId && res.result.aliasProposal.suggested) {
@@ -103,7 +109,9 @@ export function IngestPanel({
       })
       notify(`parsed ${res.result.proposals.length} proposed trades${res.result.dupes ? ` · ${res.result.dupes} dup` : ''}`)
     } catch (e) {
-      setState((s) => ({ ...s, busy: false }))
+      // Reset the whole import state so a stale batch's proposals can't be
+      // applied after a re-parse fails.
+      setState({ busy: false, result: null, approved: {}, accountByIndex: {}, links: {} })
       notify(e instanceof Error ? e.message : 'import failed', false)
     }
   }
@@ -117,53 +125,81 @@ export function IngestPanel({
   }
 
   const setLink = (platformId: string, internalId: string) => {
-    setState((s) => ({
-      ...s,
-      links: { ...s.links, [platformId]: internalId },
-      accountByIndex: Object.fromEntries(
-        s.result?.proposals.map((p, i) => {
-          const resolved =
-            s.accountByIndex[i] ||
-            p.account.internalId ||
-            s.links[p.account.platformId || ''] ||
-            (p.account.platformId === platformId ? internalId : '') ||
-            s.result?.aliasProposal?.suggested ||
-            ''
-          return [i, resolved]
-        }) ?? [],
-      ),
-    }))
+    setState((s) => {
+      const links = { ...s.links, [platformId]: internalId }
+      return {
+        ...s,
+        links,
+        accountByIndex: Object.fromEntries(
+          s.result?.proposals.map((p, i) => {
+            // Mirror the apply-time resolution (see apply()) so the per-position
+            // selects stay in sync with what will actually be imported: per-position
+            // override wins, then the alias-confirm link for the proposal's platform,
+            // then the proposal's own attribution, else unlinked.
+            const resolved =
+              s.accountByIndex[i] ||
+              (p.account.platformId ? links[p.account.platformId] : undefined) ||
+              p.account.internalId ||
+              ''
+            return [i, resolved]
+          }) ?? [],
+        ),
+      }
+    })
   }
 
   const apply = async () => {
     const result = state.result
-    if (!result) return
-    const approvedPositions: PositionProposal[] = []
-    result.proposals.forEach((p, i) => {
-      if (!state.approved[i]) return
-      const internalId = state.accountByIndex[i] || p.account.internalId || ''
-      approvedPositions.push({
-        ...p,
-        account: { ...p.account, internalId },
-      })
-    })
-    if (approvedPositions.length === 0) return notify('no trades selected to import', false)
-
-    const platformLinks = Object.entries(state.links)
-      .filter(([platformId]) => result.platformIdsSeen.includes(platformId))
-      .map(([platformId, internalId]) => ({ platformId, internalId }))
-
+    // Re-entry guard: a double-click must not fire two POST /apply (the button
+    // is disabled while busy too; the ref covers the pre-re-render race).
+    if (!result || applyingRef.current) return
+    applyingRef.current = true
+    setState((s) => ({ ...s, busy: true }))
     try {
-      const res = await api<{ ok: boolean; dayFile: string; linksApplied: number }>('/api/admin/ingest/apply', {
+      const approvedPositions: PositionProposal[] = []
+      result.proposals.forEach((p, i) => {
+        if (!state.approved[i]) return
+        // Per-position override wins, then the alias-confirm link for this
+        // proposal's platform, then the proposal's own attribution, else
+        // unlinked — a deliberate "— account —" choice falls back to the
+        // proposal's own attribution here.
+        const internalId =
+          state.accountByIndex[i] ||
+          (p.account.platformId ? state.links[p.account.platformId] : undefined) ||
+          p.account.internalId ||
+          ''
+        approvedPositions.push({
+          ...p,
+          account: { ...p.account, internalId },
+        })
+      })
+      if (approvedPositions.length === 0) {
+        setState((s) => ({ ...s, busy: false }))
+        notify('no trades selected to import', false)
+        return
+      }
+
+      // Only persist links that are non-empty AND were seen in this batch.
+      const platformLinks = Object.entries(state.links)
+        .filter(
+          ([platformId, internalId]) =>
+            Boolean(platformId && internalId) && result.platformIdsSeen.includes(platformId),
+        )
+        .map(([platformId, internalId]) => ({ platformId, internalId }))
+
+      await api<{ ok: boolean; dayFile: string; linksApplied: number }>('/api/admin/ingest/apply', {
         method: 'POST',
         body: { date, positions: approvedPositions, platformLinks },
       })
       markDirty()
-      notify(`imported ${approvedPositions.length} trades${res.linksApplied ? ` · linked ${res.linksApplied} account` : ''}`)
+      notify(importedTrades(approvedPositions.length))
       await onImported(date)
       setState({ busy: false, result: null, approved: {}, accountByIndex: {}, links: {} })
     } catch (e) {
+      setState((s) => ({ ...s, busy: false }))
       notify(e instanceof Error ? e.message : 'apply failed', false)
+    } finally {
+      applyingRef.current = false
     }
   }
 
