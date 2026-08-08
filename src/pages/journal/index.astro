@@ -28,12 +28,12 @@ const index = journal.map((j) => {
   return {
     id: j.id,
     date: j.data.date,
-    title: j.data.day ?? j.data.date,
+    title: j.data.date,
     summary,
     tags,
     mood: day?.mood ?? null,
     trades: (day?.trades ?? []).length,
-    meta: [j.data.date, j.data.day ?? '', summary, tags.join(' ')].join(' '),
+    meta: [j.data.date, summary, tags.join(' ')].join(' '),
     body: excerpt(j.body ?? ''),
   }
 })
@@ -96,7 +96,7 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
         <div id={`m-${g.month}`} class="scroll-mt-16">
           {gi > 0 && <Separator class="my-8" />}
           <div class="mb-3 flex items-baseline gap-2 text-2xs uppercase tracking-widest text-dim">
-            {monthLabel(g.month)} <span class="text-faint">· {g.entries.length}</span>
+            {monthLabel(g.month)} <span class="text-faint">· {g.entries.length} posts</span>
           </div>
           <div class="flex flex-col gap-3">
             {g.entries.map((j) => {
@@ -109,13 +109,12 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
                     <div class="flex items-baseline justify-between gap-4">
                       <div class="flex items-baseline gap-3">
                         <span class="text-2xs text-faint tabular-nums">{String(journal.length - (numById.get(j.id) ?? 0)).padStart(2, '0')}</span>
-                        <span class="text-sm text-ink transition-colors group-hover:text-accent">{j.data.day ?? j.data.date}</span>
+                        <span class="text-sm text-ink transition-colors group-hover:text-accent">{j.data.date}</span>
                       </div>
-                      <span class="shrink-0 text-2xs text-dim tabular-nums">{j.data.date}</span>
                     </div>
                     {j.data.summary && <p class="mt-2 text-xs leading-relaxed text-dim">{j.data.summary}</p>}
                     <div class="mt-3 flex flex-wrap items-center gap-2">
-                      {trades > 0 && <Badge variant="up">{trades} trades</Badge>}
+                      {trades > 0 && <Badge variant="up">{trades} {trades === 1 ? 'trade' : 'trades'}</Badge>}
                       {mood && <Badge>mood {mood}/5</Badge>}
                       {j.data.tags?.map((t) => <Tag>#{t}</Tag>)}
                     </div>
@@ -190,16 +189,13 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
 
     const item = (e, i) => `
       <a href="/day/${fmt(e.date)}" class="group block border-b border-line/70 py-6">
-        <div class="flex items-baseline justify-between gap-4">
-          <div class="flex items-baseline gap-3">
-            <span class="text-2xs text-faint">${String(i + 1).padStart(2, '0')}</span>
-            <span class="text-sm text-ink group-hover:text-accent">${escHtml(e.title)}</span>
-          </div>
-          <span class="shrink-0 text-2xs text-dim">${escHtml(e.date)}</span>
+        <div class="flex items-baseline gap-3">
+          <span class="text-2xs text-faint">${String(i + 1).padStart(2, '0')}</span>
+          <span class="text-sm text-ink group-hover:text-accent">${escHtml(e.title)}</span>
         </div>
         ${e.summary ? `<p class="mt-2 text-xs leading-relaxed text-dim">${escHtml(e.summary)}</p>` : ''}
         <div class="mt-2 flex flex-wrap items-center gap-2">
-          ${e.trades > 0 ? '<span class="tag text-up">' + e.trades + ' trades</span>' : ''}
+          ${e.trades > 0 ? '<span class="tag text-up">' + e.trades + ' ' + (e.trades === 1 ? 'trade' : 'trades') + '</span>' : ''}
           ${e.mood ? '<span class="tag">mood ' + e.mood + '/5</span>' : ''}
           ${(e.tags || []).map((t) => '<span class="tag">#' + escHtml(t) + '</span>').join('')}
         </div>

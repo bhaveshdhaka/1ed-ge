@@ -40,7 +40,7 @@ const active = sorted.filter((a) => a.active)
   <section class="shell pt-12 pb-20">
     <div class="flex items-baseline gap-3">
       <h1 class="text-2xl">/ accounts</h1>
-      <span class="text-[12px] text-faint">eval → buffer → payout</span>
+      <span class="text-[12px] text-faint">eval → funded → buffer → payout</span>
     </div>
 
     <div class="mt-8 overflow-x-auto panel" tabindex="0">
@@ -144,7 +144,7 @@ const active = sorted.filter((a) => a.active)
               <tr>
                 <td class="td text-dim">{p.data.date}</td>
                 <td class="td">{acc?.data.firm ?? ''} {acc?.data.sizeLabel ?? ''} <span class="text-faint">·{p.data.account}</span></td>
-                <td class="td text-right num-up">{fmtPnl(p.data.amount)}</td>
+                <td class="td text-right num-up">{fmtPnl(p.data.amount).replace(/^\+/, '')}</td>
                 <td class="td"><span class={p.data.status === 'paid' ? 'text-up' : 'text-warn'}>{p.data.status}</span></td>
                 <td class="td text-dim">{p.data.note ?? ''}</td>
               </tr>

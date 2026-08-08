@@ -1,10 +1,11 @@
 ---
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
-import { todayHkt } from '../lib/sessions'
+import { todayHkt, nowHkt, hktDayNumber } from '../lib/sessions'
 import { fmtDay, fmtDayW } from '../lib/dates'
 import { flattenStream, resolveMoments, momentMeta, dayFacts } from '../lib/stream'
 import { readLiveState } from '../lib/live'
+import { liveLine } from '../lib/copy'
 import type { DayData, MomentType } from '../lib/stream'
 import MomentCard from '../components/stream/MomentCard.astro'
 import DayFacts from '../components/stream/DayFacts.astro'
@@ -22,6 +23,11 @@ const all = flattenStream(days)
 const feed = validType === 'all' ? all : all.filter((m) => m.type === validType)
 
 const live = readLiveState()
+
+// Calendar-day difference in HKT between the durable last-online stamp and now.
+const lastSeenDays = live.lastOnlineIso
+  ? Math.max(0, hktDayNumber(`${nowHkt()}:00+08:00`) - hktDayNumber(live.lastOnlineIso))
+  : null
 
 const iso = todayHkt()
 const today = days.find((d) => d.date === iso) ?? null
@@ -42,7 +48,7 @@ for (const m of all) countByType.set(m.type, (countByType.get(m.type) ?? 0) + 1)
       <span class="text-[12px] text-faint">{all.length} published moments</span>
       <span class:list={['ml-auto flex items-center gap-2 text-[12px]', live.live ? 'text-up' : 'text-faint']}>
         <span class:list={['inline-block h-1.5 w-1.5 rounded-full', live.live ? 'bg-up' : 'bg-line2']}></span>
-        {live.live ? 'trader is live' : 'offline'}
+        {liveLine(live.live, lastSeenDays)}
       </span>
     </div>
 
@@ -90,7 +96,7 @@ for (const m of all) countByType.set(m.type, (countByType.get(m.type) ?? 0) + 1)
 
     <div class="mt-8 max-w-2xl">
       {feed.length === 0 ? (
-        <p class="text-[13px] text-faint">no {validType !== 'all' ? validType : ''} moments yet.</p>
+        <p class="text-[13px] text-faint">no {validType !== 'all' ? `${validType} ` : ''}moments yet.</p>
       ) : (
         <div class="flex flex-col gap-4">
           {feed.map((m) => <MomentCard moment={m} showDay />)}

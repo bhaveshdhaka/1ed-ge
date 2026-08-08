@@ -1,11 +1,14 @@
 import type { DayEntry } from './stats'
 import { flatten, type AccountEntry, type ExecutionRow } from './stats'
 import { round2 } from './utils'
+import { addDaysIso, nowHkt, todayHkt } from './sessions'
 
 export interface DayStat {
   date: string
   trades: number
+  ideas: number
   wins: number
+  losses: number
   sumR: number
   sumPnl: number
   winRate: number | null
@@ -40,8 +43,8 @@ export interface TrendSnapshot {
 }
 
 function bucketStat(days: DayStat[], tradesByDay: Map<string, ExecutionRow[]>, buckets: string[]) {
-  const map = new Map<string, { days: number; trades: number; sumR: number; wins: number }>()
-  for (const b of buckets) map.set(b, { days: 0, trades: 0, sumR: 0, wins: 0 })
+  const map = new Map<string, { days: number; trades: number; sumR: number; wins: number; losses: number }>()
+  for (const b of buckets) map.set(b, { days: 0, trades: 0, sumR: 0, wins: 0, losses: 0 })
   for (const d of days) {
     const key = d.mood === undefined ? 'n/a' : d.mood <= 2 ? '1-2 (low)' : d.mood === 3 ? '3 (neutral)' : '4-5 (high)'
     const e = map.get(key)
@@ -51,6 +54,7 @@ function bucketStat(days: DayStat[], tradesByDay: Map<string, ExecutionRow[]>, b
     e.trades += list.length
     e.sumR += list.reduce((s, t) => s + t.R, 0)
     e.wins += list.filter((t) => t.win).length
+    e.losses += list.filter((t) => t.pnl < 0).length
   }
   return [...map.entries()].map(([bucket, v]) => ({
     bucket,
@@ -58,14 +62,22 @@ function bucketStat(days: DayStat[], tradesByDay: Map<string, ExecutionRow[]>, b
     trades: v.trades,
     sumR: round2(v.sumR),
     avgR: v.trades ? round2(v.sumR / v.trades) : 0,
-    winRate: v.trades ? round2((v.wins / v.trades) * 100) : null,
+    winRate: v.wins + v.losses ? round2((v.wins / (v.wins + v.losses)) * 100) : null,
   }))
 }
 
-export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSnapshot {
+export function buildTrends(
+  days: DayEntry[],
+  accounts: AccountEntry[],
+  todayIso: string = todayHkt(),
+): TrendSnapshot {
   const { executions, trades } = flatten(days, accounts)
+  // Unknown-account executions carry no $ attribution — keep trends' $ layer
+  // consistent with stats (skip them everywhere at the source).
+  const accMap = new Map(accounts.map((a) => [a.data.id, a]))
   const tradesByDay = new Map<string, ExecutionRow[]>()
   for (const ex of executions) {
+    if (!accMap.has(ex.account)) continue
     if (!tradesByDay.has(ex.day)) tradesByDay.set(ex.day, [])
     tradesByDay.get(ex.day)!.push(ex)
   }
@@ -75,16 +87,19 @@ export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSn
     .map((d) => {
       const list = tradesByDay.get(d.data.date) ?? []
       const wins = list.filter((t) => t.win).length
+      const losses = list.filter((t) => t.pnl < 0).length
       const sumR = list.reduce((s, t) => s + t.R, 0)
       const sumPnl = list.reduce((s, t) => s + t.pnl, 0)
       const habitsDone = d.data.habits ? Object.values(d.data.habits).filter(Boolean).length : undefined
       return {
         date: d.data.date,
         trades: list.length,
+        ideas: d.data.trades.length,
         wins,
+        losses,
         sumR: round2(sumR),
         sumPnl: round2(sumPnl),
-        winRate: list.length ? round2((wins / list.length) * 100) : null,
+        winRate: wins + losses ? round2((wins / (wins + losses)) * 100) : null,
         mood: d.data.mood,
         sleepHours: d.data.sleep?.hours,
         habitsDone,
@@ -92,21 +107,19 @@ export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSn
     })
 
   const windowStat = (label: string, daysBack: number) => {
-    const cutoff = new Date()
-    cutoff.setHours(0, 0, 0, 0)
-    cutoff.setDate(cutoff.getDate() - daysBack)
-    const cutoffKey = cutoff.toISOString().slice(0, 10)
-    const inWin = dayStats.filter((d) => d.date >= cutoffKey)
+    const cutoff = addDaysIso(todayIso, -(daysBack - 1))
+    const inWin = dayStats.filter((d) => d.date >= cutoff)
     const n = inWin.length
     const tradesN = inWin.reduce((s, d) => s + d.trades, 0)
     const wins = inWin.reduce((s, d) => s + d.wins, 0)
+    const losses = inWin.reduce((s, d) => s + d.losses, 0)
     const sumR = inWin.reduce((s, d) => s + d.sumR, 0)
     const sumPnl = inWin.reduce((s, d) => s + d.sumPnl, 0)
     return {
       label,
       days: n,
       trades: tradesN,
-      winRate: tradesN ? round2((wins / tradesN) * 100) : null,
+      winRate: wins + losses ? round2((wins / (wins + losses)) * 100) : null,
       sumR: round2(sumR),
       avgR: tradesN ? round2(sumR / tradesN) : 0,
       expectancy: tradesN ? round2(sumR / tradesN) : 0,
@@ -115,15 +128,16 @@ export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSn
     }
   }
 
-  const monthMap = new Map<string, { trades: number; sumR: number; sumPnl: number; wins: number }>()
+  const monthMap = new Map<string, { trades: number; sumR: number; sumPnl: number; wins: number; losses: number }>()
   for (const d of dayStats) {
     const key = d.date.slice(0, 7)
-    if (!monthMap.has(key)) monthMap.set(key, { trades: 0, sumR: 0, sumPnl: 0, wins: 0 })
+    if (!monthMap.has(key)) monthMap.set(key, { trades: 0, sumR: 0, sumPnl: 0, wins: 0, losses: 0 })
     const e = monthMap.get(key)!
     e.trades += d.trades
     e.sumR += d.sumR
     e.sumPnl += d.sumPnl
     e.wins += d.wins
+    e.losses += d.losses
   }
   const months = [...monthMap.entries()]
     .sort((a, b) => a[0].localeCompare(b[0]))
@@ -132,19 +146,20 @@ export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSn
       trades: v.trades,
       sumR: round2(v.sumR),
       sumPnl: round2(v.sumPnl),
-      winRate: v.trades ? round2((v.wins / v.trades) * 100) : null,
+      winRate: v.wins + v.losses ? round2((v.wins / (v.wins + v.losses)) * 100) : null,
     }))
 
   const byKey = (rows: ExecutionRow[], key: (t: ExecutionRow) => string | undefined) => {
-    const m = new Map<string, { trades: number; sumR: number; wins: number }>()
+    const m = new Map<string, { trades: number; sumR: number; wins: number; losses: number }>()
     for (const t of rows) {
       const k = key(t)
       if (!k) continue
-      if (!m.has(k)) m.set(k, { trades: 0, sumR: 0, wins: 0 })
+      if (!m.has(k)) m.set(k, { trades: 0, sumR: 0, wins: 0, losses: 0 })
       const e = m.get(k)!
       e.trades++
       e.sumR += t.R
       if (t.win) e.wins++
+      if (t.pnl < 0) e.losses++
     }
     return [...m.entries()]
       .map(([key, v]) => ({
@@ -152,7 +167,7 @@ export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSn
         trades: v.trades,
         sumR: round2(v.sumR),
         avgR: round2(v.sumR / v.trades),
-        winRate: round2((v.wins / v.trades) * 100),
+        winRate: v.wins + v.losses ? round2((v.wins / (v.wins + v.losses)) * 100) : null,
       }))
       .filter((x) => x.trades >= 1)
       .sort((a, b) => b.sumR - a.sumR)
@@ -171,8 +186,8 @@ export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSn
     if (h !== undefined) screenByDay.set(d.data.date, h)
   }
   const screenBuckets = ['screen <3h', 'screen 3-5h', 'screen 5h+']
-  const screenCorr: { bucket: string; days: number; trades: number; sumR: number; wins: number }[] =
-    screenBuckets.map((b) => ({ bucket: b, days: 0, trades: 0, sumR: 0, wins: 0 }))
+  const screenCorr: { bucket: string; days: number; trades: number; sumR: number; wins: number; losses: number }[] =
+    screenBuckets.map((b) => ({ bucket: b, days: 0, trades: 0, sumR: 0, wins: 0, losses: 0 }))
   for (const d of dayStats) {
     const h = screenByDay.get(d.date)
     if (h === undefined) continue
@@ -183,6 +198,7 @@ export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSn
     e.trades += list.length
     e.sumR += list.reduce((s, t) => s + t.R, 0)
     e.wins += list.filter((t) => t.win).length
+    e.losses += list.filter((t) => t.pnl < 0).length
   }
   const screen = screenCorr
     .map((v) => ({
@@ -191,13 +207,14 @@ export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSn
       trades: v.trades,
       sumR: round2(v.sumR),
       avgR: v.trades ? round2(v.sumR / v.trades) : 0,
-      winRate: v.trades ? round2((v.wins / v.trades) * 100) : null,
+      winRate: v.wins + v.losses ? round2((v.wins / (v.wins + v.losses)) * 100) : null,
     }))
     .filter((x) => x.days > 0)
 
   const flags: string[] = []
-  const overtrade = dayStats.find((d) => d.trades >= 6 && d.sumR < 0)
-  if (overtrade) flags.push(`overtrading flag: ${overtrade.date} had ${overtrade.trades} trades for ${overtrade.sumR}R (negative).`)
+  const overtrade = dayStats.find((d) => d.ideas >= 6 && d.sumR < 0)
+  if (overtrade)
+    flags.push(`overtrading flag: ${overtrade.date} had ${overtrade.ideas} ideas for ${overtrade.sumR}R (negative).`)
   const bestSession = byKey(trades, (t) => t.session)[0]
   if (bestSession) flags.push(`best session: ${bestSession.key} (${bestSession.avgR}R avg over ${bestSession.trades}).`)
   const worstSession = [...byKey(trades, (t) => t.session)].at(-1)
@@ -215,7 +232,7 @@ export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSn
     flags.push('no screen-time data yet — paste your Screen Time screenshot daily for signal.')
 
   return {
-    generatedAt: new Date().toISOString(),
+    generatedAt: nowHkt(),
     windows: [windowStat('7d', 7), windowStat('30d', 30), windowStat('90d', 90)],
     months,
     correlations: {
@@ -223,27 +240,40 @@ export function buildTrends(days: DayEntry[], accounts: AccountEntry[]): TrendSn
       mood: bucketStat(dayStats, tradesByDay, ['1-2 (low)', '3 (neutral)', '4-5 (high)']),
       screen,
       habits: (() => {
-        const map = new Map<string, { days: number; trades: number; sumR: number; wins: number }>()
+        // No hardcoded '5-6' cap (owner rule): width-2 buckets derived from the
+        // observed max, e.g. maxDone 14 → 0-2, 3-4, 5-6, 7-8, 9-10, 11-12, 13-14.
+        const done = dayStats.map((d) => d.habitsDone).filter((h): h is number => h !== undefined)
+        const maxDone = done.length ? Math.max(...done) : 0
+        const hKey = (h: number) => {
+          if (h <= 2) return '0-2'
+          const lo = h % 2 === 0 ? h - 1 : h
+          const hi = Math.min(lo + 1, maxDone)
+          return `${lo}-${hi}`
+        }
+        const map = new Map<string, { days: number; trades: number; sumR: number; wins: number; losses: number }>()
         for (const d of dayStats) {
           const h = d.habitsDone
           if (h === undefined) continue
-          const key = h <= 2 ? '0-2 habits' : h <= 4 ? '3-4 habits' : '5-6 habits'
-          if (!map.has(key)) map.set(key, { days: 0, trades: 0, sumR: 0, wins: 0 })
+          const key = hKey(h)
+          if (!map.has(key)) map.set(key, { days: 0, trades: 0, sumR: 0, wins: 0, losses: 0 })
           const e = map.get(key)!
           const list = tradesByDay.get(d.date) ?? []
           e.days++
           e.trades += list.length
           e.sumR += list.reduce((s, t) => s + t.R, 0)
           e.wins += list.filter((t) => t.win).length
+          e.losses += list.filter((t) => t.pnl < 0).length
         }
-        return [...map.entries()].map(([bucket, v]) => ({
-          bucket,
-          days: v.days,
-          trades: v.trades,
-          sumR: round2(v.sumR),
-          avgR: v.trades ? round2(v.sumR / v.trades) : 0,
-          winRate: v.trades ? round2((v.wins / v.trades) * 100) : null,
-        }))
+        return [...map.entries()]
+          .sort((a, b) => parseInt(a[0], 10) - parseInt(b[0], 10))
+          .map(([bucket, v]) => ({
+            bucket,
+            days: v.days,
+            trades: v.trades,
+            sumR: round2(v.sumR),
+            avgR: v.trades ? round2(v.sumR / v.trades) : 0,
+            winRate: v.wins + v.losses ? round2((v.wins / (v.wins + v.losses)) * 100) : null,
+          }))
       })(),
       session: byKey(trades, (t) => t.session),
       setup: byKey(trades, (t) => t.setup),

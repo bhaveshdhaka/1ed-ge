@@ -116,7 +116,7 @@ export function MediaTab({ notify }: { notify: (m: string, ok?: boolean) => void
                     <Button size="sm" className="flex-1" onClick={() => copy(rel)}>
                       {copied === rel ? '✓ copied' : 'copy'}
                     </Button>
-                    <Button size="sm" variant="danger" onClick={() => remove(rel)}>×</Button>
+                    <Button size="sm" variant="danger" onClick={() => remove(rel)} aria-label={`delete ${rel.split('/').pop()}`}>×</Button>
                   </div>
                 </div>
               </div>

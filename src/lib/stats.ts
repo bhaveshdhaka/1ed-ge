@@ -46,16 +46,23 @@ export function flatten(days: DayEntry[], accounts: AccountEntry[]): {
     d.data.trades.forEach((t, ti) => {
       const risk = riskOf(t)
       const R = ROf(t)
-      const accs = t.executions.length ? t.executions : [{ account: '__unlogged__' }]
-      // idea-level row (uses first execution's account data for display)
-      const first = accMap.get(accs[0].account)
+      const execs = t.executions ?? []
+      // idea-level row (uses first execution's account data for display).
+      // Idea $ = Σ of ALL KNOWN-account executions (unknown accounts carry no
+      // $ attribution); execution-less trades are real ideas for R but have no $.
+      const first = execs.length ? accMap.get(execs[0].account) : undefined
+      const ideaPnl = execs.reduce((s, ex) => {
+        const acc = accMap.get(ex.account)
+        if (!acc) return s
+        return s + t.points * (acc.data.pointsValue ?? 2) * (ex.size ?? 1)
+      }, 0)
       tradeRows.push({
         day: d.data.date,
         tradeId: ti,
-        account: accs[0].account,
+        account: first ? execs[0].account : '—',
         firm: first?.data.firm ?? '—',
-        sizeLabel: first?.data.sizeLabel ?? accs[0].account,
-        size: accs[0].size ?? 1,
+        sizeLabel: first?.data.sizeLabel ?? '—',
+        size: first ? (execs[0].size ?? 1) : 1,
         market: t.market,
         session: t.session,
         direction: t.direction,
@@ -69,10 +76,10 @@ export function flatten(days: DayEntry[], accounts: AccountEntry[]): {
         note: t.note,
         screenshots: t.screenshots,
         R: round2(R),
-        pnl: round2(t.points * (first?.data.pointsValue ?? 2) * (accs[0].size ?? 1)),
+        pnl: round2(ideaPnl),
         win: t.points > 0,
       })
-      for (const ex of accs) {
+      for (const ex of execs) {
         const acc = accMap.get(ex.account)
         const pv = acc?.data.pointsValue ?? 2
         const size = ex.size ?? 1
@@ -108,6 +115,61 @@ export function flatten(days: DayEntry[], accounts: AccountEntry[]): {
   executions.sort(sort)
   tradeRows.sort(sort)
   return { executions, trades: tradeRows, daysWithTrades }
+}
+
+interface NetEvent {
+  date: string
+  /** exec pnl (signed) or −payout amount. */
+  pnl: number
+  payout: boolean
+}
+
+function netEvents(
+  execRows: { date: string; pnl: number }[],
+  payoutRows: { date: string; amount: number }[],
+): NetEvent[] {
+  const events: NetEvent[] = [
+    ...execRows.map((e) => ({ date: e.date, pnl: e.pnl, payout: false })),
+    ...payoutRows.map((p) => ({ date: p.date, pnl: -p.amount, payout: true })),
+  ]
+  // stable sort by date; same-date: executions FIRST, payouts AFTER (a payout
+  // applies at end of its day — conservative for drawdown).
+  return events.sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1
+    if (a.payout !== b.payout) return a.payout ? 1 : -1
+    return 0
+  })
+}
+
+export interface NetEquity {
+  gross: number
+  net: number
+  peakEq: number
+  dd: number // ≤ 0
+}
+
+/**
+ * Chronological equity walk — executions gain, payouts reduce net equity at
+ * their date. dd = net_final − peak net (high-water). Payout timing matters:
+ * a payout after a run-up is a permanent equity reduction, so the dd can go
+ * past the gross drawdown. Immune to payout dates with no day record, multiple
+ * payouts, and payouts before any trade.
+ */
+export function walkNetEquity(
+  execRows: { date: string; pnl: number }[],
+  payoutRows: { date: string; amount: number }[],
+): NetEquity {
+  const events = netEvents(execRows, payoutRows)
+  let gross = 0
+  let taken = 0
+  let highWater = 0
+  for (const e of events) {
+    if (e.payout) taken += -e.pnl
+    else gross += e.pnl
+    highWater = Math.max(highWater, gross - taken)
+  }
+  const net = gross - taken
+  return { gross, net, peakEq: highWater, dd: Math.min(0, net - highWater) }
 }
 
 export interface AccountStat {
@@ -165,38 +227,47 @@ export function buildStats(
 ) {
   const { executions, trades, daysWithTrades } = flatten(days, accounts)
   const payoutTotal = payouts.reduce((s, p) => s + p.data.amount, 0)
+  const accMap = new Map(accounts.map((a) => [a.data.id, a]))
+  // Unknown-account executions carry no $ attribution (data fidelity rows stay
+  // in flatten, but every $-sum here skips them — exactly period-stats).
+  const knownExecs = executions.filter((ex) => accMap.has(ex.account))
   const n = trades.length
-  const wins = trades.filter((t) => t.win)
-  const losses = trades.filter((t) => !t.win)
+  const wins = trades.filter((t) => t.win) // pnl > 0
+  const losses = trades.filter((t) => t.pnl < 0) // break-even (R === 0) is neither
   const grossProfit = wins.reduce((s, t) => s + t.pnl, 0)
   const grossLoss = losses.reduce((s, t) => s + Math.abs(t.pnl), 0)
   const sumR = trades.reduce((s, t) => s + t.R, 0)
-  const sumPnl = executions.reduce((s, t) => s + t.pnl, 0)
+  const sumPnl = knownExecs.reduce((s, t) => s + t.pnl, 0)
 
   let eqR = 0
-  let eqPnl = 0
   let peakR = 0
-  let peakPnl = 0
   let maxDDR = 0
-  let maxDDPnl = 0
   const curveR = trades.map((t, i) => {
     eqR += t.R
     peakR = Math.max(peakR, eqR)
     maxDDR = Math.min(maxDDR, eqR - peakR)
     return { i, date: t.day, r: t.R, equity: round2(eqR) }
   })
-  const curvePnl = executions.map((t, i) => {
-    eqPnl += t.pnl
-    peakPnl = Math.max(peakPnl, eqPnl)
-    maxDDPnl = Math.min(maxDDPnl, eqPnl - peakPnl)
-    return { i, date: t.day, pnl: t.pnl, equity: round2(eqPnl) }
+  // Portfolio-wide $ walk — all known executions + ALL payouts by date, so the
+  // $ layer is payout-aware end to end ("payouts reduce net equity").
+  const knownExecRows = knownExecs.map((e) => ({ date: e.day, pnl: e.pnl }))
+  const payoutRows = payouts.map((p) => ({ date: p.data.date, amount: p.data.amount }))
+  const walk = walkNetEquity(knownExecRows, payoutRows)
+  const trace = netEvents(knownExecRows, payoutRows)
+  let g = 0
+  let tk = 0
+  const curvePnl = trace.map((e, i) => {
+    if (e.payout) tk += -e.pnl
+    else g += e.pnl
+    return { i, date: e.date, pnl: e.pnl, equity: round2(g - tk) }
   })
+  const maxDDPnl = walk.dd
 
   const overall: OverallStat = {
     totalTrades: n,
     daysWithTrades,
     wins: wins.length,
-    winRate: n ? (wins.length / n) * 100 : null,
+    winRate: wins.length + losses.length ? (wins.length / (wins.length + losses.length)) * 100 : null,
     grossProfit: round2(grossProfit),
     grossLoss: round2(grossLoss),
     profitFactor: grossLoss > 0 ? round2(grossProfit / grossLoss) : grossProfit > 0 ? Infinity : null,
@@ -222,24 +293,22 @@ export function buildStats(
   const perAccount: AccountStat[] = accounts
     .map((a) => {
       const list = byAccount.get(a.data.id) ?? []
-      const w = list.filter((x) => x.win)
-      const l = list.filter((x) => !x.win)
+      const w = list.filter((x) => x.win) // pnl > 0
+      const l = list.filter((x) => x.pnl < 0) // break-even is neither
       const gp = w.reduce((s, x) => s + x.pnl, 0)
       const gl = l.reduce((s, x) => s + Math.abs(x.pnl), 0)
       const sumR = list.reduce((s, x) => s + x.R, 0)
       const grossPnl = list.reduce((s, x) => s + x.pnl, 0)
-      const payoutsFor = payouts
+      const acctPayouts = payouts
         .filter((p) => p.data.account === a.data.id)
-        .reduce((s, p) => s + p.data.amount, 0)
-      let eq = 0
-      let peak = 0
-      for (const x of list) {
-        eq += x.pnl
-        peak = Math.max(peak, eq)
-      }
-      const eqNet = eq - payoutsFor
-      const peakNet = Math.max(peak, eqNet) - payoutsFor
-      const dd = Math.min(0, eqNet - peakNet)
+        .map((p) => ({ date: p.data.date, amount: p.data.amount }))
+      // Chronological walk — payouts reduce net equity at their date.
+      const walk = walkNetEquity(
+        list.map((x) => ({ date: x.day, pnl: x.pnl })),
+        acctPayouts,
+      )
+      const eqNet = walk.net
+      const dd = walk.dd
       const buffer = Math.max(0, a.data.drawdownLimit + dd)
       const ddUsedPct =
         a.data.drawdownLimit > 0 ? Math.min(100, Math.max(0, (-dd / a.data.drawdownLimit) * 100)) : 0
@@ -257,14 +326,14 @@ export function buildStats(
         active: a.data.stage !== 'failed' && a.data.stage !== 'paused',
         trades: list.length,
         wins: w.length,
-        winRate: list.length ? (w.length / list.length) * 100 : null,
+        winRate: w.length + l.length ? (w.length / (w.length + l.length)) * 100 : null,
         points: round2(list.reduce((s, x) => s + x.points, 0)),
         grossPnl: round2(grossPnl),
-        payouts: round2(payoutsFor),
+        payouts: round2(acctPayouts.reduce((s, p) => s + p.amount, 0)),
         netPnl: round2(eqNet),
         sumR: round2(sumR),
         profitFactor: gl > 0 ? round2(gp / gl) : gp > 0 ? Infinity : null,
-        peakEq: round2(peakNet),
+        peakEq: round2(walk.peakEq),
         currentDD: round2(dd),
         buffer: round2(buffer),
         ddUsedPct,

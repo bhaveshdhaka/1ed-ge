@@ -203,7 +203,7 @@ function EditorForm({
         <Field label="name"><TextInput value={d.name ?? ''} onChange={(e) => onChange({ name: e.target.value })} /></Field>
         <Field label="premise"><TextInput value={d.premise ?? ''} onChange={(e) => onChange({ premise: e.target.value })} /></Field>
         <Field label="rules (one per line)">
-          <TextArea rows={5} value={Array.isArray(d.rules) ? d.rules.join('\n') : (d.rules ?? '')} onChange={(e) => onChange({ rules: e.target.value })} placeholder={'flat by 11:00am ct\none entry per range'} />
+          <TextArea rows={5} value={Array.isArray(d.rules) ? d.rules.join('\n') : (d.rules ?? '')} onChange={(e) => onChange({ rules: e.target.value })} placeholder={'flat by 18:00 hkt\none entry per range'} />
         </Field>
         <Field label="status">
           <Select value={d.status ?? 'active'} onChange={(e) => onChange({ status: e.target.value })}>

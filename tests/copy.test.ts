@@ -49,29 +49,40 @@ test('pendingReflectionsLine: plural days → {n} days\'', () => {
   )
 })
 
-test('pendingReflectionsLine: period fragments only, joined with · and "reflection missing" suffix', () => {
+test('pendingReflectionsLine: period fragments only, aggregated by type with counts', () => {
   assert.equal(
     pendingReflectionsLine(0, ['week 31']),
-    'week 31 reflection missing',
+    '1 weekly reflection missing',
   )
   assert.equal(
     pendingReflectionsLine(0, ['week 31', 'month']),
-    'week 31 reflection missing · month reflection missing',
+    '1 weekly · 1 monthly reflections missing',
   )
   assert.equal(
     pendingReflectionsLine(0, ['month', 'quarter', 'half', 'year']),
-    'month reflection missing · quarter reflection missing · half reflection missing · year reflection missing',
+    '1 monthly · 1 quarterly · 1 half-year · 1 yearly reflections missing',
+  )
+})
+
+test('pendingReflectionsLine: a wall of fragments collapses to one compact line', () => {
+  const weeks = Array.from({ length: 104 }, (_, i) => `week ${(i % 52) + 1}`)
+  const months = Array.from({ length: 24 }, () => 'month')
+  const quarters = Array.from({ length: 7 }, () => 'quarter')
+  const halves = Array.from({ length: 4 }, () => 'half')
+  assert.equal(
+    pendingReflectionsLine(404, [...weeks, ...months, ...quarters, ...halves, 'year']),
+    "trader has 404 days' pending end of day reflection · 104 weekly · 24 monthly · 7 quarterly · 4 half-year · 1 yearly reflections missing",
   )
 })
 
 test('pendingReflectionsLine: combined days + period fragments', () => {
   assert.equal(
     pendingReflectionsLine(2, ['week 31']),
-    "trader has 2 days' pending end of day reflection · week 31 reflection missing",
+    "trader has 2 days' pending end of day reflection · 1 weekly reflection missing",
   )
   assert.equal(
     pendingReflectionsLine(1, ['week 31', 'month']),
-    "trader has 1 day's pending end of day reflection · week 31 reflection missing · month reflection missing",
+    "trader has 1 day's pending end of day reflection · 1 weekly · 1 monthly reflections missing",
   )
 })
 

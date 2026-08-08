@@ -58,6 +58,7 @@ export function aggregatePeriod(days: DayData[], range: PeriodRange, ctx: Period
   // --- trades / R ---
   let sumR = 0
   let wins = 0
+  let losses = 0
   let grossWin = 0
   let grossLoss = 0
   let tradedDays = 0
@@ -67,12 +68,13 @@ export function aggregatePeriod(days: DayData[], range: PeriodRange, ctx: Period
       const r = ROf(t)
       sumR += r
       if (r > 0) { wins++; grossWin += r }
-      else if (r < 0) grossLoss += -r // |grossLoss|
+      else if (r < 0) { losses++; grossLoss += -r } // |grossLoss|
     }
   }
   const trades = inRange.reduce((s, d) => s + d.trades.length, 0)
   const expectancyR = trades > 0 ? sumR / trades : 0
-  const winRate = trades > 0 ? wins / trades : 0
+  // Break-even (R === 0) is excluded from the win-rate denominator everywhere.
+  const winRate = wins + losses > 0 ? wins / (wins + losses) : 0
   // ∞ when there were winners but no losers; 0 when nothing was won (or nothing traded)
   const profitFactor = grossLoss > 0 ? grossWin / grossLoss : grossWin > 0 ? Infinity : 0
 
@@ -117,18 +119,23 @@ export function aggregatePeriod(days: DayData[], range: PeriodRange, ctx: Period
   const avgMood = moodCount > 0 ? moodSum / moodCount : null
   const avgScreenHours = screenCount > 0 ? screenSum / screenCount : null
 
-  // --- habit adherence: pct of in-range days that satisfied the habit ---
+  // --- habit adherence: pct of in-range TRACKED days (habit key present in the
+  // day's habits object — value may be false/0) that satisfied the habit.
+  // A mid-period introduction no longer dilutes the pct. ---
   const habitAdherence = ctx.habits.map((h) => {
     let done = 0
+    let tracked = 0
     for (const d of inRange) {
-      const v = d.habits?.[h.id]
+      if (!d.habits || !Object.prototype.hasOwnProperty.call(d.habits, h.id)) continue
+      tracked++
+      const v = d.habits[h.id]
       if (h.kind === 'count') {
         if (typeof v === 'number' && v >= (h.target ?? 1)) done++
       } else {
         if (v === true) done++
       }
     }
-    return { habit: h.id, pct: inRange.length > 0 ? (done / inRange.length) * 100 : 0 }
+    return { habit: h.id, pct: tracked > 0 ? (done / tracked) * 100 : 0 }
   })
 
   return {
@@ -151,6 +158,11 @@ export function aggregatePeriod(days: DayData[], range: PeriodRange, ctx: Period
 /**
  * prev↔cur deltas over the numeric headline fields. `pct` is rounded to 3dp
  * and is null whenever `prev` is 0.
+ *
+ * CONTRACT: an empty previous period (daysCount 0) must NOT be compared —
+ * `periodDelta` is dumb arithmetic, so the caller guards with `hasPeriodData`
+ * before rendering deltas (a daysCount-0 prev would otherwise produce phantom
+ * deltas against 0).
  */
 export function periodDelta(prev: PeriodStats, cur: PeriodStats): PeriodDelta[] {
   return DELTA_FIELDS.map((field) => {
@@ -164,6 +176,11 @@ export function periodDelta(prev: PeriodStats, cur: PeriodStats): PeriodDelta[] 
       pct: p !== 0 ? round3((c - p) / Math.abs(p)) : null,
     }
   })
+}
+
+/** True only when the period has at least one day record — the comparison guard. */
+export function hasPeriodData(s: PeriodStats | null): boolean {
+  return s !== null && s.daysCount > 0
 }
 
 /**

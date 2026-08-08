@@ -60,6 +60,7 @@ export function buildModelStats(days: DayEntry[], models: ModelEntry[]): ModelSt
       const count = rows.length
       const sumR = rows.reduce((s, r) => s + r.R, 0)
       const wins = rows.filter((r) => r.R > 0).length
+      const be = rows.filter((r) => r.R === 0).length
       return {
         slug: m.id,
         name: m.data.name ?? m.id,
@@ -71,7 +72,8 @@ export function buildModelStats(days: DayEntry[], models: ModelEntry[]): ModelSt
         count,
         sumR,
         avgR: count > 0 ? sumR / count : 0,
-        winRate: count > 0 ? wins / count : 0,
+        // Break-even (R === 0) is excluded from the denominator.
+        winRate: count - be > 0 ? wins / (count - be) : 0,
         bestR: count > 0 ? Math.max(...rows.map((r) => r.R)) : 0,
         worstR: count > 0 ? Math.min(...rows.map((r) => r.R)) : 0,
         lastIso: count > 0 ? rows[rows.length - 1].iso : null,

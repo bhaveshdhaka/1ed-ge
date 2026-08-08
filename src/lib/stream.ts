@@ -175,9 +175,9 @@ export function dayFacts(d: DayData | null, habitTotal: number): FactCell[] {
     {
       key: 'r',
       label: 'R',
-      value: d.trades.length ? `${sumR >= 0 ? '+' : ''}${sumR.toFixed(2)}` : '—',
+      value: d.trades.length ? `${sumR > 0 ? '+' : ''}${sumR.toFixed(2)}R` : '—',
       ok: d.trades.length > 0,
-      up: sumR >= 0,
+      up: sumR > 0 ? true : sumR < 0 ? false : undefined,
     },
   ]
 }

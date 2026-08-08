@@ -6,12 +6,14 @@
  * week/month/year bare slugs to the current period. Quarter/half anchors are
  * canonical year-only (/q1/2026); aliases (/q1/2026-q1) and malformed anchors
  * return 404. Week/month/year keep their anchored forms (/week/2026-32,
- * /month/2026-08, /year/2026).
+ * /month/2026-08, /year/2026). FUTURE periods (start after today) don't 404 —
+ * they 307-redirect to today's period of the same type (/week/2026-33 → /week,
+ * /q4 → /q3), so the URL resolves gracefully once the period arrives.
  */
 import Base from '../../layouts/Base.astro'
 import { getCollection } from 'astro:content'
-import { resolvePeriod } from '../../lib/periods'
-import { aggregatePeriod, trendSeries, buildTape, toDateLadder, type PeriodStats, type TrendPoint } from '../../lib/period-stats'
+import { resolvePeriod, periodRange, slugFromType } from '../../lib/periods'
+import { aggregatePeriod, hasPeriodData, trendSeries, buildTape, toDateLadder, type PeriodStats, type TrendPoint } from '../../lib/period-stats'
 import { readEntry } from '../../lib/content'
 import { todayHkt } from '../../lib/sessions'
 import { flattenStream, type DayData } from '../../lib/stream'
@@ -23,6 +25,14 @@ const slug = Astro.params.periodType ?? ''
 const today = todayHkt()
 const range = resolvePeriod(slug, Astro.params.anchor, today)
 if (!range) {
+  // A well-formed period that simply hasn't started yet redirects to today's
+  // period of the same type (307 — temporary, so caches never pin the future
+  // URL; it becomes real once it arrives). Bad URLs still 404.
+  const future = resolvePeriod(slug, Astro.params.anchor, today, { allowFuture: true })
+  if (future && future.startIso > today) {
+    const current = periodRange(future.type, today)
+    return Astro.redirect(`/${slugFromType(future.type, current.index)}`, 307)
+  }
   return new Response(
     '<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>404 — not found</title></head><body style="font-family: ui-monospace, monospace; background: #0a0a0c; color: #8b8b93; padding: 6rem 1rem; text-align: center">404 — period not found</body></html>',
     { status: 404, headers: { 'content-type': 'text/html; charset=utf-8' } },
@@ -47,7 +57,10 @@ const ctx = {
 }
 
 const stats: PeriodStats = aggregatePeriod(days, range, ctx)
-const prevStats: PeriodStats | null = stats.daysCount > 0 ? aggregatePeriod(days, range.prev, ctx) : null
+// The comparison card renders only against a previous period that HAS data —
+// an empty previous period (daysCount 0) must not produce phantom deltas.
+const prevAgg = stats.daysCount > 0 ? aggregatePeriod(days, range.prev, ctx) : null
+const prevStats: PeriodStats | null = prevAgg && hasPeriodData(prevAgg) ? prevAgg : null
 const trend: TrendPoint[] = stats.daysCount > 0 ? trendSeries(type, days, 8, ctx) : []
 const tape = buildTape(type, days, ctx, today)
 const ladder = toDateLadder(days, today, ctx)

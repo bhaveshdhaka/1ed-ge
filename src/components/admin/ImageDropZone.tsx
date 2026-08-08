@@ -20,6 +20,9 @@ export function ImageDropZone({
   return (
     <div
       data-own-paste
+      role="button"
+      tabIndex={0}
+      aria-label={ariaLabel ?? label ?? 'upload images'}
       className={`flex cursor-pointer flex-col items-center justify-center gap-1 border border-dashed border-line2 bg-bg px-3 py-5 text-center text-[12px] text-dim transition-colors hover:border-accent ${className}`}
       onPaste={(e) => {
         const files = Array.from(e.clipboardData?.files ?? [])
@@ -32,6 +35,12 @@ export function ImageDropZone({
       }}
       onDragOver={(e) => e.preventDefault()}
       onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          inputRef.current?.click()
+        }
+      }}
     >
       <input
         ref={inputRef}

@@ -182,7 +182,7 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
             <MarkdownEditor label="review markdown" rows={18} value={body} onChange={setBody} />
             <div className="flex items-center justify-between border-t border-line pt-3">
               <span className="text-[11px] text-faint">
-                comparison — AI facts (deepseek v4 flash), you write the reflection
+                comparison — AI facts, you write the reflection
               </span>
               <Button size="sm" onClick={generate} disabled={generating}>
                 {generating ? 'generating…' : 'generate comparison'}
