@@ -1,6 +1,6 @@
 # Period Reviews — Design
 
-**Status: approved (owner, 2026-08-07) → in implementation**
+**Status: shipped — deployed + verified live (2026-08-08).**
 
 **Owner decisions locked in:** week = **Mon–Fri** (the trading week — trading days are
 strictly Mon–Fri, no exceptions; the Sat/Sun ritual reviews the just-completed trading

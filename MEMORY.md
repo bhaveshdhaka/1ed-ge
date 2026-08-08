@@ -11,51 +11,56 @@ servers do NOT count as "done". Workflow: typecheck → commit → `bash
 scripts/deploy.sh` → poll until live → curl-verify the changed bits. Kill test
 servers when finished.
 
-## HANDOFF — period-reviews + zen + accountability (READ FIRST)
+## HANDOFF — period reviews SHIPPED + LIVE (READ FIRST)
 
-**State: everything committed, tree VERIFIED-buildable (typecheck 0 errors, build OK,
-routes smoke-tested 200: / /stream /week /q1/2026 /lookback; /admin/bogus → 404). NOT
-deployed** — the live site still runs the chronograph state (last deploy = the overlap-fix
-era). Deploy is mandatory before this feature counts as done (ship-it rule).
+**State: the period-reviews feature is DONE — committed, deployed, verified live.**
+All Wave-7 reviews approved + fix rounds landed; the final whole-branch oracle review
+approved for deploy. Deployed via `bash scripts/deploy.sh`; verified LIVE: home 200;
+/week /month /q1/2026 /h1/2026 /year/2026 /lookback /zen/<secret> 200; /admin/<secret>
+302 → /zen; bare /q1 200 (q1 of current year); /q1/2026-q1 and /week/2026-32/extra → 404;
+homepage nudge line; no "Two years" anywhere.
 
 **Shipped + LIVE earlier this session:** moment-images (3-type stream, ephemeral capture,
 alt sidecar, lightbox), market chronograph + overlap fix (clock-chip lane), quick wins
 (dead cockpit code + sign-correct money colors), node:test runner (84 tests), no-2-year
 de-hardcode (day counter uncapped, seed-review `--days` arg, copy de-emphasized).
 
-**Committed, NOT deployed — the period-reviews feature (in progress, 11 of 12 tasks done):**
-period engine (`periods.ts`: week=Mon–Fri, month/quarter/half/year, anchors,
-`isoFromAnchor`); aggregation (`period-stats.ts`: `aggregatePeriod`/`periodDelta`/
-`trendSeries`); `reviews` collection + admin ReviewTab; AI comparison
-(`review-compare.ts`, deepseek v4 flash 0731 via `env.modelIngest`, stored
-`reviews/<type>-<anchor>.cmp.md`, on-demand + editable, collection glob excludes `.cmp.md`);
-`copy.ts` (SINGLE source of every message string — trader/zen/reflection voice);
-`accountability.ts` (pending reflections); period surface (`PeriodReview.astro` + ALL-SSR
-route `/week /month /q1..q4 /h1..h2 /year` + nav `[05] review`); homepage nudge (durable
-last-online `public/media/.last-online` + one-liner); `/lookback` (nav `[06]`); **zen**
-(private area: `/zen/<secret>` mount, `/admin/<secret>` 302 redirect, header says zen,
-pending-reminder strip; `/api/admin/*` API paths UNCHANGED; sw.js skips both).
+**URL semantics (owner-locked 2026-08-08):** bare `/q1` = q1 of the CURRENT YEAR (rolling);
+bare /week /month /year = current period; quarter/half PUBLIC anchors are canonical
+year-only (`/q1/2026` — `/q1/2026-q1` and `/q1/2026-q2` → 404); the admin API keeps
+internal `2026-q1` anchors (`isoFromAnchor` embedded-suffix + `validAnchor` in
+`src/pages/api/admin/reviews.ts`); the review-page switcher = 9 chips (week · month ·
+q1..q4 · h1 h2 · year). `resolvePeriod` + `publicAnchor` in `src/lib/periods.ts` are the
+pure, tested (90 tests) URL layer — the route `src/pages/[periodType]/[...anchor].astro`
+is a thin caller.
 
 **Recovery map:** the SDD ledger `.superpowers/sdd/2026-08-07-period-reviews/progress.md`
-has the full per-task history (commits + reviews + fixes). Spec:
-`docs/superpowers/specs/2026-08-07-period-reviews-design.md`. Plan:
-`docs/superpowers/plans/2026-08-07-period-reviews.md` (12 task sections; T1,T2,T3,T4,T4b,
-T5f,T5c,T5,T5d,T5b,T5e done + reviewed; **T6 pending**).
+has the full history. Spec: `docs/superpowers/specs/2026-08-07-period-reviews-design.md`
+(status: shipped). Plan: `docs/superpowers/plans/2026-08-07-period-reviews.md`.
+Post-review commits: `1a4dcd6` (URL semantics + resolvePeriod, 15 tests) `9dd041e`
+(Wave-7 review fixes — lookback cleanup + horizon-first sort + filtered count, zen 404
+early-return, e2e/.env.example zen paths, VIEW_REVIEW) `8cc0e36` (publicAnchor prev/next +
+lookback round-trip regression, NaN-safe delta, styled 404) `9849c0f` ("reflection
+missing" suffix on the pending nudge, ReviewTab dirty-guard on period switch).
 
-**NEXT AGENT — resume in order:**
-1. **Wave-7 reviews** — dispatch reviewers for T5b (`e0ab54e` /lookback), T5e (`08fb5eb`
-   zen), and a scoped re-review of the T5 fix `9da2334` (ora-12's Important findings: 404
-   on malformed/nested anchors, finite-guarded delta fallback). Fix loops as needed.
-2. **T6** — docs (CHANGELOG Unreleased for the whole feature; AGENTS.md layout; MEMORY
-   session-log) + final gate (`npm test` + typecheck + build) + `bash scripts/deploy.sh`
-   + verify LIVE (home 200; /week, /q1/2026, /lookback, /zen/<secret> 200; /admin → /zen;
-   homepage moniker/nudge; no "Two years" anywhere).
-3. **Final whole-branch review** (oracle) over the period-reviews range + close out.
-4. **THEN the INGEST feature** (queued): `docs/superpowers/plans/2026-08-07-ingest.md`
-   (5 tasks — PDF/CSV/image → trades, deepseek v4 flash 0731, per-account dedup,
-   approve-every-trade, account-link confirm). Note: its Task-1 additions
-   (`env.modelIngest`, `AI_MODEL_INGEST`, ImageDropZone `accept`) ALREADY EXIST — verify
-   before re-adding. The owner's demo files stay in `/tmp/opencode/import-demo/`.
+**NEXT — the INGEST feature (queued):** `docs/superpowers/plans/2026-08-07-ingest.md`
+(5 tasks — PDF/CSV/image → trades, deepseek v4 flash 0731, per-account dedup,
+approve-every-trade, account-link confirm). Note: its Task-1 additions
+(`env.modelIngest`, `AI_MODEL_INGEST`, ImageDropZone `accept`) ALREADY EXIST — verify
+before re-adding. The owner's demo files stay in `/tmp/opencode/import-demo/`.
+
+**INGEST-integration notes (ora-3):** (1) `toDayData` in `src/pages/api/admin/reviews.ts`
+(50 lines) re-parses day files independently of the content-collection schema — a
+maintenance tax if the trade schema evolves; keep it in sync. (2) `src/content/reviews/`
+is created on first `writeEntry` — a missing dir is handled (empty collection / `[]`).
+(3) Ingest amends old day records → already-completed period reviews' numbers will shift
+retroactively (correct — data is truth — but may surprise the owner).
+
+**Deferred minors (parked):** HKT offset duplicated 3× (`sessions.ts` todayHkt,
+`zen/[secret]/index.astro:28`, `index.astro:45` — extract `nowHkt()` into sessions.ts);
+switcher links jump to the current year from anchored pages (by design); /lookback does
+~2 sync fs reads × ~142 periods per request (<50ms — fine at this scale); week-53 in a
+52-week year resolves into week-1-of-next-year content (harmless edge, owner chose skip).
 
 **Owner-locked decisions (do NOT re-litigate):** week = **Mon–Fri trading week** (trading
 strictly Mon–Fri, no exceptions); full review content; written review notes per period;
@@ -351,6 +356,15 @@ deployed in this session; the autosave cron is active again.
 
 ## Session log (recent)
 
+- 2026-08-08 — **Period reviews SHIPPED + LIVE.** Owner URL gate (this session): bare
+  `/q1` = q1 of current year; canonical-only public quarter/half anchors; 9-chip switcher;
+  week-53 skip. Wave-7 reviews: T5b Approved (oracle), T5e Approved (general), route
+  re-review Changes-needed (oracle — caught the prev/next + lookback internal-anchor
+  regression) → fixed; final whole-branch oracle review Approved for deploy. Commits:
+  `1a4dcd6` (resolvePeriod + URL semantics + 15 tests) `9dd041e` (Wave-7 review fixes)
+  `8cc0e36` (publicAnchor prev/next + lookback round-trip, NaN-safe delta, styled 404)
+  `9849c0f` ("reflection missing" suffix, ReviewTab dirty-guard). 90/90 tests, typecheck 0,
+  build OK, deployed + verified live. **Next: INGEST** (queued plan).
 - 2026-08-07 — **Market chronograph + overlap fix, live.** Final commits
   `c11526f` (footer date → `fmtDayW`, correct `fmtDayW` doc example, `z-5`)
   and `51e63cb` (clock chip gets a reserved rail lane — never overlaps the

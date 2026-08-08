@@ -72,7 +72,7 @@ wait". Default is commit + deploy + verify.
 
 ```
 astro.config.mjs            static output + node adapter; SSR routes opt out per-file
-src/content.config.ts            collections: accounts, days, payouts, coach, journal, habits, brief, market-news
+src/content.config.ts            collections: accounts, days, payouts, coach, journal, habits, brief, market-news, reviews
 src/content/days/<date>.md  THE daily record — mood, sleep, habits, device, trades+executions
 src/content/brief/          per-day pre-market brief (AI-written prose from verified data)
 src/content/market-news/    per-day USD red/orange events (HKT times), fetched deterministically
@@ -81,6 +81,7 @@ src/content/payouts/        payout records (per account)
 src/content/coach/          f-R-iend conversations (public on /coach)
 src/content/journal/        prose (MDX), keyed by date
 src/content/habits/         habit definitions
+src/content/reviews/        per-period review notes (<type>-<anchor>.md) + AI comparison (.cmp.md)
 src/lib/content.ts          fs + gray-matter helpers for admin file I/O
 src/lib/stats.ts            R/pnl/equity/drawdown engine (idea + per-account via executions)
 src/lib/trends.ts           rolling windows + correlations (sleep/mood/habits/screen/session/setup)
@@ -92,6 +93,12 @@ src/lib/brief.ts                deterministic pre-market snapshot builder (sessi
 src/lib/changes.ts          pending-changes store (/tmp/1edge-pending.json) + rebuild history
 src/lib/stream.ts           published-moment helpers: resolveMoments/flattenStream/dayFacts/momentMeta
 src/lib/models.ts           per-model aggregation: buildModelStats (count/sumR/avgR/winRate per model)
+src/lib/periods.ts           period engine — week (Mon–Fri)/month/quarter/half/year ranges + anchors;
+                             resolvePeriod (public URL → range) + publicAnchor (canonical URL form), tested
+src/lib/period-stats.ts      period aggregation — R/P&L/per-account/per-model/life + periodDelta + trendSeries
+src/lib/review-compare.ts    AI factual comparison (deepseek v4 flash 0731, formatter-over-numbers) + fallback
+src/lib/accountability.ts    pending reflections — Mon–Fri every day (3h grace), completed periods only
+src/lib/copy.ts              SINGLE source of every public message string (trader/zen/reflection vocabulary)
 src/lib/live.ts             admin-heartbeat read/write (/tmp/1edge-live.json, 5-min live window)
 src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), readScreenshot,
                              readScreenTime, coachReply, assist, captionAlt (cheap-model alt text)
@@ -108,12 +115,14 @@ src/components/stream/      public stream components (MomentCard, DayFacts) — 
 src/components/archive/DayArchive.astro  posterized day archive (facts + moments + model-tagged trades);
                              trade screenshots open the lightbox via data-lb
 src/pages/                  public pages: / /stream /journal /models /calendar /performance /tracker /trends
-                             /accounts /coach /about /day/[date] + rss + sitemap
-                             (/ + /stream are SSR — prerender = false)
+                             /accounts /coach /about /day/[date] + review routes (/week /month /q1..q4 /h1/h2
+                             /year + anchored forms via [periodType]/[...anchor], all SSR) + /lookback
+                             + rss + sitemap (/ + /stream + review routes + /lookback are SSR)
 src/pages/zen/[secret]/    private zen (SSR), renders the React app; the old
                              /admin/[secret] is a thin redirect to /zen
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/api/admin/market.ts    USD news GET + refresh (spawns market-news-fetch.mjs)
+src/pages/api/admin/reviews.ts   period review notes + AI comparison (GET/POST; internal <type>-<anchor> anchors)
 src/pages/media/[...file].ts SSR media file server (uploads in public/media)
 src/components/admin/*      React admin (Overview / Day / Accounts / Coach / Media / Library)
 src/components/admin/tabs/DayWorkspace.tsx  the single "day" screen: ephemeral capture (AI
@@ -123,6 +132,8 @@ src/components/admin/tabs/DayWorkspace.tsx  the single "day" screen: ephemeral c
                             (trade|note|quote, draft → publish, per-moment image drops)
                             → reflection draft (markdown) → publish reflection → one save
 src/components/admin/tabs/LibraryTab.tsx  habits / models / rules / quotes CRUD
+src/components/admin/tabs/ReviewTab.tsx   period review notes + AI comparison (type/anchor picker,
+                             MarkdownEditor, generate-compare button, dirty-guard on switch)
 src/components/admin/RebuildBar.tsx  sticky pending-changes → rebuild bar (all tabs)
 src/components/admin/MarkdownEditor.tsx  markdown textarea + write/preview tabs
 src/components/*.astro      shared UI + SVG charts (zero JS)
@@ -197,6 +208,12 @@ draft:                       # NEW — private, NEVER rendered publicly
   (±2min UTC); `verified` = present in both sources. **Zero-inference:** rows are
   verbatim from their source (`TV`/`FF` badge), never merged/re-leveled. 8h cron
   + deploy + admin refresh.
+- **Period reviews** = `reviews/` collection `{ type, anchor, title?, date }` + MDX body,
+  file `<type>-<anchor>.md` (e.g. `week-2026-33.md`). AI comparison files
+  `<type>-<anchor>.cmp.md` live alongside but are glob-excluded from the collection.
+  Public URLs are canonical (`/q1/2026` via the route's `resolvePeriod`); the admin API
+  uses the internal `2026-q1` anchors. One `PeriodReview.astro` + one dynamic route
+  `[periodType]/[...anchor]` render every horizon — adding one is config, never a rebuild.
 
 ## Admin + publish flow (important)
 
@@ -246,6 +263,9 @@ optional title/summary/tags/featuredImage.
   is used only for the NYSE band itself. Never present "NYSE open" as "market
   open" — the market is CME.
 - **Everything public except the admin.** Never weaken this. No cherry-picking.
+- **The day counter is uncapped** — no hardcoded 2-year/730 limits anywhere (the site is
+  the owner's life, not a project). `projectDayNumber()` has no cap; period ranges scale
+  indefinitely.
 - **Never commit secrets.** `.env` (ADMIN_SECRET, OPENROUTER_API_KEY) is
   gitignored. `.env.example` documents the shape.
 - **Public pages must stay zero-JS** except the single shared `<dialog>` lightbox

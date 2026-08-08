@@ -6,6 +6,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Period reviews — the Sat/Sun ritual, every horizon)
+
+- **One period engine, one review surface.** `src/lib/periods.ts` (week = Mon–Fri trading
+  week, month, quarter, half, year ranges + anchors) + `src/lib/period-stats.ts`
+  (R/P&L/per-account/per-model/life aggregation over the day files) + a single
+  `PeriodReview.astro` — adding a horizon is config, never a rebuild.
+- **Clean, canonical URLs.** `/week /month /q1..q4 /h1/h2 /year` (current period) and
+  `/week/2026-33`, `/month/2026-08`, `/q1/2026`, `/h1/2026`, `/year/2026` (any specific
+  period) via one dynamic route `[periodType]/[...anchor]` (all SSR). Bare `/q1` = q1 of
+  the current year (rolling); quarter/half anchors are canonical year-only
+  (`/q1/2026-q1` → 404); malformed/nested anchors 404, never 500.
+- **`/lookback`** — the aggregated hub of every period review (type filter, newest first,
+  headline stats + reflection/comparison snippets).
+- **Written per-period review notes** — new `reviews/` collection + `ReviewTab` in zen
+  (type/anchor picker, MarkdownEditor write/preview), queued as pending changes like
+  every other mutation.
+- **AI factual comparison** — "comparison · from verified data": deepseek v4 flash 0731
+  formats period-over-period stats + trend into bullets, generated ON DEMAND from the
+  admin, editable before publish, stored `reviews/<type>-<anchor>.cmp.md`
+  (glob-excluded from the collection); code-rendered fallback when the model fails —
+  the page is never blank.
+- **Reflection habit + public accountability.** Every Mon–Fri day needs an end-of-day
+  reflection (strict 3h grace after midnight HKT); Sat/Sun only the week review. The
+  homepage + zen show one compact nudge line when something is due (`trader has 2 days'
+  pending end of day reflection · week 31 reflection missing`).
+- **zen.** The private area is renamed zen — `/zen/<secret>` (old `/admin/<secret>`
+  302-redirects), branded zen, pending reminders greet the owner on login. API paths
+  stay `/api/admin/*`.
+- **`src/lib/copy.ts`** — single source of every message string (trader / zen /
+  reflection vocabulary, live line, pending line, period headers, section labels), the
+  same way `strip.ts` owns market phrases.
+- **No hardcoded 2-year/730 limits anywhere.** `projectDayNumber()` is uncapped;
+  seed-review takes `--days=N`; copy stops framing the site as a two-year experiment.
+  The site is the owner's life, not a project.
+
 ### Added (Market chronograph — the day at a glance)
 
 - **Chronograph rail** on the market widget — a 00–24 HKT hairline day-ruler with
