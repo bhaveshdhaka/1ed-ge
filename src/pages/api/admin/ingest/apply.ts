@@ -41,9 +41,11 @@ export const POST: APIRoute = async ({ request }) => {
   const body = await request.json().catch(() => ({}))
   const date = String(body.date ?? '')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return error('invalid date (expected YYYY-MM-DD)')
+  if (isNaN(Date.parse(date))) return error('invalid date')
 
   // 1. Persist platform links onto account records (dedupe-append platformIds).
   const platformLinks = Array.isArray(body.platformLinks) ? body.platformLinks : []
+  let linksApplied = 0
   for (const link of platformLinks) {
     const platformId = String((link as { platformId?: unknown } | null)?.platformId ?? '')
     const internalId = String((link as { internalId?: unknown } | null)?.internalId ?? '')
@@ -58,12 +60,15 @@ export const POST: APIRoute = async ({ request }) => {
       data.platformIds = platformIds
       writeEntry('accounts', `${internalId}.md`, data, existing.body ?? '')
       addChange('account', `alias ${platformId} → ${internalId}`)
+      linksApplied++
     }
   }
 
   // 2. Merge approved positions as trades into days/<date>.md.
   const positions: PositionProposal[] = Array.isArray(body.positions)
-    ? (body.positions as PositionProposal[]).filter((p) => Number.isFinite(p?.entry) && Number.isFinite(p?.exit))
+    ? (body.positions as PositionProposal[]).filter(
+        (p) => Number.isFinite(p?.entry) && Number.isFinite(p?.exit) && Number.isFinite(p?.points),
+      )
     : []
   const trades = positions.map(importedTrade)
 
@@ -79,5 +84,5 @@ export const POST: APIRoute = async ({ request }) => {
     addChange('day', `day ${date}`, `${trades.length} imported trades`)
   }
 
-  return json({ ok: true, dayFile: `${date}.md`, linksApplied: platformLinks.length })
+  return json({ ok: true, dayFile: `${date}.md`, linksApplied })
 }

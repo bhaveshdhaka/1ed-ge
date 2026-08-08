@@ -69,7 +69,7 @@ export interface IngestResult {
 }
 
 export interface IngestCtx {
-  accounts: { id: string; contract?: string; size?: number }[]
+  accounts: { id: string; contract?: string; size?: number; platformIds?: string[] }[]
   existingTrades?: { market: string; direction: string; entry: number; exit: number }[]
 }
 
@@ -365,7 +365,7 @@ export function resolveAlias(
   platformId: string,
   accounts: IngestCtx['accounts'],
 ): { internalId: string | null; candidates: string[]; suggested: string | null } {
-  const known = accounts.find((a) => (a as { platformIds?: string[] }).platformIds?.includes(platformId))
+  const known = accounts.find((a) => a.platformIds?.includes(platformId))
   if (known) return { internalId: known.id, candidates: [], suggested: null }
   const candidates = accounts.map((a) => a.id)
   return { internalId: null, candidates, suggested: candidates[0] ?? null }

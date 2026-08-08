@@ -12,7 +12,7 @@ export const prerender = false
  * the schema field + save whitelist) so `resolveAlias` inside `ingestFiles`
  * can match Tradovate platform ids (`LTE…`) to internal accounts.
  */
-export function listAccountCtx(): { id: string; contract?: string; size?: number; platformIds: string[] }[] {
+function listAccountCtx(): { id: string; contract?: string; size?: number; platformIds: string[] }[] {
   return listMds('accounts').map((f) => {
     const data = readEntry('accounts', f).data as Record<string, unknown>
     return {
