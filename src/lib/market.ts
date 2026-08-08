@@ -5,6 +5,51 @@ export interface MarketDay {
   label: string
 }
 
+/* ------------------------------------------------------------------ */
+/* Timezone helpers — DST-aware US wall-clock → HKT. The site is HKT   */
+/* everywhere; a CT label like "12pm ct" is meaningless to the owner   */
+/* and the CT→HKT offset shifts by an hour between CST and CDT. These  */
+/* helpers convert a CT wall time on a specific date to HKT, honoring  */
+/* DST via Intl.                                                       */
+/* ------------------------------------------------------------------ */
+
+export const HKT_OFFSET_MS = 8 * 3600 * 1000
+
+/** Offset of `tz` from UTC in minutes at the given instant. */
+export function tzOffsetMinutes(tz: string, date: Date): number {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  const parts: Record<string, string> = {}
+  for (const p of dtf.formatToParts(date)) parts[p.type] = p.value
+  const asUTC = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute)
+  return Math.round((asUTC - date.getTime()) / 60000)
+}
+
+/** Wall-clock (hh:mm) on local date `iso` in `tz` → UTC ms. */
+export function wallToUTC(tz: string, iso: string, hh: number, mm: number): number {
+  const [y, m, d] = iso.split('-').map(Number)
+  const guess = Date.UTC(y, m - 1, d, hh, mm)
+  const off = tzOffsetMinutes(tz, new Date(guess))
+  return guess - off * 60000
+}
+
+export function hktIso(utcMs: number): string {
+  const d = new Date(utcMs + HKT_OFFSET_MS)
+  return d.toISOString().slice(0, 16) + '+08:00'
+}
+
+/** CT wall-clock hh:mm on date `iso` → HKT "HH:MM" (DST-aware, per-date). */
+export function ctToHktHhmm(iso: string, hh: number, mm: number): string {
+  return hktIso(wallToUTC('America/Chicago', iso, hh, mm)).slice(11, 16)
+}
+
 function isoFromDate(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -97,16 +142,26 @@ function cmeHolidaysForYear(year: number): Date[] {
   ].map(observed)
 }
 
-const cmeEarlyCloseRules = [
-  (y: number) => addDays(nthWeekday(y, 10, 4, 4), 1), // day after Thanksgiving
-  (y: number) => new Date(y, 11, 24), // Christmas Eve
-  (y: number) => new Date(y, 11, 31), // New Year's Eve
+/* [rule, reason, ctHh, ctMm] — the CT wall-clock time of the modified
+ * session event for each early-close day. The standard half-days close at
+ * 13:15 CT; the day before a Friday-observed Independence Day closes at
+ * 12:00 CT (owner-provided 2026 CME schedule). Display always converts to
+ * HKT via ctToHktHhmm — never shows the raw CT time. */
+const cmeEarlyCloseRules: [(y: number) => Date | null, string, number, number][] = [
+  [(y) => addDays(nthWeekday(y, 10, 4, 4), 1), 'day after Thanksgiving', 13, 15],
+  [(y) => new Date(y, 11, 24), 'Christmas Eve', 13, 15],
+  [(y) => new Date(y, 11, 31), "New Year's Eve", 13, 15],
   // Day before Independence Day when July 4 falls on Saturday
-  // (Independence Day observed on Friday Jul 3 → Thursday Jul 2 is early close 12pm CT).
-  (y: number) => {
-    const jul4 = new Date(y, 6, 4)
-    return jul4.getDay() === 6 ? addDays(jul4, -2) : null
-  },
+  // (Independence Day observed on Friday Jul 3 → Thursday Jul 2 early close).
+  [
+    (y) => {
+      const jul4 = new Date(y, 6, 4)
+      return jul4.getDay() === 6 ? addDays(jul4, -2) : null
+    },
+    'day before Independence Day',
+    12,
+    0,
+  ],
 ]
 
 /* CME equity-index futures: low-volume / modified-hours days. These are
@@ -114,10 +169,10 @@ const cmeEarlyCloseRules = [
  * shortens the session to a morning half (halt ~12:00 PM CT, reopen
  * ~5:00 PM CT). The owner trades from Asia and wants these flagged
  * because volume is thin and price action is messy. */
-const cmeEarlyHaltRules: [(y: number) => Date, string][] = [
-  [(y) => nthWeekday(y, 0, 1, 3),  'MLK Day'],
-  [(y) => nthWeekday(y, 1, 1, 3),  "Presidents' Day"],
-  [(y) => lastWeekday(y, 4, 1),    'Memorial Day'],
+const cmeEarlyHaltRules: [(y: number) => Date, string, number, number][] = [
+  [(y) => nthWeekday(y, 0, 1, 3), 'MLK Day', 12, 0],
+  [(y) => nthWeekday(y, 1, 1, 3), "Presidents' Day", 12, 0],
+  [(y) => lastWeekday(y, 4, 1), 'Memorial Day', 12, 0],
 ]
 
 /** Deterministic CME equity-index-futures day status (master clock). */
@@ -137,16 +192,38 @@ export function cmeDay(iso: string): MarketDay {
   for (const [rule] of cmeEarlyHaltRules) {
     const e = rule(y)
     if (e && isoFromDate(e) === iso && e.getDay() !== 0 && e.getDay() !== 6) {
-      return { status: 'early-halt', label: 'early halt 12pm ct' }
+      return { status: 'early-halt', label: 'early halt' }
     }
   }
-  for (const rule of cmeEarlyCloseRules) {
+  for (const [rule] of cmeEarlyCloseRules) {
     const e = rule(y)
     if (e && isoFromDate(e) === iso && e.getDay() !== 0 && e.getDay() !== 6) {
       return { status: 'early', label: 'early close' }
     }
   }
   return { status: 'open', label: 'open' }
+}
+
+export interface CmeModifiedTime {
+  hh: number
+  mm: number
+  kind: 'halt' | 'close'
+}
+
+/** The CT wall-clock time of the modified-session event for `iso`, or null. */
+export function cmeModifiedCt(iso: string): CmeModifiedTime | null {
+  const [y, m, d] = iso.split('-').map(Number)
+  const dow = new Date(y, m - 1, d).getDay()
+  if (dow === 0 || dow === 6) return null
+  for (const [rule, , hh, mm] of cmeEarlyHaltRules) {
+    const e = rule(y)
+    if (e && isoFromDate(e) === iso && e.getDay() !== 0 && e.getDay() !== 6) return { hh, mm, kind: 'halt' }
+  }
+  for (const [rule, , hh, mm] of cmeEarlyCloseRules) {
+    const e = rule(y)
+    if (e && isoFromDate(e) === iso && e.getDay() !== 0 && e.getDay() !== 6) return { hh, mm, kind: 'close' }
+  }
+  return null
 }
 
 /** Deterministic US-market status for a calendar day. */
@@ -170,18 +247,18 @@ export function marketDay(iso: string): MarketDay {
   return { status: 'open', label: 'open' }
 }
 
+/** Market-state marker for the live widget header. Labels are HKT — the
+ * site is HKT everywhere, so a CT time is never shown. DST-aware. */
 export function marketMarker(iso: string): { glyph: string; text: string; status: MarketStatus } {
   const m = cmeDay(iso)
   if (m.status === 'open') return { glyph: '●', text: 'open', status: m.status }
-  if (m.status === 'early') return { glyph: '◐', text: 'early close 1:15pm ct', status: m.status }
+  if (m.status === 'early-halt' || m.status === 'early') {
+    const mt = cmeModifiedCt(iso)
+    const hkt = mt ? ctToHktHhmm(iso, mt.hh, mt.mm) : '--:--'
+    const verb = m.status === 'early-halt' ? 'early halt' : 'early close'
+    return { glyph: '◐', text: `${verb} ${hkt} hkt`, status: m.status }
+  }
   return { glyph: '✕', text: `closed · ${m.label}`, status: m.status }
-}
-
-/** Regular-session open/close in America/New_York (ET). Close is 1:00pm on early-close days. */
-export function openCloseTimes(iso: string): { open: string; close: string } {
-  const m = marketDay(iso)
-  const close = m.status === 'early' ? '13:00' : '16:00'
-  return { open: '09:30', close }
 }
 
 /** Compact per-year schedule for the client-side live marker: observed US holidays + early closes. */
@@ -221,14 +298,11 @@ function modifiedHoursDaysInYear(year: number): { iso: string; kind: 'early-halt
       out.push({ iso: isoFromDate(e), kind: 'early-halt', reason })
     }
   }
-  // Early-close reasons by date
-  const thanksgiving = nthWeekday(year, 10, 4, 4)
-  out.push({ iso: isoFromDate(addDays(thanksgiving, 1)), kind: 'early-close', reason: 'day after Thanksgiving' })
-  out.push({ iso: isoFromDate(new Date(year, 11, 24)), kind: 'early-close', reason: 'Christmas Eve' })
-  out.push({ iso: isoFromDate(new Date(year, 11, 31)), kind: 'early-close', reason: "New Year's Eve" })
-  const jul4 = new Date(year, 6, 4)
-  if (jul4.getDay() === 6) {
-    out.push({ iso: isoFromDate(addDays(jul4, -2)), kind: 'early-close', reason: 'day before Independence Day' })
+  for (const [rule, reason] of cmeEarlyCloseRules) {
+    const e = rule(year)
+    if (e && e.getDay() !== 0 && e.getDay() !== 6) {
+      out.push({ iso: isoFromDate(e), kind: 'early-close', reason })
+    }
   }
   return out.sort((a, b) => a.iso.localeCompare(b.iso))
 }

@@ -47,12 +47,13 @@ test('sessions: Saturday/Sunday are closed', () => {
   assert.equal(daySessionWindows('2026-08-09').cme, 'closed') // Sun
 })
 
-test('sessions: CME early-close day says early close 1:15pm ct (no halt lookup)', () => {
-  // 2026-11-27 is the day after Thanksgiving — CME early close.
+test('sessions: CME early-close day shows the HKT time, DST-aware (no raw CT)', () => {
+  // 2026-11-27 is the day after Thanksgiving — CME early close 13:15 CT.
+  // November = CST (UTC-6): 13:15 CT = 19:15 UTC = 03:15 HKT next day.
   assert.equal(cmeDay('2026-11-27').status, 'early')
-  assert.equal(daySessionWindows('2026-11-27').cme, 'early close 1:15pm ct')
-  // 2026-12-24 is Christmas Eve — CME early close.
-  assert.equal(daySessionWindows('2026-12-24').cme, 'early close 1:15pm ct')
+  assert.equal(daySessionWindows('2026-11-27').cme, 'early close 03:15 hkt')
+  // 2026-12-24 is Christmas Eve — same winter close.
+  assert.equal(daySessionWindows('2026-12-24').cme, 'early close 03:15 hkt')
 })
 
 test('sessions: CME holiday is closed (no halt, no early close)', () => {
@@ -91,37 +92,41 @@ test('sessions: scheduledDayMarker for a weekend is the closed glyph', () => {
   assert.equal(mk.live, false)
 })
 
-test('sessions: scheduledDayMarker for an early-close day is the ◐ glyph', () => {
-  const mk = scheduledDayMarker('2026-11-27') // day after Thanksgiving
+test('sessions: scheduledDayMarker for an early-close day is "◐ early close {hkt} hkt" (DST-aware)', () => {
+  const mk = scheduledDayMarker('2026-11-27') // day after Thanksgiving (CST → 03:15 hkt)
   assert.equal(mk.glyph, '◐')
-  assert.equal(mk.text, 'early close 1:15pm ct')
+  assert.equal(mk.text, 'early close 03:15 hkt')
   assert.equal(mk.cls, 'text-warn')
 })
 
-test('sessions: scheduledDayMarker for an early-halt day (MLK/Presidents/Memorial) is "◐ early halt 12pm ct"', () => {
+test('sessions: scheduledDayMarker for early-halt days shows HKT time, DST-aware', () => {
   // The owner trades from Asia and wants these flagged because volume
   // is thin. The header is the at-a-glance state; the live ticker
-  // (MarketWidget) shows the live countdown.
-  const mlk = scheduledDayMarker('2027-01-18')       // MLK Day 2027
-  const pres = scheduledDayMarker('2026-02-16')      // Presidents' Day 2026
-  const mem = scheduledDayMarker('2026-05-25')       // Memorial Day 2026
+  // (MarketWidget) shows the live countdown. All early-halts are 12:00 CT
+  // — but that is 02:00 HKT in winter (CST) and 01:00 HKT in summer (CDT).
+  const mlk = scheduledDayMarker('2027-01-18')       // MLK Day 2027 (winter CST → 02:00 hkt)
+  const pres = scheduledDayMarker('2026-02-16')      // Presidents' Day 2026 (winter CST → 02:00 hkt)
+  const mem = scheduledDayMarker('2026-05-25')       // Memorial Day 2026 (summer CDT → 01:00 hkt)
   for (const mk of [mlk, pres, mem]) {
     assert.equal(mk.glyph, '◐')
-    assert.equal(mk.text, 'early halt 12pm ct')
     assert.equal(mk.cls, 'text-warn')
     assert.equal(mk.live, false)
   }
+  assert.equal(mlk.text, 'early halt 02:00 hkt')
+  assert.equal(pres.text, 'early halt 02:00 hkt')
+  assert.equal(mem.text, 'early halt 01:00 hkt')
 })
 
-test('sessions: daySessionWindows for an early-halt day returns "early halt 12pm ct"', () => {
-  assert.equal(daySessionWindows('2027-01-18').cme, 'early halt 12pm ct')
-  assert.equal(daySessionWindows('2026-02-16').cme, 'early halt 12pm ct')
-  assert.equal(daySessionWindows('2026-05-25').cme, 'early halt 12pm ct')
+test('sessions: daySessionWindows for early-halt days shows HKT time, DST-aware', () => {
+  assert.equal(daySessionWindows('2027-01-18').cme, 'early halt 02:00 hkt') // winter
+  assert.equal(daySessionWindows('2026-02-16').cme, 'early halt 02:00 hkt') // winter
+  assert.equal(daySessionWindows('2026-05-25').cme, 'early halt 01:00 hkt') // summer
 })
 
-test('sessions: daySessionWindows for the Jul 2 2026 early-close returns "early close 1:15pm ct"', () => {
-  // Jul 2 2026 is early close (day before Friday-observed Independence Day).
-  assert.equal(daySessionWindows('2026-07-02').cme, 'early close 1:15pm ct')
+test('sessions: daySessionWindows for the Jul 2 2026 early-close shows HKT time', () => {
+  // Jul 2 2026 is early close at 12:00 CT (not 13:15 — owner-provided data).
+  // July = CDT (UTC-5): 12:00 CT = 17:00 UTC = 01:00 HKT next day.
+  assert.equal(daySessionWindows('2026-07-02').cme, 'early close 01:00 hkt')
 })
 
 test('sessions: addDaysIso handles month/year boundaries', () => {

@@ -22,17 +22,17 @@ test('cmeDay: MLK Day is an early-halt day (NYSE holiday, CME shortened session)
   // session is shortened: halt ~12:00 PM CT, reopen ~5:00 PM CT. The
   // owner trades from Asia and wants these flagged because volume is
   // thin and price action is messy.
-  assert.deepEqual(cmeDay('2027-01-18'), { status: 'early-halt', label: 'early halt 12pm ct' })
+  assert.deepEqual(cmeDay('2027-01-18'), { status: 'early-halt', label: 'early halt' })
 })
 
 test('cmeDay: Presidents Day is an early-halt day', () => {
   // 3rd Monday of Feb 2026 = 2026-02-16
-  assert.deepEqual(cmeDay('2026-02-16'), { status: 'early-halt', label: 'early halt 12pm ct' })
+  assert.deepEqual(cmeDay('2026-02-16'), { status: 'early-halt', label: 'early halt' })
 })
 
 test('cmeDay: Memorial Day is an early-halt day', () => {
   // Last Monday of May 2026 = 2026-05-25
-  assert.deepEqual(cmeDay('2026-05-25'), { status: 'early-halt', label: 'early halt 12pm ct' })
+  assert.deepEqual(cmeDay('2026-05-25'), { status: 'early-halt', label: 'early halt' })
 })
 
 test('cmeDay: Jul 2 2026 is an early-close day (day before Friday-observed Independence Day)', () => {

@@ -1,4 +1,17 @@
-import { addDays, easterSunday, isoFromDate, lastWeekday, marketDay, cmeDay, nthWeekday } from './market'
+import {
+  addDays,
+  easterSunday,
+  isoFromDate,
+  lastWeekday,
+  marketDay,
+  cmeDay,
+  cmeModifiedCt,
+  ctToHktHhmm,
+  nthWeekday,
+  HKT_OFFSET_MS,
+  wallToUTC,
+  hktIso,
+} from './market'
 export type MarketKey = 'cme' | 'tse' | 'lse' | 'nyse'
 
 export interface MarketEvent {
@@ -9,37 +22,7 @@ export interface MarketEvent {
   label?: string
 }
 
-export const HKT_OFFSET_MS = 8 * 3600 * 1000
-
-/** Offset of `tz` from UTC in minutes at the given instant. */
-function tzOffsetMinutes(tz: string, date: Date): number {
-  const dtf = new Intl.DateTimeFormat('en-US', {
-    timeZone: tz,
-    hourCycle: 'h23',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-  const parts: Record<string, string> = {}
-  for (const p of dtf.formatToParts(date)) parts[p.type] = p.value
-  const asUTC = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute)
-  return Math.round((asUTC - date.getTime()) / 60000)
-}
-
-/** Wall-clock (hh:mm) on local date `iso` in `tz` → UTC ms. */
-function wallToUTC(tz: string, iso: string, hh: number, mm: number): number {
-  const [y, m, d] = iso.split('-').map(Number)
-  const guess = Date.UTC(y, m - 1, d, hh, mm)
-  const off = tzOffsetMinutes(tz, new Date(guess))
-  return guess - off * 60000
-}
-
-function hktIso(utcMs: number): string {
-  const d = new Date(utcMs + HKT_OFFSET_MS)
-  return d.toISOString().slice(0, 16) + '+08:00'
-}
+export { HKT_OFFSET_MS }
 
 export function addDaysIso(iso: string, n: number): string {
   const [y, m, d] = iso.split('-').map(Number)
@@ -167,11 +150,23 @@ export function marketEvents(startHkt: string, days: number): MarketEvent[] {
       }
 
       if (cm.status === 'early') {
-        out.push({ market: 'cme', type: 'close', hkt: hktIso(wallToUTC('America/Chicago', d, 13, 15)), label: 'early close' })
+        const mt = cmeModifiedCt(d)
+        out.push({
+          market: 'cme',
+          type: 'close',
+          hkt: hktIso(wallToUTC('America/Chicago', d, mt?.hh ?? 13, mt?.mm ?? 15)),
+          label: 'early close',
+        })
       } else if (cm.status === 'early-halt') {
         // MLK / Presidents / Memorial: morning session, halt ~12:00 PM CT,
         // reopen ~5:00 PM CT for the normal afternoon session.
-        out.push({ market: 'cme', type: 'halt', hkt: hktIso(wallToUTC('America/Chicago', d, 12, 0)), label: 'early halt' })
+        const mt = cmeModifiedCt(d)
+        out.push({
+          market: 'cme',
+          type: 'halt',
+          hkt: hktIso(wallToUTC('America/Chicago', d, mt?.hh ?? 12, mt?.mm ?? 0)),
+          label: 'early halt',
+        })
         out.push({ market: 'cme', type: 'resume', hkt: hktIso(wallToUTC('America/Chicago', d, 17, 0)), label: 'reopen' })
       } else if (w === 5) {
         out.push({ market: 'cme', type: 'close', hkt: hktIso(wallToUTC('America/Chicago', d, 16, 0)), label: 'weekend close' })
@@ -230,8 +225,12 @@ export interface DayMarker {
 export function scheduledDayMarker(iso: string): DayMarker {
   const m = cmeDay(iso)
   if (m.status === 'closed') return { glyph: '✕', text: `closed · ${m.label}`, cls: 'text-down', live: false }
-  if (m.status === 'early-halt') return { glyph: '◐', text: 'early halt 12pm ct', cls: 'text-warn', live: false }
-  if (m.status === 'early') return { glyph: '◐', text: 'early close 1:15pm ct', cls: 'text-warn', live: false }
+  if (m.status === 'early-halt' || m.status === 'early') {
+    const mt = cmeModifiedCt(iso)
+    const hkt = mt ? ctToHktHhmm(iso, mt.hh, mt.mm) : '--:--'
+    const verb = m.status === 'early-halt' ? 'early halt' : 'early close'
+    return { glyph: '◐', text: `${verb} ${hkt} hkt`, cls: 'text-warn', live: false }
+  }
   if (iso === todayHkt()) return { glyph: '●', text: 'open', cls: 'text-up', live: true }
   return { glyph: '○', text: 'open', cls: 'text-dim', live: false }
 }
@@ -261,10 +260,11 @@ export function daySessionWindows(iso: string): Record<MarketKey, string> {
   let cme: string
   if (cm.status === 'closed') {
     cme = 'closed'
-  } else if (cm.status === 'early-halt') {
-    cme = 'early halt 12pm ct'
-  } else if (cm.status === 'early') {
-    cme = 'early close 1:15pm ct'
+  } else if (cm.status === 'early-halt' || cm.status === 'early') {
+    const mt = cmeModifiedCt(iso)
+    const hkt = mt ? ctToHktHhmm(iso, mt.hh, mt.mm) : '--:--'
+    const verb = cm.status === 'early-halt' ? 'early halt' : 'early close'
+    cme = `${verb} ${hkt} hkt`
   } else {
     // CME 16:00 CT maintenance halt lands at 05:00 HKT the FOLLOWING day.
     // For a CME trading day `iso`, the halt event is emitted with HKT-day = iso+1.

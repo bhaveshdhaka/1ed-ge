@@ -3,7 +3,7 @@ import { api } from '../api'
 import { Card, Button, Stat, inputCls } from '../ui'
 import type { Tab } from '../AdminApp'
 import type { AccountRuleStatus } from '../../../lib/account-rules'
-import { nextModifiedHoursDay, type ModifiedHoursDay } from '../../../lib/market'
+import { nextModifiedHoursDay, cmeModifiedCt, ctToHktHhmm, type ModifiedHoursDay } from '../../../lib/market'
 import { fmtDayW } from '../../../lib/dates'
 
 interface Status {
@@ -127,7 +127,9 @@ export function OverviewTab({
       m.daysAway < 14  ? `in ${m.daysAway} days` :
       m.daysAway < 60  ? `in ${Math.round(m.daysAway / 7)} weeks` :
                           `in ${Math.round(m.daysAway / 30)} months`
-    const kind = m.kind === 'early-halt' ? 'early halt 12pm ct' : 'early close'
+    const mt = cmeModifiedCt(m.iso)
+    const hkt = mt ? ctToHktHhmm(m.iso, mt.hh, mt.mm) : '--:--'
+    const kind = m.kind === 'early-halt' ? `early halt ${hkt} hkt` : `early close ${hkt} hkt`
     return `next modified-hours day: ${fmtDayW(m.iso)} (${m.reason}) — ${kind}, ${away}`
   }
 
