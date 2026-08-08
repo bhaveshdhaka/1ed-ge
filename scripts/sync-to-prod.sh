@@ -152,7 +152,27 @@ fi
 # brackets that git pathspecs interpret as glob character classes — treat every
 # path literally so deletions (files absent from FETCH_HEAD) propagate correctly.
 export GIT_LITERAL_PATHSPECS=1
-git checkout FETCH_HEAD -- "${ALLOWED[@]}"
+# Split the allowed set: files present in FETCH_HEAD are checked out; files
+# absent from FETCH_HEAD are deletions (removed on preprod) and must be `git rm`'d
+# on main — `git checkout FETCH_HEAD -- <path>` errors on a path that doesn't
+# exist in the source tree.
+MODIFIED=()
+DELETED=()
+for f in "${ALLOWED[@]}"; do
+  if git cat-file -e "FETCH_HEAD:$f" 2>/dev/null; then
+    MODIFIED+=("$f")
+  else
+    DELETED+=("$f")
+  fi
+done
+if [ ${#MODIFIED[@]} -gt 0 ]; then
+  git checkout FETCH_HEAD -- "${MODIFIED[@]}"
+fi
+if [ ${#DELETED[@]} -gt 0 ]; then
+  echo "→ removing (deleted on preprod):"
+  for f in "${DELETED[@]}"; do echo "    $f"; done
+  git rm -q -- "${DELETED[@]}"
+fi
 git add "${ALLOWED[@]}"
 git commit -m "sync: bring preprod cleanups to main ($(printf '%d' "${#ALLOWED[@]}") files)
 
