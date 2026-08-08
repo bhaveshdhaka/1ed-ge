@@ -15,6 +15,21 @@ The centerpiece metric is **R** = points risked vs points made. All
 performance math is risk-based. Everything is linked: mood, sleep, habits,
 screen time, and trades all live in the same daily record.
 
+## Pipeline (prod / test)
+
+Prod (`1ed.ge`) and pre-prod (`test.1ed.ge`) are two git worktrees on the
+same repo (`main` and `preprod` branches). The full env contract, scripts,
+and daily workflow are in **`docs/PIPELINE.md`** — read it before any
+deploy or sync. The pipeline guarantees:
+
+- Test data never lands on prod (content guard in `sync-to-prod.sh`).
+- Prod data never lands on test (preprod branch is separate).
+- All de-indexing is test-only (the 4 layers live in the preprod repo).
+- Wrong-env actions fail loud (`require_env <expected>` in every script).
+
+The one-line env check: `bash scripts/where-am-i.sh`. The 10-second
+wired-up check: `bash scripts/audit-pipeline.sh`.
+
 ## Stack
 
 - **Astro 5** (static-first) + **@astrojs/node** (standalone SSR for the few
@@ -56,15 +71,21 @@ tree.** A change that is committed but not deployed, or deployed but not verifie
 does not exist to them. After ANY meaningful change:
 
 1. `npm run typecheck` (and `npm run build` if it touches the site).
+1a. **Confirm env** — `bash scripts/where-am-i.sh`. If it doesn't say
+    `env: prod` and `branch: main`, you're in the wrong worktree. The
+    deploy scripts will refuse to run, but check first.
 2. **Commit** — conventional prefix (`feat:` / `fix:` / `chore:` / `docs:`),
    concise message, `git add -A` first. Never leave work uncommitted at the end
    of a session.
-3. **Deploy** — `bash scripts/deploy.sh`. The container runs `npm run build` on
-   start (~15s), so wait/poll until `https://1ed.ge` returns 200 before
-   declaring success.
-4. **Verify LIVE** — curl `https://1ed.ge` (and the admin route) and confirm the
-   changed bits are actually in the served HTML/bundle. Do not rely on the local
-   `dist/` or a throwaway port.
+3. **Deploy** — `bash scripts/deploy-prod.sh` (from the prod worktree). The
+   container runs `npm run build` on start (~15s), so wait/poll until
+   `https://1ed.ge` returns 200 before declaring success. For the preprod,
+   use `bash scripts/deploy-test.sh` (from the preprod worktree). See
+   `docs/PIPELINE.md`.
+4. **Verify LIVE** — `bash scripts/verify-env.sh prod` (or `test` from the
+   preprod). Confirms HTTP 200, noindex signals (test-only), and the
+   noindex absence (prod-only). Then curl `https://1ed.ge` and confirm the
+   changed bits are actually in the served HTML/bundle.
 5. Local verification servers on port 4323 and `node dist/server/entry.mjs`
    are for tests only — kill them when done so they do not hold memory.
 
