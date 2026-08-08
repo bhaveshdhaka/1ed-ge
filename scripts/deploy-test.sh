@@ -38,7 +38,8 @@ set -a
 . "$ROOT/.env"
 set +a
 
-PORT="$SITE_PORT" HOST=127.0.0.1 nohup node "$ROOT/dist/server/entry.mjs" > /tmp/preprod.log 2>&1 &
+PORT="$SITE_PORT" HOST=127.0.0.1 setsid node "$ROOT/dist/server/entry.mjs" < /dev/null > /tmp/preprod.log 2>&1 &
+disown
 echo $! > /tmp/preprod.pid
 sleep 2
 
