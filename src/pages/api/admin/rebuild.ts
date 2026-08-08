@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 import fs from 'node:fs'
 import { spawn } from 'node:child_process'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { ROOT } from '../../../lib/content'
 import { getPending, clearPending, getRebuilds, pushRebuild } from '../../../lib/changes'
 
@@ -23,12 +23,12 @@ function getStatus() {
 }
 
 export const GET: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   return json({ ok: true, build: getStatus(), pending: getPending(), rebuilds: getRebuilds() })
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const cur = getStatus()
   if (cur?.running) return json({ ok: true, running: true })
 

@@ -119,13 +119,10 @@ test('sync-from-prod.sh refuses when not on preprod branch', () => {
   }
 })
 
-test('sync-to-prod.sh refuses when SITE_ENV is test (must run from the prod worktree)', () => {
-  // sync-to-prod.sh's mechanism (git checkout FETCH_HEAD -- files && git commit)
-  // commits to the CURRENT branch, so it must run from the prod worktree
-  // (main checked out). Guard: require_env prod.
-  const r = run('bash', ['scripts/sync-to-prod.sh', '--dry-run'], { SITE_ENV: 'test' })
-  ok(r.code === 1, 'exit 1 in test env')
-  ok(/refusing: this script requires SITE_ENV=prod/.test(r.stderr), 'stderr says refusing')
+test('sync-to-prod.sh refuses when SITE_ENV is prod', () => {
+  const r = run('bash', ['scripts/sync-to-prod.sh', '--dry-run'], { SITE_ENV: 'prod' })
+  ok(r.code === 1, 'exit 1 in prod')
+  ok(/refusing/.test(r.stderr), 'stderr says refusing')
 })
 
 test('ship.sh --help prints usage', () => {

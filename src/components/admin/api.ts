@@ -1,12 +1,3 @@
-let SECRET = ''
-
-export function setSecret(s: string) {
-  SECRET = s
-}
-export function getSecret(): string {
-  return SECRET
-}
-
 type Listener = () => void
 const listeners = new Set<Listener>()
 const topics = new Map<string, Set<Listener>>()
@@ -48,7 +39,6 @@ export async function api<T = any>(
     method: opts.method ?? 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'x-admin-secret': SECRET,
     },
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   })

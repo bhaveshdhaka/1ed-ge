@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 import fs from 'node:fs'
 import { spawn } from 'node:child_process'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { ROOT } from '../../../lib/content'
 import { newsForDate, listNewsDates } from '../../../lib/market-news'
 import { todayKey } from '../../../lib/habits'
@@ -24,7 +24,7 @@ function getStatus() {
 }
 
 export const GET: APIRoute = async ({ request, url }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const date = url.searchParams.get('date') ?? todayKey()
   return json({
     ok: true,
@@ -36,7 +36,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const cur = getStatus()
   if (cur?.running) return json({ ok: true, running: true })
   setStatus({ running: true, startedAt: Date.now(), ok: null, finishedAt: null, error: null })

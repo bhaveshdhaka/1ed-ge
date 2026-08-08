@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro'
 import path from 'node:path'
 import fs from 'node:fs'
 import sharp from 'sharp'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { MEDIA, listMedia, sanitizeSlug } from '../../../lib/content'
 import { captionAlt } from '../../../lib/ai'
 import { setAlt, removeAlt } from '../../../lib/media-alt'
@@ -16,12 +16,12 @@ function safeMediaPath(rel: string): string | null {
 }
 
 export const GET: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   return json({ ok: true, media: listMedia() })
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const dataUrl = String(body.dataUrl ?? '')
   const match = dataUrl.match(/^data:image\/([a-z0-9+.-]+);base64,(.+)$/)
@@ -59,7 +59,7 @@ export const POST: APIRoute = async ({ request }) => {
 }
 
 export const DELETE: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const rel = String(body.path ?? '')
   const abs = safeMediaPath(rel)

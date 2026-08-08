@@ -10,3 +10,4 @@ services:
     volumes:
       - ./src/content:/app/src/content
       - ./public/media:/app/public/media
+      - ./data:/app/data

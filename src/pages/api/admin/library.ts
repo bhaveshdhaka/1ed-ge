@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry, deleteEntry, sanitizeSlug } from '../../../lib/content'
 import { addChange } from '../../../lib/changes'
 
@@ -9,7 +9,7 @@ type LibKind = 'habits' | 'models' | 'rules' | 'quotes'
 const LIB_KINDS: LibKind[] = ['habits', 'models', 'rules', 'quotes']
 
 export const GET: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const readAll = (kind: LibKind) =>
     listMds(kind).map((f) => ({ slug: f.replace(/\.mdx?$/, ''), file: f, ...readEntry(kind, f).data }))
   return json({
@@ -22,7 +22,7 @@ export const GET: APIRoute = async ({ request }) => {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const action = String(body.action ?? '')
   const kind = String(body.kind ?? '') as LibKind

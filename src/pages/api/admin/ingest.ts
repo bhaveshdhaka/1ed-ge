@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { ingestFiles } from '../../../lib/ingest'
 import type { IngestFile } from '../../../lib/ingest'
 import { listMds, readEntry } from '../../../lib/content'
@@ -40,7 +40,7 @@ function dayTrades(date: string): { market: string; direction: string; entry: nu
  * `error(...)` messages.
  */
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const files: IngestFile[] = Array.isArray(body.files)
     ? body.files.filter(

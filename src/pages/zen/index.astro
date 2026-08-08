@@ -1,0 +1,40 @@
+---
+export const prerender = false
+import Bare from '../../layouts/Bare.astro'
+import AdminApp from '../../components/admin/AdminApp'
+import LoginScreen from '../../components/admin/LoginScreen'
+import { sessionOk } from '../../lib/auth'
+import { getCollection } from 'astro:content'
+import type { DayData } from '../../lib/stream'
+import { nowHkt } from '../../lib/sessions'
+import { accountabilityStatus } from '../../lib/accountability'
+import { pendingReflectionsLine } from '../../lib/copy'
+
+const authed = sessionOk(Astro.request)
+
+let zenLine: string | null = null
+if (authed) {
+  const [dayEntries, journalEntries, reviewEntries] = await Promise.all([
+    getCollection('days'),
+    getCollection('journal'),
+    getCollection('reviews'),
+  ])
+  const nowIso = nowHkt()
+  const account = accountabilityStatus(
+    dayEntries.map((d) => d.data as DayData),
+    journalEntries.map((j) => j.data.date),
+    reviewEntries.map((r) => ({ type: r.data.type, anchor: r.data.anchor })),
+    nowIso,
+  )
+  zenLine = pendingReflectionsLine(account.pendingDays, account.pendingPeriods)
+}
+const manifestHref = '/zen/manifest.webmanifest'
+---
+
+<Bare title={authed ? 'zen — 1ed.ge' : 'zen sign in'} manifest={manifestHref}>
+  {authed ? (
+    <AdminApp client:only="react" zenLine={zenLine} />
+  ) : (
+    <LoginScreen client:only="react" />
+  )}
+</Bare>

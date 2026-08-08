@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { authorized, json, error } from '../../../lib/auth'
+import { requireSession, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry } from '../../../lib/content'
 import { addChange } from '../../../lib/changes'
 import { coachReply } from '../../../lib/ai'
@@ -27,7 +27,7 @@ function loadAllTranscripts(): { role: 'me' | 'coach'; text: string; when: strin
 }
 
 export const GET: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const url = new URL(request.url)
   if (url.searchParams.get('snapshot')) {
     const days = listMds('days').map((f) => ({ id: f.replace(/\.md$/, ''), data: readEntry('days', f).data }))
@@ -45,7 +45,7 @@ export const GET: APIRoute = async ({ request }) => {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const text = String(body.text ?? '').trim()
   if (!text) return error('message required')

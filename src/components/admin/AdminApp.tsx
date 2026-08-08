@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { setSecret, getPasteSink, bus, api } from './api'
+import { getPasteSink, bus, api } from './api'
 import { RebuildBar } from './RebuildBar'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DayWorkspace } from './tabs/DayWorkspace'
@@ -43,7 +43,7 @@ function isTyping(e: KeyboardEvent): boolean {
   )
 }
 
-export default function AdminApp({ secret, zenLine }: { secret: string; zenLine?: string | null }) {
+export default function AdminApp({ zenLine }: { zenLine?: string | null }) {
   const [tab, setTab] = useState<Tab>('overview')
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const [help, setHelp] = useState(false)
@@ -53,10 +53,6 @@ export default function AdminApp({ secret, zenLine }: { secret: string; zenLine?
     dirtyRef.current = b
     setDirty(b)
   }, [])
-
-  useEffect(() => {
-    setSecret(secret)
-  }, [secret])
 
   // global clipboard paste: images pasted anywhere route to the active tab's sink
   useEffect(() => {

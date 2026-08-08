@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { authorized, json, error } from '../../../../lib/auth'
+import { requireSession, json, error } from '../../../../lib/auth'
 import type { PositionProposal } from '../../../../lib/ingest'
 import { listMds, readEntry, writeEntry } from '../../../../lib/content'
 import { addChange } from '../../../../lib/changes'
@@ -39,7 +39,7 @@ function importedTrade(p: PositionProposal): Record<string, unknown> {
  * - Every mutation queues a pending change (`addChange`) for the RebuildBar.
  */
 export const POST: APIRoute = async ({ request }) => {
-  if (!authorized(request)) return error('unauthorized', 401)
+  if (requireSession(request)) return error('unauthorized', 401)
   const body = await request.json().catch(() => ({}))
   const date = String(body.date ?? '')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return error('invalid date (expected YYYY-MM-DD)')
