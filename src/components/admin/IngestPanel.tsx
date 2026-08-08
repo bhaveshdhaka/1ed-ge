@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { api, fileToDataUrl } from './api'
-import { Card, Button, Select } from './ui'
+import { Card, Button, Select, TextInput } from './ui'
 import { ImageDropZone } from './ImageDropZone'
 import { importedTrades } from '../../lib/copy'
 
@@ -10,6 +10,7 @@ interface PositionProposal {
   entry: number
   exit: number
   points: number
+  riskPoints: number | null
   size: number
   start: string
   end: string
@@ -38,6 +39,7 @@ interface ImportState {
   result: IngestResult | null
   approved: Record<number, boolean>
   accountByIndex: Record<number, string>
+  riskByIndex: Record<number, string>
   links: Record<string, string>
 }
 
@@ -57,6 +59,7 @@ export function IngestPanel({
     result: null,
     approved: {},
     accountByIndex: {},
+    riskByIndex: {},
     links: {},
   })
   const applyingRef = useRef(false)
@@ -88,6 +91,7 @@ export function IngestPanel({
       })
       const approved: Record<number, boolean> = {}
       const accountByIndex: Record<number, string> = {}
+      const riskByIndex: Record<number, string> = {}
       res.result.proposals.forEach((p, i) => {
         approved[i] = true
         // Seed with the proposal's own attribution ONLY — never the alias
@@ -96,6 +100,9 @@ export function IngestPanel({
         // seed short-circuits the recompute and apply). The suggested account
         // still applies by default via `links[platformId]` at apply time.
         accountByIndex[i] = p.account.internalId ?? ''
+        // Prefill the risk input from the parsed stop when the source had one;
+        // empty = the owner fills it manually at apply time.
+        riskByIndex[i] = p.riskPoints != null ? String(p.riskPoints) : ''
       })
       const links: Record<string, string> = {}
       if (res.result.aliasProposal?.platformId && res.result.aliasProposal.suggested) {
@@ -106,13 +113,14 @@ export function IngestPanel({
         result: res.result,
         approved,
         accountByIndex,
+        riskByIndex,
         links,
       })
       notify(`parsed ${res.result.proposals.length} proposed trades${res.result.dupes ? ` · ${res.result.dupes} dup` : ''}`)
     } catch (e) {
       // Reset the whole import state so a stale batch's proposals can't be
       // applied after a re-parse fails.
-      setState({ busy: false, result: null, approved: {}, accountByIndex: {}, links: {} })
+      setState({ busy: false, result: null, approved: {}, accountByIndex: {}, riskByIndex: {}, links: {} })
       notify(e instanceof Error ? e.message : 'import failed', false)
     }
   }
@@ -123,6 +131,10 @@ export function IngestPanel({
 
   const setAccount = (i: number, id: string) => {
     setState((s) => ({ ...s, accountByIndex: { ...s.accountByIndex, [i]: id } }))
+  }
+
+  const setRisk = (i: number, v: string) => {
+    setState((s) => ({ ...s, riskByIndex: { ...s.riskByIndex, [i]: v } }))
   }
 
   const setLink = (platformId: string, internalId: string) => {
@@ -172,6 +184,14 @@ export function IngestPanel({
         approvedPositions.push({
           ...p,
           account: { ...p.account, internalId },
+          // Manual risk input wins; else the parsed stop-derived riskPoints;
+          // else null (owner's "add it later" case). Only positive finite
+          // values land in the day record (apply-side guard repeats this).
+          riskPoints: (() => {
+            const riskRaw = state.riskByIndex[i]
+            const risk = riskRaw !== '' && riskRaw != null ? Number(riskRaw) : p.riskPoints
+            return risk != null && Number.isFinite(risk) && risk > 0 ? risk : null
+          })(),
         })
       })
       if (approvedPositions.length === 0) {
@@ -195,7 +215,7 @@ export function IngestPanel({
       markDirty()
       notify(importedTrades(approvedPositions.length))
       await onImported(date)
-      setState({ busy: false, result: null, approved: {}, accountByIndex: {}, links: {} })
+      setState({ busy: false, result: null, approved: {}, accountByIndex: {}, riskByIndex: {}, links: {} })
     } catch (e) {
       setState((s) => ({ ...s, busy: false }))
       notify(e instanceof Error ? e.message : 'apply failed', false)
@@ -255,39 +275,68 @@ export function IngestPanel({
               </div>
             )}
 
-            {state.result.proposals.map((p, i) => (
-              <div key={i} className="flex flex-wrap items-center gap-3 border border-line bg-bg px-3 py-2">
-                <label className="flex h-9 cursor-pointer items-center gap-2 text-[12px]">
-                  <input
-                    type="checkbox"
-                    checked={!!state.approved[i]}
-                    onChange={(e) => setApproved(i, e.target.checked)}
-                    className="h-4 w-4 accent-accent"
-                  />
-                  <span className="text-faint">approve</span>
-                </label>
-                <span className="text-[14px] text-ink">
-                  {p.direction === 'long' ? '▲' : '▼'} {p.market} {p.direction} {p.entry} → {p.exit} · {p.points >= 0 ? '+' : ''}{p.points} pts · size {p.size} · {p.fillCount} fills
-                </span>
-                {p.dup && (
-                  <span className="border border-line px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-warn">dup</span>
-                )}
-                <div className="ml-auto flex items-center gap-2">
-                  <Select
-                    value={state.accountByIndex[i] ?? ''}
-                    onChange={(e) => setAccount(i, e.target.value)}
-                  >
-                    {/* a deliberate "— account —" choice falls back to the proposal's
-                        own attribution at apply time (see apply()) — defaults are
-                        sensible, no behavior change */}
-                    <option value="">— account —</option>
-                    {knownAccounts.map((id) => (
-                      <option key={id} value={id}>{id}</option>
-                    ))}
-                  </Select>
+            {state.result.proposals.map((p, i) => {
+              const riskRaw = state.riskByIndex[i]
+              const risk = riskRaw !== '' && riskRaw != null ? Number(riskRaw) : p.riskPoints
+              const riskPts = risk != null && Number.isFinite(risk) && risk > 0 ? risk : null
+              // Display hint, not an editable field: R = points / risk, at
+              // least one decimal, using the site's R vocabulary (green up /
+              // red down). Mirrors the apply-time resolution above.
+              const rLabel =
+                riskPts != null && Number.isFinite(p.points)
+                  ? `R ${(p.points / riskPts).toFixed(2).replace(/0+$/, '').replace(/\.$/, '.0')}`
+                  : null
+              return (
+                <div key={i} className="flex flex-wrap items-center gap-3 border border-line bg-bg px-3 py-2">
+                  <label className="flex h-9 cursor-pointer items-center gap-2 text-[12px]">
+                    <input
+                      type="checkbox"
+                      checked={!!state.approved[i]}
+                      onChange={(e) => setApproved(i, e.target.checked)}
+                      className="h-4 w-4 accent-accent"
+                    />
+                    <span className="text-faint">approve</span>
+                  </label>
+                  <span className="text-[14px] text-ink">
+                    {p.direction === 'long' ? '▲' : '▼'} {p.market} {p.direction} {p.entry} → {p.exit} · {p.points >= 0 ? '+' : ''}{p.points} pts · size {p.size} · {p.fillCount} fills
+                  </span>
+                  {p.dup && (
+                    <span className="border border-line px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-warn">dup</span>
+                  )}
+                  <div className="ml-auto flex items-center gap-2">
+                    {rLabel && (
+                      <span
+                        className={`font-mono text-[11px] tabular-nums ${p.points > 0 ? 'text-up' : p.points < 0 ? 'text-down' : 'text-dim'}`}
+                      >
+                        {rLabel}
+                      </span>
+                    )}
+                    <TextInput
+                      type="number"
+                      min="0"
+                      step="0.25"
+                      value={riskRaw ?? ''}
+                      onChange={(e) => setRisk(i, e.target.value)}
+                      placeholder="risk pts"
+                      aria-label={`risk points for proposed trade ${i + 1}`}
+                      className="w-24"
+                    />
+                    <Select
+                      value={state.accountByIndex[i] ?? ''}
+                      onChange={(e) => setAccount(i, e.target.value)}
+                    >
+                      {/* a deliberate "— account —" choice falls back to the proposal's
+                          own attribution at apply time (see apply()) — defaults are
+                          sensible, no behavior change */}
+                      <option value="">— account —</option>
+                      {knownAccounts.map((id) => (
+                        <option key={id} value={id}>{id}</option>
+                      ))}
+                    </Select>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
 
             <div className="flex items-center justify-between pt-2">
               <span className="text-[12px] text-dim">{approvedCount} selected</span>

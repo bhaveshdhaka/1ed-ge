@@ -34,6 +34,7 @@ export interface Fill {
   buyTime: string | null // ISO (converted to HKT): 'YYYY-MM-DDTHH:mm:ss.000Z'
   sellTime: string | null
   pnl: number // dollars (signed)
+  stop?: number // stop price when the source row shows one — optional, never invented
   buyFillId?: string
   sellFillId?: string
   platformId?: string // from an Orders file / attribution
@@ -45,6 +46,7 @@ export interface PositionProposal {
   entry: number
   exit: number
   points: number // price points: long exit−entry, short entry−exit
+  riskPoints: number | null // points risked = |entry − stop| when derivable; null = unknown (owner adds manually)
   size: number // total contracts
   start: string // HKT ISO
   end: string
@@ -251,8 +253,8 @@ export function parseOrdersCsv(rows: string[][]): OrderRow[] {
 // ---------------------------------------------------------------------------
 
 const FILLS_SYSTEM = `You extract per-fill trade rows from a trader's Tradovate export.
-Output a JSON object: { "fills": [ { "symbol": "MNQU6", "qty": 1, "buyPrice": 29260.75, "sellPrice": 29261.0, "pnl": 0.5, "buyTime": "08/06/2026 21:33:00", "sellTime": "08/06/2026 21:33:23" } ] }
-One entry per row. Numbers as numbers, pnl signed (negative allowed), times verbatim "MM/DD/YYYY HH:MM:SS". No prose, JSON only.`
+Output a JSON object: { "fills": [ { "symbol": "MNQU6", "qty": 1, "buyPrice": 29260.75, "sellPrice": 29261.0, "pnl": 0.5, "stop": 29245.5, "buyTime": "08/06/2026 21:33:00", "sellTime": "08/06/2026 21:33:23" } ] }
+One entry per row. Numbers as numbers, pnl signed (negative allowed), times verbatim "MM/DD/YYYY HH:MM:SS". Include the stop price for a row ONLY when the source shows one; otherwise omit it. Never invent a stop. No prose, JSON only.`
 
 const ORDERS_SYSTEM = `You extract order-fill rows from a Tradovate Orders export.
 Output a JSON object: { "orders": [ { "orderId": "611527630004", "account": "LTE05061295040002", "symbol": "MNQU6", "side": "Buy", "price": 29260.75, "qty": 1, "time": "08/06/2026 21:33:00" } ] }
@@ -289,6 +291,7 @@ export async function parsePerformancePdfText(text: string): Promise<Fill[]> {
       buyTime: f.buyTime ? ctToHkt(String(f.buyTime)) : null,
       sellTime: f.sellTime ? ctToHkt(String(f.sellTime)) : null,
       pnl: Number(f.pnl) || 0,
+      stop: f.stop != null && Number.isFinite(Number(f.stop)) ? Number(f.stop) : undefined,
     }))
     .filter((f) => f.symbol)
 }
@@ -345,6 +348,7 @@ export async function parseImage(dataUrl: string): Promise<Fill[]> {
         buyTime: f.buyTime ? ctToHkt(String(f.buyTime)) : null,
         sellTime: f.sellTime ? ctToHkt(String(f.sellTime)) : null,
         pnl: Number(f.pnl) || 0,
+        stop: f.stop != null && Number.isFinite(Number(f.stop)) ? Number(f.stop) : undefined,
       }))
       .filter((f) => f.symbol)
   } catch {
@@ -409,6 +413,10 @@ export function groupFillsToPositions(
     const exit = sells.length ? sells.reduce((s, f) => s + (f.sellPrice ?? 0) * f.qty, 0) / sells.reduce((s, f) => s + f.qty, 0) : entry
     const direction: 'long' | 'short' = entry <= exit ? 'long' : 'short'
     const points = direction === 'long' ? exit - entry : entry - exit
+    // Points risked = |entry − stop| from the first fill in the cluster that
+    // carries a stop; null = unknown (owner fills it manually at apply time).
+    const stop = c.find((f) => f.stop != null)?.stop
+    const riskPoints = stop != null ? round2(Math.abs(entry - stop)) : null
     const start = c.find((f) => f.buyTime ?? f.sellTime)?.buyTime ?? c[0]?.sellTime ?? ''
     const end = [...c].reverse().find((f) => f.sellTime ?? f.buyTime)?.sellTime ?? start
     return {
@@ -417,6 +425,7 @@ export function groupFillsToPositions(
       entry: round2(entry),
       exit: round2(exit),
       points: round2(points),
+      riskPoints,
       size: totalQty,
       start,
       end,

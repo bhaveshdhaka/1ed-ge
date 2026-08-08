@@ -156,3 +156,32 @@ test('ingestFiles marks dups against existing trades', { skip: !hasDemo && 'demo
   const dup = res.proposals.find((p) => p.dup)
   assert.ok(dup, 'a proposal should be flagged dup')
 })
+
+test('groupFillsToPositions computes riskPoints from a fill stop (long, stop below entry)', () => {
+  const fills = [
+    { symbol: 'MNQU6', qty: 1, buyPrice: 100, sellPrice: 101, stop: 99.5, buyTime: '2026-08-07T10:00:00.000Z', sellTime: '2026-08-07T10:01:00.000Z', pnl: 1, buyFillId: 'b1', sellFillId: 's1' },
+  ]
+  const positions = groupFillsToPositions(fills, { internalId: null, platformId: null, confirmed: false })
+  assert.equal(positions.length, 1)
+  assert.equal(positions[0].direction, 'long')
+  assert.equal(positions[0].riskPoints, 0.5)
+})
+
+test('groupFillsToPositions computes riskPoints for a short (stop above entry)', () => {
+  const fills = [
+    { symbol: 'MNQU6', qty: 1, buyPrice: 100, sellPrice: 98, stop: 101, buyTime: '2026-08-07T10:00:00.000Z', sellTime: '2026-08-07T10:01:00.000Z', pnl: 2, buyFillId: 'b1', sellFillId: 's1' },
+  ]
+  const positions = groupFillsToPositions(fills, { internalId: null, platformId: null, confirmed: false })
+  assert.equal(positions.length, 1)
+  assert.equal(positions[0].direction, 'short')
+  assert.equal(positions[0].riskPoints, 1)
+})
+
+test('groupFillsToPositions yields null riskPoints when no fill carries a stop', () => {
+  const fills = [
+    { symbol: 'MNQU6', qty: 1, buyPrice: 100, sellPrice: 101, buyTime: '2026-08-07T10:00:00.000Z', sellTime: '2026-08-07T10:01:00.000Z', pnl: 1, buyFillId: 'b1', sellFillId: 's1' },
+  ]
+  const positions = groupFillsToPositions(fills, { internalId: null, platformId: null, confirmed: false })
+  assert.equal(positions.length, 1)
+  assert.equal(positions[0].riskPoints, null)
+})

@@ -14,6 +14,8 @@ function importedTrade(p: PositionProposal): Record<string, unknown> {
     entry: p.entry,
     exit: p.exit,
     points: p.points,
+    // riskPoints is optional-positive in the day schema — 0/null/undefined are omitted.
+    ...(p.riskPoints != null && Number.isFinite(p.riskPoints) && p.riskPoints > 0 ? { riskPoints: p.riskPoints } : {}),
     note: 'imported',
     screenshots: [],
     executions:
