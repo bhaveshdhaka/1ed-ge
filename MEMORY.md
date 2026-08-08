@@ -11,6 +11,69 @@ servers do NOT count as "done". Workflow: typecheck → commit → `bash
 scripts/deploy.sh` → poll until live → curl-verify the changed bits. Kill test
 servers when finished.
 
+## HANDOFF — period-reviews + zen + accountability (READ FIRST)
+
+**State: everything committed, tree VERIFIED-buildable (typecheck 0 errors, build OK,
+routes smoke-tested 200: / /stream /week /q1/2026 /lookback; /admin/bogus → 404). NOT
+deployed** — the live site still runs the chronograph state (last deploy = the overlap-fix
+era). Deploy is mandatory before this feature counts as done (ship-it rule).
+
+**Shipped + LIVE earlier this session:** moment-images (3-type stream, ephemeral capture,
+alt sidecar, lightbox), market chronograph + overlap fix (clock-chip lane), quick wins
+(dead cockpit code + sign-correct money colors), node:test runner (84 tests), no-2-year
+de-hardcode (day counter uncapped, seed-review `--days` arg, copy de-emphasized).
+
+**Committed, NOT deployed — the period-reviews feature (in progress, 11 of 12 tasks done):**
+period engine (`periods.ts`: week=Mon–Fri, month/quarter/half/year, anchors,
+`isoFromAnchor`); aggregation (`period-stats.ts`: `aggregatePeriod`/`periodDelta`/
+`trendSeries`); `reviews` collection + admin ReviewTab; AI comparison
+(`review-compare.ts`, deepseek v4 flash 0731 via `env.modelIngest`, stored
+`reviews/<type>-<anchor>.cmp.md`, on-demand + editable, collection glob excludes `.cmp.md`);
+`copy.ts` (SINGLE source of every message string — trader/zen/reflection voice);
+`accountability.ts` (pending reflections); period surface (`PeriodReview.astro` + ALL-SSR
+route `/week /month /q1..q4 /h1..h2 /year` + nav `[05] review`); homepage nudge (durable
+last-online `public/media/.last-online` + one-liner); `/lookback` (nav `[06]`); **zen**
+(private area: `/zen/<secret>` mount, `/admin/<secret>` 302 redirect, header says zen,
+pending-reminder strip; `/api/admin/*` API paths UNCHANGED; sw.js skips both).
+
+**Recovery map:** the SDD ledger `.superpowers/sdd/2026-08-07-period-reviews/progress.md`
+has the full per-task history (commits + reviews + fixes). Spec:
+`docs/superpowers/specs/2026-08-07-period-reviews-design.md`. Plan:
+`docs/superpowers/plans/2026-08-07-period-reviews.md` (12 task sections; T1,T2,T3,T4,T4b,
+T5f,T5c,T5,T5d,T5b,T5e done + reviewed; **T6 pending**).
+
+**NEXT AGENT — resume in order:**
+1. **Wave-7 reviews** — dispatch reviewers for T5b (`e0ab54e` /lookback), T5e (`08fb5eb`
+   zen), and a scoped re-review of the T5 fix `9da2334` (ora-12's Important findings: 404
+   on malformed/nested anchors, finite-guarded delta fallback). Fix loops as needed.
+2. **T6** — docs (CHANGELOG Unreleased for the whole feature; AGENTS.md layout; MEMORY
+   session-log) + final gate (`npm test` + typecheck + build) + `bash scripts/deploy.sh`
+   + verify LIVE (home 200; /week, /q1/2026, /lookback, /zen/<secret> 200; /admin → /zen;
+   homepage moniker/nudge; no "Two years" anywhere).
+3. **Final whole-branch review** (oracle) over the period-reviews range + close out.
+4. **THEN the INGEST feature** (queued): `docs/superpowers/plans/2026-08-07-ingest.md`
+   (5 tasks — PDF/CSV/image → trades, deepseek v4 flash 0731, per-account dedup,
+   approve-every-trade, account-link confirm). Note: its Task-1 additions
+   (`env.modelIngest`, `AI_MODEL_INGEST`, ImageDropZone `accept`) ALREADY EXIST — verify
+   before re-adding. The owner's demo files stay in `/tmp/opencode/import-demo/`.
+
+**Owner-locked decisions (do NOT re-litigate):** week = **Mon–Fri trading week** (trading
+strictly Mon–Fri, no exceptions); full review content; written review notes per period;
+AI comparison = deepseek v4 flash 0731, on-demand generate button, editable before
+publish, stored `.cmp.md`; **reflection habit** = EVERY Mon–Fri day (even zero trades)
+needs a reflection, STRICT 3h grace after midnight HKT, Sat/Sun relaxed (only the week
+review); homepage + zen nudge = ONE compact line via copy.ts; private area = **zen**
+(never admin/cockpit); `/lookback` = aggregated reviews hub; fortnight = SKIPPED (the
+engine makes it a one-line add later); **NO hardcoded 2-year/730 limits anywhere** (the
+site is the owner's life/lifestyle).
+
+**Gotchas:** SSR routes read content at server start (deploy restarts pick up changes —
+rebuild alone won't update /week, /lookback, /zen); build clears `node_modules/.astro`
+(keep it); autosave cron may sweep content commits (verify diffs landed); `pkill -F
+pidfile`; local test server on 4323 (bind HOST=127.0.0.1); the VPS resolver can't resolve
+1ed.ge (`curl --resolve 1ed.ge:443:104.21.7.179`); no parallel builds (astro races on
+`node_modules/.astro`); never commit `.env` or market-news cron edits.
+
 ## HANDOFF — moment-images shipped (READ FIRST)
 
 **Moment images is DONE, committed, deployed, verified live.** Executed
