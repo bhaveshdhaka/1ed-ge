@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Toaster, toast } from 'sonner'
 import { getPasteSink, bus, api, triggerRebuild } from './api'
 import { RebuildBar } from './RebuildBar'
 import { CommandPalette } from './CommandPalette'
@@ -36,7 +37,6 @@ function isTyping(e: KeyboardEvent): boolean {
 
 export default function AdminApp(_props: { zenLine?: string | null }) {
   const [tab, setTab] = useState<Tab>('overview')
-  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [dirty, setDirty] = useState(false)
   const dirtyRef = useRef(false)
@@ -68,8 +68,8 @@ export default function AdminApp(_props: { zenLine?: string | null }) {
   }, [])
 
   const notify = useCallback((msg: string, ok = true) => {
-    setToast({ msg, ok })
-    setTimeout(() => setToast(null), 4500)
+    if (ok) toast.success(msg)
+    else toast.error(msg)
   }, [])
 
   const go = useCallback(
@@ -168,7 +168,7 @@ export default function AdminApp(_props: { zenLine?: string | null }) {
 
       <main className="shell py-6 md:py-8">
         {tab === 'overview' && <OverviewTab notify={notify} go={go} />}
-        {tab === 'day' && <DayWorkspace notify={notify} onDirtyChange={setGlobalDirty} />}
+        {tab === 'day' && <DayWorkspace onDirtyChange={setGlobalDirty} />}
         {tab === 'accounts' && <AccountsTab notify={notify} />}
         {tab === 'coach' && <CoachTab notify={notify} />}
         {tab === 'media' && <MediaTab notify={notify} />}
@@ -176,14 +176,13 @@ export default function AdminApp(_props: { zenLine?: string | null }) {
         {tab === 'reviews' && <ReviewTab notify={notify} />}
       </main>
 
-      {toast && (
-        <div role="status" aria-live="polite" className="fixed bottom-safe-5 left-1/2 z-50 -translate-x-1/2 border border-line2 bg-raise px-5 py-3 text-[13px] shadow-2xl">
-          <span className={toast.ok ? 'text-up' : 'text-down'}>
-            {toast.ok ? '✓' : '✗'}
-          </span>{' '}
-          <span className="text-ink">{toast.msg}</span>
-        </div>
-      )}
+      <Toaster
+        position="top-right"
+        theme="dark"
+        toastOptions={{
+          className: 'bg-bg! border! border-line2! rounded-[2px]! text-[13px]! font-mono!',
+        }}
+      />
 
       <CommandPalette
         open={paletteOpen}

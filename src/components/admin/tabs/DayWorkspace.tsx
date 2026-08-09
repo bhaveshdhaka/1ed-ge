@@ -16,6 +16,7 @@ import { AIBuildSheet } from '../AIBuildSheet'
 import { IngestSheet } from '../IngestSheet'
 import { DayPickerSheet } from '../DayPickerSheet'
 import { ghostTextOn } from '../useGhostText'
+import { toast } from 'sonner'
 
 export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 export interface HabitDef { slug: string; name: string; emoji?: string; color: string; kind?: string; target?: number }
@@ -69,10 +70,8 @@ function CeremonyDim({ children }: { children: ReactNode }) {
 }
 
 export function DayWorkspace({
-  notify,
   onDirtyChange,
 }: {
-  notify: (m: string, ok?: boolean) => void
   onDirtyChange?: (dirty: boolean) => void
 }) {
   const [date, setDate] = useState(todayStr())
@@ -127,6 +126,12 @@ export function DayWorkspace({
   // wired by Task 11 (autosave) — set to current HH:MM after every autosave succeeds
   const [savedAt, setSavedAt] = useState<string | null>(null)
   const debRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  // AIBuildSheet/IngestSheet still take the notify(m, ok) callback shape — route it to sonner.
+  const sheetNotify = (m: string, ok?: boolean) => {
+    if (ok === false) toast.error(m)
+    else toast.success(m)
+  }
 
   const markDirty = () => {
     setDirty(true)
@@ -204,11 +209,11 @@ export function DayWorkspace({
 
         clearDirty()
       } catch (e) {
-        notify(e instanceof Error ? e.message : 'load failed', false)
+        toast.error(e instanceof Error ? e.message : 'load failed')
       }
       setLoading(false)
     },
-    [notify],
+    [],
   )
 
   const loadDays = useCallback(async () => {
@@ -284,8 +289,8 @@ export function DayWorkspace({
   }
   const publishMoment = (i: number) => {
     const m = draftMoments[i]
-    if (m.type === 'trade' && m.tradeIdx === '') return notify('pick a trade for this moment', false)
-    if (m.type !== 'trade' && !m.text.trim() && !m.images.length) return notify('write the moment text or attach an image first', false)
+    if (m.type === 'trade' && m.tradeIdx === '') return toast.error('pick a trade for this moment')
+    if (m.type !== 'trade' && !m.text.trim() && !m.images.length) return toast.error('write the moment text or attach an image first')
     setStream((s) => [...s, m])
     setDraftMoments((ms) => ms.filter((_, j) => j !== i))
     markDirty()
@@ -295,7 +300,7 @@ export function DayWorkspace({
     const m: MomentForm = { at: '', type: 'trade', text: '', tradeIdx: String(ti), author: '', images: [] }
     setStream((s) => [...s, m])
     markDirty()
-    notify('trade added to the stream — queued for rebuild')
+    toast.success('trade added to the stream — queued for rebuild')
   }
   /** composer ⌘⏎ — the SOLE publish gesture for thoughts (no auto-publish on blur). */
   const publishThought = (type: string, text: string) => {
@@ -304,7 +309,7 @@ export function DayWorkspace({
     const m: MomentForm = { at: '', type, text: trimmed, tradeIdx: '', author: '', images: [] }
     setStream((s) => [...s, m])
     markDirty()
-    notify(`${type === 'quote' ? 'quote' : 'thought'} published to the stream — queued for rebuild`)
+    toast.success('thought published')
   }
   const unstreamMoment = (i: number) => {
     setStream((s) => s.filter((_, j) => j !== i))
@@ -312,16 +317,16 @@ export function DayWorkspace({
   }
   const polishMoment = async (i: number) => {
     const m = draftMoments[i]
-    if (!m.text.trim()) return notify('write something to polish first', false)
+    if (!m.text.trim()) return toast.error('write something to polish first')
     try {
       const res = await api<{ result: string }>('/api/admin/ai', {
         method: 'POST',
         body: { action: 'assist', kind: 'polish', text: m.text },
       })
       setMoment(i, { text: res.result })
-      notify('polished — review it, then publish')
+      toast('polished — review it, then publish')
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'polish failed', false)
+      toast.error(e instanceof Error ? e.message : 'polish failed')
     }
   }
 
@@ -339,7 +344,7 @@ export function DayWorkspace({
         const dataUrl = await fileToDataUrl(f)
         items.push({ id: Math.random().toString(36).slice(2), dataUrl, url: '' })
       } catch (e) {
-        notify(e instanceof Error ? e.message : 'read failed', false)
+        toast.error(e instanceof Error ? e.message : 'read failed')
       }
     }
     if (!items.length) return
@@ -417,7 +422,7 @@ export function DayWorkspace({
 
   const runStructure = async (imgs?: DayImage[]) => {
     const images = imgs ?? dayImagesRef.current
-    if (!dayText.trim() && images.length === 0) return notify('paste text or screenshots first', false)
+    if (!dayText.trim() && images.length === 0) return toast.error('paste text or screenshots first')
     setDayBusy(true)
     try {
       const res = await api<{ result: any }>('/api/admin/ai', {
@@ -428,9 +433,9 @@ export function DayWorkspace({
       setDayText('')
       dayImagesRef.current = []
       setDayImages([])
-      notify('day built from your evidence — review, override if needed, then save')
+      toast('day built from your evidence — review, override if needed')
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'ai failed', false)
+      toast.error(e instanceof Error ? e.message : 'ai failed')
     }
     setDayBusy(false)
   }
@@ -468,9 +473,9 @@ export function DayWorkspace({
       })
       setReflection(res.result)
       markDirty()
-      notify('draft written — edit it, then save')
+      toast.success('draft written — edit it, then save')
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'ai failed', false)
+      toast.error(e instanceof Error ? e.message : 'ai failed')
     }
     setDraftBusy(false)
   }
@@ -527,22 +532,20 @@ export function DayWorkspace({
       })
 
       clearDirty()
+      setSavedAt(hktHHMM(new Date()))
       notifyChanged()
       if (rebuild) {
         try {
           await triggerRebuild()
         } catch {
-          notify('saved, but the rebuild failed to start', false)
+          toast.error('saved, but the rebuild failed to start')
         }
-        notify(`day ${date} saved — publishing… the bar will flash when it is live`)
-      } else {
-        notify(`day ${date} saved — queued for rebuild`)
       }
       await load(date)
       await loadDays()
       await refreshPending()
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'save failed', false)
+      toast.error(e instanceof Error ? e.message : 'save failed')
     }
     setSaving(false)
   }
@@ -580,7 +583,7 @@ export function DayWorkspace({
   }, [dirty])
 
   const publishReflection = async () => {
-    if (!reflection.trim()) return notify('write a reflection draft first', false)
+    if (!reflection.trim()) return toast.error('write a reflection draft first')
     setSaving(true)
     try {
       await api('/api/admin/journal', {
@@ -595,10 +598,10 @@ export function DayWorkspace({
         },
       })
       setContent(reflection)
-      notify('reflection published — queued for rebuild')
+      toast.success('reflection published — queued for rebuild')
       notifyChanged()
-    } catch (e) {
-      notify(e instanceof Error ? e.message : 'publish failed', false)
+    } catch {
+      toast.error('publish failed — the draft is safe, retry')
     }
     setSaving(false)
   }
@@ -610,7 +613,7 @@ export function DayWorkspace({
       try {
         await api('/api/admin/journal', { method: 'DELETE', body: { file: `${date}.mdx` } })
       } catch {}
-      notify(`day ${date} deleted — queued for rebuild`)
+      toast('day deleted')
       notifyChanged()
       // Load today's data immediately so the form reflects today, not the deleted day
       const t = todayStr()
@@ -618,7 +621,7 @@ export function DayWorkspace({
       setDate(t)
       await loadDays()
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'delete failed', false)
+      toast.error(e instanceof Error ? e.message : 'delete failed')
     }
   }
 
@@ -665,7 +668,7 @@ export function DayWorkspace({
         const url = await uploadDataUrl(dataUrl, f.name)
         setTrades((ts) => ts.map((t, j) => (j === ti ? { ...t, screenshots: [...t.screenshots, url] } : t)))
       } catch (e) {
-        notify(e instanceof Error ? e.message : 'upload failed', false)
+        toast.error(e instanceof Error ? e.message : 'upload failed')
       }
     }
   }
@@ -678,7 +681,7 @@ export function DayWorkspace({
         setDraftMoments((ms) => ms.map((m, j) => (j === i ? { ...m, images: [...m.images, url] } : m)))
         markDirty()
       } catch (e) {
-        notify(e instanceof Error ? e.message : 'upload failed', false)
+        toast.error(e instanceof Error ? e.message : 'upload failed')
       }
     }
   }
@@ -918,7 +921,7 @@ export function DayWorkspace({
                 habits={habits}
                 onToggle={(slug) => { setHabits((x) => ({ ...x, [slug]: !(x[slug] === true) })); markDirty() }}
                 onAdjust={(slug, delta) => { setHabits((x) => { const cur = typeof x[slug] === 'number' ? (x[slug] as number) : 0; return { ...x, [slug]: Math.max(0, cur + delta) } as Record<string, boolean> }); markDirty() }}
-                onOpenLibrary={() => notify('habit library lives in the library tab')}
+                onOpenLibrary={() => toast.success('habit library lives in the library tab')}
               />
 
               {/* ---------- Z4 TRADES ---------- */}
@@ -1018,12 +1021,12 @@ export function DayWorkspace({
         onBuildDay={() => runStructure()}
         onAddDayImages={addDayImages}
         onRemoveDayImage={removeDayImage}
-        notify={notify}
+        notify={sheetNotify}
       />
       <IngestSheet
         open={ingestOpen}
         onOpenChange={setIngestOpen}
-        notify={notify}
+        notify={sheetNotify}
         markDirty={markDirty}
         date={date}
         onImported={load}
