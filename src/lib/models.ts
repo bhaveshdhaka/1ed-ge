@@ -41,7 +41,8 @@ export function buildModelStats(days: DayEntry[], models: ModelEntry[]): ModelSt
       const rows: ModelTradeRow[] = []
       for (const day of days) {
         for (const t of day.data.trades ?? []) {
-          if (t.model !== m.id) continue
+          const models = t.models ?? (t.model ? [t.model] : [])
+          if (!models.includes(m.id)) continue
           rows.push({
             iso: day.data.date,
             market: t.market ?? 'MNQ',

@@ -237,7 +237,9 @@ const last = tape.length - 1
               {stats.modelStats.map((row) => (
                 <tr>
                   <td class="td">
-                    <Badge variant="accent">{row.model}</Badge>
+                    {row.models?.length ? row.models.map((m, i) => <Badge variant={i === 0 ? 'accent' : 'default'}>{m}</Badge>) : (
+                      row.model ? <Badge variant="accent">{row.model}</Badge> : null
+                    )}
                   </td>
                   <td class="td text-right tabular-nums">{row.count}</td>
                   <td

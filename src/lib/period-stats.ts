@@ -15,7 +15,7 @@ export interface PeriodStats {
   winRate: number
   profitFactor: number
   pnlByAccount: { account: string; pnl: number }[]
-  modelStats: { model: string; count: number; sumR: number }[]
+  modelStats: { model: string; count: number; sumR: number; models?: string[] }[]
   avgSleep: number | null
   avgMood: number | null
   habitAdherence: { habit: string; pct: number }[]
@@ -96,11 +96,14 @@ export function aggregatePeriod(days: DayData[], range: PeriodRange, ctx: Period
   const models = new Map<string, { count: number; sumR: number }>()
   for (const d of inRange) {
     for (const t of d.trades) {
-      if (!t.model) continue
-      const cur = models.get(t.model) ?? { count: 0, sumR: 0 }
-      cur.count++
-      cur.sumR += ROf(t)
-      models.set(t.model, cur)
+      const tradeModels = t.models ?? (t.model ? [t.model] : [])
+      if (!tradeModels.length) continue
+      for (const m of tradeModels) {
+        const cur = models.get(m) ?? { count: 0, sumR: 0 }
+        cur.count++
+        cur.sumR += ROf(t)
+        models.set(m, cur)
+      }
     }
   }
   const modelStats = [...models.entries()].map(([model, v]) => ({ model, count: v.count, sumR: v.sumR }))

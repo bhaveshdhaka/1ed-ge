@@ -92,7 +92,9 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
                 <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
                   <span class="text-[15px] text-ink">{t.direction === 'long' ? '▲' : '▼'} {t.market}</span>
                   <span class="text-[12px] text-dim">{t.session ?? '—'} · {t.setup ?? 'no setup'}</span>
-                  {t.model && <Badge variant="accent">{t.model}</Badge>}
+                  {t.models?.length ? t.models.map((m, i) => <Badge variant={i === 0 ? 'accent' : 'default'}>{m}</Badge>) : (
+                    t.model ? <Badge variant="accent">{t.model}</Badge> : null
+                  )}
                   <span class:list={['ml-auto text-[15px]', R > 0 ? 'num-up' : R < 0 ? 'num-down' : '']}>
                     {R > 0 ? '+' : ''}{R.toFixed(2)}R
                   </span>
