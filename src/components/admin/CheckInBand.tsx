@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Button, Card, Field, NumInput, TextArea } from './ui'
 import { ImageDropZone } from './ImageDropZone'
 import { MOODS, SLEEP_QUALITIES } from '../../lib/emoji-states'
@@ -47,6 +48,28 @@ interface CheckInBandProps {
 const editableHint = 'underline decoration-dashed decoration-line2 underline-offset-4 hover:text-accent hover:decoration-accent cursor-pointer'
 
 export function CheckInBand(props: CheckInBandProps) {
+  const [moodCollapsed, setMoodCollapsed] = useState(false)
+  const [sleepCollapsed, setSleepCollapsed] = useState(false)
+
+  // auto-collapse mood picker 3s after selection
+  useEffect(() => {
+    if (props.mood) {
+      const t = setTimeout(() => setMoodCollapsed(true), 3000)
+      return () => clearTimeout(t)
+    }
+  }, [props.mood])
+
+  // auto-collapse sleep quality picker 3s after selection
+  useEffect(() => {
+    if (props.sleepQuality) {
+      const t = setTimeout(() => setSleepCollapsed(true), 3000)
+      return () => clearTimeout(t)
+    }
+  }, [props.sleepQuality])
+
+  const selectedMood = MOODS.find((m) => String(m.value) === props.mood)
+  const selectedSleep = SLEEP_QUALITIES.find((s) => String(s.value) === props.sleepQuality)
+
   return (
     <>
       {/* empty state — no evidence, no facts yet */}
@@ -101,15 +124,23 @@ export function CheckInBand(props: CheckInBandProps) {
             {/* mood */}
             <div className="border-b border-line/60 pb-3">
               <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">mood</div>
-              <div className="flex flex-wrap gap-1">
-                {MOODS.map((m) => (
-                  <button key={m.value} onClick={() => { props.onMood(String(m.value)) }}
-                    className={`flex h-7 items-center gap-1 border px-2 text-[12px] transition-colors ${props.mood === String(m.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
-                    <span aria-hidden="true" className="opacity-60">{m.emoji}</span>
-                    {m.label}
-                  </button>
-                ))}
-              </div>
+              {moodCollapsed && selectedMood ? (
+                <button onClick={() => setMoodCollapsed(false)}
+                  className="flex h-7 items-center gap-1 border border-accent/40 px-2 text-[12px] text-accent transition-colors hover:border-accent">
+                  <span aria-hidden="true" className="opacity-60">{selectedMood.emoji}</span>
+                  {selectedMood.label}
+                </button>
+              ) : (
+                <div className="flex flex-wrap gap-1">
+                  {MOODS.map((m) => (
+                    <button key={m.value} onClick={() => { props.onMood(String(m.value)) }}
+                      className={`flex h-7 items-center gap-1 border px-2 text-[12px] transition-colors ${props.mood === String(m.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
+                      <span aria-hidden="true" className="opacity-60">{m.emoji}</span>
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* sleep */}
@@ -117,15 +148,23 @@ export function CheckInBand(props: CheckInBandProps) {
               <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">sleep</div>
               <div className="flex flex-wrap items-center gap-2">
                 <NumInput value={props.sleepHours} onChange={(e) => props.onSleepHours(e.target.value)} className="h-8 w-20 text-[12px]" placeholder="7.5" />
-                <div className="flex flex-wrap gap-1">
-                  {SLEEP_QUALITIES.map((s) => (
-                    <button key={s.value} onClick={() => { props.onSleepQuality(String(s.value)) }}
-                      className={`flex h-7 items-center gap-1 border px-2 text-[12px] transition-colors ${props.sleepQuality === String(s.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
-                      <span aria-hidden="true" className="opacity-60">{s.emoji}</span>
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
+                {sleepCollapsed && selectedSleep ? (
+                  <button onClick={() => setSleepCollapsed(false)}
+                    className="flex h-7 items-center gap-1 border border-accent/40 px-2 text-[12px] text-accent transition-colors hover:border-accent">
+                    <span aria-hidden="true" className="opacity-60">{selectedSleep.emoji}</span>
+                    {selectedSleep.label}
+                  </button>
+                ) : (
+                  <div className="flex flex-wrap gap-1">
+                    {SLEEP_QUALITIES.map((s) => (
+                      <button key={s.value} onClick={() => { props.onSleepQuality(String(s.value)) }}
+                        className={`flex h-7 items-center gap-1 border px-2 text-[12px] transition-colors ${props.sleepQuality === String(s.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
+                        <span aria-hidden="true" className="opacity-60">{s.emoji}</span>
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

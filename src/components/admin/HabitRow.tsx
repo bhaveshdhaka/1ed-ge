@@ -24,8 +24,8 @@ export function HabitRow(props: HabitRowProps) {
             key={h.slug}
             onClick={() => props.onToggle(h.slug)}
             aria-pressed={done}
-            className={`flex h-7 items-center gap-1.5 border px-2 text-[12px] transition-colors ${done ? 'border-transparent text-bg' : 'border-line2 bg-raise text-dim hover:border-accent'}`}
-            style={done ? { background: h.color } : undefined}
+            className={`flex h-7 items-center gap-1.5 border px-2 text-[12px] transition-colors ${done ? 'text-ink' : 'border-line2 bg-raise text-dim hover:border-accent'}`}
+            style={done ? { borderColor: h.color, background: `color-mix(in srgb, ${h.color} 12%, transparent)` } : undefined}
           >
             <span className="text-[11px]">{h.emoji ?? '·'}</span>
             <span>{h.name}</span>
