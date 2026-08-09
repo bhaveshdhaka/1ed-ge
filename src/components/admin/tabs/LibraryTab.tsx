@@ -1,6 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { DndContext, closestCenter } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { api, notifyChanged } from '../api'
 import { Card, Button, Field, TextInput, TextArea, Select } from '../ui'
+import { useDndSensors } from '../TradeCard'
 
 interface LibRow {
   slug: string
@@ -91,7 +96,44 @@ export function LibraryTab({ notify }: { notify: (m: string, ok?: boolean) => vo
     }
   }
 
-  const rows = data[section]
+  /**
+   * dnd-kit drag-reorder: optimistically apply the dragged order, then PATCH
+   * only the rows whose `order` actually changed (sequential, action: reorder
+   * merges the field into the existing frontmatter).
+   */
+  const persistReorder = useCallback(
+    async (next: LibRow[]) => {
+      const prev = new Map(data[section].map((r) => [r.slug, Number(r.order ?? 0)]))
+      const changed = next.filter((r) => prev.get(r.slug) !== Number(r.order ?? 0))
+      setData((d) => ({ ...d, [section]: next }))
+      if (changed.length === 0) return
+      try {
+        for (const r of changed) {
+          await api('/api/admin/library', {
+            method: 'POST',
+            body: { action: 'reorder', kind: section, slug: r.slug, order: Number(r.order ?? 0) },
+          })
+        }
+        notify(`reordered ${changed.length} ${section.slice(0, -1)}${changed.length > 1 ? 's' : ''} — queued for rebuild`)
+        notifyChanged()
+        await load()
+      } catch (e) {
+        notify(e instanceof Error ? e.message : 'reorder failed', false)
+        await load() // restore server truth
+      }
+    },
+    [data, section, load, notify],
+  )
+
+  // habits + models carry a persisted `order` sort key — display them sorted
+  // so drag-reorder is meaningful and survives a reload. rules/quotes have no
+  // order field and keep plain filename order.
+  const rows = useMemo(() => {
+    const r = data[section]
+    return section === 'habits' || section === 'models'
+      ? [...r].sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0) || String(a.file).localeCompare(String(b.file)))
+      : r
+  }, [data, section])
 
   return (
     <div className="space-y-6">
@@ -120,21 +162,30 @@ export function LibraryTab({ notify }: { notify: (m: string, ok?: boolean) => vo
         }
       >
         <div className="space-y-2">
-          {rows.map((row) => (
-            <div key={row.file} className="flex items-center gap-3 border border-line bg-bg px-3 py-2">
-              <button
-                onClick={() => setEditing({ ...row })}
-                className="flex flex-1 items-baseline gap-3 text-left"
-              >
-                <span className="text-[13px] text-ink">
-                  {section === 'habits' && row.emoji ? `${row.emoji} ` : ''}
-                  {String(row.name ?? row.title ?? row.text ?? row.slug)}
-                </span>
-                <span className="text-[11px] text-faint">{row.slug}</span>
-              </button>
-              <Button size="sm" variant="danger" onClick={() => remove(row)}>×</Button>
-            </div>
-          ))}
+          {section === 'habits' || section === 'models' ? (
+            <SortableLibRows
+              rows={rows}
+              section={section}
+              onEdit={(row) => setEditing({ ...row })}
+              onRemove={remove}
+              onReorder={persistReorder}
+            />
+          ) : (
+            rows.map((row) => (
+              <div key={row.file} className="flex items-center gap-3 border border-line bg-bg px-3 py-2">
+                <button
+                  onClick={() => setEditing({ ...row })}
+                  className="flex flex-1 items-baseline gap-3 text-left"
+                >
+                  <span className="text-[13px] text-ink">
+                    {String(row.name ?? row.title ?? row.text ?? row.slug)}
+                  </span>
+                  <span className="text-[11px] text-faint">{row.slug}</span>
+                </button>
+                <Button size="sm" variant="danger" onClick={() => remove(row)}>×</Button>
+              </div>
+            ))
+          )}
           {rows.length === 0 && <p className="text-[12px] text-faint">no {section} yet — add one.</p>}
         </div>
       </Card>
@@ -188,7 +239,6 @@ function EditorForm({
         {d.kind === 'count' && (
           <Field label="target"><TextInput type="number" value={d.target ?? ''} onChange={(e) => onChange({ target: e.target.value })} /></Field>
         )}
-        <Field label="order"><TextInput type="number" value={d.order ?? 0} onChange={(e) => onChange({ order: e.target.value })} /></Field>
         <Field label="description"><TextInput value={d.description ?? ''} onChange={(e) => onChange({ description: e.target.value })} /></Field>
         <label className="flex items-center gap-2 text-[13px] text-dim">
           <input type="checkbox" checked={d.active !== false} onChange={(e) => onChange({ active: e.target.checked })} />
@@ -210,7 +260,6 @@ function EditorForm({
             {['active', 'paused', 'retired'].map((s) => <option key={s} value={s}>{s}</option>)}
           </Select>
         </Field>
-        <Field label="order"><TextInput type="number" value={d.order ?? 0} onChange={(e) => onChange({ order: e.target.value })} /></Field>
       </div>
     )
   }
@@ -221,6 +270,92 @@ function EditorForm({
     <div className="grid gap-3">
       <Field label="quote text"><TextArea rows={3} value={d.text ?? ''} onChange={(e) => onChange({ text: e.target.value })} /></Field>
       <Field label="author"><TextInput value={d.author ?? ''} onChange={(e) => onChange({ author: e.target.value })} /></Field>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* SortableLibRows — dnd-kit drag-reorder for the library (habits +    */
+/* models; the persisted `order` sort key). Same pattern as TradeCard  */
+/* / ThoughtsSurface: useSortable rows, ⠿ handle, 60% drag preview.    */
+/* rules/quotes have no `order` field — not sortable (TODO: add one).  */
+/* ------------------------------------------------------------------ */
+
+interface SortableLibRowsProps {
+  rows: LibRow[]
+  section: Section
+  onEdit: (row: LibRow) => void
+  onRemove: (row: LibRow) => void
+  onReorder: (next: LibRow[]) => void
+}
+
+function SortableLibRows({ rows, section, onEdit, onRemove, onReorder }: SortableLibRowsProps) {
+  const sensors = useDndSensors()
+  const ids = rows.map((r) => r.file)
+
+  const onDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e
+    if (!over || active.id === over.id) return
+    const oldIndex = ids.indexOf(String(active.id))
+    const newIndex = ids.indexOf(String(over.id))
+    if (oldIndex < 0 || newIndex < 0) return
+    onReorder(arrayMove(rows, oldIndex, newIndex).map((r, i) => ({ ...r, order: i })))
+  }
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+        <div className="space-y-2">
+          {rows.map((row) => (
+            <SortableLibRow key={row.file} id={row.file} row={row} section={section} onEdit={onEdit} onRemove={onRemove} />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
+  )
+}
+
+function SortableLibRow({
+  id,
+  row,
+  section,
+  onEdit,
+  onRemove,
+}: {
+  id: string
+  row: LibRow
+  section: Section
+  onEdit: (row: LibRow) => void
+  onRemove: (row: LibRow) => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : undefined }}
+      className="group flex items-center gap-3 border border-line bg-bg px-3 py-2"
+    >
+      {/* dnd-kit drag handle — always visible (library rows are short and the
+          owner drags on iOS where hover doesn't exist); ≥36px, coarse-pointer
+          min-height 44px comes from the .zen-app button rule in app.css */}
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        aria-label={`reorder ${section.slice(0, -1)} ${row.slug}`}
+        title="drag to reorder"
+        className="flex h-9 w-8 cursor-grab touch-none items-center justify-center text-faint active:cursor-grabbing"
+      >
+        ⠿
+      </button>
+      <button onClick={() => onEdit(row)} className="flex flex-1 items-baseline gap-3 text-left">
+        <span className="text-[13px] text-ink">
+          {section === 'habits' && row.emoji ? `${row.emoji} ` : ''}
+          {String(row.name ?? row.title ?? row.text ?? row.slug)}
+        </span>
+        <span className="text-[11px] text-faint">{row.slug}</span>
+      </button>
+      <Button size="sm" variant="danger" onClick={() => onRemove(row)}>×</Button>
     </div>
   )
 }
