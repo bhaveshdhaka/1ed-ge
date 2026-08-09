@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, fetchRebuildState, bus } from '../api'
 import { fmtDay } from '../../../lib/dates'
+import { nowHkt, addDaysIso } from '../../../lib/sessions'
 import { Card, Button, Field, TextInput, NumInput, TextArea, Select } from '../ui'
 import { MarketCard } from '../MarketCard'
 import { ImageDropZone } from '../ImageDropZone'
-import { MarkdownEditor } from '../MarkdownEditor'
 import { IngestPanel } from '../IngestPanel'
 import { DayRail } from '../DayRail'
 import { TradeCard } from '../TradeCard'
 import { StatusLine } from '../StatusLine'
+import { CeremonyProvider, useCeremony } from '../CeremonyMode'
+import { ReflectionZone } from '../ReflectionZone'
 
 export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 interface HabitDef { slug: string; name: string; emoji?: string; color: string }
@@ -55,6 +57,12 @@ const toTradeForm = (t: any): TradeForm => ({
     : [],
 })
 
+/** Z1–Z4 ceremony dim: when the reflection editor is focused, siblings drop to 40%. */
+function CeremonyDim({ children }: { children: ReactNode }) {
+  const { active } = useCeremony()
+  return <div className={active ? 'opacity-40 transition-opacity duration-200' : ''}>{children}</div>
+}
+
 export function DayWorkspace({
   notify,
   onDirtyChange,
@@ -64,7 +72,7 @@ export function DayWorkspace({
 }) {
   const [date, setDate] = useState(todayStr())
   const [daysList, setDaysList] = useState<DayListItem[]>([])
-  const [pendingObligationDates, setPendingObligationDates] = useState<Set<string>>(new Set())
+  const [journalDates, setJournalDates] = useState<string[]>([])
   const [accounts, setAccounts] = useState<AccRow[]>([])
   const [habitDefs, setHabitDefs] = useState<HabitDef[]>([])
 
@@ -210,6 +218,10 @@ export function DayWorkspace({
     load(date)
     loadDays()
     refreshPending()
+    // journal dates (reflection posts) — powers the pending-obligation set
+    api<{ entries: { data: { date?: string } }[] }>('/api/admin/journal')
+      .then((r) => setJournalDates((r.entries ?? []).map((e) => String(e.data?.date ?? '')).filter(Boolean)))
+      .catch(() => {})
   }, [date, load, loadDays, refreshPending])
 
   // keep the published/draft indicator fresh while mounted
@@ -645,6 +657,39 @@ export function DayWorkspace({
   const habitsTotal = habitDefs.length
   const showPublishHint = !!reflection.trim() || draftMoments.length > 0
 
+  // ---------- reflection obligation (Z5) ----------
+  // Adapted to the real `accountabilityStatus()` API: it returns only counts
+  // ({ pendingDays, pendingPeriods }), not per-date data, and DayWorkspace does
+  // not hold DayData[]/reviews. The same rules are applied here per-date:
+  // Mon–Fri, no journal post, past the 03:00-HKT-next-day grace.
+  const weekday = (iso: string) => {
+    const d = new Date(`${iso}T00:00:00Z`).getUTCDay()
+    return d >= 1 && d <= 5
+  }
+  const pendingObligationDates = useMemo(() => {
+    const out = new Set<string>()
+    const journal = new Set(journalDates)
+    const now = nowHkt()
+    const today = now.slice(0, 10)
+    for (const d of daysList) {
+      if (d.date > today) continue
+      if (!weekday(d.date)) continue
+      if (journal.has(d.date)) continue
+      const due = `${addDaysIso(d.date, 1)}T03:00`
+      if (now.slice(0, 16) >= due) out.add(d.date)
+    }
+    return out
+  }, [daysList, journalDates])
+  const obligation = useMemo(() => {
+    const posted = content.trim().length > 0
+    if (!weekday(date) || posted) return { type: 'daily', status: 'done' as const }
+    const dueIso = `${addDaysIso(date, 1)}T03:00`
+    const graceUntil = new Date(`${addDaysIso(date, 1)}T03:00:00+08:00`)
+    const now = nowHkt()
+    const status = now.slice(0, 16) >= dueIso ? ('overdue' as const) : ('grace' as const)
+    return { type: 'daily', status, graceUntil }
+  }, [date, content])
+
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -676,6 +721,7 @@ export function DayWorkspace({
   })
 
   return (
+    <CeremonyProvider>
     <div className="space-y-6">
       {/* sticky section jump (desktop) */}
       <div className="sticky top-safe-14 z-30 -mx-2 hidden border-b border-line bg-bg/95 px-2 py-1 backdrop-blur md:block">
@@ -739,6 +785,7 @@ export function DayWorkspace({
             <Card title="loading"><p className="text-[13px] text-faint">loading…</p></Card>
           ) : (
             <>
+              <CeremonyDim>
               {/* ---------- CAPTURE ---------- */}
               <div id="sec-capture" className="scroll-mt-20">
                 <Card title="capture — paste everything, AI builds the day">
@@ -1034,46 +1081,28 @@ export function DayWorkspace({
                 </Card>
               </div>
 
-              {/* ---------- REFLECTION ---------- */}
-              <div id="sec-reflection" className="scroll-mt-20">
-                <Card
-                  title="reflection — draft (private until published)"
-                  actions={
-                    <div className="flex items-center gap-2">
-                      <a href={previewHref} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink">
-                        preview day →
-                      </a>
-                      <Button size="sm" variant="primary" onClick={runDraft} disabled={draftBusy}>
-                        {draftBusy ? 'drafting…' : 'AI draft from today'}
-                      </Button>
-                      <Button size="sm" onClick={publishReflection} disabled={saving || !reflection.trim()}>
-                        {content.trim() ? 'republish reflection' : 'publish reflection'}
-                      </Button>
-                    </div>
-                  }
-                >
-                  {content.trim() && (
-                    <div className="mb-3 border border-line bg-bg px-3 py-2 text-[12px] text-up">
-                      ● published to /journal{content.trim() === reflection.trim() ? ' — draft matches live' : ' — draft differs, republish to overwrite'}
-                    </div>
-                  )}
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <Field label="title"><TextInput value={title} onChange={(e) => { setTitle(e.target.value); markDirty() }} placeholder="AI suggests" /></Field>
-                    <Field label="summary"><TextInput value={summary} onChange={(e) => { setSummary(e.target.value); markDirty() }} placeholder="one line" /></Field>
-                    <Field label="tags (comma)"><TextInput value={tags} onChange={(e) => { setTags(e.target.value); markDirty() }} placeholder="discipline, revenge" /></Field>
-                  </div>
-                  <div className="mt-3">
-                    <MarkdownEditor value={reflection} onChange={(md) => { setReflection(md); markDirty() }} label="reflection draft" />
-                  </div>
-                  {featuredImage && (
-                    <div className="mt-3 flex items-center gap-3">
-                      <span className="text-[11px] uppercase tracking-widest text-dim">featured</span>
-                      <img src={featuredImage} alt="" className="h-12 w-20 border border-line object-cover" />
-                      <TextInput value={featuredImage} onChange={(e) => { setFeaturedImage(e.target.value); markDirty() }} className="flex-1" />
-                    </div>
-                  )}
-                </Card>
-              </div>
+              {/* ---------- REFLECTION (Z5) ---------- */}
+              </CeremonyDim>
+              <ReflectionZone
+                reflection={reflection}
+                title={title}
+                summary={summary}
+                tags={tags}
+                featuredImage={featuredImage}
+                content={content}
+                previewHref={previewHref}
+                onReflectionChange={(v) => { setReflection(v); markDirty() }}
+                onTitleChange={(v) => { setTitle(v); markDirty() }}
+                onSummaryChange={(v) => { setSummary(v); markDirty() }}
+                onTagsChange={(v) => { setTags(v); markDirty() }}
+                onFeaturedImageChange={(v) => { setFeaturedImage(v); markDirty() }}
+                onPublish={publishReflection}
+                onAIDraft={runDraft}
+                draftBusy={draftBusy}
+                saving={saving}
+                obligation={obligation}
+                onObligationClick={() => scrollTo('sec-reflection')}
+              />
 
               {/* ---------- FOOTER ---------- */}
               <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-[13px]">
@@ -1103,5 +1132,6 @@ export function DayWorkspace({
         showPublishHint={showPublishHint}
       />
     </div>
+    </CeremonyProvider>
   )
 }
