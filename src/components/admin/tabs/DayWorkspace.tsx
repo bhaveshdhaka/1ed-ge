@@ -8,6 +8,7 @@ import { MarkdownEditor } from '../MarkdownEditor'
 import { IngestPanel } from '../IngestPanel'
 import { DayRail } from '../DayRail'
 import { TradeCard } from '../TradeCard'
+import { StatusLine } from '../StatusLine'
 
 export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 interface HabitDef { slug: string; name: string; emoji?: string; color: string }
@@ -104,6 +105,8 @@ export function DayWorkspace({
   const [dayBusy, setDayBusy] = useState(false)
   const [screenBusy, setScreenBusy] = useState(false)
   const [draftBusy, setDraftBusy] = useState(false)
+  // wired by Task 11 (autosave) — set to current HH:MM after every autosave succeeds
+  const [savedAt, setSavedAt] = useState<string | null>(null)
   const debRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const markDirty = () => {
@@ -635,6 +638,13 @@ export function DayWorkspace({
     return a ? `${a.firm} ${a.sizeLabel}` : id
   }
 
+  // status-line readouts (footer)
+  const totalR = `${dayTotals.R > 0 ? '+' : ''}${dayTotals.R.toFixed(2)}R`
+  const tradeCount = trades.length
+  const habitsDone = habitDefs.filter((h) => habits[h.slug] === true).length
+  const habitsTotal = habitDefs.length
+  const showPublishHint = !!reflection.trim() || draftMoments.length > 0
+
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -1082,6 +1092,16 @@ export function DayWorkspace({
           )}
         </div>
       </div>
+
+      <StatusLine
+        date={date}
+        totalR={totalR}
+        tradeCount={tradeCount}
+        habitsDone={habitsDone}
+        habitsTotal={habitsTotal}
+        savedAt={savedAt}
+        showPublishHint={showPublishHint}
+      />
     </div>
   )
 }
