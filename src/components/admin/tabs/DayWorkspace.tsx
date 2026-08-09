@@ -305,10 +305,10 @@ export function DayWorkspace({
     toast.success('trade added to the stream — queued for rebuild')
   }
   /** composer ⌘⏎ — the SOLE publish gesture for thoughts (no auto-publish on blur). */
-  const publishThought = (type: string, text: string) => {
+  const publishThought = (type: string, text: string, author?: string) => {
     const trimmed = text.trim()
     if (!trimmed) return
-    const m: MomentForm = { at: '', type, text: trimmed, tradeIdx: '', author: '', images: [] }
+    const m: MomentForm = { at: '', type, text: trimmed, tradeIdx: '', author: author ?? '', images: [] }
     setStream((s) => [...s, m])
     markDirty()
     saveSilent() // immediate — don't wait for the 2s debounce on explicit publish

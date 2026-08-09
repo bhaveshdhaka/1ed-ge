@@ -15,7 +15,7 @@ interface ThoughtsSurfaceProps {
   draftMoments: MomentForm[]
   stream: MomentForm[]
   trades: TradeForm[]
-  onComposerPublish: (type: string, text: string) => void
+  onComposerPublish: (type: string, text: string, author?: string) => void
   onAddDraft: () => void
   onMomentChange: (i: number, patch: Partial<MomentForm>) => void
   onPublishDraft: (i: number) => void
@@ -182,6 +182,7 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
   // composer is local ephemeral UI — ⌘⏎ is the ONLY publish gesture (no blur publish)
   const [text, setText] = useState('')
   const [composerType, setComposerType] = useState<'note' | 'quote' | 'trade'>('note')
+  const [composerAuthor, setComposerAuthor] = useState('')
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const { suggestion, caretPos } = useGhostText(composerRef, props.ghostTextEnabled ?? false)
   const sensors = useDndSensors()
@@ -190,8 +191,9 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault()
       if (!text.trim()) return
-      props.onComposerPublish(composerType, text)
+      props.onComposerPublish(composerType, text, composerType === 'quote' ? composerAuthor.trim() : '')
       setText('')
+      setComposerAuthor('')
     }
   }
 
@@ -228,6 +230,18 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
             className="w-full resize-y border-0 bg-bg p-3 font-mono text-sm leading-snug text-ink outline-none placeholder:text-faint"
           />
           <GhostText textareaRef={composerRef} suggestion={suggestion} caretPos={caretPos} />
+          {composerType === 'quote' && (
+            <div className="flex items-center gap-2 border-t border-line px-2 py-1">
+              <span className="shrink-0 text-[10px] uppercase tracking-widest text-dim">author</span>
+              <input
+                value={composerAuthor}
+                onChange={(e) => setComposerAuthor(e.target.value)}
+                placeholder="— who said it"
+                aria-label="quote author"
+                className="h-6 min-w-0 flex-1 border-0 bg-transparent px-1 font-mono text-[12px] text-ink outline-none placeholder:text-faint"
+              />
+            </div>
+          )}
           <div className="flex items-center justify-between border-t border-line px-2 py-1.5">
             <div className="flex gap-1">
               {TYPES.map((t) => (
