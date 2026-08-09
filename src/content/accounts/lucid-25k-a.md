@@ -17,5 +17,11 @@ stages:
   - stage: failed
     from: '2025-10-01'
 note: breached the 1000 drawdown on 2025-10-01 — account closed.
+rules:
+  profitTarget: 1250
+  consistencyPct: 40
+  bufferBalance: 26100
+  drawdownMode: eod
+  payoutSplit: 90
 ---
 

@@ -30,10 +30,12 @@ const accounts = defineCollection({
     platformIds: z.array(z.string()).default([]),
     rules: z
       .object({
-        dailyLoss: z.number().positive().optional(),
-        breach: z.enum(['drawdown', 'daily', 'either']).optional(),
-        consistency: z.enum(['none', 'eval', 'funded', 'both']).optional(),
-        consistencyNote: z.string().optional(),
+        dailyLossLimit: z.number().positive().optional(), // DLL — daily soft breach
+        profitTarget: z.number().positive().optional(), // eval profit target
+        consistencyPct: z.number().min(0).max(100).optional(), // % — largest-day ≤ X%
+        bufferBalance: z.number().positive().optional(), // MLL + 100, locks at this balance
+        drawdownMode: z.enum(['eod', 'intraday', 'intraday-to-eod']).default('eod'),
+        payoutSplit: z.number().min(0).max(100).default(90), // trader's cut %
       })
       .optional(),
   }),

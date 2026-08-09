@@ -12,4 +12,10 @@ stage: "eval"
 stages:
   - stage: "eval"
     from: "2026-12-06"
+rules:
+  profitTarget: 1250
+  consistencyPct: 40
+  bufferBalance: 26100
+  drawdownMode: intraday-to-eod
+  payoutSplit: 90
 ---

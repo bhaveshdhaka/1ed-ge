@@ -13,8 +13,10 @@ stages:
   - stage: "eval"
     from: "2026-08-05"
 rules:
-  dailyLoss: 200
-  breach: 'daily'
-  consistency: 'both'
-  consistencyNote: "no single day above 25% of total profit — throughout"
+  dailyLossLimit: 1200
+  profitTarget: 3000
+  consistencyPct: 40
+  bufferBalance: 52100
+  drawdownMode: intraday-to-eod
+  payoutSplit: 90
 ---

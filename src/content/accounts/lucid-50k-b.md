@@ -13,8 +13,10 @@ stages:
   - stage: "eval"
     from: "2027-03-01"
 rules:
-  dailyLoss: 300
-  breach: 'drawdown'
-  consistency: 'eval'
-  consistencyNote: "30% rule — applies during the eval stage only"
+  dailyLossLimit: 1200
+  profitTarget: 3000
+  consistencyPct: 40
+  bufferBalance: 52100
+  drawdownMode: eod
+  payoutSplit: 90
 ---

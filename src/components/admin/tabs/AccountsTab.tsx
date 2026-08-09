@@ -28,7 +28,14 @@ interface AccountRow {
   stage: string
   note?: string
   stages: { stage: string; from: string; to?: string; note?: string }[]
-  rules?: { dailyLoss?: number; breach?: string; consistency?: string; consistencyNote?: string }
+  rules?: {
+    dailyLossLimit?: number
+    profitTarget?: number
+    consistencyPct?: number
+    bufferBalance?: number
+    drawdownMode?: string
+    payoutSplit?: number
+  }
 }
 interface PayoutRow {
   file?: string
@@ -42,8 +49,14 @@ interface PayoutRow {
 const STAGES = ['eval', 'funded', 'buffer', 'payout', 'failed', 'paused']
 const FLOW = ['eval', 'funded', 'buffer', 'payout']
 const TERMINAL = ['failed', 'paused']
-const BREACH_RULES = ['drawdown', 'daily', 'either']
-const CONSISTENCY_RULES = ['none', 'eval', 'funded', 'both']
+
+/** Prop-firm presets — select firm+size, everything prefills, override any value. */
+const LUCID_PRESETS: Record<string, Record<string, unknown>> = {
+  '25000': { drawdownLimit: 1000, dailyLossLimit: null, profitTarget: 1250, consistencyPct: 40, bufferBalance: 26100, drawdownMode: 'eod', payoutSplit: 90, sizeLabel: '25k' },
+  '50000': { drawdownLimit: 2000, dailyLossLimit: 1200, profitTarget: 3000, consistencyPct: 40, bufferBalance: 52100, drawdownMode: 'eod', payoutSplit: 90, sizeLabel: '50k' },
+  '100000': { drawdownLimit: 3000, dailyLossLimit: 1800, profitTarget: 6000, consistencyPct: 40, bufferBalance: 103100, drawdownMode: 'eod', payoutSplit: 90, sizeLabel: '100k' },
+  '150000': { drawdownLimit: 4500, dailyLossLimit: 2700, profitTarget: 9000, consistencyPct: 40, bufferBalance: 154600, drawdownMode: 'eod', payoutSplit: 90, sizeLabel: '150k' },
+}
 
 export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => void }) {
   const [accounts, setAccounts] = useState<AccountRow[]>([])
@@ -99,7 +112,10 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
     const id = newAcc.id.trim()
     if (!id) return notify('id required (e.g. lucid-50k-b)', false)
     const size = parseInt(newAcc.size || '50000', 10) || 50000
-    const drawdownLimit = size >= 50000 ? 2000 : 1000
+    const preset = LUCID_PRESETS[String(size)]
+    const drawdownMode: string = newAcc.firm === 'TPT' ? 'intraday-to-eod' : 'eod'
+    const sizeLabel = preset?.sizeLabel ?? `${Math.round(size / 1000)}k`
+    const drawdownLimit = (preset?.drawdownLimit as number) ?? 2000
     try {
       await api('/api/admin/accounts', {
         method: 'POST',
@@ -108,14 +124,23 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
           id,
           firm: newAcc.firm.trim() || 'Lucid',
           size,
-          sizeLabel: `${Math.round(size / 1000)}k`,
+          sizeLabel: String(sizeLabel),
           drawdownLimit,
           riskPerTrade: 200,
           stage: 'eval',
           stages: [{ stage: 'eval', from: todayStr() }],
+          trailing: drawdownMode !== 'intraday',
+          rules: {
+            dailyLossLimit: preset?.dailyLossLimit ?? undefined,
+            profitTarget: preset?.profitTarget ?? undefined,
+            consistencyPct: preset?.consistencyPct ?? undefined,
+            bufferBalance: preset?.bufferBalance ?? undefined,
+            drawdownMode,
+            payoutSplit: preset?.payoutSplit ?? 90,
+          },
         },
       })
-      notify(`account ${id} created`)
+      notify(`account ${id} created — ${String(sizeLabel)} ${newAcc.firm}`)
       await load()
     } catch (e) {
       notify(e instanceof Error ? e.message : 'create failed', false)
@@ -231,6 +256,9 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
       } else {
         const size = proposal.size || 50000
         const stage = proposal.stage || 'eval'
+        const preset = LUCID_PRESETS[String(size)]
+        const drawdownMode = 'eod'
+        const drawdownLimit = (preset?.drawdownLimit as number) ?? (size >= 50000 ? 2000 : 1000)
         await api('/api/admin/accounts', {
           method: 'POST',
           body: {
@@ -239,11 +267,20 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
             firm: proposal.firm || 'Lucid',
             size,
             sizeLabel: proposal.sizeLabel || `${Math.round(size / 1000)}k`,
-            drawdownLimit: size >= 50000 ? 2000 : 1000,
+            drawdownLimit,
             riskPerTrade: 200,
             stage,
             stages: [{ stage, from: todayStr(), note: 'from statement' }],
             note: proposal.note || undefined,
+            trailing: true,
+            rules: {
+              dailyLossLimit: preset?.dailyLossLimit ?? undefined,
+              profitTarget: preset?.profitTarget ?? undefined,
+              consistencyPct: preset?.consistencyPct ?? undefined,
+              bufferBalance: preset?.bufferBalance ?? undefined,
+              drawdownMode,
+              payoutSplit: preset?.payoutSplit ?? 90,
+            },
           },
         })
         notify(`account ${target} created from statement — queued for rebuild`)
@@ -268,8 +305,16 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
         <h1 className="text-xl">/ accounts</h1>
         {adding ? (
           <div className="flex flex-wrap items-center gap-2">
-            <TextInput value={newAcc.firm} onChange={(e) => setNewAcc((a) => ({ ...a, firm: e.target.value }))} placeholder="firm" className="w-28" />
-            <TextInput value={newAcc.size} onChange={(e) => setNewAcc((a) => ({ ...a, size: e.target.value }))} placeholder="size $" className="w-28" />
+            <Select value={newAcc.firm} onChange={(e) => setNewAcc((a) => ({ ...a, firm: e.target.value }))} className="w-24">
+              <option value="Lucid">Lucid</option>
+              <option value="TPT">TPT</option>
+            </Select>
+            <Select value={newAcc.size} onChange={(e) => setNewAcc((a) => ({ ...a, size: e.target.value }))} className="w-24">
+              <option value="25000">25k</option>
+              <option value="50000">50k</option>
+              <option value="100000">100k</option>
+              <option value="150000">150k</option>
+            </Select>
             <TextInput value={newAcc.id} onChange={(e) => setNewAcc((a) => ({ ...a, id: e.target.value }))} placeholder="id (lucid-50k-b)" className="w-40" />
             <Button size="sm" variant="primary" onClick={addAccount}>create</Button>
             <Button size="sm" onClick={() => { setAdding(false); setNewAcc({ firm: 'Lucid', size: '50000', id: '' }) }}>cancel</Button>
@@ -394,35 +439,47 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
               <div className="grid grid-cols-2 gap-3">
                 <Field label="daily loss ($)">
                   <NumInput
-                    value={draft(a).rules?.dailyLoss != null ? String(draft(a).rules?.dailyLoss) : ''}
-                    onChange={(e) => setRule(a, { dailyLoss: e.target.value ? parseFloat(e.target.value) : undefined })}
-                    placeholder="250"
+                    value={draft(a).rules?.dailyLossLimit != null ? String(draft(a).rules?.dailyLossLimit) : ''}
+                    onChange={(e) => setRule(a, { dailyLossLimit: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    placeholder="1200"
                   />
                 </Field>
-                <Field label="breach — what ends it">
-                  <Select value={draft(a).rules?.breach ?? ''} onChange={(e) => setRule(a, { breach: e.target.value || undefined })}>
-                    <option value="">— none —</option>
-                    {BREACH_RULES.map((r) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
+                <Field label="profit target ($)">
+                  <NumInput
+                    value={draft(a).rules?.profitTarget != null ? String(draft(a).rules?.profitTarget) : ''}
+                    onChange={(e) => setRule(a, { profitTarget: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    placeholder="3000"
+                  />
+                </Field>
+                <Field label="consistency %">
+                  <NumInput
+                    value={draft(a).rules?.consistencyPct != null ? String(draft(a).rules?.consistencyPct) : ''}
+                    onChange={(e) => setRule(a, { consistencyPct: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    placeholder="40"
+                  />
+                </Field>
+                <Field label="buffer ($)">
+                  <NumInput
+                    value={draft(a).rules?.bufferBalance != null ? String(draft(a).rules?.bufferBalance) : ''}
+                    onChange={(e) => setRule(a, { bufferBalance: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    placeholder="52100"
+                  />
+                </Field>
+                <Field label="drawdown mode">
+                  <Select value={draft(a).rules?.drawdownMode ?? 'eod'} onChange={(e) => setRule(a, { drawdownMode: e.target.value })}>
+                    <option value="eod">EOD trailing</option>
+                    <option value="intraday">intraday trailing</option>
+                    <option value="intraday-to-eod">intraday → EOD at buffer</option>
                   </Select>
                 </Field>
-                <Field label="consistency applies when">
-                  <Select value={draft(a).rules?.consistency ?? ''} onChange={(e) => setRule(a, { consistency: e.target.value || undefined })}>
-                    <option value="">— none —</option>
-                    {CONSISTENCY_RULES.map((r) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </Select>
+                <Field label="payout split (%)">
+                  <NumInput
+                    value={draft(a).rules?.payoutSplit != null ? String(draft(a).rules?.payoutSplit) : ''}
+                    onChange={(e) => setRule(a, { payoutSplit: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    placeholder="90"
+                  />
                 </Field>
               </div>
-              <Field label="consistency note" className="mt-3">
-                <TextInput
-                  value={draft(a).rules?.consistencyNote ?? ''}
-                  onChange={(e) => setRule(a, { consistencyNote: e.target.value })}
-                  placeholder="30% rule — no single day above 30% of total profit; min 5 trading days"
-                />
-              </Field>
             </div>
 
             <details className="mt-4">

@@ -13,8 +13,10 @@ stages:
   - stage: "eval"
     from: "2026-08-05"
 rules:
-  dailyLoss: 250
-  breach: 'either'
-  consistency: 'funded'
-  consistencyNote: "30% rule — no single day above 30% of total profit; min 5 trading days"
+  dailyLossLimit: 1200
+  profitTarget: 3000
+  consistencyPct: 40
+  bufferBalance: 52100
+  drawdownMode: eod
+  payoutSplit: 90
 ---

@@ -255,8 +255,8 @@ export function OverviewTab({
                   </span>
                   {s.breach === 'drawdown' && <span className="text-down">● breached — drawdown</span>}
                   {s.breach === 'daily' && <span className="text-down">● breached — daily</span>}
-                  <span className={s.consistencyApplies ? 'text-up' : 'text-dim'}>
-                    consistency: {s.consistencyApplies ? `applies (${a.stage})` : 'n/a'}
+                  <span className={s.consistencyPct != null ? 'text-up' : 'text-dim'}>
+                    consistency: {s.consistencyPct != null ? `${s.consistencyPct}%` : '—'}
                   </span>
                 </div>
               )
