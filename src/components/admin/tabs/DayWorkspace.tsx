@@ -303,14 +303,19 @@ export function DayWorkspace({
     saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
     toast.success('trade added to the stream — queued for rebuild')
   }
-  /** composer ⌘⏎ — the SOLE publish gesture for thoughts (no auto-publish on blur). */
+  /** composer ⌘⏎ — publish a thought from the composer. Saves immediately with the new thought included. */
   const publishComposer = (type: string, text: string, author?: string) => {
     const trimmed = text.trim()
     if (!trimmed) return
     const m: ThoughtForm = { at: '', type, text: trimmed, tradeIdx: '', author: author ?? '', images: [] }
-    setStream((s) => [...s, m])
+    const updatedStream = [...stream, m]
+    setStream(updatedStream)
     markDirty()
-    saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
+    // Save with the new thought included — don't rely on stale React state
+    api('/api/admin/days', {
+      method: 'POST',
+      body: { ...dayPayload(), stream: updatedStream.map(thoughtPayload), silent: true },
+    }).catch(() => {})
     toast.success('thought published')
   }
   const unstreamThought = (i: number) => {
