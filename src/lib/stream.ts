@@ -15,6 +15,7 @@ export interface DayTrade {
   direction: 'long' | 'short'
   setup?: string
   model?: string
+  models?: string[]
   entry: number
   stop?: number
   target?: number
@@ -55,6 +56,7 @@ export interface ResolvedMoment {
     direction: 'long' | 'short'
     market: string
     model?: string
+    models?: string[]
     setup?: string
     session?: string
     points: number
@@ -94,6 +96,7 @@ export function resolveMoments(d: DayData): ResolvedMoment[] {
             direction: t.direction,
             market: t.market,
             model: t.model,
+            models: t.models ?? (t.model ? [t.model] : []),
             setup: t.setup,
             session: t.session,
             points: t.points,

@@ -1,32 +1,44 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, fetchRebuildState, bus } from '../api'
 import { fmtDay } from '../../../lib/dates'
-import { Card, Button, Field, TextInput, NumInput, TextArea, Select } from '../ui'
-import { MarketCard } from '../MarketCard'
-import { ImageDropZone } from '../ImageDropZone'
-import { MarkdownEditor } from '../MarkdownEditor'
-import { IngestPanel } from '../IngestPanel'
+import { nowHkt, addDaysIso } from '../../../lib/sessions'
+import { hktHHMM } from '../../../lib/clock'
+import { Card, Button, TextInput } from '../ui'
+import { DayRail } from '../DayRail'
+import { TradeList } from '../TradeCard'
+import { StatusLine } from '../StatusLine'
+import { CeremonyProvider, useCeremony } from '../CeremonyMode'
+import { ReflectionZone } from '../ReflectionZone'
+import { CheckInBand } from '../CheckInBand'
+import { ThoughtsSurface } from '../ThoughtsSurface'
+import { HabitRow } from '../HabitRow'
+import { AIBuildSheet } from '../AIBuildSheet'
+import { IngestSheet } from '../IngestSheet'
+import { DayPickerSheet } from '../DayPickerSheet'
+import { ghostTextOn } from '../useGhostText'
+import { toast } from 'sonner'
 
-interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
-interface HabitDef { slug: string; name: string; emoji?: string; color: string }
-interface DayListItem { file: string; date: string; mood: number | null; trades: number }
-interface DayImage { id: string; dataUrl: string; url: string }
+export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
+export interface HabitDef { slug: string; name: string; emoji?: string; color: string; kind?: string; target?: number }
+export interface DayListItem { file: string; date: string; mood: number | null; trades: number; R?: number | null }
+export interface DayImage { id: string; dataUrl: string; url: string }
 interface ExecForm { account: string; size: string }
-interface TradeForm {
+export interface TradeForm {
   market: string; session: string; direction: 'long' | 'short'; setup: string
   entry: string; stop: string; target: string; exit: string; riskPoints: string; points: string
   confidence: string; note: string; model: string; commentary: string
+  models: string[]
   screenshots: string[]; executions: ExecForm[]
 }
 
-interface MomentForm {
+export interface MomentForm {
   at: string; type: string; text: string; tradeIdx: string; author: string; images: string[]
 }
 
 const emptyTrade = (): TradeForm => ({
   market: 'MNQ', session: '', direction: 'long', setup: '',
   entry: '', stop: '', target: '', exit: '', riskPoints: '', points: '',
-  confidence: '', note: '', model: '', commentary: '', screenshots: [], executions: [],
+  confidence: '', note: '', model: '', commentary: '', models: [], screenshots: [], executions: [],
 })
 
 const toTradeForm = (t: any): TradeForm => ({
@@ -44,25 +56,27 @@ const toTradeForm = (t: any): TradeForm => ({
   note: String(t.note ?? ''),
   model: String(t.model ?? ''),
   commentary: String(t.commentary ?? ''),
+  models: Array.isArray(t.models) && t.models.length ? t.models.map(String) : t.model ? [String(t.model)] : [],
   screenshots: [],
   executions: Array.isArray(t.accounts) && t.accounts.length
     ? t.accounts.map((a: string) => ({ account: a, size: '' }))
     : [],
 })
 
-function dayKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+/** Z1–Z4 ceremony dim: when the reflection editor is focused, siblings drop to 40%. */
+function CeremonyDim({ children }: { children: ReactNode }) {
+  const { active } = useCeremony()
+  return <div className={active ? 'opacity-40 transition-opacity duration-200' : ''}>{children}</div>
 }
 
 export function DayWorkspace({
-  notify,
   onDirtyChange,
 }: {
-  notify: (m: string, ok?: boolean) => void
   onDirtyChange?: (dirty: boolean) => void
 }) {
   const [date, setDate] = useState(todayStr())
   const [daysList, setDaysList] = useState<DayListItem[]>([])
+  const [journalDates, setJournalDates] = useState<string[]>([])
   const [accounts, setAccounts] = useState<AccRow[]>([])
   const [habitDefs, setHabitDefs] = useState<HabitDef[]>([])
 
@@ -82,7 +96,7 @@ export function DayWorkspace({
   const [tags, setTags] = useState('')
   const [featuredImage, setFeaturedImage] = useState('')
   const [content, setContent] = useState('')
-  const [models, setModels] = useState<{ slug: string; name: string }[]>([])
+  const [models, setModels] = useState<{ slug: string; name: string; premise?: string }[]>([])
   const [reflection, setReflection] = useState('')
   const [draftMoments, setDraftMoments] = useState<MomentForm[]>([])
   const [stream, setStream] = useState<MomentForm[]>([])
@@ -94,6 +108,9 @@ export function DayWorkspace({
   const lastAiTradesRef = useRef<TradeForm[]>([])
 
   const [editing, setEditing] = useState<string | null>(null)
+  const [aiBuildOpen, setAiBuildOpen] = useState(false)
+  const [ingestOpen, setIngestOpen] = useState(false)
+  const [dayPickerOpen, setDayPickerOpen] = useState(false)
   const [expandedTrade, setExpandedTrade] = useState<number | null>(null)
   const [expandAll, setExpandAll] = useState(false)
   const [pendingLabels, setPendingLabels] = useState<string[]>([])
@@ -103,7 +120,18 @@ export function DayWorkspace({
   const [dayBusy, setDayBusy] = useState(false)
   const [screenBusy, setScreenBusy] = useState(false)
   const [draftBusy, setDraftBusy] = useState(false)
+  // ghost-text assist — polled so the ⌘K `view → ghost-text` toggle applies live (same-tab
+  // localStorage writes don't fire the `storage` event)
+  const [ghostOn, setGhostOn] = useState(ghostTextOn)
+  // wired by Task 11 (autosave) — set to current HH:MM after every autosave succeeds
+  const [savedAt, setSavedAt] = useState<string | null>(null)
   const debRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  // AIBuildSheet/IngestSheet still take the notify(m, ok) callback shape — route it to sonner.
+  const sheetNotify = (m: string, ok?: boolean) => {
+    if (ok === false) toast.error(m)
+    else toast.success(m)
+  }
 
   const markDirty = () => {
     setDirty(true)
@@ -123,7 +151,7 @@ export function DayWorkspace({
       setExpandAll(false)
       lastAiTradesRef.current = []
       try {
-        const res = await api<{ day: any; accounts: AccRow[]; habits: HabitDef[]; models: { slug: string; name: string }[] }>(
+        const res = await api<{ day: any; accounts: AccRow[]; habits: HabitDef[]; models: { slug: string; name: string; premise?: string }[] }>(
           `/api/admin/days?date=${encodeURIComponent(d)}`,
         )
         setAccounts(res.accounts)
@@ -157,6 +185,7 @@ export function DayWorkspace({
           note: String(t.note ?? ''),
           model: String(t.model ?? ''),
           commentary: String(t.commentary ?? ''),
+          models: Array.isArray(t.models) && t.models.length ? t.models.map(String) : t.model ? [String(t.model)] : [],
           screenshots: t.screenshots ?? [],
           executions: (t.executions ?? []).map((e: any) => ({
             account: String(e.account ?? ''),
@@ -180,11 +209,11 @@ export function DayWorkspace({
 
         clearDirty()
       } catch (e) {
-        notify(e instanceof Error ? e.message : 'load failed', false)
+        toast.error(e instanceof Error ? e.message : 'load failed')
       }
       setLoading(false)
     },
-    [notify],
+    [],
   )
 
   const loadDays = useCallback(async () => {
@@ -205,6 +234,10 @@ export function DayWorkspace({
     load(date)
     loadDays()
     refreshPending()
+    // journal dates (reflection posts) — powers the pending-obligation set
+    api<{ entries: { data: { date?: string } }[] }>('/api/admin/journal')
+      .then((r) => setJournalDates((r.entries ?? []).map((e) => String(e.data?.date ?? '')).filter(Boolean)))
+      .catch(() => {})
   }, [date, load, loadDays, refreshPending])
 
   // keep the published/draft indicator fresh while mounted
@@ -221,6 +254,12 @@ export function DayWorkspace({
     setPasteSink((files) => addDayImages(files))
     return () => setPasteSink(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 1s poll of the ghost-text localStorage flag (setState bails when unchanged)
+  useEffect(() => {
+    const id = setInterval(() => setGhostOn((v) => (ghostTextOn() === v ? v : ghostTextOn())), 1000)
+    return () => clearInterval(id)
   }, [])
 
   const setTrade = (i: number, patch: Partial<TradeForm>) => {
@@ -250,11 +289,27 @@ export function DayWorkspace({
   }
   const publishMoment = (i: number) => {
     const m = draftMoments[i]
-    if (m.type === 'trade' && m.tradeIdx === '') return notify('pick a trade for this moment', false)
-    if (m.type !== 'trade' && !m.text.trim() && !m.images.length) return notify('write the moment text or attach an image first', false)
+    if (m.type === 'trade' && m.tradeIdx === '') return toast.error('pick a trade for this moment')
+    if (m.type !== 'trade' && !m.text.trim() && !m.images.length) return toast.error('write the moment text or attach an image first')
     setStream((s) => [...s, m])
     setDraftMoments((ms) => ms.filter((_, j) => j !== i))
     markDirty()
+  }
+  /** publish a trade card straight to the stream as a trade moment (same pattern as publishMoment). */
+  const publishTradeMoment = (ti: number) => {
+    const m: MomentForm = { at: '', type: 'trade', text: '', tradeIdx: String(ti), author: '', images: [] }
+    setStream((s) => [...s, m])
+    markDirty()
+    toast.success('trade added to the stream — queued for rebuild')
+  }
+  /** composer ⌘⏎ — the SOLE publish gesture for thoughts (no auto-publish on blur). */
+  const publishThought = (type: string, text: string) => {
+    const trimmed = text.trim()
+    if (!trimmed) return
+    const m: MomentForm = { at: '', type, text: trimmed, tradeIdx: '', author: '', images: [] }
+    setStream((s) => [...s, m])
+    markDirty()
+    toast.success('thought published')
   }
   const unstreamMoment = (i: number) => {
     setStream((s) => s.filter((_, j) => j !== i))
@@ -262,16 +317,16 @@ export function DayWorkspace({
   }
   const polishMoment = async (i: number) => {
     const m = draftMoments[i]
-    if (!m.text.trim()) return notify('write something to polish first', false)
+    if (!m.text.trim()) return toast.error('write something to polish first')
     try {
       const res = await api<{ result: string }>('/api/admin/ai', {
         method: 'POST',
         body: { action: 'assist', kind: 'polish', text: m.text },
       })
       setMoment(i, { text: res.result })
-      notify('polished — review it, then publish')
+      toast('polished — review it, then publish')
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'polish failed', false)
+      toast.error(e instanceof Error ? e.message : 'polish failed')
     }
   }
 
@@ -289,7 +344,7 @@ export function DayWorkspace({
         const dataUrl = await fileToDataUrl(f)
         items.push({ id: Math.random().toString(36).slice(2), dataUrl, url: '' })
       } catch (e) {
-        notify(e instanceof Error ? e.message : 'read failed', false)
+        toast.error(e instanceof Error ? e.message : 'read failed')
       }
     }
     if (!items.length) return
@@ -367,7 +422,7 @@ export function DayWorkspace({
 
   const runStructure = async (imgs?: DayImage[]) => {
     const images = imgs ?? dayImagesRef.current
-    if (!dayText.trim() && images.length === 0) return notify('paste text or screenshots first', false)
+    if (!dayText.trim() && images.length === 0) return toast.error('paste text or screenshots first')
     setDayBusy(true)
     try {
       const res = await api<{ result: any }>('/api/admin/ai', {
@@ -378,9 +433,9 @@ export function DayWorkspace({
       setDayText('')
       dayImagesRef.current = []
       setDayImages([])
-      notify('day built from your evidence — review, override if needed, then save')
+      toast('day built from your evidence — review, override if needed')
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'ai failed', false)
+      toast.error(e instanceof Error ? e.message : 'ai failed')
     }
     setDayBusy(false)
   }
@@ -418,85 +473,117 @@ export function DayWorkspace({
       })
       setReflection(res.result)
       markDirty()
-      notify('draft written — edit it, then save')
+      toast.success('draft written — edit it, then save')
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'ai failed', false)
+      toast.error(e instanceof Error ? e.message : 'ai failed')
     }
     setDraftBusy(false)
   }
 
   // ---------- save ----------
+  const dayPayload = () => ({
+    date,
+    ...(mood ? { mood: parseInt(mood, 10) } : {}),
+    ...(sleepHours || sleepQuality
+      ? { sleep: { ...(sleepHours ? { hours: parseFloat(sleepHours) } : {}), ...(sleepQuality ? { quality: parseInt(sleepQuality, 10) } : {}) } }
+      : {}),
+    habits,
+    ...(iphoneHours || socialHours || macHours || deviceNotes || deviceScreens.length
+      ? {
+          device: {
+            ...(iphoneHours ? { iphoneHours: parseFloat(iphoneHours) } : {}),
+            ...(socialHours ? { socialHours: parseFloat(socialHours) } : {}),
+            ...(macHours ? { macHours: parseFloat(macHours) } : {}),
+            ...(deviceNotes ? { notes: deviceNotes } : {}),
+            screenshots: deviceScreens,
+          },
+        }
+      : {}),
+    trades: trades.map((t) => ({
+      ...t,
+      entry: parseFloat(t.entry),
+      stop: t.stop !== '' ? parseFloat(t.stop) : undefined,
+      target: t.target !== '' ? parseFloat(t.target) : undefined,
+      exit: parseFloat(t.exit),
+      riskPoints: t.riskPoints !== '' ? parseFloat(t.riskPoints) : undefined,
+      points: t.points !== '' ? parseFloat(t.points) : undefined,
+      confidence: t.confidence !== '' ? parseInt(t.confidence, 10) : undefined,
+      executions: t.executions
+        .filter((e) => e.account)
+        .map((e) => ({ account: e.account, size: e.size !== '' ? parseInt(e.size, 10) : undefined })),
+    })),
+    stream: stream.map(momentPayload),
+    ...(draftMoments.length || reflection.trim()
+      ? {
+          draft: {
+            ...(reflection.trim() ? { reflection: reflection.trim() } : {}),
+            ...(draftMoments.length ? { moments: draftMoments.map(momentPayload) } : {}),
+          },
+        }
+      : {}),
+  })
+
   const save = async (rebuild = false) => {
     setSaving(true)
     try {
       await api('/api/admin/days', {
         method: 'POST',
-        body: {
-          date,
-          ...(mood ? { mood: parseInt(mood, 10) } : {}),
-          ...(sleepHours || sleepQuality
-            ? { sleep: { ...(sleepHours ? { hours: parseFloat(sleepHours) } : {}), ...(sleepQuality ? { quality: parseInt(sleepQuality, 10) } : {}) } }
-            : {}),
-          habits,
-          ...(iphoneHours || socialHours || macHours || deviceNotes || deviceScreens.length
-            ? {
-                device: {
-                  ...(iphoneHours ? { iphoneHours: parseFloat(iphoneHours) } : {}),
-                  ...(socialHours ? { socialHours: parseFloat(socialHours) } : {}),
-                  ...(macHours ? { macHours: parseFloat(macHours) } : {}),
-                  ...(deviceNotes ? { notes: deviceNotes } : {}),
-                  screenshots: deviceScreens,
-                },
-              }
-            : {}),
-          trades: trades.map((t) => ({
-            ...t,
-            entry: parseFloat(t.entry),
-            stop: t.stop !== '' ? parseFloat(t.stop) : undefined,
-            target: t.target !== '' ? parseFloat(t.target) : undefined,
-            exit: parseFloat(t.exit),
-            riskPoints: t.riskPoints !== '' ? parseFloat(t.riskPoints) : undefined,
-            points: t.points !== '' ? parseFloat(t.points) : undefined,
-            confidence: t.confidence !== '' ? parseInt(t.confidence, 10) : undefined,
-            executions: t.executions
-              .filter((e) => e.account)
-              .map((e) => ({ account: e.account, size: e.size !== '' ? parseInt(e.size, 10) : undefined })),
-          })),
-          stream: stream.map(momentPayload),
-          ...(draftMoments.length || reflection.trim()
-            ? {
-                draft: {
-                  ...(reflection.trim() ? { reflection: reflection.trim() } : {}),
-                  ...(draftMoments.length ? { moments: draftMoments.map(momentPayload) } : {}),
-                },
-              }
-            : {}),
-        },
+        body: dayPayload(),
       })
 
       clearDirty()
+      setSavedAt(hktHHMM(new Date()))
       notifyChanged()
       if (rebuild) {
         try {
           await triggerRebuild()
         } catch {
-          notify('saved, but the rebuild failed to start', false)
+          toast.error('saved, but the rebuild failed to start')
         }
-        notify(`day ${date} saved — publishing… the bar will flash when it is live`)
-      } else {
-        notify(`day ${date} saved — queued for rebuild`)
       }
       await load(date)
       await loadDays()
       await refreshPending()
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'save failed', false)
+      toast.error(e instanceof Error ? e.message : 'save failed')
     }
     setSaving(false)
   }
 
+  /** Silent autosave — writes the file, skips the pending-change queue, no toast. */
+  const saveSilent = async () => {
+    try {
+      await api('/api/admin/days', {
+        method: 'POST',
+        body: { ...dayPayload(), silent: true },
+      })
+      clearDirty()
+      setSavedAt(hktHHMM(new Date()))
+    } catch {
+      // autosave is best-effort; the debounce will retry on the next change
+    }
+  }
+
+  // debounced autosave: 2s after the last change, flush a silent save
+  useEffect(() => {
+    if (!dirty) return
+    const id = setTimeout(() => saveSilent(), 2000)
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty, date, mood, sleepHours, sleepQuality, habits, reflection, trades, draftMoments, stream])
+
+  // flush on window blur too (walking away from the admin saves what's typed)
+  useEffect(() => {
+    const onWinBlur = () => {
+      if (dirty) saveSilent()
+    }
+    window.addEventListener('blur', onWinBlur)
+    return () => window.removeEventListener('blur', onWinBlur)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty])
+
   const publishReflection = async () => {
-    if (!reflection.trim()) return notify('write a reflection draft first', false)
+    if (!reflection.trim()) return toast.error('write a reflection draft first')
     setSaving(true)
     try {
       await api('/api/admin/journal', {
@@ -511,10 +598,10 @@ export function DayWorkspace({
         },
       })
       setContent(reflection)
-      notify('reflection published — queued for rebuild')
+      toast.success('reflection published — queued for rebuild')
       notifyChanged()
-    } catch (e) {
-      notify(e instanceof Error ? e.message : 'publish failed', false)
+    } catch {
+      toast.error('publish failed — the draft is safe, retry')
     }
     setSaving(false)
   }
@@ -526,7 +613,7 @@ export function DayWorkspace({
       try {
         await api('/api/admin/journal', { method: 'DELETE', body: { file: `${date}.mdx` } })
       } catch {}
-      notify(`day ${date} deleted — queued for rebuild`)
+      toast('day deleted')
       notifyChanged()
       // Load today's data immediately so the form reflects today, not the deleted day
       const t = todayStr()
@@ -534,7 +621,7 @@ export function DayWorkspace({
       setDate(t)
       await loadDays()
     } catch (e) {
-      notify(e instanceof Error ? e.message : 'delete failed', false)
+      toast.error(e instanceof Error ? e.message : 'delete failed')
     }
   }
 
@@ -581,7 +668,7 @@ export function DayWorkspace({
         const url = await uploadDataUrl(dataUrl, f.name)
         setTrades((ts) => ts.map((t, j) => (j === ti ? { ...t, screenshots: [...t.screenshots, url] } : t)))
       } catch (e) {
-        notify(e instanceof Error ? e.message : 'upload failed', false)
+        toast.error(e instanceof Error ? e.message : 'upload failed')
       }
     }
   }
@@ -594,7 +681,7 @@ export function DayWorkspace({
         setDraftMoments((ms) => ms.map((m, j) => (j === i ? { ...m, images: [...m.images, url] } : m)))
         markDirty()
       } catch (e) {
-        notify(e instanceof Error ? e.message : 'upload failed', false)
+        toast.error(e instanceof Error ? e.message : 'upload failed')
       }
     }
   }
@@ -625,45 +712,46 @@ export function DayWorkspace({
     const a = accounts.find((x) => x.id === id)
     return a ? `${a.firm} ${a.sizeLabel}` : id
   }
-  const tradeR = (t: TradeForm) => {
-    const risk = t.riskPoints !== '' ? parseFloat(t.riskPoints) : t.stop !== '' && t.entry !== '' ? Math.abs(parseFloat(t.entry) - parseFloat(t.stop)) : NaN
-    const pts = t.points !== '' ? parseFloat(t.points) : t.entry !== '' && t.exit !== '' ? (t.direction === 'long' ? parseFloat(t.exit) - parseFloat(t.entry) : parseFloat(t.entry) - parseFloat(t.exit)) : NaN
-    if (!Number.isFinite(risk) || !Number.isFinite(pts) || risk <= 0) return null
-    return { R: pts / risk, pts }
-  }
 
-  // ---------- mini calendar (last 12 weeks, Mon-first) ----------
-  const daySet = new Set(daysList.map((d) => d.date))
-  const now = new Date()
-  const todayK = todayStr()
-  const dow = (d: Date) => (d.getDay() + 6) % 7
-  const calStart = new Date(now)
-  calStart.setDate(calStart.getDate() - 83)
-  calStart.setDate(calStart.getDate() - dow(calStart))
-  const minKeyDate = new Date(now)
-  minKeyDate.setDate(minKeyDate.getDate() - 83)
-  const minKey = dayKey(minKeyDate)
-  const calWeeks: { date: string; hasData: boolean; isToday: boolean; blank: boolean; day: number }[][] = []
-  {
-    let row: { date: string; hasData: boolean; isToday: boolean; blank: boolean; day: number }[] = []
-    const cursor = new Date(calStart)
-    for (let i = 0; i < 14 * 7; i++) {
-      const key = dayKey(cursor)
-      const inRange = key >= minKey && key <= todayK
-      row.push({
-        date: key,
-        hasData: daySet.has(key),
-        isToday: key === todayK,
-        blank: !inRange,
-        day: cursor.getDate(),
-      })
-      if (row.length === 7) {
-        calWeeks.push(row)
-        row = []
-      }
-      cursor.setDate(cursor.getDate() + 1)
-    }
+  // status-line readouts (footer)
+  const totalR = `${dayTotals.R > 0 ? '+' : ''}${dayTotals.R.toFixed(2)}R`
+  const tradeCount = trades.length
+  const habitsDone = habitDefs.filter((h) => habits[h.slug] === true).length
+  const habitsTotal = habitDefs.length
+  const showPublishHint = !!reflection.trim() || draftMoments.length > 0
+
+  // ---------- reflection obligation (Z5) ----------
+  // Adapted to the real `accountabilityStatus()` API: it returns only counts
+  // ({ pendingDays, pendingPeriods }), not per-date data, and DayWorkspace does
+  // not hold DayData[]/reviews. The same rules are applied here per-date:
+  // Mon–Fri, no journal post, past the 03:00-HKT-next-day grace.
+  const weekday = (iso: string) => {
+    const d = new Date(`${iso}T00:00:00Z`).getUTCDay()
+    return d >= 1 && d <= 5
   }
+  const pendingObligationDates = useMemo(() => {
+    const out = new Set<string>()
+    const journal = new Set(journalDates)
+    const now = nowHkt()
+    const today = now.slice(0, 10)
+    for (const d of daysList) {
+      if (d.date > today) continue
+      if (!weekday(d.date)) continue
+      if (journal.has(d.date)) continue
+      const due = `${addDaysIso(d.date, 1)}T03:00`
+      if (now.slice(0, 16) >= due) out.add(d.date)
+    }
+    return out
+  }, [daysList, journalDates])
+  const obligation = useMemo(() => {
+    const posted = content.trim().length > 0
+    if (!weekday(date) || posted) return { type: 'daily', status: 'done' as const }
+    const dueIso = `${addDaysIso(date, 1)}T03:00`
+    const graceUntil = new Date(`${addDaysIso(date, 1)}T03:00:00+08:00`)
+    const now = nowHkt()
+    const status = now.slice(0, 16) >= dueIso ? ('overdue' as const) : ('grace' as const)
+    return { type: 'daily', status, graceUntil }
+  }, [date, content])
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -672,15 +760,19 @@ export function DayWorkspace({
   const hasDayRecord = daysList.some((d) => d.date === date)
   const dayPending = pendingLabels.some((l) => l.includes(date))
   const previewHref = `/zen/preview/${date}`
-  const editableHint = 'underline decoration-dashed decoration-line2 underline-offset-4 hover:text-accent hover:decoration-accent cursor-pointer'
 
   // day-level keyboard shortcuts (global save handled in AdminApp)
   useEffect(() => {
     const offSave = bus.on('save', () => save(false))
     const offRebuild = bus.on('save-rebuild', () => save(true))
+    // ⌘S flush — force an immediate silent save (skips the 2s debounce)
+    const offFlushSave = bus.on('flush-save', () => saveSilent())
     const offPrev = bus.on('prev-day', () => prevDay && selectDate(prevDay.date))
     const offNext = bus.on('next-day', () => nextDay && selectDate(nextDay.date))
     const offToday = bus.on('today', () => selectDate(todayStr()))
+    // ⌘K palette commands open the sheets (DayWorkspace mounts after go('day'))
+    const offOpenIngest = bus.on('open-ingest', () => setIngestOpen(true))
+    const offOpenDayPicker = bus.on('open-day-picker', () => setDayPickerOpen(true))
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setEditing(null)
     }
@@ -688,14 +780,18 @@ export function DayWorkspace({
     return () => {
       offSave()
       offRebuild()
+      offFlushSave()
       offPrev()
       offNext()
       offToday()
+      offOpenIngest()
+      offOpenDayPicker()
       window.removeEventListener('keydown', onKey)
     }
   })
 
   return (
+    <CeremonyProvider>
     <div className="space-y-6">
       {/* sticky section jump (desktop) */}
       <div className="sticky top-safe-14 z-30 -mx-2 hidden border-b border-line bg-bg/95 px-2 py-1 backdrop-blur md:block">
@@ -738,490 +834,177 @@ export function DayWorkspace({
             <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
           )}
           <TextInput type="date" aria-label="day date" value={date} onChange={(e) => selectDate(e.target.value)} className="h-9 w-40" />
-          <Button size="sm" onClick={() => save(false)} disabled={saving}>{saving ? 'saving…' : 'save'}</Button>
-          <Button size="sm" variant="primary" onClick={() => save(true)} disabled={saving}>save &amp; rebuild</Button>
         </div>
       </div>
 
-      <MarketCard />
-
-      <div className="grid gap-6 lg:grid-cols-[210px_1fr]">
-        <aside className="panel self-start max-h-[80vh] overflow-y-auto">
-          <div className="sticky top-0 z-10 border-b border-line bg-panel px-3 py-2 text-[11px] uppercase tracking-widest text-dim">
-            {daysList.length} days
-          </div>
-          <div className="flex items-center justify-between border-b border-line/60 px-2 py-1.5 text-[12px]">
-            <button disabled={!prevDay} onClick={() => prevDay && selectDate(prevDay.date)} className="h-8 px-1 text-dim hover:text-ink disabled:opacity-30">← newer</button>
-            <span className="text-faint">{date}</span>
-            <button disabled={!nextDay} onClick={() => nextDay && selectDate(nextDay.date)} className="h-8 px-1 text-dim hover:text-ink disabled:opacity-30">older →</button>
-          </div>
-
-          <div className="border-b border-line/60 p-2">
-            <div className="grid grid-cols-7 gap-0.5 text-center text-[9px] text-faint">
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((l, i) => <div key={i}>{l}</div>)}
-            </div>
-            <div className="mt-0.5 grid grid-cols-7 gap-0.5">
-              {calWeeks.flat().map((c, i) =>
-                c.blank ? (
-                  <div key={i} className="h-3.5" />
-                ) : (
-                  <button
-                    key={i}
-                    onClick={() => selectDate(c.date)}
-                    title={c.date}
-                    className={`flex min-h-3.5! h-3.5 items-center justify-center text-[8px] leading-none ${
-                      c.isToday
-                        ? 'border border-accent text-accent'
-                        : c.hasData
-                          ? 'bg-accent/40 text-bg'
-                          : 'bg-raise text-faint'
-                    }`}
-                  >
-                    {c.day}
-                  </button>
-                ),
-              )}
-            </div>
-          </div>
-
-          <div className="border-b border-line/60 px-1 py-1">
-            {daysList.slice(0, 14).map((d) => (
-              <button
-                key={d.file}
-                onClick={() => selectDate(d.date)}
-                className={`flex w-full items-center justify-between px-2 py-1.5 text-left text-[11px] transition-colors hover:bg-raise ${d.date === date ? 'bg-raise text-ink' : 'text-dim'}`}
-              >
-                <span>{d.date.slice(5)}</span>
-                {d.trades > 0 && <span className="text-faint">{d.trades}t</span>}
-              </button>
-            ))}
-            {daysList.length === 0 && <div className="px-3 py-4 text-[12px] text-faint">no days yet</div>}
-          </div>
-        </aside>
+      <div className="grid gap-6 lg:grid-cols-[44px_1fr]">
+        <DayRail
+          days={daysList}
+          selectedDate={date}
+          onSelectDate={selectDate}
+          allDatesIso={daysList.map((d) => d.date)}
+          pendingObligationDates={pendingObligationDates}
+        />
 
         <div className="space-y-6">
           {loading ? (
             <Card title="loading"><p className="text-[13px] text-faint">loading…</p></Card>
           ) : (
             <>
-              {/* ---------- CAPTURE ---------- */}
-              <div id="sec-capture" className="scroll-mt-20">
-                <Card title="capture — paste everything, AI builds the day">
-                  <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-                    <TextArea
-                      rows={2}
-                      placeholder="free text: what happened, how you felt, the trades… or just paste screenshots."
-                      value={dayText}
-                      onChange={(e) => { setDayText(e.target.value); markDirty() }}
-                    />
-                    <div className="flex items-end">
-                      <Button onClick={() => runStructure()} disabled={dayBusy || (!dayText.trim() && dayImagesRef.current.length === 0)}>
-                        {dayBusy ? 'reading everything…' : 'build this day →'}
+              <CeremonyDim>
+              {/* ---------- Z1 CHECK-IN ---------- */}
+              <CheckInBand
+                date={date}
+                dayText={dayText}
+                dayImages={dayImages}
+                dayBusy={dayBusy}
+                canBuild={!!dayText.trim() || dayImagesRef.current.length > 0}
+                onDayTextChange={(v) => { setDayText(v); markDirty() }}
+                onBuildDay={() => runStructure()}
+                onAddDayImages={addDayImages}
+                onRemoveDayImage={removeDayImage}
+                editing={editing}
+                onStartEdit={setEditing}
+                onDoneEdit={() => setEditing(null)}
+                mood={mood}
+                sleepHours={sleepHours}
+                sleepQuality={sleepQuality}
+                iphoneHours={iphoneHours}
+                socialHours={socialHours}
+                macHours={macHours}
+                deviceNotes={deviceNotes}
+                onMood={(v) => { setMood(v); markDirty() }}
+                onSleepHours={(v) => { setSleepHours(v); markDirty() }}
+                onSleepQuality={(v) => { setSleepQuality(v); markDirty() }}
+                onIphone={(v) => { setIphoneHours(v); markDirty() }}
+                onSocial={(v) => { setSocialHours(v); markDirty() }}
+                onMac={(v) => { setMacHours(v); markDirty() }}
+                onDeviceNotes={(v) => { setDeviceNotes(v); markDirty() }}
+                screenBusy={screenBusy}
+                onPasteScreen={onDeviceScreens}
+                deviceScreens={deviceScreens}
+                onRemoveDeviceScreen={(s) => setDeviceScreens((x) => x.filter((y) => y !== s))}
+                totalR={totalR}
+                habitsDone={habitsDone}
+                habitsTotal={habitsTotal}
+                onEvidence={() => setAiBuildOpen(true)}
+              />
+
+              {/* ---------- IMPORT (sheet-triggered via ⌘K `import trades`) ---------- */}
+              <button
+                type="button"
+                onClick={() => setIngestOpen(true)}
+                className="flex h-9 items-center border border-line2 px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink"
+              >
+                ⤓ import trades ▸
+              </button>
+
+              {/* ---------- Z2 THOUGHTS ---------- */}
+              <ThoughtsSurface
+                draftMoments={draftMoments}
+                stream={stream}
+                trades={trades}
+                onComposerPublish={publishThought}
+                onAddDraft={() => { setDraftMoments((ms) => [...ms, { at: '', type: 'note', text: '', tradeIdx: '', author: '', images: [] }]); markDirty() }}
+                onMomentChange={setMoment}
+                onPublishDraft={publishMoment}
+                onPolishDraft={polishMoment}
+                onRemoveDraft={(i) => { setDraftMoments((ms) => ms.filter((_, j) => j !== i)); markDirty() }}
+                onUnstream={unstreamMoment}
+                onMomentImages={onMomentImages}
+                onReorderDraft={(from, to) => {
+                  setDraftMoments((ms) => {
+                    const next = [...ms]
+                    const [moved] = next.splice(from, 1)
+                    next.splice(to, 0, moved)
+                    return next
+                  })
+                  markDirty()
+                }}
+                onReorderStream={(from, to) => {
+                  setStream((s) => {
+                    const next = [...s]
+                    const [moved] = next.splice(from, 1)
+                    next.splice(to, 0, moved)
+                    return next
+                  })
+                  markDirty()
+                }}
+                ghostTextEnabled={ghostOn}
+              />
+
+              {/* ---------- Z3 HABITS ---------- */}
+              <HabitRow
+                habitDefs={habitDefs}
+                habits={habits}
+                onToggle={(slug) => { setHabits((x) => ({ ...x, [slug]: !(x[slug] === true) })); markDirty() }}
+                onAdjust={(slug, delta) => { setHabits((x) => { const cur = typeof x[slug] === 'number' ? (x[slug] as number) : 0; return { ...x, [slug]: Math.max(0, cur + delta) } as Record<string, boolean> }); markDirty() }}
+                onOpenLibrary={() => toast.success('habit library lives in the library tab')}
+              />
+
+              {/* ---------- Z4 TRADES ---------- */}
+              <div id="sec-trades" className="mt-5 scroll-mt-20">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-widest text-dim">trades ({trades.length})</span>
+                  <div className="flex items-center gap-2">
+                    {trades.length > 0 && (
+                      <Button size="sm" onClick={() => { setExpandAll((e) => !e); setExpandedTrade(null) }}>
+                        {expandAll ? 'collapse all' : 'expand all'}
                       </Button>
-                    </div>
+                    )}
+                    <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); setExpandAll(false); setExpandedTrade(trades.length); markDirty() }}>+ add trade</Button>
                   </div>
-                  <div className="mt-3">
-                    <ImageDropZone onFiles={addDayImages} label="paste screenshots — trade charts, screen-time, notes. the AI sorts them." />
-                  </div>
-                  {dayImages.length > 0 && (
-                    <div className="mt-3 grid grid-cols-4 gap-3 md:grid-cols-6">
-                      {dayImages.map((img) => (
-                        <div key={img.id} className="relative border border-line bg-bg">
-                          <img src={img.url || img.dataUrl} alt="" className="h-16 w-full object-cover" />
-                          <button onClick={() => removeDayImage(img.id)} className="absolute right-1 top-1 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-[11px] text-down hover:border-down">×</button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </Card>
+                </div>
+                <TradeList
+                  trades={trades}
+                  allModels={models}
+                  accountLabel={accountLabel}
+                  accounts={accounts}
+                  onChange={setTrade}
+                  expandedIndex={expandedTrade}
+                  expandAll={expandAll}
+                  onToggle={(ti) => {
+                    if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
+                    else setExpandedTrade(expandedTrade === ti ? null : ti)
+                  }}
+                  onRemove={(ti) => setTrades((ts) => ts.filter((_, j) => j !== ti))}
+                  onTradeScreens={onTradeScreens}
+                  onPublish={publishTradeMoment}
+                  onReorder={(from, to) => {
+                    setTrades((ts) => {
+                      const next = [...ts]
+                      const [moved] = next.splice(from, 1)
+                      next.splice(to, 0, moved)
+                      return next
+                    })
+                    markDirty()
+                  }}
+                />
               </div>
 
-              {/* ---------- IMPORT ---------- */}
-              <IngestPanel notify={notify} markDirty={markDirty} date={date} onImported={load} />
-
-              {/* ---------- DAY SUMMARY (evidence-first, direct-click edit) ---------- */}
-              <div id="sec-day" className="scroll-mt-20">
-                <Card title={`day — ${date}`}>
-                  <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-                    {/* mood */}
-                    <div className="border-b border-line/60 pb-3">
-                      <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">mood</div>
-                      {editing === 'mood' ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="flex gap-1">
-                            {[1, 2, 3, 4, 5].map((m) => (
-                              <button key={m} onClick={() => { setMood(String(m)); setEditing(null); markDirty() }}
-                                className={`h-10 w-10 border text-[13px] ${mood === String(m) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim'}`}>{m}</button>
-                            ))}
-                          </div>
-                          <Button size="sm" onClick={() => setEditing(null)}>done</Button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setEditing('mood')}
-                          className={`text-left text-[15px] text-ink ${editableHint}`}
-                          title="click to correct"
-                        >
-                          {mood ? `${mood}/5` : '—'}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* sleep */}
-                    <div className="border-b border-line/60 pb-3">
-                      <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">sleep</div>
-                      {editing === 'sleep' ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <NumInput value={sleepHours} onChange={(e) => setSleepHours(e.target.value)} className="h-9 w-24" placeholder="7.5" />
-                          <NumInput value={sleepQuality} onChange={(e) => setSleepQuality(e.target.value)} className="h-9 w-20" placeholder="quality" />
-                          <Button size="sm" onClick={() => { setEditing(null); markDirty() }}>done</Button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setEditing('sleep')}
-                          className={`text-left text-[15px] text-ink ${editableHint}`}
-                          title="click to correct"
-                        >
-                          {sleepHours ? `${sleepHours}h` : '—'}{sleepQuality ? ` · ${sleepQuality}/5` : ''}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* screen-time — values come from the screenshot */}
-                    <div className="md:col-span-2 border-b border-line/60 pb-3">
-                      <div className="mb-1 flex items-center justify-between">
-                        <span className="text-[11px] uppercase tracking-widest text-dim">screen time</span>
-                        <div className="flex items-center gap-2">
-                          <label className="flex h-8 cursor-pointer items-center text-[11px] text-accent hover:text-ink">
-                            {screenBusy ? 'reading…' : '＋ paste screenshot'}
-                            <input type="file" accept="image/*" multiple className="hidden" aria-label="paste screen time screenshot" onChange={(e) => { onDeviceScreens(Array.from(e.target.files ?? [])); e.target.value = '' }} />
-                          </label>
-                          {editing === 'screen' && <Button size="sm" onClick={() => { setEditing(null); markDirty() }}>done</Button>}
-                        </div>
-                      </div>
-                      {editing === 'screen' ? (
-                        <div className="grid grid-cols-3 gap-3">
-                          <Field label="iphone (h)"><NumInput value={iphoneHours} onChange={(e) => setIphoneHours(e.target.value)} /></Field>
-                          <Field label="social (h)"><NumInput value={socialHours} onChange={(e) => setSocialHours(e.target.value)} /></Field>
-                          <Field label="mac (h)"><NumInput value={macHours} onChange={(e) => setMacHours(e.target.value)} /></Field>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setEditing('screen')}
-                          className={`text-left text-[13px] text-soft ${editableHint}`}
-                          title="click to correct"
-                        >
-                          <span>iphone <span className="text-ink">{iphoneHours || '—'}h</span></span>
-                          <span className="mx-2 text-faint">·</span>
-                          <span>social <span className="text-ink">{socialHours || '—'}h</span></span>
-                          <span className="mx-2 text-faint">·</span>
-                          <span>mac <span className="text-ink">{macHours || '—'}h</span></span>
-                          {deviceNotes && <span className="text-dim"> — {deviceNotes}</span>}
-                        </button>
-                      )}
-                      {deviceScreens.length > 0 && (
-                        <div className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-6">
-                          {deviceScreens.map((s) => (
-                            <div key={s} className="relative border border-line bg-bg">
-                              <img src={s} alt="" className="h-14 w-full object-cover" />
-                              <button onClick={() => setDeviceScreens((x) => x.filter((y) => y !== s))} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-[10px] text-down hover:border-down">×</button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* habits */}
-                    <div className="md:col-span-2">
-                      <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">habits</div>
-                      <div className="flex flex-wrap gap-2">
-                        {habitDefs.map((h) => {
-                          const done = habits[h.slug] === true
-                          return (
-                            <button
-                              key={h.slug}
-                              onClick={() => { setHabits((x) => ({ ...x, [h.slug]: !done })); markDirty() }}
-                              className={`flex h-9 items-center border px-2.5 text-[12px] transition-colors ${done ? 'border-transparent text-bg' : 'border-line2 text-dim hover:border-accent'}`}
-                              style={done ? { background: h.color } : {}}
-                            >
-                              {h.emoji ?? '·'} {h.name}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* trades */}
-                  <div id="sec-trades" className="mt-5 scroll-mt-20">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-[11px] uppercase tracking-widest text-dim">trades ({trades.length})</span>
-                      <div className="flex items-center gap-2">
-                        {trades.length > 0 && (
-                          <Button size="sm" onClick={() => { setExpandAll((e) => !e); setExpandedTrade(null) }}>
-                            {expandAll ? 'collapse all' : 'expand all'}
-                          </Button>
-                        )}
-                        <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); setExpandAll(false); setExpandedTrade(trades.length); markDirty() }}>+ add trade</Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {trades.map((t, ti) => {
-                        const r = tradeR(t)
-                        const open = expandAll || expandedTrade === ti
-                        return (
-                          <div key={ti} className="border border-line bg-bg">
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
-                              <button
-                                onClick={() => {
-                                  if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
-                                  else setExpandedTrade(open ? null : ti)
-                                }}
-                                className="flex h-9 flex-1 items-baseline gap-3 text-left"
-                              >
-                                <span className="text-[12px] text-faint">{open ? '▾' : '▸'}</span>
-                                <span className="text-[14px] text-ink">
-                                  {t.direction === 'long' ? '▲' : '▼'} {t.market || 'MNQ'}
-                                </span>
-                                <span className="text-[12px] text-dim">{t.setup || '—'} · {t.session || '—'}</span>
-                              </button>
-                              <span className={`text-[13px] ${r && r.R > 0 ? 'text-up' : r && r.R < 0 ? 'text-down' : 'text-dim'}`}>
-                                {r ? `${r.R > 0 ? '+' : ''}${r.R.toFixed(2)}R` : '—'}
-                              </span>
-                              <span className={`text-[12px] ${r && r.pts >= 0 ? 'text-up' : r ? 'text-down' : 'text-dim'}`}>
-                                {r ? `${r.pts >= 0 ? '+' : ''}${r.pts}pts` : ''}
-                              </span>
-                              {t.executions.filter((e) => e.account).length > 0 && (
-                                <span className="text-[11px] text-dim">{t.executions.filter((e) => e.account).map((e) => accountLabel(e.account)).join(' · ')}</span>
-                              )}
-                              {t.screenshots[0] && <img src={t.screenshots[0]} alt="" className="h-8 w-12 border border-line object-cover" />}
-                              <Button size="sm" variant="danger" onClick={() => setTrades((ts) => ts.filter((_, j) => j !== ti))}>×</Button>
-                            </div>
-                            {open && (
-                              <div className="border-t border-line p-3">
-                                <div className="grid gap-2 md:grid-cols-5">
-                                  <Field label="market"><TextInput value={t.market} onChange={(e) => setTrade(ti, { market: e.target.value })} /></Field>
-                                  <Field label="session">
-                                    <Select value={t.session} onChange={(e) => setTrade(ti, { session: e.target.value })}>
-                                      <option value="">—</option>
-                                      {['asia', 'london', 'ny-am', 'ny-pm', 'ny'].map((s) => <option key={s} value={s}>{s}</option>)}
-                                    </Select>
-                                  </Field>
-                                  <Field label="direction">
-                                    <Select value={t.direction} onChange={(e) => setTrade(ti, { direction: e.target.value as 'long' | 'short' })}>
-                                      <option value="long">long</option><option value="short">short</option>
-                                    </Select>
-                                  </Field>
-                                  <Field label="setup"><TextInput value={t.setup} onChange={(e) => setTrade(ti, { setup: e.target.value })} /></Field>
-                                  <Field label="confidence"><NumInput value={t.confidence} onChange={(e) => setTrade(ti, { confidence: e.target.value })} /></Field>
-                                </div>
-                                <div className="mt-2 grid gap-2 md:grid-cols-5">
-                                  <Field label="entry"><NumInput value={t.entry} onChange={(e) => setTrade(ti, { entry: e.target.value })} /></Field>
-                                  <Field label="stop"><NumInput value={t.stop} onChange={(e) => setTrade(ti, { stop: e.target.value })} /></Field>
-                                  <Field label="target"><NumInput value={t.target} onChange={(e) => setTrade(ti, { target: e.target.value })} /></Field>
-                                  <Field label="exit"><NumInput value={t.exit} onChange={(e) => setTrade(ti, { exit: e.target.value })} /></Field>
-                                  <Field label="points"><NumInput value={t.points} onChange={(e) => setTrade(ti, { points: e.target.value })} /></Field>
-                                </div>
-                                <Field label="note" className="mt-2">
-                                  <TextInput value={t.note} onChange={(e) => setTrade(ti, { note: e.target.value })} placeholder="what was the story" />
-                                </Field>
-                                <div className="mt-2 grid gap-2 md:grid-cols-2">
-                                  <Field label="model">
-                                    <Select value={t.model} onChange={(e) => setTrade(ti, { model: e.target.value })}>
-                                      <option value="">—</option>
-                                      {models.map((m) => <option key={m.slug} value={m.slug}>{m.name}</option>)}
-                                    </Select>
-                                  </Field>
-                                  <Field label="commentary (published with the trade)">
-                                    <TextInput value={t.commentary} onChange={(e) => setTrade(ti, { commentary: e.target.value })} placeholder="what made this one count" />
-                                  </Field>
-                                </div>
-                                <div className="mt-3">
-                                  <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">executions (accounts)</div>
-                                  <div className="space-y-2">
-                                    {t.executions.map((e, ei) => (
-                                      <div key={ei} className="flex items-center gap-2">
-                                        <Select value={e.account} onChange={(ev) => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.map((y, k) => k === ei ? { ...y, account: ev.target.value } : y) } : x))} className="flex-1">
-                                          <option value="">— account —</option>
-                                          {accounts.map((a) => <option key={a.id} value={a.id}>{a.firm} {a.sizeLabel}</option>)}
-                                        </Select>
-                                        <TextInput value={e.size} onChange={(ev) => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.map((y, k) => k === ei ? { ...y, size: ev.target.value } : y) } : x))} className="w-20" placeholder="1" />
-                                        <Button size="sm" variant="danger" onClick={() => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.filter((_, k) => k !== ei) } : x))}>×</Button>
-                                      </div>
-                                    ))}
-                                    <Button size="sm" onClick={() => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: [...x.executions, { account: '', size: '' }] } : x))}>+ execution</Button>
-                                  </div>
-                                </div>
-                                <div className="mt-3 flex items-center gap-3">
-                                  <ImageDropZone onFiles={(fs) => onTradeScreens(ti, fs)} label="paste this trade's chart →" className="!py-2" />
-                                  <div className="grid flex-1 grid-cols-4 gap-2">
-                                    {t.screenshots.map((s) => (
-                                      <div key={s} className="relative border border-line bg-bg">
-                                        <img src={s} alt="" className="h-14 w-full object-cover" />
-                                        <button onClick={() => setTrade(ti, { screenshots: t.screenshots.filter((y) => y !== s) })} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
-                      {trades.length === 0 && <p className="text-[12px] text-faint">no trades — paste charts above to build the day.</p>}
-                    </div>
-                  </div>
-                </Card>
-              </div>
-
-              {/* ---------- MOMENTS (stream) ---------- */}
-              <div id="sec-moments" className="scroll-mt-20">
-                <Card
-                  title={`moments — stream (${stream.length} live · ${draftMoments.length} draft)`}
-                  actions={
-                    <Button size="sm" onClick={() => { setDraftMoments((ms) => [...ms, { at: '', type: 'note', text: '', tradeIdx: '', author: '', images: [] }]); markDirty() }}>
-                      + new moment
-                    </Button>
-                  }
-                >
-                  {draftMoments.length > 0 && (
-                    <div className="mb-4 space-y-2">
-                      <div className="text-[11px] uppercase tracking-widest text-warn">draft moments — not public</div>
-                      {draftMoments.map((m, i) => {
-                        const tradeShots = trades[parseInt(m.tradeIdx, 10)]?.screenshots ?? []
-                        return (
-                        <div key={i} className="border border-line bg-bg p-3">
-                          <div className="grid gap-2 md:grid-cols-[64px_130px_1fr]">
-                            <Field label="at (HH:MM)"><TextInput value={m.at} onChange={(e) => setMoment(i, { at: e.target.value })} placeholder="08:30" /></Field>
-                            <Field label="type">
-                              <Select value={m.type} onChange={(e) => setMoment(i, { type: e.target.value })}>
-                                {['trade', 'note', 'quote'].map((t) => <option key={t} value={t}>{t}</option>)}
-                              </Select>
-                            </Field>
-                            {m.type === 'trade' ? (
-                              <Field label="trade">
-                                <Select value={m.tradeIdx} onChange={(e) => setMoment(i, { tradeIdx: e.target.value })}>
-                                  <option value="">—</option>
-                                  {trades.map((_, ti) => <option key={ti} value={ti}>trade {ti + 1}</option>)}
-                                </Select>
-                              </Field>
-                            ) : (
-                              <Field label={m.type === 'quote' ? 'text (the quote)' : 'text'}>
-                                <TextInput value={m.text} onChange={(e) => setMoment(i, { text: e.target.value })} placeholder="what you want to say" />
-                              </Field>
-                            )}
-                          </div>
-                          {m.type === 'quote' && (
-                            <div className="mt-2">
-                              <Field label="author"><TextInput value={m.author} onChange={(e) => setMoment(i, { author: e.target.value })} /></Field>
-                            </div>
-                          )}
-                          {m.type === 'trade' ? (
-                            <div className="mt-2">
-                              <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">charts on this trade</div>
-                              {tradeShots.length ? (
-                                <div className="grid grid-cols-4 gap-2 md:grid-cols-6">
-                                  {tradeShots.map((s) => (
-                                    <div key={s} className="border border-line bg-bg">
-                                      <img src={s} alt="" className="h-14 w-full object-cover" />
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-[11px] text-faint">no charts on this trade yet — attach them in the trades section</p>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="mt-2">
-                              <ImageDropZone onFiles={(fs) => onMomentImages(i, fs)} label="attach images →" />
-                              {m.images.length > 0 && (
-                                <div className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-6">
-                                  {m.images.map((s, si) => (
-                                    <div key={`${si}:${s}`} className="relative border border-line bg-bg">
-                                      <img src={s} alt="" className="h-14 w-full object-cover" />
-                                      <button onClick={() => setMoment(i, { images: m.images.filter((_, j) => j !== si) })} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                          <div className="mt-2 flex gap-2">
-                            <Button size="sm" variant="primary" onClick={() => publishMoment(i)}>publish →</Button>
-                            {m.text.trim() && (
-                              <Button size="sm" onClick={() => polishMoment(i)}>AI polish</Button>
-                            )}
-                            <Button size="sm" variant="danger" onClick={() => { setDraftMoments((ms) => ms.filter((_, j) => j !== i)); markDirty() }}>×</Button>
-                          </div>
-                        </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                  {stream.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="text-[11px] uppercase tracking-widest text-up">live moments — public after rebuild</div>
-                      {stream.map((m, i) => (
-                        <div key={i} className="flex items-center gap-3 border border-line bg-bg px-3 py-2">
-                          <span className="text-[11px] text-faint">{m.at || '--:--'}</span>
-                          <span className="text-[11px] text-dim">{m.type}</span>
-                          <span className="flex-1 text-[13px] text-ink">
-                            {m.type === 'trade'
-                              ? m.tradeIdx !== '' ? `trade ${parseInt(m.tradeIdx, 10) + 1} · ${trades[parseInt(m.tradeIdx, 10)]?.setup ?? ''}` : 'trade'
-                              : m.text}
-                            {m.author ? ` — ${m.author}` : ''}
-                          </span>
-                          <Button size="sm" variant="danger" onClick={() => unstreamMoment(i)}>×</Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {stream.length === 0 && draftMoments.length === 0 && (
-                    <p className="text-[12px] text-faint">nothing on the stream yet — add a draft moment and publish it.</p>
-                  )}
-                </Card>
-              </div>
-
-              {/* ---------- REFLECTION ---------- */}
-              <div id="sec-reflection" className="scroll-mt-20">
-                <Card
-                  title="reflection — draft (private until published)"
-                  actions={
-                    <div className="flex items-center gap-2">
-                      <a href={previewHref} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink">
-                        preview day →
-                      </a>
-                      <Button size="sm" variant="primary" onClick={runDraft} disabled={draftBusy}>
-                        {draftBusy ? 'drafting…' : 'AI draft from today'}
-                      </Button>
-                      <Button size="sm" onClick={publishReflection} disabled={saving || !reflection.trim()}>
-                        {content.trim() ? 'republish reflection' : 'publish reflection'}
-                      </Button>
-                    </div>
-                  }
-                >
-                  {content.trim() && (
-                    <div className="mb-3 border border-line bg-bg px-3 py-2 text-[12px] text-up">
-                      ● published to /journal{content.trim() === reflection.trim() ? ' — draft matches live' : ' — draft differs, republish to overwrite'}
-                    </div>
-                  )}
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <Field label="title"><TextInput value={title} onChange={(e) => { setTitle(e.target.value); markDirty() }} placeholder="AI suggests" /></Field>
-                    <Field label="summary"><TextInput value={summary} onChange={(e) => { setSummary(e.target.value); markDirty() }} placeholder="one line" /></Field>
-                    <Field label="tags (comma)"><TextInput value={tags} onChange={(e) => { setTags(e.target.value); markDirty() }} placeholder="discipline, revenge" /></Field>
-                  </div>
-                  <div className="mt-3">
-                    <MarkdownEditor value={reflection} onChange={(md) => { setReflection(md); markDirty() }} label="reflection draft" />
-                  </div>
-                  {featuredImage && (
-                    <div className="mt-3 flex items-center gap-3">
-                      <span className="text-[11px] uppercase tracking-widest text-dim">featured</span>
-                      <img src={featuredImage} alt="" className="h-12 w-20 border border-line object-cover" />
-                      <TextInput value={featuredImage} onChange={(e) => { setFeaturedImage(e.target.value); markDirty() }} className="flex-1" />
-                    </div>
-                  )}
-                </Card>
-              </div>
+              {/* ---------- REFLECTION (Z5) ---------- */}
+              </CeremonyDim>
+              <ReflectionZone
+                reflection={reflection}
+                title={title}
+                summary={summary}
+                tags={tags}
+                featuredImage={featuredImage}
+                content={content}
+                previewHref={previewHref}
+                onReflectionChange={(v) => { setReflection(v); markDirty() }}
+                onTitleChange={(v) => { setTitle(v); markDirty() }}
+                onSummaryChange={(v) => { setSummary(v); markDirty() }}
+                onTagsChange={(v) => { setTags(v); markDirty() }}
+                onFeaturedImageChange={(v) => { setFeaturedImage(v); markDirty() }}
+                onPublish={publishReflection}
+                onAIDraft={runDraft}
+                draftBusy={draftBusy}
+                saving={saving}
+                obligation={obligation}
+                onObligationClick={() => scrollTo('sec-reflection')}
+                ghostTextEnabled={ghostOn}
+              />
 
               {/* ---------- FOOTER ---------- */}
               <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-[13px]">
@@ -1231,15 +1014,52 @@ export function DayWorkspace({
                 <span className={dayTotals.pts >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pts >= 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
                 <span className="text-dim">·</span>
                 <span className={dayTotals.pnl >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pnl >= 0 ? '+' : ''}${Math.round(dayTotals.pnl).toLocaleString()}</span>
-                <div className="ml-auto flex gap-2">
-                  <Button size="sm" onClick={() => save(false)} disabled={saving}>{saving ? 'saving…' : 'save'}</Button>
-                  <Button size="sm" variant="primary" onClick={() => save(true)} disabled={saving}>save &amp; rebuild</Button>
-                </div>
+                <span className="ml-auto text-[11px] text-faint">autosaves on idle · ⌘S flushes</span>
               </div>
             </>
           )}
         </div>
       </div>
+
+      <StatusLine
+        date={date}
+        totalR={totalR}
+        tradeCount={tradeCount}
+        habitsDone={habitsDone}
+        habitsTotal={habitsTotal}
+        savedAt={savedAt}
+        showPublishHint={showPublishHint}
+      />
+
+      <AIBuildSheet
+        open={aiBuildOpen}
+        onOpenChange={setAiBuildOpen}
+        dayText={dayText}
+        dayImages={dayImages}
+        dayBusy={dayBusy}
+        canBuild={!!dayText.trim() || dayImagesRef.current.length > 0}
+        onDayTextChange={(v) => { setDayText(v); markDirty() }}
+        onBuildDay={() => runStructure()}
+        onAddDayImages={addDayImages}
+        onRemoveDayImage={removeDayImage}
+        notify={sheetNotify}
+      />
+      <IngestSheet
+        open={ingestOpen}
+        onOpenChange={setIngestOpen}
+        notify={sheetNotify}
+        markDirty={markDirty}
+        date={date}
+        onImported={load}
+      />
+      <DayPickerSheet
+        open={dayPickerOpen}
+        onOpenChange={setDayPickerOpen}
+        days={daysList}
+        selectedDate={date}
+        onSelectDate={selectDate}
+      />
     </div>
+    </CeremonyProvider>
   )
 }

@@ -39,7 +39,7 @@ const lbGroup = `${moment.iso}-${moment.at}`
       <span class={moment.trade.direction === 'long' ? 'text-up' : 'text-down'}>
         {moment.trade.direction === 'long' ? '▲' : '▼'} {moment.trade.market}
       </span>
-      <span class="text-faint">{moment.trade.session ?? '—'} · {moment.trade.model ?? moment.trade.setup ?? 'no model'}</span>
+      <span class="text-faint">{moment.trade.session ?? '—'} · {moment.trade.models?.length ? moment.trade.models.join(' · ') : (moment.trade.model ?? moment.trade.setup ?? 'no model')}</span>
       <span class:list={['ml-auto font-semibold tabular-nums', R > 0 ? 'text-up' : R < 0 ? 'text-down' : 'text-dim']}>
         {R > 0 ? '+' : ''}{R.toFixed(2)}R
       </span>

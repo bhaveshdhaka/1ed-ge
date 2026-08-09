@@ -39,6 +39,7 @@ function normalizeTrade(t: Record<string, any>, i: number) {
     ...(confidence !== null ? { confidence: Math.max(1, Math.min(5, confidence)) } : {}),
     ...(t.note ? { note: String(t.note) } : {}),
     ...(typeof t.model === 'string' && t.model.trim() ? { model: String(t.model).trim() } : {}),
+    ...(Array.isArray(t.models) && t.models.length ? { models: t.models.map(String).filter((m: string) => m.trim()) } : {}),
     ...(typeof t.commentary === 'string' && t.commentary.trim() ? { commentary: String(t.commentary).trim() } : {}),
     screenshots: Array.isArray(t.screenshots) ? t.screenshots.filter((s: unknown) => typeof s === 'string') : [],
     executions: Array.isArray(t.executions)
@@ -89,12 +90,21 @@ export const GET: APIRoute = async ({ request }) => {
   })
   const models = listMds('models').map((f) => {
     const data = readEntry('models', f).data as Record<string, unknown>
-    return { slug: f.replace(/\.md$/, ''), name: String(data.name ?? f) }
+    return { slug: f.replace(/\.md$/, ''), name: String(data.name ?? f), premise: String(data.premise ?? '') }
   })
   if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
     let day: Record<string, unknown> | null = null
     if (listMds('days').includes(`${date}.md`)) {
       day = readEntry('days', `${date}.md`).data
+      if (day && Array.isArray(day.trades)) {
+        day = {
+          ...day,
+          trades: (day.trades as Record<string, unknown>[]).map((t) => ({
+            ...t,
+            models: Array.isArray(t.models) ? t.models.map(String) : typeof t.model === 'string' ? [t.model] : [],
+          })),
+        }
+      }
     }
     return json({ ok: true, day, accounts, habits, models })
   }
@@ -164,9 +174,12 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   writeEntry('days', `${date}.md`, data, '')
-  const detail = `${trades.length} trade${trades.length === 1 ? '' : 's'}` + (mood !== null ? ` · mood ${mood}` : '') + (deviceScreens.length ? ' · screen-time' : '') + (stream.length ? ` · ${stream.length} moment${stream.length === 1 ? '' : 's'}` : '') + (Object.keys(draft).length ? ' · draft' : '')
-  addChange('day', `day ${date}`, detail)
-  return json({ ok: true, file: `${date}.md`, trades: trades.length })
+  const silent = body.silent === true
+  if (!silent) {
+    const detail = `${trades.length} trade${trades.length === 1 ? '' : 's'}` + (mood !== null ? ` · mood ${mood}` : '') + (deviceScreens.length ? ' · screen-time' : '') + (stream.length ? ` · ${stream.length} moment${stream.length === 1 ? '' : 's'}` : '') + (Object.keys(draft).length ? ' · draft' : '')
+    addChange('day', `day ${date}`, detail)
+  }
+  return json({ ok: true, file: `${date}.md`, trades: trades.length, silent })
 }
 
 export const DELETE: APIRoute = async ({ request }) => {

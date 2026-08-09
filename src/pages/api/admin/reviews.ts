@@ -92,6 +92,7 @@ function toDayData(raw: Record<string, unknown>): DayData {
           if (typeof t.session === 'string' && t.session) trade.session = t.session
           if (typeof t.setup === 'string' && t.setup) trade.setup = t.setup
           if (typeof t.model === 'string' && t.model) trade.model = t.model
+          if (Array.isArray(t.models)) trade.models = t.models.filter((m: unknown) => typeof m === 'string')
           if (stop !== undefined) trade.stop = stop
           if (riskPoints !== undefined) trade.riskPoints = riskPoints
           if (typeof t.note === 'string' && t.note) trade.note = t.note

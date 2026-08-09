@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro'
-import { getCollection } from 'astro:content'
+import { listMds, readEntry } from '../lib/content'
 import { todayHkt, nowHkt, hktDayNumber } from '../lib/sessions'
 import { fmtDay, fmtDayW } from '../lib/dates'
 import { resolveMoments, dayFacts } from '../lib/stream'
@@ -16,23 +16,26 @@ import MarketDay from '../components/MarketDay.astro'
 export const prerender = false
 
 const iso = todayHkt()
-const [dayEntries, habitEntries, journalEntries, reviewEntries] = await Promise.all([
-  getCollection('days'),
-  getCollection('habits'),
-  getCollection('journal'),
-  getCollection('reviews'),
-])
+const dayFiles = listMds('days')
+const habitFiles = listMds('habits')
+const journalFiles = listMds('journal')
+const reviewFiles = listMds('reviews').filter((f) => !f.endsWith('.cmp.md'))
 
-const byDate = new Map(dayEntries.map((d) => [d.data.date, d.data as DayData]))
+const dayEntries = dayFiles.map((f) => readEntry('days', f))
+const habitEntries = habitFiles.map((f) => readEntry('habits', f))
+const journalEntries = journalFiles.map((f) => readEntry('journal', f))
+const reviewEntries = reviewFiles.map((f) => readEntry('reviews', f))
+
+const byDate = new Map(dayEntries.map((d) => [d.data.date as string, d.data as unknown as DayData]))
 const today: DayData | null = byDate.get(iso) ?? null
 const moments = today ? resolveMoments(today) : []
 
 const activeHabits = habitEntries.filter((h) => h.data.active).length
 
 const dataDays = dayEntries
-  .filter((d) => (d.data as DayData).trades.length > 0 || ((d.data as DayData).stream?.length ?? 0) > 0)
-  .sort((a, b) => b.data.date.localeCompare(a.data.date))
-const latestIso = dataDays.length ? dataDays[0].data.date : null
+  .filter((d) => ((d.data as unknown as DayData).trades?.length ?? 0) > 0 || (((d.data as unknown as DayData).stream?.length ?? 0) > 0))
+  .sort((a, b) => String(b.data.date).localeCompare(String(a.data.date)))
+const latestIso = dataDays.length ? String(dataDays[0].data.date) : null
 
 const latestMoments = latestIso && latestIso !== iso ? resolveMoments(byDate.get(latestIso) as DayData).slice(-3) : []
 const cells = dayFacts(today, activeHabits)
@@ -44,9 +47,9 @@ const live = readLiveState()
 // compares it lexicographically against the 03:00-HKT grace boundaries.
 const nowIso = nowHkt()
 const account = accountabilityStatus(
-  dayEntries.map((d) => d.data as DayData),
-  journalEntries.map((j) => j.data.date),
-  reviewEntries.map((r) => ({ type: r.data.type, anchor: r.data.anchor })),
+  dayEntries.map((d) => d.data as unknown as DayData),
+  journalEntries.map((j) => String(j.data.date)),
+  reviewEntries.map((r) => ({ type: String(r.data.type), anchor: String(r.data.anchor) })),
   nowIso,
 )
 // Calendar-day difference in HKT between the durable stamp and now.
