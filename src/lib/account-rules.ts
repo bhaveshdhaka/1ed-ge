@@ -5,13 +5,20 @@
  * re-implements pnl/equity. All inputs are structural (duck-typed) so both
  * content-collection entries (accounts.astro) and fs-read frontmatter
  * (api/admin/accounts.ts) can be passed in directly.
+ *
+ * Rules are prop-firm-shaped: daily loss limit, profit target, consistency %,
+ * buffer balance, drawdown mode (eod | intraday | intraday-to-eod) and the
+ * trader's payout split. Presets prefill them when an account is created;
+ * every value stays owner-editable.
  */
 
 export interface AccountRuleFields {
-  dailyLoss?: number | null // $ — max loss in one trading day
-  breach?: 'drawdown' | 'daily' | 'either' | null // what ends the account
-  consistency?: 'none' | 'eval' | 'funded' | 'both' | null // when consistency applies
-  consistencyNote?: string | null // owner-authored free text — never generated
+  dailyLossLimit?: number | null // $ — DLL, max loss in one trading day (soft breach)
+  profitTarget?: number | null // $ — eval profit target
+  consistencyPct?: number | null // % — largest-day ≤ X%
+  bufferBalance?: number | null // $ — MLL + 100, locks at this balance
+  drawdownMode?: 'eod' | 'intraday' | 'intraday-to-eod' | null
+  payoutSplit?: number | null // % — trader's cut
 }
 
 export interface AccountLike {
@@ -37,18 +44,18 @@ export interface ExecutionLike {
 }
 
 export interface AccountRuleStatus {
-  configured: boolean // any rule field present (dailyLoss/breach/consistency/note)
+  configured: boolean // any rule field present (dailyLossLimit/consistencyPct/drawdownMode/bufferBalance/profitTarget)
   netPnl: number // $ net of payouts (reuse buildStats perAccount)
   drawdownLimit: number | null
-  trailing: boolean
+  trailing: boolean // computed from drawdownMode — true unless intraday
   drawdownHit: boolean // netPnl <= -drawdownLimit
   dailyLossLimit: number | null
   todayPnl: number // $ this HKT day (todayIso)
   worstDayPnl: number // $ worst single HKT day ever
   dailyHit: boolean // todayPnl <= -limit OR worstDayPnl <= -limit
-  breach: 'drawdown' | 'daily' | 'none' | null // per the account's breach rule; null = no rule configured
-  consistency: 'none' | 'eval' | 'funded' | 'both' | null
-  consistencyApplies: boolean // current stage covered
+  breach: 'drawdown' | 'daily' | 'none' | null // computed from the math; null = nothing configured
+  consistencyPct: number | null // the stored %
+  consistencyApplies: boolean // true whenever the account HAS a consistency% (any stage)
 }
 
 export function accountRuleStatus(
@@ -59,12 +66,17 @@ export function accountRuleStatus(
 ): AccountRuleStatus {
   const rules = account.rules ?? {}
   const configured =
-    rules.dailyLoss != null || rules.breach != null || rules.consistency != null || rules.consistencyNote != null
+    rules.dailyLossLimit != null ||
+    rules.consistencyPct != null ||
+    rules.drawdownMode != null ||
+    rules.bufferBalance != null ||
+    rules.profitTarget != null
 
   // Drawdown (net of payouts — buildStats already nets them).
   const drawdownLimit = stat?.drawdownLimit ?? account.drawdownLimit ?? null
   const netPnl = stat?.netPnl ?? 0
-  const trailing = stat?.trailing ?? account.trailing ?? true
+  const drawdownMode = rules.drawdownMode ?? 'eod'
+  const trailing = drawdownMode !== 'intraday'
   const drawdownHit = drawdownLimit != null && drawdownLimit > 0 && netPnl <= -drawdownLimit
 
   // Daily P&L per HKT day, straight from flatten's per-account executions.
@@ -77,24 +89,23 @@ export function accountRuleStatus(
   const worstDayPnl = byDay.size ? Math.min(...byDay.values()) : 0
 
   const dailyLossLimit =
-    rules.dailyLoss != null && Number.isFinite(rules.dailyLoss) && rules.dailyLoss > 0 ? rules.dailyLoss : null
+    rules.dailyLossLimit != null && Number.isFinite(rules.dailyLossLimit) && rules.dailyLossLimit > 0
+      ? rules.dailyLossLimit
+      : null
   const dailyHit = dailyLossLimit != null && (todayPnl <= -dailyLossLimit || worstDayPnl <= -dailyLossLimit)
 
-  // Breach verdict per the account's own dictation.
+  // Breach verdict — computed from the math; there's no stored breach rule anymore.
+  // Only emitted when the account has any rule configured (null = bare account).
   let breach: AccountRuleStatus['breach'] = null
-  if (rules.breach) {
-    if (rules.breach === 'drawdown') breach = drawdownHit ? 'drawdown' : 'none'
-    else if (rules.breach === 'daily') breach = dailyHit ? 'daily' : 'none'
-    else if (rules.breach === 'either') breach = drawdownHit ? 'drawdown' : dailyHit ? 'daily' : 'none'
+  if (configured) {
+    if (drawdownHit) breach = 'drawdown'
+    else if (dailyHit) breach = 'daily'
+    else breach = 'none'
   }
 
-  // Consistency applicability against the current stage.
-  const consistency = rules.consistency ?? null
-  const stage = account.stage ?? ''
-  let consistencyApplies = false
-  if (consistency === 'eval') consistencyApplies = stage === 'eval'
-  else if (consistency === 'funded') consistencyApplies = stage === 'funded'
-  else if (consistency === 'both') consistencyApplies = stage === 'eval' || stage === 'funded'
+  // Consistency — if the account HAS a consistency%, it applies (any stage).
+  const consistencyPct = rules.consistencyPct ?? null
+  const consistencyApplies = consistencyPct != null
 
   return {
     configured,
@@ -107,7 +118,7 @@ export function accountRuleStatus(
     worstDayPnl,
     dailyHit,
     breach,
-    consistency,
+    consistencyPct,
     consistencyApplies,
   }
 }

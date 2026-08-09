@@ -9,19 +9,22 @@ import { todayHkt } from '../../../lib/sessions'
 export const prerender = false
 
 const STAGES = ['eval', 'funded', 'buffer', 'payout', 'failed', 'paused']
-const BREACH_RULES = ['drawdown', 'daily', 'either']
-const CONSISTENCY_RULES = ['none', 'eval', 'funded', 'both']
 
-/** Owner-dictated rules pass-through — only the four known fields survive; empty → dropped. */
+/** Owner-dictated rules pass-through — only the six known fields survive; empty → dropped. */
 function rulesFrom(body: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {}
-  const dailyLoss = Number(body.dailyLoss)
-  if (Number.isFinite(dailyLoss) && dailyLoss > 0) out.dailyLoss = dailyLoss
-  if (typeof body.breach === 'string' && BREACH_RULES.includes(body.breach)) out.breach = body.breach
-  if (typeof body.consistency === 'string' && CONSISTENCY_RULES.includes(body.consistency)) out.consistency = body.consistency
-  if (typeof body.consistencyNote === 'string' && body.consistencyNote.trim()) {
-    out.consistencyNote = body.consistencyNote.trim()
-  }
+  const dll = Number(body.dailyLossLimit)
+  if (Number.isFinite(dll) && dll > 0) out.dailyLossLimit = dll
+  const pt = Number(body.profitTarget)
+  if (Number.isFinite(pt) && pt > 0) out.profitTarget = pt
+  const cp = Number(body.consistencyPct)
+  if (Number.isFinite(cp) && cp >= 0 && cp <= 100) out.consistencyPct = cp
+  const bb = Number(body.bufferBalance)
+  if (Number.isFinite(bb) && bb > 0) out.bufferBalance = bb
+  const dm = String(body.drawdownMode ?? '')
+  if (['eod', 'intraday', 'intraday-to-eod'].includes(dm)) out.drawdownMode = dm
+  const ps = Number(body.payoutSplit)
+  if (Number.isFinite(ps) && ps >= 0 && ps <= 100) out.payoutSplit = ps
   return out
 }
 

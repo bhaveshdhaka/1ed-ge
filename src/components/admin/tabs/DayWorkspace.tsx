@@ -311,7 +311,7 @@ export function DayWorkspace({
     if (!featuredImage && deviceScreens.length) setFeaturedImage(deviceScreens[0])
   }
 
-  const applyStructured = (r: any) => {
+  const applyStructured = (r: any, images?: DayImage[]) => {
     if (r.mood) setMood(String(r.mood))
     if (r.sleepHours) setSleepHours(String(r.sleepHours))
     if (r.sleepQuality) setSleepQuality(String(r.sleepQuality))
@@ -323,8 +323,26 @@ export function DayWorkspace({
       if (dv.macHours != null) setMacHours(String(dv.macHours))
       if (dv.notes) setDeviceNotes((n) => (n ? n + ' · ' : '') + dv.notes)
     }
+    if (images?.length && Array.isArray(r.deviceScreens) && (r.deviceScreens as number[]).length) {
+      const urls = (r.deviceScreens as number[])
+        .filter((idx: number) => idx >= 0 && idx < images.length)
+        .map((idx: number) => images[idx].dataUrl)
+      if (urls.length) {
+        setDeviceScreens((prev: string[]) => [...prev, ...urls])
+      }
+    }
     if (Array.isArray(r.trades) && r.trades.length) {
       const incomingForms = r.trades.map(toTradeForm)
+      if (images?.length) {
+        for (let i = 0; i < incomingForms.length; i++) {
+          const indices = r.trades[i]?.screenshotIndices as number[] | undefined
+          if (indices?.length) {
+            incomingForms[i].screenshots = indices
+              .filter((idx: number) => idx >= 0 && idx < images.length)
+              .map((idx: number) => images[idx].dataUrl)
+          }
+        }
+      }
       const prev = lastAiTradesRef.current
       lastAiTradesRef.current = incomingForms
       // a fresh structure pass replaces the trades from the previous AI pass;
@@ -356,7 +374,7 @@ export function DayWorkspace({
         method: 'POST',
         body: { action: 'day', text: dayText, images: images.map((i) => i.dataUrl) },
       })
-      applyStructured(res.result)
+      applyStructured(res.result, images)
       setDayText('')
       dayImagesRef.current = []
       setDayImages([])
@@ -510,7 +528,10 @@ export function DayWorkspace({
       } catch {}
       notify(`day ${date} deleted — queued for rebuild`)
       notifyChanged()
-      setDate(todayStr())
+      // Load today's data immediately so the form reflects today, not the deleted day
+      const t = todayStr()
+      await load(t)
+      setDate(t)
       await loadDays()
     } catch (e) {
       notify(e instanceof Error ? e.message : 'delete failed', false)

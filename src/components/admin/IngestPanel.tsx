@@ -208,12 +208,15 @@ export function IngestPanel({
         )
         .map(([platformId, internalId]) => ({ platformId, internalId }))
 
-      await api<{ ok: boolean; dayFile: string; linksApplied: number }>('/api/admin/ingest/apply', {
-        method: 'POST',
-        body: { date, positions: approvedPositions, platformLinks },
-      })
+      const res = await api<{ ok: boolean; dayFile: string; linksApplied: number; imported: number }>(
+        '/api/admin/ingest/apply',
+        {
+          method: 'POST',
+          body: { date, positions: approvedPositions, platformLinks },
+        },
+      )
       markDirty()
-      notify(importedTrades(approvedPositions.length))
+      notify(importedTrades(res.imported))
       await onImported(date)
       setState({ busy: false, result: null, approved: {}, accountByIndex: {}, riskByIndex: {}, links: {} })
     } catch (e) {

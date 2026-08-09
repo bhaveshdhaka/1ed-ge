@@ -159,13 +159,6 @@ export function OverviewTab({
             aria-hidden
           />
           <span>{modifiedHoursLine(modifiedHours)}</span>
-          <a
-            href={`/day/${modifiedHours.iso}`}
-            target="_blank"
-            className="ml-auto text-[12px] text-faint hover:text-ink"
-          >
-            open day →
-          </a>
         </div>
       )}
 
@@ -262,8 +255,8 @@ export function OverviewTab({
                   </span>
                   {s.breach === 'drawdown' && <span className="text-down">● breached — drawdown</span>}
                   {s.breach === 'daily' && <span className="text-down">● breached — daily</span>}
-                  <span className={s.consistencyApplies ? 'text-up' : 'text-dim'}>
-                    consistency: {s.consistencyApplies ? `applies (${a.stage})` : 'n/a'}
+                  <span className={s.consistencyPct != null ? 'text-up' : 'text-dim'}>
+                    consistency: {s.consistencyPct != null ? `${s.consistencyPct}%` : '—'}
                   </span>
                 </div>
               )
