@@ -1,3 +1,5 @@
+import { moodByValue, sleepByValue } from './emoji-states'
+
 export type MomentType = 'trade' | 'note' | 'quote'
 
 export interface StreamMoment {
@@ -148,13 +150,20 @@ export function dayFacts(d: DayData | null, habitTotal: number): FactCell[] {
   if (!d) return []
   const sumR = d.trades.reduce((s, t) => s + ROf(t), 0)
   const done = d.habits ? Object.values(d.habits).filter((v) => v === true || (typeof v === 'number' && v > 0)).length : 0
+  const mood = moodByValue(d.mood)
+  const sleepQ = sleepByValue(d.sleep?.quality)
+  const hours = d.sleep?.hours
   return [
-    { key: 'mood', label: 'mood', value: d.mood ? `${d.mood}/5` : '—', ok: d.mood !== undefined },
+    { key: 'mood', label: 'mood', value: mood ? `${mood.emoji} ${mood.label}` : d.mood !== undefined ? `${d.mood}/5` : '—', ok: d.mood !== undefined },
     {
       key: 'sleep',
       label: 'sleep',
-      value: d.sleep?.hours !== undefined ? `${d.sleep.hours}h` : '—',
-      ok: d.sleep?.hours !== undefined,
+      value: sleepQ
+        ? `${sleepQ.emoji} ${sleepQ.label}${hours !== undefined ? ` · ${hours}h` : ''}`
+        : hours !== undefined
+          ? `${hours}h`
+          : '—',
+      ok: hours !== undefined || d.sleep?.quality !== undefined,
     },
     {
       key: 'screen',

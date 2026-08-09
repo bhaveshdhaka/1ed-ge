@@ -276,7 +276,7 @@ export function DayWorkspace({
     images: Array.isArray(m?.images) ? m.images.map(String) : [],
   })
   const momentPayload = (m: MomentForm) => ({
-    at: m.at || '00:00',
+    at: m.at || hktHHMM(new Date()),
     type: m.type,
     ...(m.text.trim() ? { text: m.text.trim() } : {}),
     ...(m.type === 'trade' && m.tradeIdx !== '' ? { tradeIdx: parseInt(m.tradeIdx, 10) } : {}),
@@ -294,12 +294,14 @@ export function DayWorkspace({
     setStream((s) => [...s, m])
     setDraftMoments((ms) => ms.filter((_, j) => j !== i))
     markDirty()
+    saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
   }
   /** publish a trade card straight to the stream as a trade moment (same pattern as publishMoment). */
   const publishTradeMoment = (ti: number) => {
     const m: MomentForm = { at: '', type: 'trade', text: '', tradeIdx: String(ti), author: '', images: [] }
     setStream((s) => [...s, m])
     markDirty()
+    saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
     toast.success('trade added to the stream — queued for rebuild')
   }
   /** composer ⌘⏎ — the SOLE publish gesture for thoughts (no auto-publish on blur). */
@@ -309,6 +311,7 @@ export function DayWorkspace({
     const m: MomentForm = { at: '', type, text: trimmed, tradeIdx: '', author: '', images: [] }
     setStream((s) => [...s, m])
     markDirty()
+    saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
     toast.success('thought published')
   }
   const unstreamMoment = (i: number) => {
@@ -600,6 +603,9 @@ export function DayWorkspace({
       setContent(reflection)
       toast.success('reflection published — queued for rebuild')
       notifyChanged()
+      // keep the day record (draft.reflection) in sync + flush the debounce
+      markDirty()
+      saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
     } catch {
       toast.error('publish failed — the draft is safe, retry')
     }
@@ -837,7 +843,7 @@ export function DayWorkspace({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[44px_1fr]">
+      <div className="grid gap-6 md:grid-cols-[44px_1fr]">
         <DayRail
           days={daysList}
           selectedDate={date}
@@ -1009,7 +1015,7 @@ export function DayWorkspace({
               {/* ---------- FOOTER ---------- */}
               <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-[13px]">
                 <span className="text-dim">day</span>
-                <span className="num-up">{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
+                <span className={dayTotals.R > 0 ? 'text-up' : dayTotals.R < 0 ? 'text-down' : 'text-ink'}>{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
                 <span className="text-dim">·</span>
                 <span className={dayTotals.pts >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pts >= 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
                 <span className="text-dim">·</span>
