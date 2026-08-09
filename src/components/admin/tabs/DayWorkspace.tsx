@@ -3,7 +3,6 @@ import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebu
 import { fmtDay } from '../../../lib/dates'
 import { nowHkt, addDaysIso } from '../../../lib/sessions'
 import { Card, Button, TextInput } from '../ui'
-import { IngestPanel } from '../IngestPanel'
 import { DayRail } from '../DayRail'
 import { TradeCard } from '../TradeCard'
 import { StatusLine } from '../StatusLine'
@@ -12,6 +11,9 @@ import { ReflectionZone } from '../ReflectionZone'
 import { CheckInBand } from '../CheckInBand'
 import { ThoughtsSurface } from '../ThoughtsSurface'
 import { HabitRow } from '../HabitRow'
+import { AIBuildSheet } from '../AIBuildSheet'
+import { IngestSheet } from '../IngestSheet'
+import { DayPickerSheet } from '../DayPickerSheet'
 
 export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 export interface HabitDef { slug: string; name: string; emoji?: string; color: string; kind?: string; target?: number }
@@ -105,6 +107,9 @@ export function DayWorkspace({
   const lastAiTradesRef = useRef<TradeForm[]>([])
 
   const [editing, setEditing] = useState<string | null>(null)
+  const [aiBuildOpen, setAiBuildOpen] = useState(false)
+  const [ingestOpen, setIngestOpen] = useState(false)
+  const [dayPickerOpen, setDayPickerOpen] = useState(false)
   const [expandedTrade, setExpandedTrade] = useState<number | null>(null)
   const [expandAll, setExpandAll] = useState(false)
   const [pendingLabels, setPendingLabels] = useState<string[]>([])
@@ -715,6 +720,9 @@ export function DayWorkspace({
     const offPrev = bus.on('prev-day', () => prevDay && selectDate(prevDay.date))
     const offNext = bus.on('next-day', () => nextDay && selectDate(nextDay.date))
     const offToday = bus.on('today', () => selectDate(todayStr()))
+    // ⌘K palette commands open the sheets (DayWorkspace mounts after go('day'))
+    const offOpenIngest = bus.on('open-ingest', () => setIngestOpen(true))
+    const offOpenDayPicker = bus.on('open-day-picker', () => setDayPickerOpen(true))
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setEditing(null)
     }
@@ -725,6 +733,8 @@ export function DayWorkspace({
       offPrev()
       offNext()
       offToday()
+      offOpenIngest()
+      offOpenDayPicker()
       window.removeEventListener('keydown', onKey)
     }
   })
@@ -828,11 +838,17 @@ export function DayWorkspace({
                 totalR={totalR}
                 habitsDone={habitsDone}
                 habitsTotal={habitsTotal}
-                onEvidence={() => notify('AI build sheet lands in a later task')}
+                onEvidence={() => setAiBuildOpen(true)}
               />
 
-              {/* ---------- IMPORT ---------- */}
-              <IngestPanel notify={notify} markDirty={markDirty} date={date} onImported={load} />
+              {/* ---------- IMPORT (sheet-triggered via ⌘K `import trades`) ---------- */}
+              <button
+                type="button"
+                onClick={() => setIngestOpen(true)}
+                className="flex h-9 items-center border border-line2 px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink"
+              >
+                ⤓ import trades ▸
+              </button>
 
               {/* ---------- Z2 THOUGHTS ---------- */}
               <ThoughtsSurface
@@ -944,6 +960,35 @@ export function DayWorkspace({
         habitsTotal={habitsTotal}
         savedAt={savedAt}
         showPublishHint={showPublishHint}
+      />
+
+      <AIBuildSheet
+        open={aiBuildOpen}
+        onOpenChange={setAiBuildOpen}
+        dayText={dayText}
+        dayImages={dayImages}
+        dayBusy={dayBusy}
+        canBuild={!!dayText.trim() || dayImagesRef.current.length > 0}
+        onDayTextChange={(v) => { setDayText(v); markDirty() }}
+        onBuildDay={() => runStructure()}
+        onAddDayImages={addDayImages}
+        onRemoveDayImage={removeDayImage}
+        notify={notify}
+      />
+      <IngestSheet
+        open={ingestOpen}
+        onOpenChange={setIngestOpen}
+        notify={notify}
+        markDirty={markDirty}
+        date={date}
+        onImported={load}
+      />
+      <DayPickerSheet
+        open={dayPickerOpen}
+        onOpenChange={setDayPickerOpen}
+        days={daysList}
+        selectedDate={date}
+        onSelectDate={selectDate}
       />
     </div>
     </CeremonyProvider>

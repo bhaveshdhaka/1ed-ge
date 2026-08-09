@@ -198,6 +198,12 @@ export default function AdminApp({ zenLine }: { zenLine?: string | null }) {
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
         onGo={(t) => go(t as Tab)}
+        onOpenDayPicker={() => {
+          go('day')
+          // DayWorkspace mounts on the tab switch — fire the sheet-open after
+          // React commits so its bus listener is registered.
+          setTimeout(() => bus.emit('open-day-picker'), 80)
+        }}
         onToday={() => {
           go('day')
           bus.emit('today')
@@ -228,7 +234,7 @@ export default function AdminApp({ zenLine }: { zenLine?: string | null }) {
         }}
         onImport={() => {
           go('day')
-          notify('import trades — the ingest panel on the day tab')
+          setTimeout(() => bus.emit('open-ingest'), 80)
         }}
         onAIDraft={() => {
           go('day')

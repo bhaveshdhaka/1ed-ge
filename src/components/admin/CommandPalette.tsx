@@ -7,6 +7,7 @@ interface CommandPaletteProps {
   open: boolean
   onOpenChange: (v: boolean) => void
   onGo: (tab: string) => void
+  onOpenDayPicker: () => void
   onToday: () => void
   onPrevDay: () => void
   onNextDay: () => void
@@ -97,9 +98,9 @@ export function CommandPalette(props: CommandPaletteProps) {
               <span>today</span>
               <Kbd>t</Kbd>
             </Command.Item>
-            <Command.Item value="go-open-day" onSelect={run(() => props.onGo('day'))} className={itemCls}>
+            <Command.Item value="go-open-day" onSelect={run(props.onOpenDayPicker)} className={itemCls}>
               <span>open day…</span>
-              <span className="text-[10px] text-faint">date picker lands with the day sheet</span>
+              <span className="text-[10px] text-faint">date picker sheet</span>
             </Command.Item>
             <Command.Item value="go-prev" onSelect={run(props.onPrevDay)} className={itemCls}>
               <span>previous day</span>
