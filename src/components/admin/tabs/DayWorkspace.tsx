@@ -2,20 +2,21 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, fetchRebuildState, bus } from '../api'
 import { fmtDay } from '../../../lib/dates'
 import { nowHkt, addDaysIso } from '../../../lib/sessions'
-import { Card, Button, Field, TextInput, NumInput, TextArea, Select } from '../ui'
-import { MarketCard } from '../MarketCard'
-import { ImageDropZone } from '../ImageDropZone'
+import { Card, Button, TextInput } from '../ui'
 import { IngestPanel } from '../IngestPanel'
 import { DayRail } from '../DayRail'
 import { TradeCard } from '../TradeCard'
 import { StatusLine } from '../StatusLine'
 import { CeremonyProvider, useCeremony } from '../CeremonyMode'
 import { ReflectionZone } from '../ReflectionZone'
+import { CheckInBand } from '../CheckInBand'
+import { ThoughtsSurface } from '../ThoughtsSurface'
+import { HabitRow } from '../HabitRow'
 
 export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
-interface HabitDef { slug: string; name: string; emoji?: string; color: string }
+export interface HabitDef { slug: string; name: string; emoji?: string; color: string; kind?: string; target?: number }
 export interface DayListItem { file: string; date: string; mood: number | null; trades: number; R?: number | null }
-interface DayImage { id: string; dataUrl: string; url: string }
+export interface DayImage { id: string; dataUrl: string; url: string }
 interface ExecForm { account: string; size: string }
 export interface TradeForm {
   market: string; session: string; direction: 'long' | 'short'; setup: string
@@ -25,7 +26,7 @@ export interface TradeForm {
   screenshots: string[]; executions: ExecForm[]
 }
 
-interface MomentForm {
+export interface MomentForm {
   at: string; type: string; text: string; tradeIdx: string; author: string; images: string[]
 }
 
@@ -279,6 +280,15 @@ export function DayWorkspace({
     setStream((s) => [...s, m])
     markDirty()
     notify('trade added to the stream — queued for rebuild')
+  }
+  /** composer ⌘⏎ — the SOLE publish gesture for thoughts (no auto-publish on blur). */
+  const publishThought = (type: string, text: string) => {
+    const trimmed = text.trim()
+    if (!trimmed) return
+    const m: MomentForm = { at: '', type, text: trimmed, tradeIdx: '', author: '', images: [] }
+    setStream((s) => [...s, m])
+    markDirty()
+    notify(`${type === 'quote' ? 'quote' : 'thought'} published to the stream — queued for rebuild`)
   }
   const unstreamMoment = (i: number) => {
     setStream((s) => s.filter((_, j) => j !== i))
@@ -697,7 +707,6 @@ export function DayWorkspace({
   const hasDayRecord = daysList.some((d) => d.date === date)
   const dayPending = pendingLabels.some((l) => l.includes(date))
   const previewHref = `/zen/preview/${date}`
-  const editableHint = 'underline decoration-dashed decoration-line2 underline-offset-4 hover:text-accent hover:decoration-accent cursor-pointer'
 
   // day-level keyboard shortcuts (global save handled in AdminApp)
   useEffect(() => {
@@ -769,8 +778,6 @@ export function DayWorkspace({
         </div>
       </div>
 
-      <MarketCard />
-
       <div className="grid gap-6 lg:grid-cols-[44px_1fr]">
         <DayRail
           days={daysList}
@@ -786,299 +793,106 @@ export function DayWorkspace({
           ) : (
             <>
               <CeremonyDim>
-              {/* ---------- CAPTURE ---------- */}
-              <div id="sec-capture" className="scroll-mt-20">
-                <Card title="capture — paste everything, AI builds the day">
-                  <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-                    <TextArea
-                      rows={2}
-                      placeholder="free text: what happened, how you felt, the trades… or just paste screenshots."
-                      value={dayText}
-                      onChange={(e) => { setDayText(e.target.value); markDirty() }}
-                    />
-                    <div className="flex items-end">
-                      <Button onClick={() => runStructure()} disabled={dayBusy || (!dayText.trim() && dayImagesRef.current.length === 0)}>
-                        {dayBusy ? 'reading everything…' : 'build this day →'}
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <ImageDropZone onFiles={addDayImages} label="paste screenshots — trade charts, screen-time, notes. the AI sorts them." />
-                  </div>
-                  {dayImages.length > 0 && (
-                    <div className="mt-3 grid grid-cols-4 gap-3 md:grid-cols-6">
-                      {dayImages.map((img) => (
-                        <div key={img.id} className="relative border border-line bg-bg">
-                          <img src={img.url || img.dataUrl} alt="" className="h-16 w-full object-cover" />
-                          <button onClick={() => removeDayImage(img.id)} className="absolute right-1 top-1 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-[11px] text-down hover:border-down">×</button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </Card>
-              </div>
+              {/* ---------- Z1 CHECK-IN ---------- */}
+              <CheckInBand
+                date={date}
+                dayText={dayText}
+                dayImages={dayImages}
+                dayBusy={dayBusy}
+                canBuild={!!dayText.trim() || dayImagesRef.current.length > 0}
+                onDayTextChange={(v) => { setDayText(v); markDirty() }}
+                onBuildDay={() => runStructure()}
+                onAddDayImages={addDayImages}
+                onRemoveDayImage={removeDayImage}
+                editing={editing}
+                onStartEdit={setEditing}
+                onDoneEdit={() => setEditing(null)}
+                mood={mood}
+                sleepHours={sleepHours}
+                sleepQuality={sleepQuality}
+                iphoneHours={iphoneHours}
+                socialHours={socialHours}
+                macHours={macHours}
+                deviceNotes={deviceNotes}
+                onMood={(v) => { setMood(v); markDirty() }}
+                onSleepHours={(v) => { setSleepHours(v); markDirty() }}
+                onSleepQuality={(v) => { setSleepQuality(v); markDirty() }}
+                onIphone={(v) => { setIphoneHours(v); markDirty() }}
+                onSocial={(v) => { setSocialHours(v); markDirty() }}
+                onMac={(v) => { setMacHours(v); markDirty() }}
+                onDeviceNotes={(v) => { setDeviceNotes(v); markDirty() }}
+                screenBusy={screenBusy}
+                onPasteScreen={onDeviceScreens}
+                deviceScreens={deviceScreens}
+                onRemoveDeviceScreen={(s) => setDeviceScreens((x) => x.filter((y) => y !== s))}
+                totalR={totalR}
+                habitsDone={habitsDone}
+                habitsTotal={habitsTotal}
+                onEvidence={() => notify('AI build sheet lands in a later task')}
+              />
 
               {/* ---------- IMPORT ---------- */}
               <IngestPanel notify={notify} markDirty={markDirty} date={date} onImported={load} />
 
-              {/* ---------- DAY SUMMARY (evidence-first, direct-click edit) ---------- */}
-              <div id="sec-day" className="scroll-mt-20">
-                <Card title={`day — ${date}`}>
-                  <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-                    {/* mood */}
-                    <div className="border-b border-line/60 pb-3">
-                      <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">mood</div>
-                      {editing === 'mood' ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="flex gap-1">
-                            {[1, 2, 3, 4, 5].map((m) => (
-                              <button key={m} onClick={() => { setMood(String(m)); setEditing(null); markDirty() }}
-                                className={`h-10 w-10 border text-[13px] ${mood === String(m) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim'}`}>{m}</button>
-                            ))}
-                          </div>
-                          <Button size="sm" onClick={() => setEditing(null)}>done</Button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setEditing('mood')}
-                          className={`text-left text-[15px] text-ink ${editableHint}`}
-                          title="click to correct"
-                        >
-                          {mood ? `${mood}/5` : '—'}
-                        </button>
-                      )}
-                    </div>
+              {/* ---------- Z2 THOUGHTS ---------- */}
+              <ThoughtsSurface
+                draftMoments={draftMoments}
+                stream={stream}
+                trades={trades}
+                onComposerPublish={publishThought}
+                onAddDraft={() => { setDraftMoments((ms) => [...ms, { at: '', type: 'note', text: '', tradeIdx: '', author: '', images: [] }]); markDirty() }}
+                onMomentChange={setMoment}
+                onPublishDraft={publishMoment}
+                onPolishDraft={polishMoment}
+                onRemoveDraft={(i) => { setDraftMoments((ms) => ms.filter((_, j) => j !== i)); markDirty() }}
+                onUnstream={unstreamMoment}
+                onMomentImages={onMomentImages}
+              />
 
-                    {/* sleep */}
-                    <div className="border-b border-line/60 pb-3">
-                      <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">sleep</div>
-                      {editing === 'sleep' ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <NumInput value={sleepHours} onChange={(e) => setSleepHours(e.target.value)} className="h-9 w-24" placeholder="7.5" />
-                          <NumInput value={sleepQuality} onChange={(e) => setSleepQuality(e.target.value)} className="h-9 w-20" placeholder="quality" />
-                          <Button size="sm" onClick={() => { setEditing(null); markDirty() }}>done</Button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setEditing('sleep')}
-                          className={`text-left text-[15px] text-ink ${editableHint}`}
-                          title="click to correct"
-                        >
-                          {sleepHours ? `${sleepHours}h` : '—'}{sleepQuality ? ` · ${sleepQuality}/5` : ''}
-                        </button>
-                      )}
-                    </div>
+              {/* ---------- Z3 HABITS ---------- */}
+              <HabitRow
+                habitDefs={habitDefs}
+                habits={habits}
+                onToggle={(slug) => { setHabits((x) => ({ ...x, [slug]: !(x[slug] === true) })); markDirty() }}
+                onAdjust={(slug, delta) => { setHabits((x) => { const cur = typeof x[slug] === 'number' ? (x[slug] as number) : 0; return { ...x, [slug]: Math.max(0, cur + delta) } as Record<string, boolean> }); markDirty() }}
+                onOpenLibrary={() => notify('habit library lives in the library tab')}
+              />
 
-                    {/* screen-time — values come from the screenshot */}
-                    <div className="md:col-span-2 border-b border-line/60 pb-3">
-                      <div className="mb-1 flex items-center justify-between">
-                        <span className="text-[11px] uppercase tracking-widest text-dim">screen time</span>
-                        <div className="flex items-center gap-2">
-                          <label className="flex h-8 cursor-pointer items-center text-[11px] text-accent hover:text-ink">
-                            {screenBusy ? 'reading…' : '＋ paste screenshot'}
-                            <input type="file" accept="image/*" multiple className="hidden" aria-label="paste screen time screenshot" onChange={(e) => { onDeviceScreens(Array.from(e.target.files ?? [])); e.target.value = '' }} />
-                          </label>
-                          {editing === 'screen' && <Button size="sm" onClick={() => { setEditing(null); markDirty() }}>done</Button>}
-                        </div>
-                      </div>
-                      {editing === 'screen' ? (
-                        <div className="grid grid-cols-3 gap-3">
-                          <Field label="iphone (h)"><NumInput value={iphoneHours} onChange={(e) => setIphoneHours(e.target.value)} /></Field>
-                          <Field label="social (h)"><NumInput value={socialHours} onChange={(e) => setSocialHours(e.target.value)} /></Field>
-                          <Field label="mac (h)"><NumInput value={macHours} onChange={(e) => setMacHours(e.target.value)} /></Field>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setEditing('screen')}
-                          className={`text-left text-[13px] text-soft ${editableHint}`}
-                          title="click to correct"
-                        >
-                          <span>iphone <span className="text-ink">{iphoneHours || '—'}h</span></span>
-                          <span className="mx-2 text-faint">·</span>
-                          <span>social <span className="text-ink">{socialHours || '—'}h</span></span>
-                          <span className="mx-2 text-faint">·</span>
-                          <span>mac <span className="text-ink">{macHours || '—'}h</span></span>
-                          {deviceNotes && <span className="text-dim"> — {deviceNotes}</span>}
-                        </button>
-                      )}
-                      {deviceScreens.length > 0 && (
-                        <div className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-6">
-                          {deviceScreens.map((s) => (
-                            <div key={s} className="relative border border-line bg-bg">
-                              <img src={s} alt="" className="h-14 w-full object-cover" />
-                              <button onClick={() => setDeviceScreens((x) => x.filter((y) => y !== s))} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-[10px] text-down hover:border-down">×</button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* habits */}
-                    <div className="md:col-span-2">
-                      <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">habits</div>
-                      <div className="flex flex-wrap gap-2">
-                        {habitDefs.map((h) => {
-                          const done = habits[h.slug] === true
-                          return (
-                            <button
-                              key={h.slug}
-                              onClick={() => { setHabits((x) => ({ ...x, [h.slug]: !done })); markDirty() }}
-                              className={`flex h-9 items-center border px-2.5 text-[12px] transition-colors ${done ? 'border-transparent text-bg' : 'border-line2 text-dim hover:border-accent'}`}
-                              style={done ? { background: h.color } : {}}
-                            >
-                              {h.emoji ?? '·'} {h.name}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
+              {/* ---------- Z4 TRADES ---------- */}
+              <div id="sec-trades" className="mt-5 scroll-mt-20">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-widest text-dim">trades ({trades.length})</span>
+                  <div className="flex items-center gap-2">
+                    {trades.length > 0 && (
+                      <Button size="sm" onClick={() => { setExpandAll((e) => !e); setExpandedTrade(null) }}>
+                        {expandAll ? 'collapse all' : 'expand all'}
+                      </Button>
+                    )}
+                    <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); setExpandAll(false); setExpandedTrade(trades.length); markDirty() }}>+ add trade</Button>
                   </div>
-
-                  {/* trades */}
-                  <div id="sec-trades" className="mt-5 scroll-mt-20">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-[11px] uppercase tracking-widest text-dim">trades ({trades.length})</span>
-                      <div className="flex items-center gap-2">
-                        {trades.length > 0 && (
-                          <Button size="sm" onClick={() => { setExpandAll((e) => !e); setExpandedTrade(null) }}>
-                            {expandAll ? 'collapse all' : 'expand all'}
-                          </Button>
-                        )}
-                        <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); setExpandAll(false); setExpandedTrade(trades.length); markDirty() }}>+ add trade</Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {trades.map((t, ti) => (
-                        <TradeCard
-                          key={ti}
-                          index={ti}
-                          trade={{ ...t, models: (t as any).models ?? (t.model ? [t.model] : []) }}
-                          allModels={models}
-                          accountLabel={accountLabel}
-                          accounts={accounts}
-                          onChange={(patch) => setTrade(ti, patch)}
-                          expanded={expandAll || expandedTrade === ti}
-                          onToggle={() => {
-                            if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
-                            else setExpandedTrade(expandedTrade === ti ? null : ti)
-                          }}
-                          onRemove={() => setTrades((ts) => ts.filter((_, j) => j !== ti))}
-                          onTradeScreens={(fs) => onTradeScreens(ti, fs)}
-                          onPublish={() => publishTradeMoment(ti)}
-                        />
-                      ))}
-                      {trades.length === 0 && <p className="text-[12px] text-faint">no trades — paste charts above to build the day.</p>}
-                    </div>
-                  </div>
-                </Card>
-              </div>
-
-              {/* ---------- MOMENTS (stream) ---------- */}
-              <div id="sec-moments" className="scroll-mt-20">
-                <Card
-                  title={`moments — stream (${stream.length} live · ${draftMoments.length} draft)`}
-                  actions={
-                    <Button size="sm" onClick={() => { setDraftMoments((ms) => [...ms, { at: '', type: 'note', text: '', tradeIdx: '', author: '', images: [] }]); markDirty() }}>
-                      + new moment
-                    </Button>
-                  }
-                >
-                  {draftMoments.length > 0 && (
-                    <div className="mb-4 space-y-2">
-                      <div className="text-[11px] uppercase tracking-widest text-warn">draft moments — not public</div>
-                      {draftMoments.map((m, i) => {
-                        const tradeShots = trades[parseInt(m.tradeIdx, 10)]?.screenshots ?? []
-                        return (
-                        <div key={i} className="border border-line bg-bg p-3">
-                          <div className="grid gap-2 md:grid-cols-[64px_130px_1fr]">
-                            <Field label="at (HH:MM)"><TextInput value={m.at} onChange={(e) => setMoment(i, { at: e.target.value })} placeholder="08:30" /></Field>
-                            <Field label="type">
-                              <Select value={m.type} onChange={(e) => setMoment(i, { type: e.target.value })}>
-                                {['trade', 'note', 'quote'].map((t) => <option key={t} value={t}>{t}</option>)}
-                              </Select>
-                            </Field>
-                            {m.type === 'trade' ? (
-                              <Field label="trade">
-                                <Select value={m.tradeIdx} onChange={(e) => setMoment(i, { tradeIdx: e.target.value })}>
-                                  <option value="">—</option>
-                                  {trades.map((_, ti) => <option key={ti} value={ti}>trade {ti + 1}</option>)}
-                                </Select>
-                              </Field>
-                            ) : (
-                              <Field label={m.type === 'quote' ? 'text (the quote)' : 'text'}>
-                                <TextInput value={m.text} onChange={(e) => setMoment(i, { text: e.target.value })} placeholder="what you want to say" />
-                              </Field>
-                            )}
-                          </div>
-                          {m.type === 'quote' && (
-                            <div className="mt-2">
-                              <Field label="author"><TextInput value={m.author} onChange={(e) => setMoment(i, { author: e.target.value })} /></Field>
-                            </div>
-                          )}
-                          {m.type === 'trade' ? (
-                            <div className="mt-2">
-                              <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">charts on this trade</div>
-                              {tradeShots.length ? (
-                                <div className="grid grid-cols-4 gap-2 md:grid-cols-6">
-                                  {tradeShots.map((s) => (
-                                    <div key={s} className="border border-line bg-bg">
-                                      <img src={s} alt="" className="h-14 w-full object-cover" />
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-[11px] text-faint">no charts on this trade yet — attach them in the trades section</p>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="mt-2">
-                              <ImageDropZone onFiles={(fs) => onMomentImages(i, fs)} label="attach images →" />
-                              {m.images.length > 0 && (
-                                <div className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-6">
-                                  {m.images.map((s, si) => (
-                                    <div key={`${si}:${s}`} className="relative border border-line bg-bg">
-                                      <img src={s} alt="" className="h-14 w-full object-cover" />
-                                      <button onClick={() => setMoment(i, { images: m.images.filter((_, j) => j !== si) })} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                          <div className="mt-2 flex gap-2">
-                            <Button size="sm" variant="primary" onClick={() => publishMoment(i)}>publish →</Button>
-                            {m.text.trim() && (
-                              <Button size="sm" onClick={() => polishMoment(i)}>AI polish</Button>
-                            )}
-                            <Button size="sm" variant="danger" onClick={() => { setDraftMoments((ms) => ms.filter((_, j) => j !== i)); markDirty() }}>×</Button>
-                          </div>
-                        </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                  {stream.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="text-[11px] uppercase tracking-widest text-up">live moments — public after rebuild</div>
-                      {stream.map((m, i) => (
-                        <div key={i} className="flex items-center gap-3 border border-line bg-bg px-3 py-2">
-                          <span className="text-[11px] text-faint">{m.at || '--:--'}</span>
-                          <span className="text-[11px] text-dim">{m.type}</span>
-                          <span className="flex-1 text-[13px] text-ink">
-                            {m.type === 'trade'
-                              ? m.tradeIdx !== '' ? `trade ${parseInt(m.tradeIdx, 10) + 1} · ${trades[parseInt(m.tradeIdx, 10)]?.setup ?? ''}` : 'trade'
-                              : m.text}
-                            {m.author ? ` — ${m.author}` : ''}
-                          </span>
-                          <Button size="sm" variant="danger" onClick={() => unstreamMoment(i)}>×</Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {stream.length === 0 && draftMoments.length === 0 && (
-                    <p className="text-[12px] text-faint">nothing on the stream yet — add a draft moment and publish it.</p>
-                  )}
-                </Card>
+                </div>
+                <div className="space-y-2">
+                  {trades.map((t, ti) => (
+                    <TradeCard
+                      key={ti}
+                      index={ti}
+                      trade={{ ...t, models: (t as any).models ?? (t.model ? [t.model] : []) }}
+                      allModels={models}
+                      accountLabel={accountLabel}
+                      accounts={accounts}
+                      onChange={(patch) => setTrade(ti, patch)}
+                      expanded={expandAll || expandedTrade === ti}
+                      onToggle={() => {
+                        if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
+                        else setExpandedTrade(expandedTrade === ti ? null : ti)
+                      }}
+                      onRemove={() => setTrades((ts) => ts.filter((_, j) => j !== ti))}
+                      onTradeScreens={(fs) => onTradeScreens(ti, fs)}
+                      onPublish={() => publishTradeMoment(ti)}
+                    />
+                  ))}
+                  {trades.length === 0 && <p className="text-[12px] text-faint">no trades — paste charts above to build the day.</p>}
+                </div>
               </div>
 
               {/* ---------- REFLECTION (Z5) ---------- */}
