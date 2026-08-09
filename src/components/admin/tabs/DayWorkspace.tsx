@@ -837,7 +837,7 @@ export function DayWorkspace({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[44px_1fr]">
+      <div className="grid gap-6 md:grid-cols-[44px_1fr]">
         <DayRail
           days={daysList}
           selectedDate={date}

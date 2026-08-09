@@ -47,9 +47,9 @@ export function DayRail({ days, selectedDate, onSelectDate, pendingObligationDat
       onKeyDown={onKeyDown}
       role="navigation"
       aria-label="day rail — ↑ newer · ↓ older"
-      className="flex min-w-0 max-h-[80vh] flex-col self-start outline-none focus-visible:ring-1 focus-visible:ring-accent max-[700px]:max-h-none max-[700px]:w-full"
+      className="flex min-w-0 max-h-[80vh] flex-col self-start outline-none focus-visible:ring-1 focus-visible:ring-accent max-[767px]:max-h-none max-[767px]:w-full"
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-0.5 max-[700px]:flex-row max-[700px]:items-stretch max-[700px]:gap-1 max-[700px]:overflow-x-auto max-[700px]:overflow-y-visible max-[700px]:pr-1">
+      <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-0.5 max-[767px]:flex-row max-[767px]:items-stretch max-[767px]:gap-1 max-[767px]:overflow-x-auto max-[767px]:overflow-y-visible max-[767px]:pr-1">
         {days.length === 0 && <p className="text-[10px] leading-tight text-faint">no days yet</p>}
         {days.map((d, i) => {
           const R = d.R
@@ -77,7 +77,7 @@ export function DayRail({ days, selectedDate, onSelectDate, pendingObligationDat
               {i === markerAt && (
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none h-px w-full shrink-0 self-stretch bg-accent max-[700px]:h-auto max-[700px]:w-px"
+                  className="pointer-events-none h-px w-full shrink-0 self-stretch bg-accent max-[767px]:h-auto max-[767px]:w-px"
                 />
               )}
               <button
@@ -87,7 +87,7 @@ export function DayRail({ days, selectedDate, onSelectDate, pendingObligationDat
                 title={title}
                 aria-label={title}
                 aria-current={isToday ? 'date' : undefined}
-                className={`relative h-[var(--cell-h)] w-full shrink-0 cursor-pointer border transition-colors disabled:cursor-default max-[700px]:h-8 max-[700px]:w-[var(--cell-h)] ${fill} ${ring} ${isFuture ? 'opacity-25' : ''}`}
+                className={`relative h-[var(--cell-h)] w-full shrink-0 cursor-pointer border transition-colors disabled:cursor-default max-[767px]:h-8 max-[767px]:w-[var(--cell-h)] ${fill} ${ring} ${isFuture ? 'opacity-25' : ''}`}
                 style={{ '--cell-h': `${h}px` } as CSSProperties}
               >
                 {isToday && (
