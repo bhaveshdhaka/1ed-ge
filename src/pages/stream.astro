@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro'
-import { getCollection } from 'astro:content'
+import { listMds, readEntry } from '../lib/content'
 import { todayHkt, nowHkt, hktDayNumber } from '../lib/sessions'
 import { fmtDay, fmtDayW } from '../lib/dates'
 import { flattenStream, resolveMoments, momentMeta, dayFacts } from '../lib/stream'
@@ -12,8 +12,10 @@ import DayFacts from '../components/stream/DayFacts.astro'
 
 export const prerender = false
 
-const [dayEntries, habitEntries] = await Promise.all([getCollection('days'), getCollection('habits')])
-const days = dayEntries.map((d) => d.data as DayData)
+const dayFiles = listMds('days')
+const habitFiles = listMds('habits')
+const days: DayData[] = dayFiles.map((f) => readEntry('days', f).data as unknown as DayData)
+const habitEntries = habitFiles.map((f) => readEntry('habits', f))
 
 const type = (Astro.url.searchParams.get('type') ?? 'all') as MomentType | 'all'
 const TYPES: (MomentType | 'all')[] = ['all', 'trade', 'note', 'quote']

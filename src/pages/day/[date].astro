@@ -1,20 +1,17 @@
 ---
+export const prerender = false
 import DayArchive from '../../components/archive/DayArchive.astro'
-import { getCollection } from 'astro:content'
-import { fmtDay } from '../../lib/dates'
+import { listMds } from '../../lib/content'
+import { parseDay } from '../../lib/dates'
 
-export async function getStaticPaths() {
-  const [days, journal, coach] = await Promise.all([
-    getCollection('days'), getCollection('journal'), getCollection('coach'),
-  ])
-  const dates = new Set<string>()
-  for (const c of [...days, ...journal, ...coach]) dates.add(c.data.date)
-  const allDates = [...dates].sort()
-  return allDates.map((iso) => ({
-    params: { date: fmtDay(iso) },
-    props: { iso, allDates },
-  }))
-}
-const { iso, allDates } = Astro.props
+const slug = Astro.params.date!
+const iso = parseDay(slug)
+if (!iso) return Astro.redirect('/404')
+
+const dates = new Set<string>()
+for (const f of listMds('days')) dates.add(f.replace(/\.md$/, ''))
+for (const f of listMds('journal')) dates.add(f.replace(/\.mdx$/, ''))
+for (const f of listMds('coach')) dates.add(f.replace(/\.md$/, ''))
+const allDates = [...dates].sort()
 ---
 <DayArchive iso={iso} allDates={allDates} />

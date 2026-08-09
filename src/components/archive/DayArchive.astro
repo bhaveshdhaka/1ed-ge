@@ -1,9 +1,12 @@
 ---
 import Base from '../../layouts/Base.astro'
-import { getCollection, render } from 'astro:content'
+import { listMds, readEntry } from '../../lib/content'
+import { renderMarkdown } from '../../lib/markdown'
+import { newsForDate } from '../../lib/market-news'
 import { fmtDay, fmtDayW } from '../../lib/dates'
 import { scheduledDayMarker } from '../../lib/sessions'
 import { dayFacts, resolveMoments, ROf } from '../../lib/stream'
+import type { DayData } from '../../lib/stream'
 import { altFor } from '../../lib/media-alt'
 import MomentCard from '../stream/MomentCard.astro'
 import DayFacts from '../stream/DayFacts.astro'
@@ -16,36 +19,65 @@ import Separator from '../ui/Separator.astro'
 interface Props { iso: string; allDates: string[] }
 const { iso, allDates } = Astro.props
 
-const [days, accounts, journal, coach, habits, news, briefs] = await Promise.all([
-  getCollection('days'), getCollection('accounts'), getCollection('journal'),
-  getCollection('coach'), getCollection('habits'), getCollection('market-news'), getCollection('brief'),
-])
-const entry = days.find((d) => d.data.date === iso) ?? null
-const journalFor = journal.find((j) => j.data.date === iso) ?? null
-const coachFor = coach.find((c) => c.data.date === iso) ?? null
-const newsFor = news.find((n) => n.data.date === iso)
-const briefFor = briefs.find((b) => b.data.date === iso) ?? null
-const dayRed = newsFor?.data.red ?? []
-const dayOrange = newsFor?.data.orange ?? []
+const dayFiles = listMds('days')
+const accountFiles = listMds('accounts')
+const journalFiles = listMds('journal')
+const coachFiles = listMds('coach')
+const habitFiles = listMds('habits')
+const briefFiles = listMds('brief')
 
-const accMap = new Map(accounts.map((a) => [a.data.id, a.data]))
+const entry = dayFiles.includes(`${iso}.md`) ? (readEntry('days', `${iso}.md`).data as unknown as DayData) : null
+const journalFor = journalFiles.includes(`${iso}.mdx`) ? readEntry('journal', `${iso}.mdx`) : null
+const coachFor = coachFiles.includes(`${iso}.md`) ? readEntry('coach', `${iso}.md`) : null
+const newsFor = newsForDate(iso)
+const briefFor = briefFiles.includes(`${iso}.md`) ? readEntry('brief', `${iso}.md`) : null
+const dayRed = newsFor?.red ?? []
+const dayOrange = newsFor?.orange ?? []
+
+const accMap = new Map<string, { firm?: string; sizeLabel?: string; pointsValue?: number }>()
+for (const f of accountFiles) {
+  const a = readEntry('accounts', f).data as Record<string, unknown>
+  accMap.set(String(a.id ?? ''), {
+    firm: typeof a.firm === 'string' ? a.firm : undefined,
+    sizeLabel: typeof a.sizeLabel === 'string' ? a.sizeLabel : undefined,
+    pointsValue: typeof a.pointsValue === 'number' ? a.pointsValue : 2,
+  })
+}
+
+const habits = habitFiles.map((f) => {
+  const h = readEntry('habits', f).data as Record<string, unknown>
+  return {
+    id: f.replace(/\.md$/, ''),
+    data: {
+      active: h.active !== false,
+      emoji: typeof h.emoji === 'string' ? h.emoji : undefined,
+      name: typeof h.name === 'string' ? h.name : f,
+      color: typeof h.color === 'string' ? h.color : '#6ea88a',
+    },
+  }
+})
+
 const dayIdx = allDates.indexOf(iso)
 const prevIso = dayIdx > 0 ? allDates[dayIdx - 1] : null
 const nextIso = dayIdx >= 0 && dayIdx < allDates.length - 1 ? allDates[dayIdx + 1] : null
 
-const d = entry?.data ?? null
+const d = entry
 const activeHabits = habits.filter((h) => h.data.active !== false)
 const facts = dayFacts(d, activeHabits.length)
 const moments = d ? resolveMoments(d) : []
 const trades = d?.trades ?? []
 const mk = scheduledDayMarker(iso)
 
-let Reflection: any = null
-let Coaching: any = null
-let Brief: any = null
-if (journalFor) { const r = await render(journalFor); Reflection = r.Content }
-if (coachFor) { const r = await render(coachFor); Coaching = r.Content }
-if (briefFor) { const r = await render(briefFor); Brief = r.Content }
+const journalSummary = journalFor && typeof journalFor.data.summary === 'string' ? journalFor.data.summary : null
+const coachDate = coachFor && typeof coachFor.data.date === 'string' ? coachFor.data.date : iso
+const coachSummary = coachFor && typeof coachFor.data.summary === 'string' ? coachFor.data.summary : null
+
+let Reflection: string | null = null
+let Coaching: string | null = null
+let Brief: string | null = null
+if (journalFor) Reflection = await renderMarkdown(journalFor.content)
+if (coachFor) Coaching = await renderMarkdown(coachFor.content)
+if (briefFor) Brief = await renderMarkdown(briefFor.content)
 ---
 
 <Base
@@ -150,7 +182,7 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
     {briefFor && Brief && (
       <section class="mt-10 border border-line bg-panel/50 px-4 py-3">
         <div class="text-[13px] text-dim">/ brief</div>
-        <div class="prose mt-2 [&>*]:text-[13px]"><Brief /></div>
+        <div class="prose mt-2 [&>*]:text-[13px]" set:html={Brief} />
       </section>
     )}
 
@@ -158,8 +190,8 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
       <section class="mt-10">
         <h2 class="text-lg">/ reflection</h2>
         <div class="prose mt-4 max-w-3xl">
-          {journalFor.data.summary && <p class="text-[13px] text-soft">{journalFor.data.summary}</p>}
-          <Reflection />
+          {journalSummary && <p class="text-[13px] text-soft">{journalSummary}</p>}
+          <div set:html={Reflection} />
         </div>
       </section>
     )}
@@ -206,10 +238,10 @@ if (briefFor) { const r = await render(briefFor); Brief = r.Content }
       {coachFor && Coaching ? (
         <article class="mt-4 max-w-3xl border-l-2 border-line2 pl-6">
           <div class="flex flex-wrap items-center gap-3 text-[12px] text-dim">
-            <span>{fmtDay(coachFor.data.date)}</span>
-            {coachFor.data.summary && <span class="text-soft">{coachFor.data.summary}</span>}
+            <span>{fmtDay(coachDate)}</span>
+            {coachSummary && <span class="text-soft">{coachSummary}</span>}
           </div>
-          <div class="prose mt-4"><Coaching /></div>
+          <div class="prose mt-4" set:html={Coaching} />
         </article>
       ) : (
         <p class="mt-3 text-[13px] text-faint">no coaching session this day.</p>
