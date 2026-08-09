@@ -192,11 +192,6 @@
 }
 
 @media (pointer: coarse) {
-  /* pull-to-refresh / back-swipe suppression is touch-only — MacBook Safari
-     (fine pointer) keeps its edge rubber-banding in zen */
-  .zen-app {
-    overscroll-behavior: none;
-  }
   /* ≥44px tap targets on touch devices (iPhone/iPad); desktop stays as-is */
   .zen-app button,
   .zen-app a,
