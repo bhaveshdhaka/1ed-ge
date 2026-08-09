@@ -7,16 +7,18 @@ import { ImageDropZone } from '../ImageDropZone'
 import { MarkdownEditor } from '../MarkdownEditor'
 import { IngestPanel } from '../IngestPanel'
 import { DayRail } from '../DayRail'
+import { TradeCard } from '../TradeCard'
 
-interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
+export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 interface HabitDef { slug: string; name: string; emoji?: string; color: string }
 export interface DayListItem { file: string; date: string; mood: number | null; trades: number; R?: number | null }
 interface DayImage { id: string; dataUrl: string; url: string }
 interface ExecForm { account: string; size: string }
-interface TradeForm {
+export interface TradeForm {
   market: string; session: string; direction: 'long' | 'short'; setup: string
   entry: string; stop: string; target: string; exit: string; riskPoints: string; points: string
   confidence: string; note: string; model: string; commentary: string
+  models: string[]
   screenshots: string[]; executions: ExecForm[]
 }
 
@@ -27,7 +29,7 @@ interface MomentForm {
 const emptyTrade = (): TradeForm => ({
   market: 'MNQ', session: '', direction: 'long', setup: '',
   entry: '', stop: '', target: '', exit: '', riskPoints: '', points: '',
-  confidence: '', note: '', model: '', commentary: '', screenshots: [], executions: [],
+  confidence: '', note: '', model: '', commentary: '', models: [], screenshots: [], executions: [],
 })
 
 const toTradeForm = (t: any): TradeForm => ({
@@ -45,6 +47,7 @@ const toTradeForm = (t: any): TradeForm => ({
   note: String(t.note ?? ''),
   model: String(t.model ?? ''),
   commentary: String(t.commentary ?? ''),
+  models: Array.isArray(t.models) && t.models.length ? t.models.map(String) : t.model ? [String(t.model)] : [],
   screenshots: [],
   executions: Array.isArray(t.accounts) && t.accounts.length
     ? t.accounts.map((a: string) => ({ account: a, size: '' }))
@@ -80,7 +83,7 @@ export function DayWorkspace({
   const [tags, setTags] = useState('')
   const [featuredImage, setFeaturedImage] = useState('')
   const [content, setContent] = useState('')
-  const [models, setModels] = useState<{ slug: string; name: string }[]>([])
+  const [models, setModels] = useState<{ slug: string; name: string; premise?: string }[]>([])
   const [reflection, setReflection] = useState('')
   const [draftMoments, setDraftMoments] = useState<MomentForm[]>([])
   const [stream, setStream] = useState<MomentForm[]>([])
@@ -121,7 +124,7 @@ export function DayWorkspace({
       setExpandAll(false)
       lastAiTradesRef.current = []
       try {
-        const res = await api<{ day: any; accounts: AccRow[]; habits: HabitDef[]; models: { slug: string; name: string }[] }>(
+        const res = await api<{ day: any; accounts: AccRow[]; habits: HabitDef[]; models: { slug: string; name: string; premise?: string }[] }>(
           `/api/admin/days?date=${encodeURIComponent(d)}`,
         )
         setAccounts(res.accounts)
@@ -155,6 +158,7 @@ export function DayWorkspace({
           note: String(t.note ?? ''),
           model: String(t.model ?? ''),
           commentary: String(t.commentary ?? ''),
+          models: Array.isArray(t.models) && t.models.length ? t.models.map(String) : t.model ? [String(t.model)] : [],
           screenshots: t.screenshots ?? [],
           executions: (t.executions ?? []).map((e: any) => ({
             account: String(e.account ?? ''),
@@ -253,6 +257,13 @@ export function DayWorkspace({
     setStream((s) => [...s, m])
     setDraftMoments((ms) => ms.filter((_, j) => j !== i))
     markDirty()
+  }
+  /** publish a trade card straight to the stream as a trade moment (same pattern as publishMoment). */
+  const publishTradeMoment = (ti: number) => {
+    const m: MomentForm = { at: '', type: 'trade', text: '', tradeIdx: String(ti), author: '', images: [] }
+    setStream((s) => [...s, m])
+    markDirty()
+    notify('trade added to the stream — queued for rebuild')
   }
   const unstreamMoment = (i: number) => {
     setStream((s) => s.filter((_, j) => j !== i))
@@ -623,12 +634,6 @@ export function DayWorkspace({
     const a = accounts.find((x) => x.id === id)
     return a ? `${a.firm} ${a.sizeLabel}` : id
   }
-  const tradeR = (t: TradeForm) => {
-    const risk = t.riskPoints !== '' ? parseFloat(t.riskPoints) : t.stop !== '' && t.entry !== '' ? Math.abs(parseFloat(t.entry) - parseFloat(t.stop)) : NaN
-    const pts = t.points !== '' ? parseFloat(t.points) : t.entry !== '' && t.exit !== '' ? (t.direction === 'long' ? parseFloat(t.exit) - parseFloat(t.entry) : parseFloat(t.entry) - parseFloat(t.exit)) : NaN
-    if (!Number.isFinite(risk) || !Number.isFinite(pts) || risk <= 0) return null
-    return { R: pts / risk, pts }
-  }
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -886,108 +891,25 @@ export function DayWorkspace({
                       </div>
                     </div>
                     <div className="space-y-2">
-                      {trades.map((t, ti) => {
-                        const r = tradeR(t)
-                        const open = expandAll || expandedTrade === ti
-                        return (
-                          <div key={ti} className="border border-line bg-bg">
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
-                              <button
-                                onClick={() => {
-                                  if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
-                                  else setExpandedTrade(open ? null : ti)
-                                }}
-                                className="flex h-9 flex-1 items-baseline gap-3 text-left"
-                              >
-                                <span className="text-[12px] text-faint">{open ? '▾' : '▸'}</span>
-                                <span className="text-[14px] text-ink">
-                                  {t.direction === 'long' ? '▲' : '▼'} {t.market || 'MNQ'}
-                                </span>
-                                <span className="text-[12px] text-dim">{t.setup || '—'} · {t.session || '—'}</span>
-                              </button>
-                              <span className={`text-[13px] ${r && r.R > 0 ? 'text-up' : r && r.R < 0 ? 'text-down' : 'text-dim'}`}>
-                                {r ? `${r.R > 0 ? '+' : ''}${r.R.toFixed(2)}R` : '—'}
-                              </span>
-                              <span className={`text-[12px] ${r && r.pts >= 0 ? 'text-up' : r ? 'text-down' : 'text-dim'}`}>
-                                {r ? `${r.pts >= 0 ? '+' : ''}${r.pts}pts` : ''}
-                              </span>
-                              {t.executions.filter((e) => e.account).length > 0 && (
-                                <span className="text-[11px] text-dim">{t.executions.filter((e) => e.account).map((e) => accountLabel(e.account)).join(' · ')}</span>
-                              )}
-                              {t.screenshots[0] && <img src={t.screenshots[0]} alt="" className="h-8 w-12 border border-line object-cover" />}
-                              <Button size="sm" variant="danger" onClick={() => setTrades((ts) => ts.filter((_, j) => j !== ti))}>×</Button>
-                            </div>
-                            {open && (
-                              <div className="border-t border-line p-3">
-                                <div className="grid gap-2 md:grid-cols-5">
-                                  <Field label="market"><TextInput value={t.market} onChange={(e) => setTrade(ti, { market: e.target.value })} /></Field>
-                                  <Field label="session">
-                                    <Select value={t.session} onChange={(e) => setTrade(ti, { session: e.target.value })}>
-                                      <option value="">—</option>
-                                      {['asia', 'london', 'ny-am', 'ny-pm', 'ny'].map((s) => <option key={s} value={s}>{s}</option>)}
-                                    </Select>
-                                  </Field>
-                                  <Field label="direction">
-                                    <Select value={t.direction} onChange={(e) => setTrade(ti, { direction: e.target.value as 'long' | 'short' })}>
-                                      <option value="long">long</option><option value="short">short</option>
-                                    </Select>
-                                  </Field>
-                                  <Field label="setup"><TextInput value={t.setup} onChange={(e) => setTrade(ti, { setup: e.target.value })} /></Field>
-                                  <Field label="confidence"><NumInput value={t.confidence} onChange={(e) => setTrade(ti, { confidence: e.target.value })} /></Field>
-                                </div>
-                                <div className="mt-2 grid gap-2 md:grid-cols-5">
-                                  <Field label="entry"><NumInput value={t.entry} onChange={(e) => setTrade(ti, { entry: e.target.value })} /></Field>
-                                  <Field label="stop"><NumInput value={t.stop} onChange={(e) => setTrade(ti, { stop: e.target.value })} /></Field>
-                                  <Field label="target"><NumInput value={t.target} onChange={(e) => setTrade(ti, { target: e.target.value })} /></Field>
-                                  <Field label="exit"><NumInput value={t.exit} onChange={(e) => setTrade(ti, { exit: e.target.value })} /></Field>
-                                  <Field label="points"><NumInput value={t.points} onChange={(e) => setTrade(ti, { points: e.target.value })} /></Field>
-                                </div>
-                                <Field label="note" className="mt-2">
-                                  <TextInput value={t.note} onChange={(e) => setTrade(ti, { note: e.target.value })} placeholder="what was the story" />
-                                </Field>
-                                <div className="mt-2 grid gap-2 md:grid-cols-2">
-                                  <Field label="model">
-                                    <Select value={t.model} onChange={(e) => setTrade(ti, { model: e.target.value })}>
-                                      <option value="">—</option>
-                                      {models.map((m) => <option key={m.slug} value={m.slug}>{m.name}</option>)}
-                                    </Select>
-                                  </Field>
-                                  <Field label="commentary (published with the trade)">
-                                    <TextInput value={t.commentary} onChange={(e) => setTrade(ti, { commentary: e.target.value })} placeholder="what made this one count" />
-                                  </Field>
-                                </div>
-                                <div className="mt-3">
-                                  <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">executions (accounts)</div>
-                                  <div className="space-y-2">
-                                    {t.executions.map((e, ei) => (
-                                      <div key={ei} className="flex items-center gap-2">
-                                        <Select value={e.account} onChange={(ev) => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.map((y, k) => k === ei ? { ...y, account: ev.target.value } : y) } : x))} className="flex-1">
-                                          <option value="">— account —</option>
-                                          {accounts.map((a) => <option key={a.id} value={a.id}>{a.firm} {a.sizeLabel}</option>)}
-                                        </Select>
-                                        <TextInput value={e.size} onChange={(ev) => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.map((y, k) => k === ei ? { ...y, size: ev.target.value } : y) } : x))} className="w-20" placeholder="1" />
-                                        <Button size="sm" variant="danger" onClick={() => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: x.executions.filter((_, k) => k !== ei) } : x))}>×</Button>
-                                      </div>
-                                    ))}
-                                    <Button size="sm" onClick={() => setTrades((ts) => ts.map((x, j) => j === ti ? { ...x, executions: [...x.executions, { account: '', size: '' }] } : x))}>+ execution</Button>
-                                  </div>
-                                </div>
-                                <div className="mt-3 flex items-center gap-3">
-                                  <ImageDropZone onFiles={(fs) => onTradeScreens(ti, fs)} label="paste this trade's chart →" className="!py-2" />
-                                  <div className="grid flex-1 grid-cols-4 gap-2">
-                                    {t.screenshots.map((s) => (
-                                      <div key={s} className="relative border border-line bg-bg">
-                                        <img src={s} alt="" className="h-14 w-full object-cover" />
-                                        <button onClick={() => setTrade(ti, { screenshots: t.screenshots.filter((y) => y !== s) })} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
+                      {trades.map((t, ti) => (
+                        <TradeCard
+                          key={ti}
+                          index={ti}
+                          trade={{ ...t, models: (t as any).models ?? (t.model ? [t.model] : []) }}
+                          allModels={models}
+                          accountLabel={accountLabel}
+                          accounts={accounts}
+                          onChange={(patch) => setTrade(ti, patch)}
+                          expanded={expandAll || expandedTrade === ti}
+                          onToggle={() => {
+                            if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
+                            else setExpandedTrade(expandedTrade === ti ? null : ti)
+                          }}
+                          onRemove={() => setTrades((ts) => ts.filter((_, j) => j !== ti))}
+                          onTradeScreens={(fs) => onTradeScreens(ti, fs)}
+                          onPublish={() => publishTradeMoment(ti)}
+                        />
+                      ))}
                       {trades.length === 0 && <p className="text-[12px] text-faint">no trades — paste charts above to build the day.</p>}
                     </div>
                   </div>
