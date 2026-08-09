@@ -102,10 +102,10 @@ function describe(market: MarketKey, state: State, e: MarketEvent): { text: stri
   if (market === 'cme') {
     if (state === 'open') {
       return e.type === 'halt'
-        ? { text: 'open · maintenance in', cls: 'up' }
+        ? { text: 'open · closes in', cls: 'up' }
         : { text: 'open · closes in', cls: 'up' }
     }
-    if (state === 'maint') return { text: 'on maintenance · back in', cls: 'warn' }
+    if (state === 'maint') return { text: 'closed · reopens in', cls: 'down' }
     return { text: 'closed · reopens in', cls: 'down' }
   }
   if (market === 'tse') {
@@ -129,7 +129,7 @@ function describe(market: MarketKey, state: State, e: MarketEvent): { text: stri
 function describeEnd(market: MarketKey, state: State): { text: string; cls: StripCls } {
   if (market === 'cme') {
     if (state === 'open') return { text: 'open', cls: 'up' }
-    if (state === 'maint') return { text: 'on maintenance', cls: 'warn' }
+    if (state === 'maint') return { text: 'closed', cls: 'down' }
     return { text: 'closed', cls: 'down' }
   }
   if (market === 'tse') {
@@ -146,9 +146,9 @@ function describeEnd(market: MarketKey, state: State): { text: string; cls: Stri
 /** Display names surfaces attach when the name isn't already shown inline. */
 export const MARKET_NAME: Record<MarketKey, string> = {
   cme: 'CME Globex',
-  tse: 'Tokyo',
-  lse: 'London',
-  nyse: 'New York',
+  tse: 'TYO',
+  lse: 'LON',
+  nyse: 'NYC',
 }
 
 function buildMarket(market: MarketKey, evs: MarketEvent[], startMs: number, endMs: number): StripSegment[] {

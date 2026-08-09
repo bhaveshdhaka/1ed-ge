@@ -8,7 +8,7 @@ export function buildBriefSnapshot(date: string): string {
   const wins = daySessionWindows(date)
   parts.push(`DATE (HKT): ${date}`)
   parts.push(
-    `SESSIONS (HKT): New York ${wins.nyse} · Tokyo ${wins.tse} · London ${wins.lse} · CME Globex equity-index futures (mnq) ${wins.cme}`,
+    `SESSIONS (HKT): NYC ${wins.nyse} · TYO ${wins.tse} · LON ${wins.lse} · CME Globex equity-index futures (mnq) ${wins.cme}`,
   )
 
   const news = newsForDate(date)
