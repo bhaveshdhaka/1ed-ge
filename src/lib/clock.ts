@@ -16,7 +16,7 @@ export function useHktNow(): Date {
 
 /** HKT time string (HH:MM) from a Date, usable server-side too. */
 export function hktHHMM(d: Date): string {
-  const hh = String(d.getUTCHours() + 8).padStart(2, '0')  // HKT = UTC+8
+  const hh = String((d.getUTCHours() + 8) % 24).padStart(2, '0')  // HKT = UTC+8
   const mm = String(d.getUTCMinutes()).padStart(2, '0')
   return `${hh}:${mm}`
 }
