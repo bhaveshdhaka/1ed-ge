@@ -8,6 +8,8 @@
 
 **Tech Stack:** React 19 + Tailwind v4 + TypeScript + Astro (SSR with direct disk reads for instant public updates). New deps: `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/modifiers`, `@dnd-kit/utilities`, `@tanstack/react-table@9`, `cmdk`, `sonner`, `eventsource-parser`, `textarea-caret-position`. All admin-only, no JS shipped to public pages.
 
+> **DATA MIGRATION: NONE REQUIRED.** Every schema change uses a read-fallback pattern (`models ?? (model ? [model] : [])`). The `model: string` field stays optional in the schema forever — existing day files and journal entries are 100% valid without modification. No files in `src/content/` are touched. No migration script runs. The read fallback is applied at the API layer (Task 1), in all stats engines (Task 2), and in all public renderers (Task 2). An agent implementing this plan does not open, edit, or transform any existing content file.
+
 ## Global Constraints
 
 - **Terminal aesthetic:** JetBrains Mono everywhere, off-black (#07080c), no rounded corners (2px radius), hairlines on 4px grid
