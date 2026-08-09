@@ -294,12 +294,14 @@ export function DayWorkspace({
     setStream((s) => [...s, m])
     setDraftMoments((ms) => ms.filter((_, j) => j !== i))
     markDirty()
+    saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
   }
   /** publish a trade card straight to the stream as a trade moment (same pattern as publishMoment). */
   const publishTradeMoment = (ti: number) => {
     const m: MomentForm = { at: '', type: 'trade', text: '', tradeIdx: String(ti), author: '', images: [] }
     setStream((s) => [...s, m])
     markDirty()
+    saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
     toast.success('trade added to the stream — queued for rebuild')
   }
   /** composer ⌘⏎ — the SOLE publish gesture for thoughts (no auto-publish on blur). */
@@ -309,6 +311,7 @@ export function DayWorkspace({
     const m: MomentForm = { at: '', type, text: trimmed, tradeIdx: '', author: '', images: [] }
     setStream((s) => [...s, m])
     markDirty()
+    saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
     toast.success('thought published')
   }
   const unstreamMoment = (i: number) => {
@@ -600,6 +603,9 @@ export function DayWorkspace({
       setContent(reflection)
       toast.success('reflection published — queued for rebuild')
       notifyChanged()
+      // keep the day record (draft.reflection) in sync + flush the debounce
+      markDirty()
+      saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
     } catch {
       toast.error('publish failed — the draft is safe, retry')
     }

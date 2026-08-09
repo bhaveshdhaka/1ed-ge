@@ -38,6 +38,9 @@ const todayCells = dayFacts(today, habitEntries.filter((h) => h.data.active).len
 
 const countByType = new Map<string, number>()
 for (const m of all) countByType.set(m.type, (countByType.get(m.type) ?? 0) + 1)
+
+// Live page — never serve a stale cached copy (a published moment must show immediately).
+Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
 ---
 
 <Base

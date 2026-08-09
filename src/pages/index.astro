@@ -72,6 +72,9 @@ const lastSeenDays = live.lastOnlineIso
 const moniker = [liveLine(live.live, lastSeenDays), pendingReflectionsLine(account.pendingDays, account.pendingPeriods)]
   .filter(Boolean)
   .join(' · ')
+
+// Live page — never serve a stale cached copy (a published thought must show immediately).
+Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
 ---
 
 <Base
