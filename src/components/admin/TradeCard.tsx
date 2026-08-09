@@ -1,10 +1,15 @@
 import type { KeyboardEvent } from 'react'
+import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { Button, Field, TextInput, NumInput, Select } from './ui'
 import { ImageDropZone } from './ImageDropZone'
 import { ModelChipRow, type ModelInfo } from './ModelChipRow'
 import type { TradeForm, AccRow } from './tabs/DayWorkspace'
 
 interface TradeCardProps {
+  id: string
   index: number
   trade: TradeForm
   allModels: ModelInfo[]
@@ -27,6 +32,7 @@ function tradeR(t: TradeForm) {
 }
 
 export function TradeCard({
+  id,
   index,
   trade,
   allModels,
@@ -42,6 +48,8 @@ export function TradeCard({
   const r = tradeR(trade)
   const models = trade.models ?? (trade.model ? [trade.model] : [])
   const setModels = (next: string[]) => onChange({ models: next })
+  // dnd-kit sortable — the ⠿ handle drives the reorder (drag preview 60% opacity)
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
 
   const setExec = (ei: number, patch: Partial<{ account: string; size: string }>) =>
     onChange({ executions: trade.executions.map((e, j) => (j === ei ? { ...e, ...patch } : e)) })
@@ -54,7 +62,11 @@ export function TradeCard({
   }
 
   return (
-    <div className="group border border-line bg-bg">
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : undefined }}
+      className="group border border-line bg-bg"
+    >
       {/* ---------- collapsed row ---------- */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
         <button
@@ -93,14 +105,17 @@ export function TradeCard({
         )}
         {trade.screenshots[0] && <img src={trade.screenshots[0]} alt="" className="h-8 w-12 border border-line object-cover" />}
         <Button size="sm" variant="danger" onClick={onRemove} aria-label={`delete trade ${index + 1}`}>×</Button>
-        {/* dnd-kit sortable lands in a later task — handle is visual only for now */}
-        <span
-          aria-hidden="true"
-          title="drag to reorder (wired later)"
-          className="cursor-grab text-faint opacity-0 transition-opacity group-hover:opacity-100"
+        {/* dnd-kit drag handle — attributes + listeners make it keyboard + touch accessible */}
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={`reorder trade ${index + 1}`}
+          title="drag to reorder"
+          className="cursor-grab touch-none text-faint opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100 active:cursor-grabbing"
         >
           ⠿
-        </span>
+        </button>
       </div>
 
       {/* ---------- expanded ---------- */}
@@ -193,5 +208,76 @@ export function TradeCard({
         </div>
       )}
     </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* TradeList — the sortable trades zone (DndContext + SortableContext) */
+/* ------------------------------------------------------------------ */
+
+interface TradeListProps {
+  trades: TradeForm[]
+  allModels: ModelInfo[]
+  accountLabel: (id: string) => string
+  accounts: AccRow[]
+  onChange: (i: number, patch: Partial<TradeForm>) => void
+  expandedIndex: number | null
+  expandAll: boolean
+  onToggle: (ti: number) => void
+  onRemove: (ti: number) => void
+  onTradeScreens: (ti: number, files: File[]) => void
+  onPublish: (ti: number) => void
+  onReorder: (from: number, to: number) => void
+}
+
+/**
+ * Mouse + touch sensors: touch needs a hold-delay so the page can still scroll;
+ * mouse needs a small movement threshold so a plain click on the handle doesn't
+ * start a drag (per plan Global Constraint — dnd must work on iPhone/iPad).
+ */
+export function useDndSensors() {
+  return useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 6 } }),
+  )
+}
+
+export function TradeList(props: TradeListProps) {
+  const sensors = useDndSensors()
+  const ids = props.trades.map((_, i) => String(i))
+
+  const onDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e
+    if (!over || active.id === over.id) return
+    props.onReorder(Number(active.id), Number(over.id))
+  }
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+        <div className="space-y-2">
+          {props.trades.map((t, ti) => (
+            <TradeCard
+              key={ti}
+              id={String(ti)}
+              index={ti}
+              trade={{ ...t, models: t.models ?? (t.model ? [t.model] : []) }}
+              allModels={props.allModels}
+              accountLabel={props.accountLabel}
+              accounts={props.accounts}
+              onChange={(patch) => props.onChange(ti, patch)}
+              expanded={props.expandAll || props.expandedIndex === ti}
+              onToggle={() => props.onToggle(ti)}
+              onRemove={() => props.onRemove(ti)}
+              onTradeScreens={(fs) => props.onTradeScreens(ti, fs)}
+              onPublish={() => props.onPublish(ti)}
+            />
+          ))}
+          {props.trades.length === 0 && (
+            <p className="text-[12px] text-faint">no trades — paste charts or ⌘K &quot;new trade&quot;.</p>
+          )}
+        </div>
+      </SortableContext>
+    </DndContext>
   )
 }

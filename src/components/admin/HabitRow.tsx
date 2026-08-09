@@ -11,6 +11,9 @@ interface HabitRowProps {
 export function HabitRow(props: HabitRowProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {props.habitDefs.length === 0 && (
+        <p className="text-[12px] text-faint">habits are defined in zen · library.</p>
+      )}
       {props.habitDefs.map((h) => {
         const done = props.habits[h.slug] === true
         const stored = props.habits[h.slug]

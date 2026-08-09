@@ -35,7 +35,7 @@ function isTyping(e: KeyboardEvent): boolean {
   )
 }
 
-export default function AdminApp(_props: { zenLine?: string | null }) {
+export default function AdminApp() {
   const [tab, setTab] = useState<Tab>('overview')
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [dirty, setDirty] = useState(false)

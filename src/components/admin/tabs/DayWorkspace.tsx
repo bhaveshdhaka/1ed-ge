@@ -5,7 +5,7 @@ import { nowHkt, addDaysIso } from '../../../lib/sessions'
 import { hktHHMM } from '../../../lib/clock'
 import { Card, Button, TextInput } from '../ui'
 import { DayRail } from '../DayRail'
-import { TradeCard } from '../TradeCard'
+import { TradeList } from '../TradeCard'
 import { StatusLine } from '../StatusLine'
 import { CeremonyProvider, useCeremony } from '../CeremonyMode'
 import { ReflectionZone } from '../ReflectionZone'
@@ -912,6 +912,24 @@ export function DayWorkspace({
                 onRemoveDraft={(i) => { setDraftMoments((ms) => ms.filter((_, j) => j !== i)); markDirty() }}
                 onUnstream={unstreamMoment}
                 onMomentImages={onMomentImages}
+                onReorderDraft={(from, to) => {
+                  setDraftMoments((ms) => {
+                    const next = [...ms]
+                    const [moved] = next.splice(from, 1)
+                    next.splice(to, 0, moved)
+                    return next
+                  })
+                  markDirty()
+                }}
+                onReorderStream={(from, to) => {
+                  setStream((s) => {
+                    const next = [...s]
+                    const [moved] = next.splice(from, 1)
+                    next.splice(to, 0, moved)
+                    return next
+                  })
+                  markDirty()
+                }}
                 ghostTextEnabled={ghostOn}
               />
 
@@ -937,28 +955,31 @@ export function DayWorkspace({
                     <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); setExpandAll(false); setExpandedTrade(trades.length); markDirty() }}>+ add trade</Button>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  {trades.map((t, ti) => (
-                    <TradeCard
-                      key={ti}
-                      index={ti}
-                      trade={{ ...t, models: (t as any).models ?? (t.model ? [t.model] : []) }}
-                      allModels={models}
-                      accountLabel={accountLabel}
-                      accounts={accounts}
-                      onChange={(patch) => setTrade(ti, patch)}
-                      expanded={expandAll || expandedTrade === ti}
-                      onToggle={() => {
-                        if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
-                        else setExpandedTrade(expandedTrade === ti ? null : ti)
-                      }}
-                      onRemove={() => setTrades((ts) => ts.filter((_, j) => j !== ti))}
-                      onTradeScreens={(fs) => onTradeScreens(ti, fs)}
-                      onPublish={() => publishTradeMoment(ti)}
-                    />
-                  ))}
-                  {trades.length === 0 && <p className="text-[12px] text-faint">no trades — paste charts above to build the day.</p>}
-                </div>
+                <TradeList
+                  trades={trades}
+                  allModels={models}
+                  accountLabel={accountLabel}
+                  accounts={accounts}
+                  onChange={setTrade}
+                  expandedIndex={expandedTrade}
+                  expandAll={expandAll}
+                  onToggle={(ti) => {
+                    if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
+                    else setExpandedTrade(expandedTrade === ti ? null : ti)
+                  }}
+                  onRemove={(ti) => setTrades((ts) => ts.filter((_, j) => j !== ti))}
+                  onTradeScreens={onTradeScreens}
+                  onPublish={publishTradeMoment}
+                  onReorder={(from, to) => {
+                    setTrades((ts) => {
+                      const next = [...ts]
+                      const [moved] = next.splice(from, 1)
+                      next.splice(to, 0, moved)
+                      return next
+                    })
+                    markDirty()
+                  }}
+                />
               </div>
 
               {/* ---------- REFLECTION (Z5) ---------- */}

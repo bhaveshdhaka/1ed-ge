@@ -56,6 +56,19 @@ export function CheckInBand(props: CheckInBandProps) {
       {/* market line above the band (strip.ts segments drive the public widget; MarketCard is the admin surface) */}
       <MarketCard />
 
+      {/* empty state — no evidence, no facts yet */}
+      {!props.mood &&
+        !props.sleepHours &&
+        !props.sleepQuality &&
+        !props.iphoneHours &&
+        !props.socialHours &&
+        !props.macHours &&
+        !props.deviceNotes &&
+        props.dayImages.length === 0 &&
+        !props.dayText.trim() && (
+          <p className="text-[12px] text-faint">the day starts here — paste evidence or just write a thought.</p>
+        )}
+
       {/* ---------- CAPTURE ---------- */}
       <div id="sec-capture" className="scroll-mt-20">
         <Card title="capture — paste everything, AI builds the day" actions={<Button size="sm" onClick={props.onEvidence}>evidence ▸</Button>}>

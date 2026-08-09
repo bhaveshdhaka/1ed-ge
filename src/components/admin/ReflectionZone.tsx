@@ -66,6 +66,10 @@ export function ReflectionZone(props: ReflectionZoneProps) {
           )}
         </div>
 
+        {!props.reflection.trim() && !props.content.trim() && (
+          <p className="mb-3 text-[12px] text-faint">no reflection yet — due tonight.</p>
+        )}
+
         <div onFocus={onZoneFocus} onBlur={onZoneBlur}>
           <div className="grid gap-3 md:grid-cols-3">
             <Field label="title">
