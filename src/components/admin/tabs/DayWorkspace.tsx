@@ -6,10 +6,11 @@ import { MarketCard } from '../MarketCard'
 import { ImageDropZone } from '../ImageDropZone'
 import { MarkdownEditor } from '../MarkdownEditor'
 import { IngestPanel } from '../IngestPanel'
+import { DayRail } from '../DayRail'
 
 interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 interface HabitDef { slug: string; name: string; emoji?: string; color: string }
-interface DayListItem { file: string; date: string; mood: number | null; trades: number }
+export interface DayListItem { file: string; date: string; mood: number | null; trades: number; R?: number | null }
 interface DayImage { id: string; dataUrl: string; url: string }
 interface ExecForm { account: string; size: string }
 interface TradeForm {
@@ -50,10 +51,6 @@ const toTradeForm = (t: any): TradeForm => ({
     : [],
 })
 
-function dayKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
 export function DayWorkspace({
   notify,
   onDirtyChange,
@@ -63,6 +60,7 @@ export function DayWorkspace({
 }) {
   const [date, setDate] = useState(todayStr())
   const [daysList, setDaysList] = useState<DayListItem[]>([])
+  const [pendingObligationDates, setPendingObligationDates] = useState<Set<string>>(new Set())
   const [accounts, setAccounts] = useState<AccRow[]>([])
   const [habitDefs, setHabitDefs] = useState<HabitDef[]>([])
 
@@ -632,39 +630,6 @@ export function DayWorkspace({
     return { R: pts / risk, pts }
   }
 
-  // ---------- mini calendar (last 12 weeks, Mon-first) ----------
-  const daySet = new Set(daysList.map((d) => d.date))
-  const now = new Date()
-  const todayK = todayStr()
-  const dow = (d: Date) => (d.getDay() + 6) % 7
-  const calStart = new Date(now)
-  calStart.setDate(calStart.getDate() - 83)
-  calStart.setDate(calStart.getDate() - dow(calStart))
-  const minKeyDate = new Date(now)
-  minKeyDate.setDate(minKeyDate.getDate() - 83)
-  const minKey = dayKey(minKeyDate)
-  const calWeeks: { date: string; hasData: boolean; isToday: boolean; blank: boolean; day: number }[][] = []
-  {
-    let row: { date: string; hasData: boolean; isToday: boolean; blank: boolean; day: number }[] = []
-    const cursor = new Date(calStart)
-    for (let i = 0; i < 14 * 7; i++) {
-      const key = dayKey(cursor)
-      const inRange = key >= minKey && key <= todayK
-      row.push({
-        date: key,
-        hasData: daySet.has(key),
-        isToday: key === todayK,
-        blank: !inRange,
-        day: cursor.getDate(),
-      })
-      if (row.length === 7) {
-        calWeeks.push(row)
-        row = []
-      }
-      cursor.setDate(cursor.getDate() + 1)
-    }
-  }
-
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -745,59 +710,14 @@ export function DayWorkspace({
 
       <MarketCard />
 
-      <div className="grid gap-6 lg:grid-cols-[210px_1fr]">
-        <aside className="panel self-start max-h-[80vh] overflow-y-auto">
-          <div className="sticky top-0 z-10 border-b border-line bg-panel px-3 py-2 text-[11px] uppercase tracking-widest text-dim">
-            {daysList.length} days
-          </div>
-          <div className="flex items-center justify-between border-b border-line/60 px-2 py-1.5 text-[12px]">
-            <button disabled={!prevDay} onClick={() => prevDay && selectDate(prevDay.date)} className="h-8 px-1 text-dim hover:text-ink disabled:opacity-30">← newer</button>
-            <span className="text-faint">{date}</span>
-            <button disabled={!nextDay} onClick={() => nextDay && selectDate(nextDay.date)} className="h-8 px-1 text-dim hover:text-ink disabled:opacity-30">older →</button>
-          </div>
-
-          <div className="border-b border-line/60 p-2">
-            <div className="grid grid-cols-7 gap-0.5 text-center text-[9px] text-faint">
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((l, i) => <div key={i}>{l}</div>)}
-            </div>
-            <div className="mt-0.5 grid grid-cols-7 gap-0.5">
-              {calWeeks.flat().map((c, i) =>
-                c.blank ? (
-                  <div key={i} className="h-3.5" />
-                ) : (
-                  <button
-                    key={i}
-                    onClick={() => selectDate(c.date)}
-                    title={c.date}
-                    className={`flex min-h-3.5! h-3.5 items-center justify-center text-[8px] leading-none ${
-                      c.isToday
-                        ? 'border border-accent text-accent'
-                        : c.hasData
-                          ? 'bg-accent/40 text-bg'
-                          : 'bg-raise text-faint'
-                    }`}
-                  >
-                    {c.day}
-                  </button>
-                ),
-              )}
-            </div>
-          </div>
-
-          <div className="border-b border-line/60 px-1 py-1">
-            {daysList.slice(0, 14).map((d) => (
-              <button
-                key={d.file}
-                onClick={() => selectDate(d.date)}
-                className={`flex w-full items-center justify-between px-2 py-1.5 text-left text-[11px] transition-colors hover:bg-raise ${d.date === date ? 'bg-raise text-ink' : 'text-dim'}`}
-              >
-                <span>{d.date.slice(5)}</span>
-                {d.trades > 0 && <span className="text-faint">{d.trades}t</span>}
-              </button>
-            ))}
-            {daysList.length === 0 && <div className="px-3 py-4 text-[12px] text-faint">no days yet</div>}
-          </div>
-        </aside>
+      <div className="grid gap-6 lg:grid-cols-[44px_1fr]">
+        <DayRail
+          days={daysList}
+          selectedDate={date}
+          onSelectDate={selectDate}
+          allDatesIso={daysList.map((d) => d.date)}
+          pendingObligationDates={pendingObligationDates}
+        />
 
         <div className="space-y-6">
           {loading ? (
