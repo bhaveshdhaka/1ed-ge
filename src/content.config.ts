@@ -67,11 +67,11 @@ const trade = z.object({
   executions: z.array(execution).default([]),
 })
 
-const momentType = z.enum(['trade', 'note', 'quote'])
+const thoughtType = z.enum(['trade', 'note', 'quote'])
 
-const moment = z.object({
+const thought = z.object({
   at: z.string(),
-  type: momentType,
+  type: thoughtType,
   text: z.string().optional(),
   tradeIdx: z.number().int().nonnegative().optional(),
   images: z.array(z.string()).default([]),
@@ -102,11 +102,11 @@ const days = defineCollection({
     habits: z.record(z.string(), z.union([z.boolean(), z.number()])).optional(),
     device,
     trades: z.array(trade).default([]),
-    stream: z.array(moment).default([]),
+    stream: z.array(thought).default([]),
     draft: z
       .object({
         reflection: z.string().optional(),
-        moments: z.array(moment).default([]),
+        moments: z.array(thought).default([]),
       })
       .optional(),
   }),

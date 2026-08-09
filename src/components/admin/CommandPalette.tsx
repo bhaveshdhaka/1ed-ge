@@ -165,7 +165,7 @@ export function CommandPalette(props: CommandPaletteProps) {
             <Command.Item value="jump-checkin" onSelect={run(() => props.onJump('sec-capture'))} className={itemCls}>
               <span>check-in</span>
             </Command.Item>
-            <Command.Item value="jump-thoughts" onSelect={run(() => props.onJump('sec-moments'))} className={itemCls}>
+            <Command.Item value="jump-thoughts" onSelect={run(() => props.onJump('sec-thoughts'))} className={itemCls}>
               <span>thoughts</span>
             </Command.Item>
             <Command.Item value="jump-habits" onSelect={run(() => props.onJump(null))} className={itemCls}>

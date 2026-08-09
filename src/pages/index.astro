@@ -3,12 +3,12 @@ import Base from '../layouts/Base.astro'
 import { listMds, readEntry } from '../lib/content'
 import { todayHkt, nowHkt, hktDayNumber } from '../lib/sessions'
 import { fmtDay, fmtDayW } from '../lib/dates'
-import { resolveMoments, dayFacts } from '../lib/stream'
+import { resolveThoughts, dayFacts } from '../lib/stream'
 import type { DayData } from '../lib/stream'
 import { readLiveState } from '../lib/live'
 import { liveLine, pendingReflectionsLine } from '../lib/copy'
 import { accountabilityStatus } from '../lib/accountability'
-import MomentCard from '../components/stream/MomentCard.astro'
+import ThoughtCard from '../components/stream/ThoughtCard.astro'
 import DayFacts from '../components/stream/DayFacts.astro'
 import MarketWidget from '../components/MarketWidget.astro'
 import MarketDay from '../components/MarketDay.astro'
@@ -28,7 +28,7 @@ const reviewEntries = reviewFiles.map((f) => readEntry('reviews', f))
 
 const byDate = new Map(dayEntries.map((d) => [d.data.date as string, d.data as unknown as DayData]))
 const today: DayData | null = byDate.get(iso) ?? null
-const moments = today ? resolveMoments(today) : []
+const thoughts = today ? resolveThoughts(today) : []
 
 const activeHabits = habitEntries.filter((h) => h.data.active).length
 
@@ -37,7 +37,7 @@ const dataDays = dayEntries
   .sort((a, b) => String(b.data.date).localeCompare(String(a.data.date)))
 const latestIso = dataDays.length ? String(dataDays[0].data.date) : null
 
-const latestMoments = latestIso && latestIso !== iso ? resolveMoments(byDate.get(latestIso) as DayData).slice(-3) : []
+const latestThoughts = latestIso && latestIso !== iso ? resolveThoughts(byDate.get(latestIso) as DayData).slice(-3) : []
 const cells = dayFacts(today, activeHabits)
 
 // A day record with no mood/sleep/device/habits/trades/thoughts would render
@@ -134,18 +134,18 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
       <a href="/stream" class="ml-auto text-2xs text-dim transition-colors hover:text-accent">all stream →</a>
     </div>
 
-    {moments.length > 0 ? (
+    {thoughts.length > 0 ? (
       <div class="mt-4 flex max-w-2xl flex-col gap-3">
-        {moments.map((m) => <MomentCard moment={m} />)}
+        {thoughts.map((t) => <ThoughtCard thought={t} />)}
       </div>
     ) : (
       <div class="mt-4 max-w-2xl border border-dashed border-line2 px-4 py-6">
         <p class="text-[13px] text-faint">no stream yet today — nothing logged.</p>
-        {latestIso && latestMoments.length > 0 && (
+        {latestIso && latestThoughts.length > 0 && (
           <div class="mt-5">
             <p class="mb-3 text-2xs uppercase tracking-widest text-dim">latest from {fmtDay(latestIso)}</p>
             <div class="flex flex-col gap-3">
-              {latestMoments.map((m) => <MomentCard moment={m} showDay />)}
+              {latestThoughts.map((t) => <ThoughtCard thought={t} showDay />)}
             </div>
           </div>
         )}

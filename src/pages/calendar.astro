@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro'
 import MarketWidget from '../components/MarketWidget.astro'
 import NewsBlock from '../components/NewsBlock.astro'
+import EmptyState from '../components/ui/EmptyState.astro'
 import { getCollection } from 'astro:content'
 import { marketEvents, todayHkt, addDaysIso, scheduledDayMarker, daySessionWindows } from '../lib/sessions'
 import { fmtDay } from '../lib/dates'
@@ -68,7 +69,9 @@ const rowsByDay = days.map((d) => {
             </div>
           )}
           {row.red.length === 0 && row.orange.length === 0 && (
-            <p class="mt-2 border-t border-line/50 pt-2 text-[12px] text-faint">no major news events · {row.dm.text}</p>
+            <div class="mt-2 border-t border-line/50 pt-2">
+              <EmptyState text={`no major news events · ${row.dm.text}`} />
+            </div>
           )}
         </div>
       ))}

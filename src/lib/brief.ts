@@ -13,11 +13,11 @@ export function buildBriefSnapshot(date: string): string {
 
   const news = newsForDate(date)
   if (news && (news.red.length > 0 || news.orange.length > 0)) {
-    parts.push('USD NEWS (HKT):')
+    parts.push('News events (HKT):')
     for (const g of groupNewsByTime(news.red)) parts.push(`- RED ${g.time}: ${g.titles.join('; ')}`)
     for (const g of groupNewsByTime(news.orange)) parts.push(`- ORANGE ${g.time}: ${g.titles.join('; ')}`)
   } else {
-    parts.push('USD NEWS (HKT): none major')
+    parts.push('News events (HKT): none major')
   }
 
   // the previous day record (fall back to the last day with a record)

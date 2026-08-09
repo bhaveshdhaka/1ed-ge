@@ -1,10 +1,10 @@
 import { moodByValue, sleepByValue } from './emoji-states'
 
-export type MomentType = 'trade' | 'note' | 'quote'
+export type ThoughtType = 'trade' | 'note' | 'quote'
 
-export interface StreamMoment {
+export interface StreamThought {
   at: string
-  type: MomentType
+  type: ThoughtType
   text?: string
   tradeIdx?: number
   images?: string[]
@@ -43,13 +43,13 @@ export interface DayData {
     screenshots?: string[]
   }
   trades: DayTrade[]
-  stream: StreamMoment[]
+  stream: StreamThought[]
 }
 
-export interface ResolvedMoment {
+export interface ResolvedThought {
   iso: string
   at: string
-  type: MomentType
+  type: ThoughtType
   text?: string
   images?: string[]
   author?: string
@@ -79,11 +79,11 @@ export function ROf(t: DayTrade): number {
   return r > 0 ? t.points / r : 0
 }
 
-/** Order a day's published stream moments by time (earliest first). */
-export function resolveMoments(d: DayData): ResolvedMoment[] {
+/** Order a day's published stream thoughts by time (earliest first). */
+export function resolveThoughts(d: DayData): ResolvedThought[] {
   const sorted = [...(d.stream ?? [])].sort((a, b) => a.at.localeCompare(b.at))
   return sorted.map((m) => {
-    const type: MomentType = m.type === 'quote' ? 'quote' : m.type === 'trade' ? 'trade' : 'note'
+    const type: ThoughtType = m.type === 'quote' ? 'quote' : m.type === 'trade' ? 'trade' : 'note'
     const t = m.tradeIdx !== undefined ? d.trades[m.tradeIdx] : undefined
     return {
       iso: d.date,
@@ -113,20 +113,20 @@ export function resolveMoments(d: DayData): ResolvedMoment[] {
   })
 }
 
-/** All published moments across days, newest day first, time desc within a day. */
-export function flattenStream(days: DayData[]): ResolvedMoment[] {
-  const out: ResolvedMoment[] = []
+/** All published thoughts across days, newest day first, time desc within a day. */
+export function flattenStream(days: DayData[]): ResolvedThought[] {
+  const out: ResolvedThought[] = []
   const sorted = [...days].sort((a, b) => b.date.localeCompare(a.date))
-  for (const d of sorted) out.push(...resolveMoments(d).reverse())
+  for (const d of sorted) out.push(...resolveThoughts(d).reverse())
   return out
 }
 
-export interface MomentMeta {
+export interface ThoughtMeta {
   glyph: string
   label: string
 }
 
-export function momentMeta(type: MomentType): MomentMeta {
+export function thoughtMeta(type: ThoughtType): ThoughtMeta {
   switch (type) {
     case 'trade':
       return { glyph: '▲', label: 'trade' }
