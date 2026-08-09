@@ -23,6 +23,7 @@
 - **Key reversal from m3:** thoughts do NOT auto-publish on blur — ⌘⏎ is the sole publish gesture (matches the owner's stated preference). The m3's §3.1 "auto-publish-on-blur contract" is REJECTED.
 - **`models: string[]` schema:** the read fallback is `models ?? (model ? [model] : [])` — legacy `model: "orb-drive"` files surface as `models: ["orb-drive"]` everywhere, no migration needed
 - **SSR + direct disk reads:** `/day/[date]` and `/stream` read day records via `readEntry()` / `listMds()` (not `getCollection()`) for instant public updates (~100ms)
+- **Mobile / iOS Safari:** the publish button is the PRIMARY publish gesture on all devices — ⌘⏎ is a desktop convenience only. On iPhone (no ⌘ key, no physical keyboard), the visible publish button in the composer footer and reflection zone is the only path. dnd-kit must configure `TouchSensor` for drag-drop on touch devices. Ghost-text (`textarea-caret-position`) must be verified on iOS Safari. The existing iOS hardening (44px touch targets, safe-area insets, `-webkit-touch-callout`, `overscroll-behavior: none`, viewport-fit=cover) applies unchanged.
 
 ---
 
@@ -1173,3 +1174,4 @@ Task 15 is the final integration gate — it gates all changes at once.
 - [ ] Manual: curl /day/<fmtDay(today)> returns 200 with the published thought visible
 - [ ] Manual: curl /stream returns 200 with the published thought in the feed
 - [ ] Manual: ⌘K `view → ghost-text: on/off` toggles ghost-text, persists across reload
+- [ ] **Mobile (iPhone/iPad Safari):** thoughts composer shows the publish button with ≥44px tap target; reflection zone shows publish button; dnd drag works with touch sensor; ghost-text caret coordinates are correct; ceremony mode opacity transitions work; safe-area insets don't clip the statusline or the header; ⌘K opens via the header button (not keyboard shortcut)
