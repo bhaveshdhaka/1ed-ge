@@ -6,7 +6,6 @@ import { hktHHMM } from '../../../lib/clock'
 import { Card, Button, TextInput } from '../ui'
 import { DayRail } from '../DayRail'
 import { TradeList } from '../TradeCard'
-import { StatusLine } from '../StatusLine'
 import { CeremonyProvider, useCeremony } from '../CeremonyMode'
 import { ReflectionZone } from '../ReflectionZone'
 import { CheckInBand } from '../CheckInBand'
@@ -31,7 +30,7 @@ export interface TradeForm {
   screenshots: string[]; executions: ExecForm[]
 }
 
-export interface MomentForm {
+export interface ThoughtForm {
   at: string; type: string; text: string; tradeIdx: string; author: string; images: string[]
 }
 
@@ -71,8 +70,10 @@ function CeremonyDim({ children }: { children: ReactNode }) {
 
 export function DayWorkspace({
   onDirtyChange,
+  onNavigateLibrary,
 }: {
   onDirtyChange?: (dirty: boolean) => void
+  onNavigateLibrary?: () => void
 }) {
   const [date, setDate] = useState(todayStr())
   const [daysList, setDaysList] = useState<DayListItem[]>([])
@@ -98,8 +99,8 @@ export function DayWorkspace({
   const [content, setContent] = useState('')
   const [models, setModels] = useState<{ slug: string; name: string; premise?: string }[]>([])
   const [reflection, setReflection] = useState('')
-  const [draftMoments, setDraftMoments] = useState<MomentForm[]>([])
-  const [stream, setStream] = useState<MomentForm[]>([])
+  const [draftThoughts, setDraftThoughts] = useState<ThoughtForm[]>([])
+  const [stream, setStream] = useState<ThoughtForm[]>([])
 
   const [dayText, setDayText] = useState('')
   const [dayImages, setDayImages] = useState<DayImage[]>([])
@@ -123,8 +124,6 @@ export function DayWorkspace({
   // ghost-text assist — polled so the ⌘K `view → ghost-text` toggle applies live (same-tab
   // localStorage writes don't fire the `storage` event)
   const [ghostOn, setGhostOn] = useState(ghostTextOn)
-  // wired by Task 11 (autosave) — set to current HH:MM after every autosave succeeds
-  const [savedAt, setSavedAt] = useState<string | null>(null)
   const debRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   // AIBuildSheet/IngestSheet still take the notify(m, ok) callback shape — route it to sonner.
@@ -168,8 +167,8 @@ export function DayWorkspace({
         setDeviceNotes(day?.device?.notes ?? '')
         setDeviceScreens(day?.device?.screenshots ?? [])
         setReflection(String(day?.draft?.reflection ?? ''))
-        setDraftMoments((day?.draft?.moments ?? []).map(toMomentForm))
-        setStream((day?.stream ?? []).map(toMomentForm))
+        setDraftThoughts((day?.draft?.moments ?? []).map(toThoughtForm))
+        setStream((day?.stream ?? []).map(toThoughtForm))
         setTrades((day?.trades ?? []).map((t: any) => ({
           market: String(t.market ?? 'MNQ'),
           session: String(t.session ?? ''),
@@ -267,7 +266,7 @@ export function DayWorkspace({
     markDirty()
   }
 
-  const toMomentForm = (m: any): MomentForm => ({
+  const toThoughtForm = (m: any): ThoughtForm => ({
     at: String(m?.at ?? ''),
     type: String(m?.type ?? 'note'),
     text: String(m?.text ?? ''),
@@ -275,7 +274,7 @@ export function DayWorkspace({
     author: String(m?.author ?? ''),
     images: Array.isArray(m?.images) ? m.images.map(String) : [],
   })
-  const momentPayload = (m: MomentForm) => ({
+  const thoughtPayload = (m: ThoughtForm) => ({
     at: m.at || hktHHMM(new Date()),
     type: m.type,
     ...(m.text.trim() ? { text: m.text.trim() } : {}),
@@ -283,50 +282,50 @@ export function DayWorkspace({
     ...(m.author.trim() ? { author: m.author.trim() } : {}),
     ...(m.images.length ? { images: m.images } : {}),
   })
-  const setMoment = (i: number, patch: Partial<MomentForm>) => {
-    setDraftMoments((ms) => ms.map((m, j) => (j === i ? { ...m, ...patch } : m)))
+  const setThought = (i: number, patch: Partial<ThoughtForm>) => {
+    setDraftThoughts((ms) => ms.map((m, j) => (j === i ? { ...m, ...patch } : m)))
     markDirty()
   }
-  const publishMoment = (i: number) => {
-    const m = draftMoments[i]
-    if (m.type === 'trade' && m.tradeIdx === '') return toast.error('pick a trade for this moment')
-    if (m.type !== 'trade' && !m.text.trim() && !m.images.length) return toast.error('write the moment text or attach an image first')
+  const publishThought = (i: number) => {
+    const m = draftThoughts[i]
+    if (m.type === 'trade' && m.tradeIdx === '') return toast.error('pick a trade for this thought')
+    if (m.type !== 'trade' && !m.text.trim() && !m.images.length) return toast.error('write the thought text or attach an image first')
     setStream((s) => [...s, m])
-    setDraftMoments((ms) => ms.filter((_, j) => j !== i))
+    setDraftThoughts((ms) => ms.filter((_, j) => j !== i))
     markDirty()
     saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
   }
-  /** publish a trade card straight to the stream as a trade moment (same pattern as publishMoment). */
-  const publishTradeMoment = (ti: number) => {
-    const m: MomentForm = { at: '', type: 'trade', text: '', tradeIdx: String(ti), author: '', images: [] }
+  /** publish a trade card straight to the stream as a trade thought (same pattern as publishThought). */
+  const publishTradeThought = (ti: number) => {
+    const m: ThoughtForm = { at: '', type: 'trade', text: '', tradeIdx: String(ti), author: '', images: [] }
     setStream((s) => [...s, m])
     markDirty()
     saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
     toast.success('trade added to the stream — queued for rebuild')
   }
   /** composer ⌘⏎ — the SOLE publish gesture for thoughts (no auto-publish on blur). */
-  const publishThought = (type: string, text: string) => {
+  const publishComposer = (type: string, text: string, author?: string) => {
     const trimmed = text.trim()
     if (!trimmed) return
-    const m: MomentForm = { at: '', type, text: trimmed, tradeIdx: '', author: '', images: [] }
+    const m: ThoughtForm = { at: '', type, text: trimmed, tradeIdx: '', author: author ?? '', images: [] }
     setStream((s) => [...s, m])
     markDirty()
     saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
     toast.success('thought published')
   }
-  const unstreamMoment = (i: number) => {
+  const unstreamThought = (i: number) => {
     setStream((s) => s.filter((_, j) => j !== i))
     markDirty()
   }
-  const polishMoment = async (i: number) => {
-    const m = draftMoments[i]
+  const polishThought = async (i: number) => {
+    const m = draftThoughts[i]
     if (!m.text.trim()) return toast.error('write something to polish first')
     try {
       const res = await api<{ result: string }>('/api/admin/ai', {
         method: 'POST',
         body: { action: 'assist', kind: 'polish', text: m.text },
       })
-      setMoment(i, { text: res.result })
+      setThought(i, { text: res.result })
       toast('polished — review it, then publish')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'polish failed')
@@ -515,12 +514,12 @@ export function DayWorkspace({
         .filter((e) => e.account)
         .map((e) => ({ account: e.account, size: e.size !== '' ? parseInt(e.size, 10) : undefined })),
     })),
-    stream: stream.map(momentPayload),
-    ...(draftMoments.length || reflection.trim()
+    stream: stream.map(thoughtPayload),
+    ...(draftThoughts.length || reflection.trim()
       ? {
           draft: {
             ...(reflection.trim() ? { reflection: reflection.trim() } : {}),
-            ...(draftMoments.length ? { moments: draftMoments.map(momentPayload) } : {}),
+            ...(draftThoughts.length ? { moments: draftThoughts.map(thoughtPayload) } : {}),
           },
         }
       : {}),
@@ -535,7 +534,6 @@ export function DayWorkspace({
       })
 
       clearDirty()
-      setSavedAt(hktHHMM(new Date()))
       notifyChanged()
       if (rebuild) {
         try {
@@ -561,7 +559,6 @@ export function DayWorkspace({
         body: { ...dayPayload(), silent: true },
       })
       clearDirty()
-      setSavedAt(hktHHMM(new Date()))
     } catch {
       // autosave is best-effort; the debounce will retry on the next change
     }
@@ -573,7 +570,7 @@ export function DayWorkspace({
     const id = setTimeout(() => saveSilent(), 2000)
     return () => clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dirty, date, mood, sleepHours, sleepQuality, habits, reflection, trades, draftMoments, stream])
+  }, [dirty, date, mood, sleepHours, sleepQuality, habits, reflection, trades, draftThoughts, stream])
 
   // flush on window blur too (walking away from the admin saves what's typed)
   useEffect(() => {
@@ -679,12 +676,12 @@ export function DayWorkspace({
     }
   }
 
-  const onMomentImages = async (i: number, files: File[]) => {
+  const onThoughtImages = async (i: number, files: File[]) => {
     for (const f of files) {
       try {
         const dataUrl = await fileToDataUrl(f)
         const url = await uploadDataUrl(dataUrl, f.name)
-        setDraftMoments((ms) => ms.map((m, j) => (j === i ? { ...m, images: [...m.images, url] } : m)))
+        setDraftThoughts((ms) => ms.map((m, j) => (j === i ? { ...m, images: [...m.images, url] } : m)))
         markDirty()
       } catch (e) {
         toast.error(e instanceof Error ? e.message : 'upload failed')
@@ -719,12 +716,6 @@ export function DayWorkspace({
     return a ? `${a.firm} ${a.sizeLabel}` : id
   }
 
-  // status-line readouts (footer)
-  const totalR = `${dayTotals.R > 0 ? '+' : ''}${dayTotals.R.toFixed(2)}R`
-  const tradeCount = trades.length
-  const habitsDone = habitDefs.filter((h) => habits[h.slug] === true).length
-  const habitsTotal = habitDefs.length
-  const showPublishHint = !!reflection.trim() || draftMoments.length > 0
 
   // ---------- reflection obligation (Z5) ----------
   // Adapted to the real `accountabilityStatus()` API: it returns only counts
@@ -765,7 +756,6 @@ export function DayWorkspace({
 
   const hasDayRecord = daysList.some((d) => d.date === date)
   const dayPending = pendingLabels.some((l) => l.includes(date))
-  const previewHref = `/zen/preview/${date}`
 
   // day-level keyboard shortcuts (global save handled in AdminApp)
   useEffect(() => {
@@ -799,23 +789,6 @@ export function DayWorkspace({
   return (
     <CeremonyProvider>
     <div className="space-y-6">
-      {/* sticky section jump (desktop) */}
-      <div className="sticky top-safe-14 z-30 -mx-2 hidden border-b border-line bg-bg/95 px-2 py-1 backdrop-blur md:block">
-        <div className="flex gap-1 overflow-x-auto text-[12px]">
-          {[
-            ['capture', 'sec-capture'],
-            ['day', 'sec-day'],
-            ['trades', 'sec-trades'],
-            ['moments', 'sec-moments'],
-            ['reflection', 'sec-reflection'],
-          ].map(([label, id]) => (
-            <button key={id} onClick={() => scrollTo(id)} className="h-8 whitespace-nowrap px-2 text-dim transition-colors hover:text-ink">
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-xl">/ day</h1>
@@ -833,9 +806,6 @@ export function DayWorkspace({
               view live →
             </a>
           )}
-          <a href={previewHref} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink">
-            preview →
-          </a>
           {daysList.some((d) => d.date === date) && (
             <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
           )}
@@ -890,36 +860,24 @@ export function DayWorkspace({
                 onPasteScreen={onDeviceScreens}
                 deviceScreens={deviceScreens}
                 onRemoveDeviceScreen={(s) => setDeviceScreens((x) => x.filter((y) => y !== s))}
-                totalR={totalR}
-                habitsDone={habitsDone}
-                habitsTotal={habitsTotal}
                 onEvidence={() => setAiBuildOpen(true)}
               />
 
-              {/* ---------- IMPORT (sheet-triggered via ⌘K `import trades`) ---------- */}
-              <button
-                type="button"
-                onClick={() => setIngestOpen(true)}
-                className="flex h-9 items-center border border-line2 px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink"
-              >
-                ⤓ import trades ▸
-              </button>
-
               {/* ---------- Z2 THOUGHTS ---------- */}
               <ThoughtsSurface
-                draftMoments={draftMoments}
+                draftThoughts={draftThoughts}
                 stream={stream}
                 trades={trades}
-                onComposerPublish={publishThought}
-                onAddDraft={() => { setDraftMoments((ms) => [...ms, { at: '', type: 'note', text: '', tradeIdx: '', author: '', images: [] }]); markDirty() }}
-                onMomentChange={setMoment}
-                onPublishDraft={publishMoment}
-                onPolishDraft={polishMoment}
-                onRemoveDraft={(i) => { setDraftMoments((ms) => ms.filter((_, j) => j !== i)); markDirty() }}
-                onUnstream={unstreamMoment}
-                onMomentImages={onMomentImages}
+                onComposerPublish={publishComposer}
+                onAddDraft={() => { setDraftThoughts((ms) => [...ms, { at: '', type: 'note', text: '', tradeIdx: '', author: '', images: [] }]); markDirty() }}
+                onThoughtChange={setThought}
+                onPublishDraft={publishThought}
+                onPolishDraft={polishThought}
+                onRemoveDraft={(i) => { setDraftThoughts((ms) => ms.filter((_, j) => j !== i)); markDirty() }}
+                onUnstream={unstreamThought}
+                onThoughtImages={onThoughtImages}
                 onReorderDraft={(from, to) => {
-                  setDraftMoments((ms) => {
+                  setDraftThoughts((ms) => {
                     const next = [...ms]
                     const [moved] = next.splice(from, 1)
                     next.splice(to, 0, moved)
@@ -945,7 +903,7 @@ export function DayWorkspace({
                 habits={habits}
                 onToggle={(slug) => { setHabits((x) => ({ ...x, [slug]: !(x[slug] === true) })); markDirty() }}
                 onAdjust={(slug, delta) => { setHabits((x) => { const cur = typeof x[slug] === 'number' ? (x[slug] as number) : 0; return { ...x, [slug]: Math.max(0, cur + delta) } as Record<string, boolean> }); markDirty() }}
-                onOpenLibrary={() => toast.success('habit library lives in the library tab')}
+                onNavigateLibrary={onNavigateLibrary ?? (() => {})}
               />
 
               {/* ---------- Z4 TRADES ---------- */}
@@ -959,6 +917,13 @@ export function DayWorkspace({
                       </Button>
                     )}
                     <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); setExpandAll(false); setExpandedTrade(trades.length); markDirty() }}>+ add trade</Button>
+                    <button
+                      type="button"
+                      onClick={() => setIngestOpen(true)}
+                      className="flex h-8 items-center border border-line2 px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink"
+                    >
+                      ⤓ import trades ▸
+                    </button>
                   </div>
                 </div>
                 <TradeList
@@ -975,7 +940,7 @@ export function DayWorkspace({
                   }}
                   onRemove={(ti) => setTrades((ts) => ts.filter((_, j) => j !== ti))}
                   onTradeScreens={onTradeScreens}
-                  onPublish={publishTradeMoment}
+                  onPublish={publishTradeThought}
                   onReorder={(from, to) => {
                     setTrades((ts) => {
                       const next = [...ts]
@@ -992,17 +957,8 @@ export function DayWorkspace({
               </CeremonyDim>
               <ReflectionZone
                 reflection={reflection}
-                title={title}
-                summary={summary}
-                tags={tags}
-                featuredImage={featuredImage}
                 content={content}
-                previewHref={previewHref}
                 onReflectionChange={(v) => { setReflection(v); markDirty() }}
-                onTitleChange={(v) => { setTitle(v); markDirty() }}
-                onSummaryChange={(v) => { setSummary(v); markDirty() }}
-                onTagsChange={(v) => { setTags(v); markDirty() }}
-                onFeaturedImageChange={(v) => { setFeaturedImage(v); markDirty() }}
                 onPublish={publishReflection}
                 onAIDraft={runDraft}
                 draftBusy={draftBusy}
@@ -1026,16 +982,6 @@ export function DayWorkspace({
           )}
         </div>
       </div>
-
-      <StatusLine
-        date={date}
-        totalR={totalR}
-        tradeCount={tradeCount}
-        habitsDone={habitsDone}
-        habitsTotal={habitsTotal}
-        savedAt={savedAt}
-        showPublishHint={showPublishHint}
-      />
 
       <AIBuildSheet
         open={aiBuildOpen}

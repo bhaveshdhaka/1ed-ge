@@ -94,5 +94,20 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ ok: true })
   }
 
+  if (action === 'reorder') {
+    // dnd-kit drag-reorder persists only the `order` field, merged into the
+    // existing frontmatter (no field-clobber risk, one pending change).
+    if (kind !== 'habits' && kind !== 'models') return error('kind has no order')
+    if (!slug) return error('invalid slug')
+    const order = Number(body.order)
+    if (!Number.isFinite(order)) return error('invalid order')
+    const file = listMds(kind).find((f) => f.replace(/\.mdx?$/, '') === slug)
+    if (!file) return error('not found')
+    const existing = readEntry(kind, file)
+    writeEntry(kind, file, { ...existing.data, order }, existing.content)
+    addChange('library', `${kind.slice(0, -1)} ${slug} reordered`)
+    return json({ ok: true })
+  }
+
   return error('unknown action')
 }

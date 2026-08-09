@@ -1,5 +1,5 @@
 import type { KeyboardEvent, FocusEvent } from 'react'
-import { Button, Field, TextInput } from './ui'
+import { Button } from './ui'
 import { MarkdownEditor } from './MarkdownEditor'
 import { ObligationChip } from './ObligationChip'
 import { useCeremony } from './CeremonyMode'
@@ -12,17 +12,8 @@ export interface ReflectionObligation {
 
 interface ReflectionZoneProps {
   reflection: string
-  title: string
-  summary: string
-  tags: string
-  featuredImage: string
   content: string       // published body for comparison
-  previewHref: string   // link target for "view →" / preview
   onReflectionChange: (v: string) => void
-  onTitleChange: (v: string) => void
-  onSummaryChange: (v: string) => void
-  onTagsChange: (v: string) => void
-  onFeaturedImageChange?: (v: string) => void
   onPublish: () => void
   onAIDraft: () => void
   draftBusy: boolean
@@ -71,18 +62,6 @@ export function ReflectionZone(props: ReflectionZoneProps) {
         )}
 
         <div onFocus={onZoneFocus} onBlur={onZoneBlur}>
-          <div className="grid gap-3 md:grid-cols-3">
-            <Field label="title">
-              <TextInput value={props.title} onChange={(e) => props.onTitleChange(e.target.value)} placeholder="AI suggests" />
-            </Field>
-            <Field label="summary">
-              <TextInput value={props.summary} onChange={(e) => props.onSummaryChange(e.target.value)} placeholder="one line" />
-            </Field>
-            <Field label="tags (comma)">
-              <TextInput value={props.tags} onChange={(e) => props.onTagsChange(e.target.value)} placeholder="discipline, revenge" />
-            </Field>
-          </div>
-
           <div className="mt-3">
             <MarkdownEditor
               value={props.reflection}
@@ -93,25 +72,15 @@ export function ReflectionZone(props: ReflectionZoneProps) {
             />
           </div>
 
-          {props.featuredImage && props.onFeaturedImageChange && (
-            <div className="mt-3 flex items-center gap-3">
-              <span className="text-[11px] uppercase tracking-widest text-dim">featured</span>
-              <img src={props.featuredImage} alt="" className="h-12 w-20 border border-line object-cover" />
-              <TextInput value={props.featuredImage} onChange={(e) => props.onFeaturedImageChange!(e.target.value)} className="flex-1" />
-            </div>
-          )}
-
           <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
             <div className="text-[12px]">
-              {props.content.trim() && (
-                <>
-                  <span className="text-up">● published to /journal</span>
-                  {' '}
-                  <a href={props.previewHref} target="_blank" rel="noreferrer" className="text-accent transition-colors hover:text-ink">view →</a>
-                  {props.content.trim() !== props.reflection.trim() && (
-                    <span className="ml-2 text-warn">● draft differs from live · republish to overwrite</span>
-                  )}
-                </>
+              {props.content.trim() ? (
+                <span className="text-up">● published to /journal</span>
+              ) : (
+                <span className="text-faint">draft · not published</span>
+              )}
+              {props.content.trim() !== props.reflection.trim() && props.content.trim() && (
+                <span className="ml-2 text-warn">● draft differs from live · republish to overwrite</span>
               )}
             </div>
             <div className="flex items-center gap-2">

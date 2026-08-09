@@ -2,7 +2,7 @@
 /**
  * PeriodReview.astro — one posterized review surface for any horizon.
  * Zero-JS. R centerpiece + per-account + per-model + life metrics +
- * reflection + AI comparison + journal entries + stream moments.
+ * reflection + AI comparison + journal entries + stream thoughts.
  */
 import { render } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
@@ -11,13 +11,13 @@ import { fmtDay, fmtDayW } from '../../lib/dates'
 import { slugFromType, publicAnchor, resolvePeriod, type PeriodRange } from '../../lib/periods'
 import { todayHkt } from '../../lib/sessions'
 import { periodDelta, type TapePoint, type LadderEntry, type PeriodStats, type TrendPoint } from '../../lib/period-stats'
-import type { ResolvedMoment } from '../../lib/stream'
+import type { ResolvedThought } from '../../lib/stream'
 import Card from '../ui/Card.astro'
 import StatCard from '../ui/StatCard.astro'
 import Table from '../ui/Table.astro'
 import Badge from '../ui/Badge.astro'
 import EmptyState from '../ui/EmptyState.astro'
-import MomentCard from '../stream/MomentCard.astro'
+import ThoughtCard from '../stream/ThoughtCard.astro'
 
 interface Props {
   range: PeriodRange
@@ -28,12 +28,12 @@ interface Props {
   reviewEntry: CollectionEntry<'reviews'> | null
   comparisonBody: string
   journals: CollectionEntry<'journal'>[]
-  moments: ResolvedMoment[]
+  thoughts: ResolvedThought[]
   tape: TapePoint[]
   ladder: LadderEntry[]
 }
 
-const { range, stats, prevStats, trend, dayIsos, reviewEntry, comparisonBody, journals, moments, tape, ladder } = Astro.props
+const { range, stats, prevStats, trend, dayIsos, reviewEntry, comparisonBody, journals, thoughts, tape, ladder } = Astro.props
 
 let Reflection: any = null
 if (reviewEntry) {
@@ -412,16 +412,16 @@ const last = tape.length - 1
       </section>
 
       <section>
-        <h2 class="text-lg text-ink">/ stream moments</h2>
-        {moments.length > 0 ? (
+        <h2 class="text-lg text-ink">/ stream thoughts</h2>
+        {thoughts.length > 0 ? (
           <div class="mt-4 flex max-w-2xl flex-col gap-3">
-            {moments.map((m) => (
-              <MomentCard moment={m} showDay />
+            {thoughts.map((t) => (
+              <ThoughtCard thought={t} showDay />
             ))}
           </div>
         ) : (
           <div class="mt-4">
-            <EmptyState text="no stream moments this period." />
+            <EmptyState text="no stream thoughts this period." />
           </div>
         )}
       </section>

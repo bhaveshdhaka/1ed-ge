@@ -81,7 +81,7 @@ const journalsInPeriod = journalEntries
 
 const daysInPeriod = days.filter((d) => d.date >= range.startIso && d.date <= range.endIso)
 const dayIsos = daysInPeriod.map((d) => d.date).sort()
-const moments = flattenStream(daysInPeriod)
+const thoughts = flattenStream(daysInPeriod)
 
 const title = `${range.label} — 1ed.ge`
 const description = `${range.label}: ${stats.trades} trades, ${stats.sumR >= 0 ? '+' : ''}${stats.sumR.toFixed(2)}R on the tape — every period public.`
@@ -97,7 +97,7 @@ const description = `${range.label}: ${stats.trades} trades, ${stats.sumR >= 0 ?
     reviewEntry={reviewEntry}
     comparisonBody={comparisonBody}
     journals={journalsInPeriod}
-    moments={moments}
+    thoughts={thoughts}
     tape={tape}
     ladder={ladder}
   />

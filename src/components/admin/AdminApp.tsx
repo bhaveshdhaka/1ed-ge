@@ -168,7 +168,7 @@ export default function AdminApp() {
 
       <main className="shell py-6 md:py-8">
         {tab === 'overview' && <OverviewTab notify={notify} go={go} />}
-        {tab === 'day' && <DayWorkspace onDirtyChange={setGlobalDirty} />}
+        {tab === 'day' && <DayWorkspace onDirtyChange={setGlobalDirty} onNavigateLibrary={() => go('library')} />}
         {tab === 'accounts' && <AccountsTab notify={notify} />}
         {tab === 'coach' && <CoachTab notify={notify} />}
         {tab === 'media' && <MediaTab notify={notify} />}

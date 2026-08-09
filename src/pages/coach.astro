@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro'
 import { getCollection, render } from 'astro:content'
+import EmptyState from '../components/ui/EmptyState.astro'
 
 const coach = (await getCollection('coach')).sort((a, b) => b.data.date.localeCompare(a.data.date))
 const rendered = await Promise.all(
@@ -34,9 +35,7 @@ const rendered = await Promise.all(
         </article>
       ))}
       {rendered.length === 0 && (
-        <p class="text-[13px] text-faint">
-          no coaching sessions yet — the coach speaks once the data has something to say.
-        </p>
+        <EmptyState text="no coaching sessions yet — the coach speaks once the data has something to say." />
       )}
     </div>
   </section>

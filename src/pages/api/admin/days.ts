@@ -7,7 +7,7 @@ export const prerender = false
 
 const STAGES = ['eval', 'buffer', 'payout', 'failed', 'paused']
 const SESSIONS = ['', 'asia', 'london', 'ny-am', 'ny-pm', 'ny']
-const MOMENT_TYPES = ['trade', 'note', 'quote']
+const THOUGHT_TYPES = ['trade', 'note', 'quote']
 
 function num(v: unknown): number | null {
   const n = typeof v === 'number' ? v : typeof v === 'string' ? parseFloat(v) : NaN
@@ -54,8 +54,8 @@ function normalizeTrade(t: Record<string, any>, i: number) {
   }
 }
 
-function normalizeMoment(m: Record<string, any>): Record<string, any> | null {
-  const type = MOMENT_TYPES.includes(String(m.type)) ? String(m.type) : ''
+function normalizeThought(m: Record<string, any>): Record<string, any> | null {
+  const type = THOUGHT_TYPES.includes(String(m.type)) ? String(m.type) : ''
   if (!type) return null
   const at = /^\d{2}:\d{2}$/.test(String(m.at ?? '')) ? String(m.at) : '00:00'
   const out: Record<string, any> = { at, type }
@@ -70,9 +70,9 @@ function normalizeMoment(m: Record<string, any>): Record<string, any> | null {
   return out
 }
 
-function normalizeMoments(v: unknown): Record<string, any>[] {
+function normalizeThoughts(v: unknown): Record<string, any>[] {
   return Array.isArray(v)
-    ? v.map((m) => normalizeMoment(m as Record<string, any>)).filter((m): m is Record<string, any> => m !== null)
+    ? v.map((m) => normalizeThought(m as Record<string, any>)).filter((m): m is Record<string, any> => m !== null)
     : []
 }
 
@@ -135,13 +135,13 @@ export const POST: APIRoute = async ({ request }) => {
     ? body.trades.map(normalizeTrade).filter((t: unknown): t is NonNullable<ReturnType<typeof normalizeTrade>> => t !== null)
     : []
 
-  const stream = normalizeMoments(body.stream)
+  const stream = normalizeThoughts(body.stream)
   const draft: Record<string, unknown> = {}
   if (typeof body.draft?.reflection === 'string' && body.draft.reflection.trim()) {
     draft.reflection = body.draft.reflection.trim()
   }
-  const draftMoments = normalizeMoments(body.draft?.moments)
-  if (draftMoments.length) draft.moments = draftMoments
+  const draftThoughts = normalizeThoughts(body.draft?.moments)
+  if (draftThoughts.length) draft.moments = draftThoughts
 
   const data: Record<string, unknown> = {
     date,
@@ -176,7 +176,7 @@ export const POST: APIRoute = async ({ request }) => {
   writeEntry('days', `${date}.md`, data, '')
   const silent = body.silent === true
   if (!silent) {
-    const detail = `${trades.length} trade${trades.length === 1 ? '' : 's'}` + (mood !== null ? ` · mood ${mood}` : '') + (deviceScreens.length ? ' · screen-time' : '') + (stream.length ? ` · ${stream.length} moment${stream.length === 1 ? '' : 's'}` : '') + (Object.keys(draft).length ? ' · draft' : '')
+    const detail = `${trades.length} trade${trades.length === 1 ? '' : 's'}` + (mood !== null ? ` · mood ${mood}` : '') + (deviceScreens.length ? ' · screen-time' : '') + (stream.length ? ` · ${stream.length} thought${stream.length === 1 ? '' : 's'}` : '') + (Object.keys(draft).length ? ' · draft' : '')
     addChange('day', `day ${date}`, detail)
   }
   return json({ ok: true, file: `${date}.md`, trades: trades.length, silent })

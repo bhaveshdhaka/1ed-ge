@@ -5,7 +5,7 @@ interface HabitRowProps {
   habits: Record<string, boolean>
   onToggle: (slug: string) => void
   onAdjust: (slug: string, delta: number) => void
-  onOpenLibrary: () => void
+  onNavigateLibrary: () => void
 }
 
 export function HabitRow(props: HabitRowProps) {
@@ -32,18 +32,12 @@ export function HabitRow(props: HabitRowProps) {
             {count !== null && (
               <span className="tabular-nums text-[11px] opacity-80">{target ? `${count}/${target}` : String(count)}</span>
             )}
-            {count !== null && target && (
-              <span className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-                <button type="button" aria-label={`decrease ${h.name}`} className="flex h-5 w-5 items-center justify-center border border-line2 text-[11px] hover:border-accent" onClick={() => props.onAdjust(h.slug, -1)}>−</button>
-                <button type="button" aria-label={`increase ${h.name}`} className="flex h-5 w-5 items-center justify-center border border-line2 text-[11px] hover:border-accent" onClick={() => props.onAdjust(h.slug, 1)}>+</button>
-              </span>
-            )}
           </button>
         )
       })}
       <button
         type="button"
-        onClick={props.onOpenLibrary}
+        onClick={props.onNavigateLibrary}
         className="flex h-7 items-center border border-line2 px-2 text-[12px] text-accent transition-colors hover:border-accent"
       >
         library ▸
