@@ -11,18 +11,23 @@ interface Props {
 }
 
 const { cells, class: cls = '' } = Astro.props
+
+// mood/sleep cells carry word+emoji values (e.g. "😐 okay") — render them as
+// muted text, not as up/down numerals. Only R carries color.
+const valueCls = (c: FactCell) => {
+  if (c.key === 'mood' || c.key === 'sleep') return 'font-normal text-faint'
+  if (!c.ok) return 'font-semibold text-faint'
+  if (c.up === true) return 'font-semibold text-up'
+  if (c.up === false) return 'font-semibold text-down'
+  return 'font-semibold text-ink'
+}
 ---
 
 <div class={`flex flex-wrap gap-px border border-line bg-line ${cls}`}>
   {cells.map((c) => (
     <div class="flex min-w-[86px] flex-1 flex-col gap-1 bg-panel px-3 py-2">
       <span class="text-2xs uppercase tracking-widest text-faint">{c.label}</span>
-      <span
-        class:list={[
-          'text-sm font-semibold tabular-nums',
-          c.ok ? (c.up === true ? 'text-up' : c.up === false ? 'text-down' : 'text-ink') : 'text-faint',
-        ]}
-      >
+      <span class:list={['text-sm tabular-nums', valueCls(c)]}>
         {c.ok ? c.value : '—'}
       </span>
     </div>

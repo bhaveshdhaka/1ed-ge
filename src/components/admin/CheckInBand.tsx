@@ -1,6 +1,7 @@
 import { Button, Card, Field, NumInput, TextArea } from './ui'
 import { ImageDropZone } from './ImageDropZone'
 import { MarketCard } from './MarketCard'
+import { MOODS, SLEEP_QUALITIES, moodByValue, sleepByValue } from '../../lib/emoji-states'
 
 export interface DayImage {
   id: string
@@ -51,6 +52,8 @@ interface CheckInBandProps {
 const editableHint = 'underline decoration-dashed decoration-line2 underline-offset-4 hover:text-accent hover:decoration-accent cursor-pointer'
 
 export function CheckInBand(props: CheckInBandProps) {
+  const moodState = moodByValue(props.mood)
+  const sleepState = sleepByValue(props.sleepQuality)
   return (
     <>
       {/* market line above the band (strip.ts segments drive the public widget; MarketCard is the admin surface) */}
@@ -110,10 +113,13 @@ export function CheckInBand(props: CheckInBandProps) {
               <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">mood</div>
               {props.editing === 'mood' ? (
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((m) => (
-                      <button key={m} onClick={() => { props.onMood(String(m)); props.onDoneEdit() }}
-                        className={`h-10 w-10 border text-[13px] ${props.mood === String(m) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim'}`}>{m}</button>
+                  <div className="flex flex-wrap gap-1">
+                    {MOODS.map((m) => (
+                      <button key={m.value} onClick={() => { props.onMood(String(m.value)); props.onDoneEdit() }}
+                        className={`flex min-h-9 items-center gap-1.5 border px-2 text-[13px] transition-colors ${props.mood === String(m.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
+                        <span aria-hidden="true" className="opacity-60">{m.emoji}</span>
+                        {m.label}
+                      </button>
                     ))}
                   </div>
                   <Button size="sm" onClick={props.onDoneEdit}>done</Button>
@@ -121,10 +127,10 @@ export function CheckInBand(props: CheckInBandProps) {
               ) : (
                 <button
                   onClick={() => props.onStartEdit('mood')}
-                  className={`text-left text-[15px] text-ink ${editableHint}`}
+                  className={`text-left text-[13px] text-faint ${editableHint}`}
                   title="click to correct"
                 >
-                  {props.mood ? `${props.mood}/5` : '—'}
+                  {moodState ? `${moodState.emoji} ${moodState.label} · ${props.mood}/5` : props.mood ? `${props.mood}/5` : '—'}
                 </button>
               )}
             </div>
@@ -135,16 +141,26 @@ export function CheckInBand(props: CheckInBandProps) {
               {props.editing === 'sleep' ? (
                 <div className="flex flex-wrap items-center gap-2">
                   <NumInput value={props.sleepHours} onChange={(e) => props.onSleepHours(e.target.value)} className="h-9 w-24" placeholder="7.5" />
-                  <NumInput value={props.sleepQuality} onChange={(e) => props.onSleepQuality(e.target.value)} className="h-9 w-20" placeholder="quality" />
+                  <div className="flex flex-wrap gap-1">
+                    {SLEEP_QUALITIES.map((s) => (
+                      <button key={s.value} onClick={() => { props.onSleepQuality(String(s.value)); props.onDoneEdit() }}
+                        className={`flex min-h-9 items-center gap-1.5 border px-2 text-[13px] transition-colors ${props.sleepQuality === String(s.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
+                        <span aria-hidden="true" className="opacity-60">{s.emoji}</span>
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
                   <Button size="sm" onClick={props.onDoneEdit}>done</Button>
                 </div>
               ) : (
                 <button
                   onClick={() => props.onStartEdit('sleep')}
-                  className={`text-left text-[15px] text-ink ${editableHint}`}
+                  className={`text-left text-[13px] text-faint ${editableHint}`}
                   title="click to correct"
                 >
-                  {props.sleepHours ? `${props.sleepHours}h` : '—'}{props.sleepQuality ? ` · ${props.sleepQuality}/5` : ''}
+                  {sleepState
+                    ? `${sleepState.emoji} ${sleepState.label} · ${props.sleepQuality}/5${props.sleepHours ? ` · ${props.sleepHours}h` : ''}`
+                    : props.sleepHours ? `${props.sleepHours}h` : props.sleepQuality ? `${props.sleepQuality}/5` : '—'}
                 </button>
               )}
             </div>
