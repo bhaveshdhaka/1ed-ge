@@ -256,7 +256,7 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
                 </button>
               ))}
             </div>
-            <span className="text-[10px] text-faint">⌘⏎ publishes</span>
+            <Button size="sm" variant="primary" onClick={() => { if (text.trim()) props.onComposerPublish(composerType, text, composerType === 'quote' ? composerAuthor.trim() : ''); setText(''); setComposerAuthor('') }}>publish</Button>
           </div>
         </div>
 

@@ -30,9 +30,9 @@ const prettyDate = fmtDayW(today)
 
 const markets: { key: MarketKey; flag: string; name: string; window: string }[] = [
   { key: 'cme', flag: '📈', name: 'CME Globex', window: wins.cme },
-  { key: 'nyse', flag: '🇺🇸', name: 'New York · NYSE', window: wins.nyse },
-  { key: 'tse', flag: '🇯🇵', name: 'Tokyo · TSE', window: wins.tse },
-  { key: 'lse', flag: '🇬🇧', name: 'London · LSE', window: wins.lse },
+  { key: 'nyse', flag: '🇺🇸', name: 'NYC · NYSE', window: wins.nyse },
+  { key: 'tse', flag: '🇯🇵', name: 'TYO · TSE', window: wins.tse },
+  { key: 'lse', flag: '🇬🇧', name: 'LON · LSE', window: wins.lse },
 ]
 
 const segOf = (key: MarketKey) => segmentAt(payload.segments[key], now)
