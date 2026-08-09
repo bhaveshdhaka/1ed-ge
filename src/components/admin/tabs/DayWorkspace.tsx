@@ -276,7 +276,7 @@ export function DayWorkspace({
     images: Array.isArray(m?.images) ? m.images.map(String) : [],
   })
   const momentPayload = (m: MomentForm) => ({
-    at: m.at || '00:00',
+    at: m.at || hktHHMM(new Date()),
     type: m.type,
     ...(m.text.trim() ? { text: m.text.trim() } : {}),
     ...(m.type === 'trade' && m.tradeIdx !== '' ? { tradeIdx: parseInt(m.tradeIdx, 10) } : {}),
