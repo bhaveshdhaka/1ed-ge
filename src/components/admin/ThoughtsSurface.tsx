@@ -9,20 +9,20 @@ import { ImageDropZone } from './ImageDropZone'
 import { useGhostText } from './useGhostText'
 import { GhostText } from './GhostText'
 import { useDndSensors } from './TradeCard'
-import type { MomentForm, TradeForm } from './tabs/DayWorkspace'
+import type { ThoughtForm, TradeForm } from './tabs/DayWorkspace'
 
 interface ThoughtsSurfaceProps {
-  draftMoments: MomentForm[]
-  stream: MomentForm[]
+  draftThoughts: ThoughtForm[]
+  stream: ThoughtForm[]
   trades: TradeForm[]
   onComposerPublish: (type: string, text: string, author?: string) => void
   onAddDraft: () => void
-  onMomentChange: (i: number, patch: Partial<MomentForm>) => void
+  onThoughtChange: (i: number, patch: Partial<ThoughtForm>) => void
   onPublishDraft: (i: number) => void
   onPolishDraft: (i: number) => void
   onRemoveDraft: (i: number) => void
   onUnstream: (i: number) => void
-  onMomentImages: (i: number, files: File[]) => void
+  onThoughtImages: (i: number, files: File[]) => void
   /** dnd-kit reorder for the draft + published lists */
   onReorderDraft: (from: number, to: number) => void
   onReorderStream: (from: number, to: number) => void
@@ -56,19 +56,19 @@ function DragHandle({
   )
 }
 
-interface DraftMomentRowProps {
+interface DraftThoughtRowProps {
   id: string
   i: number
-  m: MomentForm
+  m: ThoughtForm
   trades: TradeForm[]
-  onMomentChange: (i: number, patch: Partial<MomentForm>) => void
+  onThoughtChange: (i: number, patch: Partial<ThoughtForm>) => void
   onPublishDraft: (i: number) => void
   onPolishDraft: (i: number) => void
   onRemoveDraft: (i: number) => void
-  onMomentImages: (i: number, files: File[]) => void
+  onThoughtImages: (i: number, files: File[]) => void
 }
 
-function DraftMomentRow(props: DraftMomentRowProps) {
+function DraftThoughtRow(props: DraftThoughtRowProps) {
   const { m, i } = props
   const tradeShots = props.trades[parseInt(m.tradeIdx, 10)]?.screenshots ?? []
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.id })
@@ -79,28 +79,28 @@ function DraftMomentRow(props: DraftMomentRowProps) {
       className="group border border-line bg-bg p-3"
     >
       <div className="grid gap-2 md:grid-cols-[64px_130px_1fr]">
-        <Field label="at (HH:MM)"><TextInput value={m.at} onChange={(e) => props.onMomentChange(i, { at: e.target.value })} placeholder="08:30" /></Field>
+        <Field label="at (HH:MM)"><TextInput value={m.at} onChange={(e) => props.onThoughtChange(i, { at: e.target.value })} placeholder="08:30" /></Field>
         <Field label="type">
-          <Select value={m.type} onChange={(e) => props.onMomentChange(i, { type: e.target.value })}>
+          <Select value={m.type} onChange={(e) => props.onThoughtChange(i, { type: e.target.value })}>
             {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </Select>
         </Field>
         {m.type === 'trade' ? (
           <Field label="trade">
-            <Select value={m.tradeIdx} onChange={(e) => props.onMomentChange(i, { tradeIdx: e.target.value })}>
+            <Select value={m.tradeIdx} onChange={(e) => props.onThoughtChange(i, { tradeIdx: e.target.value })}>
               <option value="">—</option>
               {props.trades.map((_, ti) => <option key={ti} value={ti}>trade {ti + 1}</option>)}
             </Select>
           </Field>
         ) : (
           <Field label={m.type === 'quote' ? 'text (the quote)' : 'text'}>
-            <TextInput value={m.text} onChange={(e) => props.onMomentChange(i, { text: e.target.value })} placeholder="what you want to say" />
+            <TextInput value={m.text} onChange={(e) => props.onThoughtChange(i, { text: e.target.value })} placeholder="what you want to say" />
           </Field>
         )}
       </div>
       {m.type === 'quote' && (
         <div className="mt-2">
-          <Field label="author"><TextInput value={m.author} onChange={(e) => props.onMomentChange(i, { author: e.target.value })} /></Field>
+          <Field label="author"><TextInput value={m.author} onChange={(e) => props.onThoughtChange(i, { author: e.target.value })} /></Field>
         </div>
       )}
       {m.type === 'trade' ? (
@@ -120,13 +120,13 @@ function DraftMomentRow(props: DraftMomentRowProps) {
         </div>
       ) : (
         <div className="mt-2">
-          <ImageDropZone onFiles={(fs) => props.onMomentImages(i, fs)} label="attach images →" />
+          <ImageDropZone onFiles={(fs) => props.onThoughtImages(i, fs)} label="attach images →" />
           {m.images.length > 0 && (
             <div className="mt-2 grid grid-cols-4 gap-2 md:grid-cols-6">
               {m.images.map((s, si) => (
                 <div key={`${si}:${s}`} className="relative border border-line bg-bg">
                   <img src={s} alt="" className="h-14 w-full object-cover" />
-                  <button onClick={() => props.onMomentChange(i, { images: m.images.filter((_, j) => j !== si) })} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
+                  <button onClick={() => props.onThoughtChange(i, { images: m.images.filter((_, j) => j !== si) })} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down">×</button>
                 </div>
               ))}
             </div>
@@ -140,22 +140,22 @@ function DraftMomentRow(props: DraftMomentRowProps) {
         )}
         <Button size="sm" variant="danger" onClick={() => props.onRemoveDraft(i)}>×</Button>
         <span className="ml-auto">
-          <DragHandle label={`reorder draft moment ${i + 1}`} attributes={attributes} listeners={listeners} />
+          <DragHandle label={`reorder draft thought ${i + 1}`} attributes={attributes} listeners={listeners} />
         </span>
       </div>
     </div>
   )
 }
 
-interface StreamMomentRowProps {
+interface StreamThoughtRowProps {
   id: string
   i: number
-  m: MomentForm
+  m: ThoughtForm
   trades: TradeForm[]
   onUnstream: (i: number) => void
 }
 
-function StreamMomentRow(props: StreamMomentRowProps) {
+function StreamThoughtRow(props: StreamThoughtRowProps) {
   const { m, i } = props
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.id })
   return (
@@ -172,7 +172,7 @@ function StreamMomentRow(props: StreamMomentRowProps) {
           : m.text}
         {m.author ? ` — ${m.author}` : ''}
       </span>
-      <DragHandle label={`reorder stream moment ${i + 1}`} attributes={attributes} listeners={listeners} />
+      <DragHandle label={`reorder stream thought ${i + 1}`} attributes={attributes} listeners={listeners} />
       <Button size="sm" variant="danger" onClick={() => props.onUnstream(i)}>×</Button>
     </div>
   )
@@ -210,11 +210,11 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
   }
 
   return (
-    <div id="sec-moments" className="scroll-mt-20">
+    <div id="sec-thoughts" className="scroll-mt-20">
       <div className="panel p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-2xs uppercase tracking-widest text-soft">thoughts · the stream</h2>
-          <span className="text-[11px] text-faint tabular-nums">{props.stream.length} live · {props.draftMoments.length} draft</span>
+          <span className="text-[11px] text-faint tabular-nums">{props.stream.length} live · {props.draftThoughts.length} draft</span>
         </div>
 
         {/* ---------- composer ---------- */}
@@ -260,28 +260,28 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
           </div>
         </div>
 
-        {/* ---------- draft moments (not public) ---------- */}
-        {props.draftMoments.length > 0 && (
+        {/* ---------- draft thoughts (not public) ---------- */}
+        {props.draftThoughts.length > 0 && (
           <div className="mb-4 mt-4">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[11px] uppercase tracking-widest text-warn">draft moments — not public</span>
-              <Button size="sm" onClick={props.onAddDraft}>+ new moment</Button>
+              <span className="text-[11px] uppercase tracking-widest text-warn">draft thoughts — not public</span>
+              <Button size="sm" onClick={props.onAddDraft}>+ new thought</Button>
             </div>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDraftDragEnd}>
-              <SortableContext items={props.draftMoments.map((_, i) => String(i))} strategy={verticalListSortingStrategy}>
+              <SortableContext items={props.draftThoughts.map((_, i) => String(i))} strategy={verticalListSortingStrategy}>
                 <div className="space-y-2">
-                  {props.draftMoments.map((m, i) => (
-                    <DraftMomentRow
+                  {props.draftThoughts.map((m, i) => (
+                    <DraftThoughtRow
                       key={i}
                       id={String(i)}
                       i={i}
                       m={m}
                       trades={props.trades}
-                      onMomentChange={props.onMomentChange}
+                      onThoughtChange={props.onThoughtChange}
                       onPublishDraft={props.onPublishDraft}
                       onPolishDraft={props.onPolishDraft}
                       onRemoveDraft={props.onRemoveDraft}
-                      onMomentImages={props.onMomentImages}
+                      onThoughtImages={props.onThoughtImages}
                     />
                   ))}
                 </div>
@@ -290,15 +290,15 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
           </div>
         )}
 
-        {/* ---------- published moments ---------- */}
+        {/* ---------- published thoughts ---------- */}
         {props.stream.length > 0 && (
           <div className="mt-2">
-            <div className="mb-2 text-[11px] uppercase tracking-widest text-up">live moments — public after rebuild</div>
+            <div className="mb-2 text-[11px] uppercase tracking-widest text-up">live thoughts — public after rebuild</div>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onStreamDragEnd}>
               <SortableContext items={props.stream.map((_, i) => String(i))} strategy={verticalListSortingStrategy}>
                 <div className="space-y-2">
                   {props.stream.map((m, i) => (
-                    <StreamMomentRow
+                    <StreamThoughtRow
                       key={i}
                       id={String(i)}
                       i={i}
@@ -312,8 +312,14 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
             </DndContext>
           </div>
         )}
-        {props.stream.length === 0 && props.draftMoments.length === 0 && (
-          <p className="mt-3 text-[12px] text-faint">nothing on the stream yet — the day starts with one line.</p>
+        {props.stream.length === 0 && props.draftThoughts.length === 0 && (
+          <button
+            type="button"
+            onClick={() => composerRef.current?.focus()}
+            className="mt-3 text-[12px] text-accent transition-colors hover:text-ink"
+          >
+            write your first thought →
+          </button>
         )}
       </div>
     </div>

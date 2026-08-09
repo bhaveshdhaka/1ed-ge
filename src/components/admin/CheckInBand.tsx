@@ -1,6 +1,5 @@
 import { Button, Card, Field, NumInput, TextArea } from './ui'
 import { ImageDropZone } from './ImageDropZone'
-import { MarketCard } from './MarketCard'
 import { MOODS, SLEEP_QUALITIES } from '../../lib/emoji-states'
 
 export interface DayImage {
@@ -42,10 +41,6 @@ interface CheckInBandProps {
   onPasteScreen: (files: File[]) => void
   deviceScreens: string[]
   onRemoveDeviceScreen: (s: string) => void
-  // readouts
-  totalR: string
-  habitsDone: number
-  habitsTotal: number
   onEvidence: () => void
 }
 
@@ -54,9 +49,6 @@ const editableHint = 'underline decoration-dashed decoration-line2 underline-off
 export function CheckInBand(props: CheckInBandProps) {
   return (
     <>
-      {/* market line above the band (strip.ts segments drive the public widget; MarketCard is the admin surface) */}
-      <MarketCard />
-
       {/* empty state — no evidence, no facts yet */}
       {!props.mood &&
         !props.sleepHours &&
@@ -112,7 +104,7 @@ export function CheckInBand(props: CheckInBandProps) {
               <div className="flex flex-wrap gap-1">
                 {MOODS.map((m) => (
                   <button key={m.value} onClick={() => { props.onMood(String(m.value)) }}
-                    className={`flex min-h-9 items-center gap-1.5 border px-2 text-[13px] transition-colors ${props.mood === String(m.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
+                    className={`flex h-7 items-center gap-1 border px-2 text-[12px] transition-colors ${props.mood === String(m.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
                     <span aria-hidden="true" className="opacity-60">{m.emoji}</span>
                     {m.label}
                   </button>
@@ -124,11 +116,11 @@ export function CheckInBand(props: CheckInBandProps) {
             <div className="border-b border-line/60 pb-3">
               <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">sleep</div>
               <div className="flex flex-wrap items-center gap-2">
-                <NumInput value={props.sleepHours} onChange={(e) => props.onSleepHours(e.target.value)} className="h-9 w-24" placeholder="7.5" />
+                <NumInput value={props.sleepHours} onChange={(e) => props.onSleepHours(e.target.value)} className="h-8 w-20 text-[12px]" placeholder="7.5" />
                 <div className="flex flex-wrap gap-1">
                   {SLEEP_QUALITIES.map((s) => (
                     <button key={s.value} onClick={() => { props.onSleepQuality(String(s.value)) }}
-                      className={`flex min-h-9 items-center gap-1.5 border px-2 text-[13px] transition-colors ${props.sleepQuality === String(s.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
+                      className={`flex h-7 items-center gap-1 border px-2 text-[12px] transition-colors ${props.sleepQuality === String(s.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
                       <span aria-hidden="true" className="opacity-60">{s.emoji}</span>
                       {s.label}
                     </button>
@@ -180,11 +172,6 @@ export function CheckInBand(props: CheckInBandProps) {
                 </div>
               )}
             </div>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-[12px]">
-            <span className="text-dim">R <span className={`tabular-nums ${props.totalR.startsWith('+') ? 'text-up' : props.totalR.startsWith('-') ? 'text-down' : 'text-ink'}`}>{props.totalR}</span></span>
-            <span className="text-dim">habits <span className="text-ink tabular-nums">{props.habitsDone}/{props.habitsTotal}</span></span>
           </div>
         </Card>
       </div>
