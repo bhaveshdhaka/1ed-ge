@@ -174,9 +174,12 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   writeEntry('days', `${date}.md`, data, '')
-  const detail = `${trades.length} trade${trades.length === 1 ? '' : 's'}` + (mood !== null ? ` · mood ${mood}` : '') + (deviceScreens.length ? ' · screen-time' : '') + (stream.length ? ` · ${stream.length} moment${stream.length === 1 ? '' : 's'}` : '') + (Object.keys(draft).length ? ' · draft' : '')
-  addChange('day', `day ${date}`, detail)
-  return json({ ok: true, file: `${date}.md`, trades: trades.length })
+  const silent = body.silent === true
+  if (!silent) {
+    const detail = `${trades.length} trade${trades.length === 1 ? '' : 's'}` + (mood !== null ? ` · mood ${mood}` : '') + (deviceScreens.length ? ' · screen-time' : '') + (stream.length ? ` · ${stream.length} moment${stream.length === 1 ? '' : 's'}` : '') + (Object.keys(draft).length ? ' · draft' : '')
+    addChange('day', `day ${date}`, detail)
+  }
+  return json({ ok: true, file: `${date}.md`, trades: trades.length, silent })
 }
 
 export const DELETE: APIRoute = async ({ request }) => {

@@ -34,7 +34,7 @@ function isTyping(e: KeyboardEvent): boolean {
   )
 }
 
-export default function AdminApp({ zenLine }: { zenLine?: string | null }) {
+export default function AdminApp(_props: { zenLine?: string | null }) {
   const [tab, setTab] = useState<Tab>('overview')
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -89,7 +89,8 @@ export default function AdminApp({ zenLine }: { zenLine?: string | null }) {
       const mod = e.metaKey || e.ctrlKey
       if (mod && (e.key === 's' || e.key === 'S')) {
         e.preventDefault()
-        bus.emit(e.shiftKey ? 'save-rebuild' : 'save')
+        // ⌘S flushes the 2s autosave debounce (silent write); ⌘⇧S saves + rebuilds
+        bus.emit(e.shiftKey ? 'save-rebuild' : 'flush-save')
         return
       }
       if (mod && e.key === 'ArrowLeft') {
@@ -162,16 +163,6 @@ export default function AdminApp({ zenLine }: { zenLine?: string | null }) {
           </nav>
         </div>
       </header>
-
-      {zenLine && (
-        <div className="border-b border-line bg-raise/60">
-          <div className="shell flex items-center gap-2 py-2 text-[12px]">
-            <span className="text-warn" aria-hidden="true">◷</span>
-            <span className="text-dim">{zenLine}</span>
-            <span className="ml-auto text-faint">pending reflections</span>
-          </div>
-        </div>
-      )}
 
       <RebuildBar />
 

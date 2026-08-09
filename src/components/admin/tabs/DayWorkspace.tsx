@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, fetchRebuildState, bus } from '../api'
 import { fmtDay } from '../../../lib/dates'
 import { nowHkt, addDaysIso } from '../../../lib/sessions'
+import { hktHHMM } from '../../../lib/clock'
 import { Card, Button, TextInput } from '../ui'
 import { DayRail } from '../DayRail'
 import { TradeCard } from '../TradeCard'
@@ -465,52 +466,54 @@ export function DayWorkspace({
   }
 
   // ---------- save ----------
+  const dayPayload = () => ({
+    date,
+    ...(mood ? { mood: parseInt(mood, 10) } : {}),
+    ...(sleepHours || sleepQuality
+      ? { sleep: { ...(sleepHours ? { hours: parseFloat(sleepHours) } : {}), ...(sleepQuality ? { quality: parseInt(sleepQuality, 10) } : {}) } }
+      : {}),
+    habits,
+    ...(iphoneHours || socialHours || macHours || deviceNotes || deviceScreens.length
+      ? {
+          device: {
+            ...(iphoneHours ? { iphoneHours: parseFloat(iphoneHours) } : {}),
+            ...(socialHours ? { socialHours: parseFloat(socialHours) } : {}),
+            ...(macHours ? { macHours: parseFloat(macHours) } : {}),
+            ...(deviceNotes ? { notes: deviceNotes } : {}),
+            screenshots: deviceScreens,
+          },
+        }
+      : {}),
+    trades: trades.map((t) => ({
+      ...t,
+      entry: parseFloat(t.entry),
+      stop: t.stop !== '' ? parseFloat(t.stop) : undefined,
+      target: t.target !== '' ? parseFloat(t.target) : undefined,
+      exit: parseFloat(t.exit),
+      riskPoints: t.riskPoints !== '' ? parseFloat(t.riskPoints) : undefined,
+      points: t.points !== '' ? parseFloat(t.points) : undefined,
+      confidence: t.confidence !== '' ? parseInt(t.confidence, 10) : undefined,
+      executions: t.executions
+        .filter((e) => e.account)
+        .map((e) => ({ account: e.account, size: e.size !== '' ? parseInt(e.size, 10) : undefined })),
+    })),
+    stream: stream.map(momentPayload),
+    ...(draftMoments.length || reflection.trim()
+      ? {
+          draft: {
+            ...(reflection.trim() ? { reflection: reflection.trim() } : {}),
+            ...(draftMoments.length ? { moments: draftMoments.map(momentPayload) } : {}),
+          },
+        }
+      : {}),
+  })
+
   const save = async (rebuild = false) => {
     setSaving(true)
     try {
       await api('/api/admin/days', {
         method: 'POST',
-        body: {
-          date,
-          ...(mood ? { mood: parseInt(mood, 10) } : {}),
-          ...(sleepHours || sleepQuality
-            ? { sleep: { ...(sleepHours ? { hours: parseFloat(sleepHours) } : {}), ...(sleepQuality ? { quality: parseInt(sleepQuality, 10) } : {}) } }
-            : {}),
-          habits,
-          ...(iphoneHours || socialHours || macHours || deviceNotes || deviceScreens.length
-            ? {
-                device: {
-                  ...(iphoneHours ? { iphoneHours: parseFloat(iphoneHours) } : {}),
-                  ...(socialHours ? { socialHours: parseFloat(socialHours) } : {}),
-                  ...(macHours ? { macHours: parseFloat(macHours) } : {}),
-                  ...(deviceNotes ? { notes: deviceNotes } : {}),
-                  screenshots: deviceScreens,
-                },
-              }
-            : {}),
-          trades: trades.map((t) => ({
-            ...t,
-            entry: parseFloat(t.entry),
-            stop: t.stop !== '' ? parseFloat(t.stop) : undefined,
-            target: t.target !== '' ? parseFloat(t.target) : undefined,
-            exit: parseFloat(t.exit),
-            riskPoints: t.riskPoints !== '' ? parseFloat(t.riskPoints) : undefined,
-            points: t.points !== '' ? parseFloat(t.points) : undefined,
-            confidence: t.confidence !== '' ? parseInt(t.confidence, 10) : undefined,
-            executions: t.executions
-              .filter((e) => e.account)
-              .map((e) => ({ account: e.account, size: e.size !== '' ? parseInt(e.size, 10) : undefined })),
-          })),
-          stream: stream.map(momentPayload),
-          ...(draftMoments.length || reflection.trim()
-            ? {
-                draft: {
-                  ...(reflection.trim() ? { reflection: reflection.trim() } : {}),
-                  ...(draftMoments.length ? { moments: draftMoments.map(momentPayload) } : {}),
-                },
-              }
-            : {}),
-        },
+        body: dayPayload(),
       })
 
       clearDirty()
@@ -533,6 +536,38 @@ export function DayWorkspace({
     }
     setSaving(false)
   }
+
+  /** Silent autosave — writes the file, skips the pending-change queue, no toast. */
+  const saveSilent = async () => {
+    try {
+      await api('/api/admin/days', {
+        method: 'POST',
+        body: { ...dayPayload(), silent: true },
+      })
+      clearDirty()
+      setSavedAt(hktHHMM(new Date()))
+    } catch {
+      // autosave is best-effort; the debounce will retry on the next change
+    }
+  }
+
+  // debounced autosave: 2s after the last change, flush a silent save
+  useEffect(() => {
+    if (!dirty) return
+    const id = setTimeout(() => saveSilent(), 2000)
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty, date, mood, sleepHours, sleepQuality, habits, reflection, trades, draftMoments, stream])
+
+  // flush on window blur too (walking away from the admin saves what's typed)
+  useEffect(() => {
+    const onWinBlur = () => {
+      if (dirty) saveSilent()
+    }
+    window.addEventListener('blur', onWinBlur)
+    return () => window.removeEventListener('blur', onWinBlur)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty])
 
   const publishReflection = async () => {
     if (!reflection.trim()) return notify('write a reflection draft first', false)
@@ -717,6 +752,8 @@ export function DayWorkspace({
   useEffect(() => {
     const offSave = bus.on('save', () => save(false))
     const offRebuild = bus.on('save-rebuild', () => save(true))
+    // ⌘S flush — force an immediate silent save (skips the 2s debounce)
+    const offFlushSave = bus.on('flush-save', () => saveSilent())
     const offPrev = bus.on('prev-day', () => prevDay && selectDate(prevDay.date))
     const offNext = bus.on('next-day', () => nextDay && selectDate(nextDay.date))
     const offToday = bus.on('today', () => selectDate(todayStr()))
@@ -730,6 +767,7 @@ export function DayWorkspace({
     return () => {
       offSave()
       offRebuild()
+      offFlushSave()
       offPrev()
       offNext()
       offToday()
@@ -783,8 +821,6 @@ export function DayWorkspace({
             <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
           )}
           <TextInput type="date" aria-label="day date" value={date} onChange={(e) => selectDate(e.target.value)} className="h-9 w-40" />
-          <Button size="sm" onClick={() => save(false)} disabled={saving}>{saving ? 'saving…' : 'save'}</Button>
-          <Button size="sm" variant="primary" onClick={() => save(true)} disabled={saving}>save &amp; rebuild</Button>
         </div>
       </div>
 
@@ -942,10 +978,7 @@ export function DayWorkspace({
                 <span className={dayTotals.pts >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pts >= 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
                 <span className="text-dim">·</span>
                 <span className={dayTotals.pnl >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pnl >= 0 ? '+' : ''}${Math.round(dayTotals.pnl).toLocaleString()}</span>
-                <div className="ml-auto flex gap-2">
-                  <Button size="sm" onClick={() => save(false)} disabled={saving}>{saving ? 'saving…' : 'save'}</Button>
-                  <Button size="sm" variant="primary" onClick={() => save(true)} disabled={saving}>save &amp; rebuild</Button>
-                </div>
+                <span className="ml-auto text-[11px] text-faint">autosaves on idle · ⌘S flushes</span>
               </div>
             </>
           )}
