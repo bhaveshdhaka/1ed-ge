@@ -86,5 +86,5 @@ export const POST: APIRoute = async ({ request }) => {
     addChange('day', `day ${date}`, `${trades.length} imported trades`)
   }
 
-  return json({ ok: true, dayFile: `${date}.md`, linksApplied })
+  return json({ ok: true, dayFile: `${date}.md`, linksApplied, imported: trades.length })
 }

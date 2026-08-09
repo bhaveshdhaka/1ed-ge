@@ -4,7 +4,7 @@ import { Card, Button, Stat, inputCls } from '../ui'
 import type { Tab } from '../AdminApp'
 import type { AccountRuleStatus } from '../../../lib/account-rules'
 import { nextModifiedHoursDay, cmeModifiedCt, ctToHktHhmm, type ModifiedHoursDay } from '../../../lib/market'
-import { fmtDayW } from '../../../lib/dates'
+import { fmtDay, fmtDayW } from '../../../lib/dates'
 
 interface Status {
   env: { adminSecretSet: boolean; openrouterKeySet: boolean; modelStructure: string; modelVision: string }
@@ -160,7 +160,7 @@ export function OverviewTab({
           />
           <span>{modifiedHoursLine(modifiedHours)}</span>
           <a
-            href={`/day/${modifiedHours.iso}`}
+            href={`/day/${fmtDay(modifiedHours.iso)}`}
             target="_blank"
             className="ml-auto text-[12px] text-faint hover:text-ink"
           >
