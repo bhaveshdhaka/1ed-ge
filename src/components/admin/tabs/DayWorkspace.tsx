@@ -1009,7 +1009,7 @@ export function DayWorkspace({
               {/* ---------- FOOTER ---------- */}
               <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-[13px]">
                 <span className="text-dim">day</span>
-                <span className="num-up">{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
+                <span className={dayTotals.R > 0 ? 'text-up' : dayTotals.R < 0 ? 'text-down' : 'text-ink'}>{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
                 <span className="text-dim">·</span>
                 <span className={dayTotals.pts >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pts >= 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
                 <span className="text-dim">·</span>
