@@ -39,6 +39,7 @@ function normalizeTrade(t: Record<string, any>, i: number) {
     ...(confidence !== null ? { confidence: Math.max(1, Math.min(5, confidence)) } : {}),
     ...(t.note ? { note: String(t.note) } : {}),
     ...(typeof t.model === 'string' && t.model.trim() ? { model: String(t.model).trim() } : {}),
+    ...(Array.isArray(t.models) && t.models.length ? { models: t.models.map(String).filter((m: string) => m.trim()) } : {}),
     ...(typeof t.commentary === 'string' && t.commentary.trim() ? { commentary: String(t.commentary).trim() } : {}),
     screenshots: Array.isArray(t.screenshots) ? t.screenshots.filter((s: unknown) => typeof s === 'string') : [],
     executions: Array.isArray(t.executions)
@@ -95,6 +96,15 @@ export const GET: APIRoute = async ({ request }) => {
     let day: Record<string, unknown> | null = null
     if (listMds('days').includes(`${date}.md`)) {
       day = readEntry('days', `${date}.md`).data
+      if (day && Array.isArray(day.trades)) {
+        day = {
+          ...day,
+          trades: (day.trades as Record<string, unknown>[]).map((t) => ({
+            ...t,
+            models: Array.isArray(t.models) ? t.models.map(String) : typeof t.model === 'string' ? [t.model] : [],
+          })),
+        }
+      }
     }
     return json({ ok: true, day, accounts, habits, models })
   }

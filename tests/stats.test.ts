@@ -47,6 +47,7 @@ const tr = (over: Partial<DayEntry['data']['trades'][number]> = {}): DayEntry['d
   riskPoints: 1,
   executions: [{ account: 'lucid-50k-a', size: 1 }],
   screenshots: [],
+  models: [],
   ...over,
 })
 
@@ -63,6 +64,7 @@ test('flatten: one trade + executions -> per-account rows', () => {
         riskPoints: 5.5,
         executions: [{ account: 'lucid-50k-a', size: 1 }],
         screenshots: [],
+        models: [],
       },
     ]),
   ]
@@ -101,6 +103,7 @@ test('flatten: zero-risk trade -> R 0', () => {
         riskPoints: 0,
         executions: [{ account: 'lucid-50k-a', size: 1 }],
         screenshots: [],
+        models: [],
       },
     ]),
   ]
@@ -121,6 +124,7 @@ test('flatten: stop-based risk fallback when riskPoints absent', () => {
         points: 4,
         executions: [{ account: 'lucid-50k-a', size: 1 }],
         screenshots: [],
+        models: [],
       },
     ]),
   ]
@@ -145,6 +149,7 @@ test('flatten: two executions on one trade -> two rows, per-account pnl', () => 
           { account: 'tpt-25k-a', size: 2 },
         ],
         screenshots: [],
+        models: [],
       },
     ]),
   ]
@@ -172,6 +177,7 @@ test('flatten: executions without an account map fall back to defaults', () => {
         riskPoints: 1,
         executions: [{ account: '__unlogged__', size: 1 }],
         screenshots: [],
+        models: [],
       },
     ]),
   ]

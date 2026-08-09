@@ -30,6 +30,7 @@ const tr = (
   riskPoints: 1,
   executions: execs,
   screenshots: [],
+  models: [],
 })
 
 const mkHabitDay = (date: string, n: number): DayEntry => {

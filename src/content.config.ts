@@ -53,6 +53,7 @@ const trade = z.object({
   direction: z.enum(['long', 'short']),
   setup: z.string().optional(),
   model: z.string().optional(),
+  models: z.array(z.string()).default([]),
   entry: z.number(),
   stop: z.number().optional(),
   target: z.number().optional(),
