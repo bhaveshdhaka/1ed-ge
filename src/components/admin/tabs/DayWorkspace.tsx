@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, bus } from '../api'
-import { fmtDay } from '../../../lib/dates'
+import { fmtDay, fmtDayW } from '../../../lib/dates'
 import { nowHkt, addDaysIso } from '../../../lib/sessions'
 import { hktHHMM } from '../../../lib/clock'
 import { Card, Button, TextInput } from '../ui'
@@ -737,10 +737,10 @@ export function DayWorkspace({
     const posted = content.trim().length > 0
     if (!weekday(date) || posted) return { type: 'daily', status: 'done' as const }
     const dueIso = `${addDaysIso(date, 1)}T03:00`
-    const graceUntil = new Date(`${addDaysIso(date, 1)}T03:00:00+08:00`)
     const now = nowHkt()
-    const status = now.slice(0, 16) >= dueIso ? ('overdue' as const) : ('grace' as const)
-    return { type: 'daily', status, graceUntil }
+    // Only show as overdue after 3am next day — before that, not yet due
+    if (now.slice(0, 16) >= dueIso) return { type: 'daily', status: 'overdue' as const }
+    return null
   }, [date, content])
 
   const scrollTo = (id: string) => {
@@ -800,7 +800,7 @@ export function DayWorkspace({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-xl">/ day</h1>
-          <span className="text-[12px] text-faint">{fmtDay(date)}</span>
+          <span className="text-[12px] text-faint">{fmtDayW(date)}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {hasDayRecord && (
