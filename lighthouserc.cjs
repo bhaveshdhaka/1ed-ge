@@ -13,7 +13,6 @@ const PUBLIC_URLS = [
   `http://127.0.0.1:${PORT}/about`,
   `http://127.0.0.1:${PORT}/models`,
   `http://127.0.0.1:${PORT}/week`,
-  `http://127.0.0.1:${PORT}/lookback`,
 ]
 
 module.exports = {
