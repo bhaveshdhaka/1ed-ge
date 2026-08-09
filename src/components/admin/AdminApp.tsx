@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getPasteSink, bus, api } from './api'
+import { getPasteSink, bus, api, triggerRebuild } from './api'
 import { RebuildBar } from './RebuildBar'
+import { CommandPalette } from './CommandPalette'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DayWorkspace } from './tabs/DayWorkspace'
 import { AccountsTab } from './tabs/AccountsTab'
@@ -21,16 +22,6 @@ const TABS: { id: Tab; label: string; key: string }[] = [
   { id: 'reviews', label: 'reviews', key: '7' },
 ]
 
-const SHORTCUTS: { keys: string; desc: string }[] = [
-  { keys: '1 … 7', desc: 'switch tabs' },
-  { keys: '⌘S / Ctrl+S', desc: 'save the day' },
-  { keys: '⌘⇧S / Ctrl+Shift+S', desc: 'save & rebuild' },
-  { keys: '⌘← / ⌘→', desc: 'previous / next day' },
-  { keys: 't', desc: 'jump to today' },
-  { keys: '?', desc: 'this help' },
-  { keys: 'esc', desc: 'close overlays' },
-]
-
 function isTyping(e: KeyboardEvent): boolean {
   const el = e.target as HTMLElement
   if (!el) return false
@@ -46,7 +37,7 @@ function isTyping(e: KeyboardEvent): boolean {
 export default function AdminApp({ zenLine }: { zenLine?: string | null }) {
   const [tab, setTab] = useState<Tab>('overview')
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
-  const [help, setHelp] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const [dirty, setDirty] = useState(false)
   const dirtyRef = useRef(false)
   const setGlobalDirty = useCallback((b: boolean) => {
@@ -111,12 +102,14 @@ export default function AdminApp({ zenLine }: { zenLine?: string | null }) {
         bus.emit('next-day')
         return
       }
-      if (e.key === 'Escape') {
-        setHelp(false)
+      // ⌘K (or / when not typing) toggles the command palette — isTyping guards / first
+      if ((mod && e.key === 'k') || (!isTyping(e) && e.key === '/')) {
+        e.preventDefault()
+        setPaletteOpen((p) => !p)
         return
       }
-      if (e.key === '?') {
-        setHelp((h) => !h)
+      if (e.key === 'Escape') {
+        setPaletteOpen(false)
         return
       }
       if (isTyping(e)) return
@@ -160,11 +153,11 @@ export default function AdminApp({ zenLine }: { zenLine?: string | null }) {
               </button>
             ))}
             <button
-              onClick={() => setHelp(true)}
-              aria-label="keyboard shortcuts"
+              onClick={() => setPaletteOpen(true)}
+              aria-label="command palette"
               className="ml-1 flex h-10 w-10 items-center justify-center border border-line2 text-[13px] text-dim transition-colors hover:border-accent hover:text-ink md:h-11"
             >
-              ?
+              ⌘K
             </button>
           </nav>
         </div>
@@ -201,29 +194,59 @@ export default function AdminApp({ zenLine }: { zenLine?: string | null }) {
         </div>
       )}
 
-      {help && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-bg/80 p-4" onClick={() => setHelp(false)}>
-          <div
-            className="w-full max-w-md border border-line bg-panel p-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-[13px] uppercase tracking-widest text-soft">keyboard shortcuts</h2>
-              <button onClick={() => setHelp(false)} className="h-10 w-10 border border-line2 text-dim hover:text-ink" aria-label="close">
-                ×
-              </button>
-            </div>
-            <div className="space-y-1">
-              {SHORTCUTS.map((s) => (
-                <div key={s.keys} className="flex items-center justify-between border-b border-line/60 py-2 text-[13px]">
-                  <kbd className="border border-line2 bg-bg px-2 py-0.5 text-[12px] text-accent">{s.keys}</kbd>
-                  <span className="text-dim">{s.desc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        onGo={(t) => go(t as Tab)}
+        onToday={() => {
+          go('day')
+          bus.emit('today')
+        }}
+        onPrevDay={() => {
+          go('day')
+          bus.emit('prev-day')
+        }}
+        onNextDay={() => {
+          go('day')
+          bus.emit('next-day')
+        }}
+        onWrite={(kind) => {
+          go('day')
+          notify(`write ${kind} — in the thoughts composer on the day tab`)
+        }}
+        onPolish={() => {
+          go('day')
+          notify('polish a draft — thoughts surface on the day tab')
+        }}
+        onAddModel={() => {
+          go('library')
+          notify('add a model in the library tab')
+        }}
+        onBuildDay={() => {
+          go('day')
+          notify('build this day — paste screenshots in the check-in band')
+        }}
+        onImport={() => {
+          go('day')
+          notify('import trades — the ingest panel on the day tab')
+        }}
+        onAIDraft={() => {
+          go('day')
+          notify('AI draft from today — reflection zone on the day tab')
+        }}
+        onRebuild={async () => {
+          try {
+            await triggerRebuild()
+            notify('rebuild started — the bar will flash when live')
+          } catch {
+            notify('rebuild failed to start', false)
+          }
+        }}
+        onJump={(section) => {
+          go('day')
+          if (section) setTimeout(() => document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
+        }}
+      />
     </div>
   )
 }
