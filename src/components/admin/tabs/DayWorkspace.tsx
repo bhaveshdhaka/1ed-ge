@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, fetchRebuildState, bus } from '../api'
+import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, bus } from '../api'
 import { fmtDay } from '../../../lib/dates'
 import { nowHkt, addDaysIso } from '../../../lib/sessions'
 import { hktHHMM } from '../../../lib/clock'
@@ -7,9 +7,8 @@ import { Card, Button, TextInput } from '../ui'
 import { DayRail } from '../DayRail'
 import { TradeList } from '../TradeCard'
 import { CeremonyProvider, useCeremony } from '../CeremonyMode'
-import { ReflectionZone } from '../ReflectionZone'
 import { CheckInBand } from '../CheckInBand'
-import { ThoughtsSurface } from '../ThoughtsSurface'
+import { WriteZone, type ReflectionObligation } from '../WriteZone'
 import { HabitRow } from '../HabitRow'
 import { AIBuildSheet } from '../AIBuildSheet'
 import { IngestSheet } from '../IngestSheet'
@@ -71,9 +70,13 @@ function CeremonyDim({ children }: { children: ReactNode }) {
 export function DayWorkspace({
   onDirtyChange,
   onNavigateLibrary,
+  onDayStatusChange,
+  gotoDay,
 }: {
   onDirtyChange?: (dirty: boolean) => void
   onNavigateLibrary?: () => void
+  onDayStatusChange?: (status: 'unsaved' | 'saved' | 'published' | 'none') => void
+  gotoDay?: string
 }) {
   const [date, setDate] = useState(todayStr())
   const [daysList, setDaysList] = useState<DayListItem[]>([])
@@ -99,7 +102,6 @@ export function DayWorkspace({
   const [content, setContent] = useState('')
   const [models, setModels] = useState<{ slug: string; name: string; premise?: string }[]>([])
   const [reflection, setReflection] = useState('')
-  const [draftThoughts, setDraftThoughts] = useState<ThoughtForm[]>([])
   const [stream, setStream] = useState<ThoughtForm[]>([])
 
   const [dayText, setDayText] = useState('')
@@ -114,7 +116,6 @@ export function DayWorkspace({
   const [dayPickerOpen, setDayPickerOpen] = useState(false)
   const [expandedTrade, setExpandedTrade] = useState<number | null>(null)
   const [expandAll, setExpandAll] = useState(false)
-  const [pendingLabels, setPendingLabels] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -167,7 +168,6 @@ export function DayWorkspace({
         setDeviceNotes(day?.device?.notes ?? '')
         setDeviceScreens(day?.device?.screenshots ?? [])
         setReflection(String(day?.draft?.reflection ?? ''))
-        setDraftThoughts((day?.draft?.moments ?? []).map(toThoughtForm))
         setStream((day?.stream ?? []).map(toThoughtForm))
         setTrades((day?.trades ?? []).map((t: any) => ({
           market: String(t.market ?? 'MNQ'),
@@ -222,32 +222,14 @@ export function DayWorkspace({
     } catch {}
   }, [])
 
-  const refreshPending = useCallback(async () => {
-    try {
-      const st = await fetchRebuildState()
-      setPendingLabels(st.pending.map((p) => p.label))
-    } catch {}
-  }, [])
-
   useEffect(() => {
     load(date)
     loadDays()
-    refreshPending()
     // journal dates (reflection posts) — powers the pending-obligation set
     api<{ entries: { data: { date?: string } }[] }>('/api/admin/journal')
       .then((r) => setJournalDates((r.entries ?? []).map((e) => String(e.data?.date ?? '')).filter(Boolean)))
       .catch(() => {})
-  }, [date, load, loadDays, refreshPending])
-
-  // keep the published/draft indicator fresh while mounted
-  useEffect(() => {
-    const id = setInterval(refreshPending, 4000)
-    const off = bus.on(refreshPending)
-    return () => {
-      clearInterval(id)
-      off()
-    }
-  }, [refreshPending])
+  }, [date, load, loadDays])
 
   useEffect(() => {
     setPasteSink((files) => addDayImages(files))
@@ -282,29 +264,8 @@ export function DayWorkspace({
     ...(m.author.trim() ? { author: m.author.trim() } : {}),
     ...(m.images.length ? { images: m.images } : {}),
   })
-  const setThought = (i: number, patch: Partial<ThoughtForm>) => {
-    setDraftThoughts((ms) => ms.map((m, j) => (j === i ? { ...m, ...patch } : m)))
-    markDirty()
-  }
-  const publishThought = (i: number) => {
-    const m = draftThoughts[i]
-    if (m.type === 'trade' && m.tradeIdx === '') return toast.error('pick a trade for this thought')
-    if (m.type !== 'trade' && !m.text.trim() && !m.images.length) return toast.error('write the thought text or attach an image first')
-    setStream((s) => [...s, m])
-    setDraftThoughts((ms) => ms.filter((_, j) => j !== i))
-    markDirty()
-    saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
-  }
-  /** publish a trade card straight to the stream as a trade thought (same pattern as publishThought). */
-  const publishTradeThought = (ti: number) => {
-    const m: ThoughtForm = { at: '', type: 'trade', text: '', tradeIdx: String(ti), author: '', images: [] }
-    setStream((s) => [...s, m])
-    markDirty()
-    saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
-    toast.success('trade added to the stream — queued for rebuild')
-  }
-  /** composer ⌘⏎ — publish a thought from the composer. Saves immediately with the new thought included. */
-  const publishComposer = (type: string, text: string, author?: string) => {
+  /** publish a thought/quote from the WriteZone composer. Saves immediately with the new thought included. */
+  const publishThought = (type: string, text: string, author?: string) => {
     const trimmed = text.trim()
     if (!trimmed) return
     const m: ThoughtForm = { at: '', type, text: trimmed, tradeIdx: '', author: author ?? '', images: [] }
@@ -318,23 +279,50 @@ export function DayWorkspace({
     }).catch(() => {})
     toast.success('thought published')
   }
+  /** publish a trade from the WriteZone composer: add the trade, then stream it. */
+  const publishTrade = (trade: Partial<TradeForm>) => {
+    const nextTrade: TradeForm = {
+      market: trade.market?.trim() || 'MNQ',
+      session: trade.session ?? '',
+      direction: trade.direction === 'short' ? 'short' : 'long',
+      setup: trade.setup ?? '',
+      entry: String(trade.entry ?? ''),
+      stop: String(trade.stop ?? ''),
+      target: String(trade.target ?? ''),
+      exit: String(trade.exit ?? ''),
+      riskPoints: String(trade.riskPoints ?? ''),
+      points: String(trade.points ?? ''),
+      confidence: String(trade.confidence ?? ''),
+      note: String(trade.note ?? ''),
+      model: String(trade.model ?? ''),
+      commentary: String(trade.commentary ?? ''),
+      models: trade.models?.length ? trade.models.map(String) : trade.model ? [String(trade.model)] : [],
+      screenshots: trade.screenshots ?? [],
+      executions: (trade.executions ?? []).filter((e) => e.account).map((e) => ({ account: e.account, size: e.size ?? '' })),
+    }
+    const tradeIndex = trades.length
+    const updatedTrades = [...trades, nextTrade]
+    const updatedStream = [...stream, { at: '', type: 'trade', text: '', tradeIdx: String(tradeIndex), author: '', images: [] } as ThoughtForm]
+    setTrades(updatedTrades)
+    setStream(updatedStream)
+    markDirty()
+    api('/api/admin/days', {
+      method: 'POST',
+      body: { ...dayPayload(), trades: serializeTrades(updatedTrades), stream: updatedStream.map(thoughtPayload), silent: true },
+    }).catch(() => {})
+    toast.success('trade added — queued for rebuild')
+  }
+  /** publish a trade card straight to the stream as a trade thought (same pattern as publishThought). */
+  const publishTradeThought = (ti: number) => {
+    const m: ThoughtForm = { at: '', type: 'trade', text: '', tradeIdx: String(ti), author: '', images: [] }
+    setStream((s) => [...s, m])
+    markDirty()
+    saveSilent() // immediate — don't wait for the 2s debounce on explicit publish
+    toast.success('trade added to the stream — queued for rebuild')
+  }
   const unstreamThought = (i: number) => {
     setStream((s) => s.filter((_, j) => j !== i))
     markDirty()
-  }
-  const polishThought = async (i: number) => {
-    const m = draftThoughts[i]
-    if (!m.text.trim()) return toast.error('write something to polish first')
-    try {
-      const res = await api<{ result: string }>('/api/admin/ai', {
-        method: 'POST',
-        body: { action: 'assist', kind: 'polish', text: m.text },
-      })
-      setThought(i, { text: res.result })
-      toast('polished — review it, then publish')
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'polish failed')
-    }
   }
 
   const selectDate = (d: string) => {
@@ -520,15 +508,29 @@ export function DayWorkspace({
         .map((e) => ({ account: e.account, size: e.size !== '' ? parseInt(e.size, 10) : undefined })),
     })),
     stream: stream.map(thoughtPayload),
-    ...(draftThoughts.length || reflection.trim()
+    ...(reflection.trim()
       ? {
           draft: {
             ...(reflection.trim() ? { reflection: reflection.trim() } : {}),
-            ...(draftThoughts.length ? { moments: draftThoughts.map(thoughtPayload) } : {}),
           },
         }
       : {}),
   })
+
+  const serializeTrades = (ts: TradeForm[]) =>
+    ts.map((t) => ({
+      ...t,
+      entry: parseFloat(t.entry),
+      stop: t.stop !== '' ? parseFloat(t.stop) : undefined,
+      target: t.target !== '' ? parseFloat(t.target) : undefined,
+      exit: parseFloat(t.exit),
+      riskPoints: t.riskPoints !== '' ? parseFloat(t.riskPoints) : undefined,
+      points: t.points !== '' ? parseFloat(t.points) : undefined,
+      confidence: t.confidence !== '' ? parseInt(t.confidence, 10) : undefined,
+      executions: t.executions
+        .filter((e) => e.account)
+        .map((e) => ({ account: e.account, size: e.size !== '' ? parseInt(e.size, 10) : undefined })),
+    }))
 
   const save = async (rebuild = false) => {
     setSaving(true)
@@ -549,7 +551,6 @@ export function DayWorkspace({
       }
       await load(date)
       await loadDays()
-      await refreshPending()
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'save failed')
     }
@@ -575,7 +576,7 @@ export function DayWorkspace({
     const id = setTimeout(() => saveSilent(), 2000)
     return () => clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dirty, date, mood, sleepHours, sleepQuality, habits, reflection, trades, draftThoughts, stream])
+  }, [dirty, date, mood, sleepHours, sleepQuality, habits, reflection, trades, stream])
 
   // flush on window blur too (walking away from the admin saves what's typed)
   useEffect(() => {
@@ -681,19 +682,6 @@ export function DayWorkspace({
     }
   }
 
-  const onThoughtImages = async (i: number, files: File[]) => {
-    for (const f of files) {
-      try {
-        const dataUrl = await fileToDataUrl(f)
-        const url = await uploadDataUrl(dataUrl, f.name)
-        setDraftThoughts((ms) => ms.map((m, j) => (j === i ? { ...m, images: [...m.images, url] } : m)))
-        markDirty()
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : 'upload failed')
-      }
-    }
-  }
-
   const idx = daysList.findIndex((d) => d.date === date)
   const prevDay = idx < daysList.length - 1 ? daysList[idx + 1] : null
   const nextDay = idx > 0 ? daysList[idx - 1] : null
@@ -760,7 +748,22 @@ export function DayWorkspace({
   }
 
   const hasDayRecord = daysList.some((d) => d.date === date)
-  const dayPending = pendingLabels.some((l) => l.includes(date))
+
+  const dayStatus: 'unsaved' | 'saved' | 'published' | 'none' = dirty
+    ? 'unsaved'
+    : content.trim()
+      ? 'published'
+      : hasDayRecord
+        ? 'saved'
+        : 'none'
+
+  useEffect(() => {
+    onDayStatusChange?.(dayStatus)
+  }, [dayStatus, onDayStatusChange])
+
+  useEffect(() => {
+    if (gotoDay && gotoDay !== date) selectDate(gotoDay)
+  }, [gotoDay, date])
 
   // day-level keyboard shortcuts (global save handled in AdminApp)
   useEffect(() => {
@@ -797,13 +800,7 @@ export function DayWorkspace({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-xl">/ day</h1>
-          <span
-            className={`text-[12px] ${
-              dirty ? 'text-warn' : dayPending ? 'text-warn' : hasDayRecord || content.trim() ? 'text-up' : 'text-faint'
-            }`}
-          >
-            {dirty ? '● unsaved draft' : dayPending ? '● draft saved · not published' : hasDayRecord || content.trim() ? '● published' : '— no day yet'}
-          </span>
+          <span className="text-[12px] text-faint">{fmtDay(date)}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {hasDayRecord && (
@@ -833,145 +830,120 @@ export function DayWorkspace({
           ) : (
             <>
               <CeremonyDim>
-              {/* ---------- Z1 CHECK-IN ---------- */}
-              <CheckInBand
-                date={date}
-                dayText={dayText}
-                dayImages={dayImages}
-                dayBusy={dayBusy}
-                canBuild={!!dayText.trim() || dayImagesRef.current.length > 0}
-                onDayTextChange={(v) => { setDayText(v); markDirty() }}
-                onBuildDay={() => runStructure()}
-                onAddDayImages={addDayImages}
-                onRemoveDayImage={removeDayImage}
-                editing={editing}
-                onStartEdit={setEditing}
-                onDoneEdit={() => setEditing(null)}
-                mood={mood}
-                sleepHours={sleepHours}
-                sleepQuality={sleepQuality}
-                iphoneHours={iphoneHours}
-                socialHours={socialHours}
-                macHours={macHours}
-                deviceNotes={deviceNotes}
-                onMood={(v) => { setMood(v); markDirty() }}
-                onSleepHours={(v) => { setSleepHours(v); markDirty() }}
-                onSleepQuality={(v) => { setSleepQuality(v); markDirty() }}
-                onIphone={(v) => { setIphoneHours(v); markDirty() }}
-                onSocial={(v) => { setSocialHours(v); markDirty() }}
-                onMac={(v) => { setMacHours(v); markDirty() }}
-                onDeviceNotes={(v) => { setDeviceNotes(v); markDirty() }}
-                screenBusy={screenBusy}
-                onPasteScreen={onDeviceScreens}
-                deviceScreens={deviceScreens}
-                onRemoveDeviceScreen={(s) => setDeviceScreens((x) => x.filter((y) => y !== s))}
-                onEvidence={() => setAiBuildOpen(true)}
-              />
+                {/* ---------- Z1 CHECK-IN ---------- */}
+                <CheckInBand
+                  date={date}
+                  dayText={dayText}
+                  dayImages={dayImages}
+                  dayBusy={dayBusy}
+                  canBuild={!!dayText.trim() || dayImagesRef.current.length > 0}
+                  onDayTextChange={(v) => { setDayText(v); markDirty() }}
+                  onBuildDay={() => runStructure()}
+                  onAddDayImages={addDayImages}
+                  onRemoveDayImage={removeDayImage}
+                  editing={editing}
+                  onStartEdit={setEditing}
+                  onDoneEdit={() => setEditing(null)}
+                  mood={mood}
+                  sleepHours={sleepHours}
+                  sleepQuality={sleepQuality}
+                  iphoneHours={iphoneHours}
+                  socialHours={socialHours}
+                  macHours={macHours}
+                  deviceNotes={deviceNotes}
+                  onMood={(v) => { setMood(v); markDirty() }}
+                  onSleepHours={(v) => { setSleepHours(v); markDirty() }}
+                  onSleepQuality={(v) => { setSleepQuality(v); markDirty() }}
+                  onIphone={(v) => { setIphoneHours(v); markDirty() }}
+                  onSocial={(v) => { setSocialHours(v); markDirty() }}
+                  onMac={(v) => { setMacHours(v); markDirty() }}
+                  onDeviceNotes={(v) => { setDeviceNotes(v); markDirty() }}
+                  screenBusy={screenBusy}
+                  onPasteScreen={onDeviceScreens}
+                  deviceScreens={deviceScreens}
+                  onRemoveDeviceScreen={(s) => setDeviceScreens((x) => x.filter((y) => y !== s))}
+                  onEvidence={() => setAiBuildOpen(true)}
+                />
+              </CeremonyDim>
 
-              {/* ---------- Z2 THOUGHTS ---------- */}
-              <ThoughtsSurface
-                draftThoughts={draftThoughts}
+              {/* ---------- Z2 WRITE ZONE ---------- */}
+              <WriteZone
                 stream={stream}
                 trades={trades}
-                onComposerPublish={publishComposer}
-                onAddDraft={() => { setDraftThoughts((ms) => [...ms, { at: '', type: 'note', text: '', tradeIdx: '', author: '', images: [] }]); markDirty() }}
-                onThoughtChange={setThought}
-                onPublishDraft={publishThought}
-                onPolishDraft={polishThought}
-                onRemoveDraft={(i) => { setDraftThoughts((ms) => ms.filter((_, j) => j !== i)); markDirty() }}
-                onUnstream={unstreamThought}
-                onThoughtImages={onThoughtImages}
-                onReorderDraft={(from, to) => {
-                  setDraftThoughts((ms) => {
-                    const next = [...ms]
-                    const [moved] = next.splice(from, 1)
-                    next.splice(to, 0, moved)
-                    return next
-                  })
-                  markDirty()
-                }}
-                onReorderStream={(from, to) => {
-                  setStream((s) => {
-                    const next = [...s]
-                    const [moved] = next.splice(from, 1)
-                    next.splice(to, 0, moved)
-                    return next
-                  })
-                  markDirty()
-                }}
-                ghostTextEnabled={ghostOn}
-              />
-
-              {/* ---------- Z3 HABITS ---------- */}
-              <HabitRow
-                habitDefs={habitDefs}
-                habits={habits}
-                onToggle={(slug) => { setHabits((x) => ({ ...x, [slug]: !(x[slug] === true) })); markDirty() }}
-                onAdjust={(slug, delta) => { setHabits((x) => { const cur = typeof x[slug] === 'number' ? (x[slug] as number) : 0; return { ...x, [slug]: Math.max(0, cur + delta) } as Record<string, boolean> }); markDirty() }}
-                onNavigateLibrary={onNavigateLibrary ?? (() => {})}
-              />
-
-              {/* ---------- Z4 TRADES ---------- */}
-              <div id="sec-trades" className="mt-5 scroll-mt-20">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-[11px] uppercase tracking-widest text-dim">trades ({trades.length})</span>
-                  <div className="flex items-center gap-2">
-                    {trades.length > 0 && (
-                      <Button size="sm" onClick={() => { setExpandAll((e) => !e); setExpandedTrade(null) }}>
-                        {expandAll ? 'collapse all' : 'expand all'}
-                      </Button>
-                    )}
-                    <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); setExpandAll(false); setExpandedTrade(trades.length); markDirty() }}>+ add trade</Button>
-                    <button
-                      type="button"
-                      onClick={() => setIngestOpen(true)}
-                      className="flex h-8 items-center border border-line2 px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink"
-                    >
-                      ⤓ import trades ▸
-                    </button>
-                  </div>
-                </div>
-                <TradeList
-                  trades={trades}
-                  allModels={models}
-                  accountLabel={accountLabel}
-                  accounts={accounts}
-                  onChange={setTrade}
-                  expandedIndex={expandedTrade}
-                  expandAll={expandAll}
-                  onToggle={(ti) => {
-                    if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
-                    else setExpandedTrade(expandedTrade === ti ? null : ti)
-                  }}
-                  onRemove={(ti) => setTrades((ts) => ts.filter((_, j) => j !== ti))}
-                  onTradeScreens={onTradeScreens}
-                  onPublish={publishTradeThought}
-                  onReorder={(from, to) => {
-                    setTrades((ts) => {
-                      const next = [...ts]
-                      const [moved] = next.splice(from, 1)
-                      next.splice(to, 0, moved)
-                      return next
-                    })
-                    markDirty()
-                  }}
-                />
-              </div>
-
-              {/* ---------- REFLECTION (Z5) ---------- */}
-              </CeremonyDim>
-              <ReflectionZone
+                models={models.map(({ slug, name }) => ({ slug, name }))}
+                accounts={accounts}
                 reflection={reflection}
                 content={content}
+                previewHref={`/day/${fmtDay(date)}`}
+                onPublishThought={publishThought}
+                onPublishTrade={publishTrade}
+                onPublishReflection={publishReflection}
                 onReflectionChange={(v) => { setReflection(v); markDirty() }}
-                onPublish={publishReflection}
                 onAIDraft={runDraft}
                 draftBusy={draftBusy}
                 saving={saving}
                 obligation={obligation}
-                onObligationClick={() => scrollTo('sec-reflection')}
                 ghostTextEnabled={ghostOn}
+                onUnstream={unstreamThought}
               />
+
+              <CeremonyDim>
+                {/* ---------- Z3 HABITS ---------- */}
+                <HabitRow
+                  habitDefs={habitDefs}
+                  habits={habits}
+                  onToggle={(slug) => { setHabits((x) => ({ ...x, [slug]: !(x[slug] === true) })); markDirty() }}
+                  onAdjust={(slug, delta) => { setHabits((x) => { const cur = typeof x[slug] === 'number' ? (x[slug] as number) : 0; return { ...x, [slug]: Math.max(0, cur + delta) } as Record<string, boolean> }); markDirty() }}
+                  onNavigateLibrary={onNavigateLibrary ?? (() => {})}
+                />
+
+                {/* ---------- Z4 TRADES ---------- */}
+                <div id="sec-trades" className="mt-5 scroll-mt-20">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-[11px] uppercase tracking-widest text-dim">trades ({trades.length})</span>
+                    <div className="flex items-center gap-2">
+                      {trades.length > 0 && (
+                        <Button size="sm" onClick={() => { setExpandAll((e) => !e); setExpandedTrade(null) }}>
+                          {expandAll ? 'collapse all' : 'expand all'}
+                        </Button>
+                      )}
+                      <Button size="sm" onClick={() => { setTrades((ts) => [...ts, emptyTrade()]); setExpandAll(false); setExpandedTrade(trades.length); markDirty() }}>+ add trade</Button>
+                      <button
+                        type="button"
+                        onClick={() => setIngestOpen(true)}
+                        className="flex h-8 items-center border border-line2 px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink"
+                      >
+                        ⤓ import trades ▸
+                      </button>
+                    </div>
+                  </div>
+                  <TradeList
+                    trades={trades}
+                    allModels={models}
+                    accountLabel={accountLabel}
+                    accounts={accounts}
+                    onChange={setTrade}
+                    expandedIndex={expandedTrade}
+                    expandAll={expandAll}
+                    onToggle={(ti) => {
+                      if (expandAll) { setExpandAll(false); setExpandedTrade(ti) }
+                      else setExpandedTrade(expandedTrade === ti ? null : ti)
+                    }}
+                    onRemove={(ti) => setTrades((ts) => ts.filter((_, j) => j !== ti))}
+                    onTradeScreens={onTradeScreens}
+                    onPublish={publishTradeThought}
+                    onReorder={(from, to) => {
+                      setTrades((ts) => {
+                        const next = [...ts]
+                        const [moved] = next.splice(from, 1)
+                        next.splice(to, 0, moved)
+                        return next
+                      })
+                      markDirty()
+                    }}
+                  />
+                </div>
+              </CeremonyDim>
 
               {/* ---------- FOOTER ---------- */}
               <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-[13px]">

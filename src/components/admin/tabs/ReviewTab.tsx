@@ -14,7 +14,7 @@ interface ReviewBody {
   body: string
 }
 
-export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => void }) {
+export function ReviewTab({ notify, gotoReview }: { notify: (m: string, ok?: boolean) => void; gotoReview?: { type: string; anchor: string } | null }) {
   const [periods, setPeriods] = useState<Record<PeriodType, PeriodOpt[]>>({
     week: [],
     month: [],
@@ -78,6 +78,15 @@ export function ReviewTab({ notify }: { notify: (m: string, ok?: boolean) => voi
     setLoaded(false)
     if (sel && sel.anchor) loadReview(sel.type, sel.anchor)
   }, [sel, loadReview])
+
+  useEffect(() => {
+    if (!gotoReview) return
+    const t = gotoReview.type as PeriodType
+    if (PERIOD_TYPES.includes(t)) {
+      if (dirty && !confirm('unsaved review changes — discard and open the requested review?')) return
+      setSel({ type: t, anchor: gotoReview.anchor })
+    }
+  }, [gotoReview])
 
   const pickType = (t: PeriodType) => {
     if (dirty && !confirm('unsaved review changes — discard and switch period?')) return

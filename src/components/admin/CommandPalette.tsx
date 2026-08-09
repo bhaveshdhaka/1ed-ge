@@ -12,7 +12,6 @@ interface CommandPaletteProps {
   onPrevDay: () => void
   onNextDay: () => void
   onWrite: (kind: 'thought' | 'quote' | 'trade') => void
-  onPolish: () => void
   onAddModel: () => void
   onBuildDay: () => void
   onImport: () => void
@@ -131,9 +130,6 @@ export function CommandPalette(props: CommandPaletteProps) {
             <Command.Item value="write-trade" onSelect={run(() => props.onWrite('trade'))} className={itemCls}>
               <span>new trade</span>
             </Command.Item>
-            <Command.Item value="write-polish" onSelect={run(props.onPolish)} className={itemCls}>
-              <span>polish draft</span>
-            </Command.Item>
             <Command.Item value="write-model" onSelect={run(props.onAddModel)} className={itemCls}>
               <span>add model</span>
             </Command.Item>
@@ -165,8 +161,8 @@ export function CommandPalette(props: CommandPaletteProps) {
             <Command.Item value="jump-checkin" onSelect={run(() => props.onJump('sec-capture'))} className={itemCls}>
               <span>check-in</span>
             </Command.Item>
-            <Command.Item value="jump-thoughts" onSelect={run(() => props.onJump('sec-thoughts'))} className={itemCls}>
-              <span>thoughts</span>
+            <Command.Item value="jump-writezone" onSelect={run(() => props.onJump('sec-write'))} className={itemCls}>
+              <span>WriteZone</span>
             </Command.Item>
             <Command.Item value="jump-habits" onSelect={run(() => props.onJump(null))} className={itemCls}>
               <span>habits</span>
