@@ -1,5 +1,5 @@
 import type { KeyboardEvent, FocusEvent } from 'react'
-import { Button, Field, TextInput } from './ui'
+import { Button, TextInput } from './ui'
 import { MarkdownEditor } from './MarkdownEditor'
 import { ObligationChip } from './ObligationChip'
 import { useCeremony } from './CeremonyMode'
@@ -71,18 +71,6 @@ export function ReflectionZone(props: ReflectionZoneProps) {
         )}
 
         <div onFocus={onZoneFocus} onBlur={onZoneBlur}>
-          <div className="grid gap-3 md:grid-cols-3">
-            <Field label="title">
-              <TextInput value={props.title} onChange={(e) => props.onTitleChange(e.target.value)} placeholder="AI suggests" />
-            </Field>
-            <Field label="summary">
-              <TextInput value={props.summary} onChange={(e) => props.onSummaryChange(e.target.value)} placeholder="one line" />
-            </Field>
-            <Field label="tags (comma)">
-              <TextInput value={props.tags} onChange={(e) => props.onTagsChange(e.target.value)} placeholder="discipline, revenge" />
-            </Field>
-          </div>
-
           <div className="mt-3">
             <MarkdownEditor
               value={props.reflection}
