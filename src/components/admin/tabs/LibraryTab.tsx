@@ -50,7 +50,7 @@ export function LibraryTab({ notify }: { notify: (m: string, ok?: boolean) => vo
       body.emoji = d.emoji ?? ''
       body.color = d.color ?? '#4ade80'
       body.description = d.description ?? ''
-      body.kind = d.kind ?? 'bool'
+      body.type = d.kind ?? 'bool'
       body.target = d.kind === 'count' ? Number(d.target ?? 0) : undefined
       body.category = d.category ?? 'general'
       body.order = Number(d.order ?? 0)
