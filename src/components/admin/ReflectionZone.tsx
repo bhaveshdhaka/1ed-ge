@@ -30,6 +30,8 @@ interface ReflectionZoneProps {
   /** Obligation state computed from accountability rules */
   obligation: ReflectionObligation | null
   onObligationClick: () => void
+  /** DayWorkspace gates ghost-text to the thoughts + reflection surfaces only. */
+  ghostTextEnabled?: boolean
 }
 
 export function ReflectionZone(props: ReflectionZoneProps) {
@@ -78,7 +80,13 @@ export function ReflectionZone(props: ReflectionZoneProps) {
           </div>
 
           <div className="mt-3">
-            <MarkdownEditor value={props.reflection} onChange={props.onReflectionChange} label="reflection draft" rows={15} />
+            <MarkdownEditor
+              value={props.reflection}
+              onChange={props.onReflectionChange}
+              label="reflection draft"
+              rows={15}
+              ghostTextEnabled={props.ghostTextEnabled}
+            />
           </div>
 
           {props.featuredImage && props.onFeaturedImageChange && (

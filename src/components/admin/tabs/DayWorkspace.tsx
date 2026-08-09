@@ -15,6 +15,7 @@ import { HabitRow } from '../HabitRow'
 import { AIBuildSheet } from '../AIBuildSheet'
 import { IngestSheet } from '../IngestSheet'
 import { DayPickerSheet } from '../DayPickerSheet'
+import { ghostTextOn } from '../useGhostText'
 
 export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 export interface HabitDef { slug: string; name: string; emoji?: string; color: string; kind?: string; target?: number }
@@ -120,6 +121,9 @@ export function DayWorkspace({
   const [dayBusy, setDayBusy] = useState(false)
   const [screenBusy, setScreenBusy] = useState(false)
   const [draftBusy, setDraftBusy] = useState(false)
+  // ghost-text assist — polled so the ⌘K `view → ghost-text` toggle applies live (same-tab
+  // localStorage writes don't fire the `storage` event)
+  const [ghostOn, setGhostOn] = useState(ghostTextOn)
   // wired by Task 11 (autosave) — set to current HH:MM after every autosave succeeds
   const [savedAt, setSavedAt] = useState<string | null>(null)
   const debRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -245,6 +249,12 @@ export function DayWorkspace({
     setPasteSink((files) => addDayImages(files))
     return () => setPasteSink(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 1s poll of the ghost-text localStorage flag (setState bails when unchanged)
+  useEffect(() => {
+    const id = setInterval(() => setGhostOn((v) => (ghostTextOn() === v ? v : ghostTextOn())), 1000)
+    return () => clearInterval(id)
   }, [])
 
   const setTrade = (i: number, patch: Partial<TradeForm>) => {
@@ -899,6 +909,7 @@ export function DayWorkspace({
                 onRemoveDraft={(i) => { setDraftMoments((ms) => ms.filter((_, j) => j !== i)); markDirty() }}
                 onUnstream={unstreamMoment}
                 onMomentImages={onMomentImages}
+                ghostTextEnabled={ghostOn}
               />
 
               {/* ---------- Z3 HABITS ---------- */}
@@ -968,6 +979,7 @@ export function DayWorkspace({
                 saving={saving}
                 obligation={obligation}
                 onObligationClick={() => scrollTo('sec-reflection')}
+                ghostTextEnabled={ghostOn}
               />
 
               {/* ---------- FOOTER ---------- */}

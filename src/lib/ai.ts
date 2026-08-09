@@ -49,6 +49,47 @@ export async function orChat(messages: OrMessage[], model: string, json = true, 
   return content
 }
 
+/** Streaming chat — yields content deltas as they arrive (powers the zen ghost-text assist). */
+export async function* orChatStream(messages: OrMessage[]): AsyncGenerator<string> {
+  const key = env.openrouterKey()
+  if (!key) throw new Error('OPENROUTER_API_KEY is not set')
+  const res = await fetch(`${env.openrouterBase()}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${key}`,
+      'HTTP-Referer': env.siteUrl(),
+      'X-Title': '1ed.ge',
+    },
+    body: JSON.stringify({ model: env.modelAssist(), messages, stream: true, temperature: 0.2 }),
+    signal: AbortSignal.timeout(60_000),
+  })
+  if (!res.ok) throw new Error(`OpenRouter ${res.status}`)
+  const reader = res.body!.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() ?? ''
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed || !trimmed.startsWith('data: ')) continue
+      const data = trimmed.slice(6)
+      if (data === '[DONE]') return
+      try {
+        const parsed = JSON.parse(data)
+        const delta = parsed.choices?.[0]?.delta?.content
+        if (delta) yield delta
+      } catch {
+        /* skip unparseable lines */
+      }
+    }
+  }
+}
+
 function tryJson<T>(raw: string): T | null {
   const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/```$/, '').trim()
   try {

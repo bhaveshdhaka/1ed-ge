@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { Button, Field, TextInput, Select } from './ui'
 import { ImageDropZone } from './ImageDropZone'
+import { useGhostText } from './useGhostText'
+import { GhostText } from './GhostText'
 import type { MomentForm, TradeForm } from './tabs/DayWorkspace'
 
 interface ThoughtsSurfaceProps {
@@ -16,6 +18,8 @@ interface ThoughtsSurfaceProps {
   onRemoveDraft: (i: number) => void
   onUnstream: (i: number) => void
   onMomentImages: (i: number, files: File[]) => void
+  /** DayWorkspace gates ghost-text to the thoughts + reflection surfaces only. */
+  ghostTextEnabled?: boolean
 }
 
 const TYPES = ['note', 'quote', 'trade'] as const
@@ -24,6 +28,8 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
   // composer is local ephemeral UI — ⌘⏎ is the ONLY publish gesture (no blur publish)
   const [text, setText] = useState('')
   const [composerType, setComposerType] = useState<'note' | 'quote' | 'trade'>('note')
+  const composerRef = useRef<HTMLTextAreaElement>(null)
+  const { suggestion, caretPos } = useGhostText(composerRef, props.ghostTextEnabled ?? false)
 
   const onComposerKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -43,8 +49,9 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
         </div>
 
         {/* ---------- composer ---------- */}
-        <div className="border border-line bg-bg">
+        <div className="relative border border-line bg-bg">
           <textarea
+            ref={composerRef}
             aria-label="thought composer"
             rows={2}
             value={text}
@@ -53,6 +60,7 @@ export function ThoughtsSurface(props: ThoughtsSurfaceProps) {
             placeholder="what happened — ⌘⏎ publishes"
             className="w-full resize-y border-0 bg-bg p-3 font-mono text-sm leading-snug text-ink outline-none placeholder:text-faint"
           />
+          <GhostText textareaRef={composerRef} suggestion={suggestion} caretPos={caretPos} />
           <div className="flex items-center justify-between border-t border-line px-2 py-1.5">
             <div className="flex gap-1">
               {TYPES.map((t) => (
