@@ -189,7 +189,7 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
     {journalFor && Reflection && (
       <section class="mt-10">
         <h2 class="text-lg">/ reflection</h2>
-        <div class="prose mt-4 max-w-3xl">
+        <div class="prose mt-4 max-w-3xl border border-accent bg-panel px-4 py-3">
           {journalSummary && <p class="text-[13px] text-soft">{journalSummary}</p>}
           <div set:html={Reflection} />
         </div>

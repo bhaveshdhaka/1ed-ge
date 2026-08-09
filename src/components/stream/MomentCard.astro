@@ -21,9 +21,16 @@ const isQuote = moment.type === 'quote'
 const R = moment.trade?.R ?? 0
 const imgs: string[] = isTrade ? (moment.trade?.screenshots ?? []) : (moment.images ?? [])
 const lbGroup = `${moment.iso}-${moment.at}`
+// Frame identity: note (thought) = quiet hairline, quote = accent left rail,
+// trade = up/down left rail matched to the ▲/▼ glyph.
+const frameStyle = isTrade
+  ? `border-left:2px solid ${moment.trade?.direction === 'long' ? 'var(--color-up)' : 'var(--color-down)'}`
+  : isQuote
+    ? 'border-left:2px solid var(--color-accent)'
+    : undefined
 ---
 
-<div class={`border border-line bg-panel ${cls}`}>
+<div class={`border border-line bg-panel ${cls}`} style={frameStyle}>
   <div class="flex items-center gap-3 border-b border-line/60 px-4 py-2 text-2xs text-faint">
     <span class="tabular-nums text-dim">{moment.at} hkt</span>
     <span class="uppercase tracking-widest">{meta.label}</span>
