@@ -160,7 +160,7 @@ export default function AdminApp() {
   }, [go])
 
   return (
-    <div className="zen-app min-h-svh bg-bg">
+    <div className="zen-app min-h-svh bg-bg overflow-x-hidden">
       <header className="border-b border-line">
         <div className="shell flex flex-wrap items-center justify-between gap-3 pb-3 pt-safe-3 md:pb-4 md:pt-safe-4">
           <a href="/" target="_blank" className="flex h-11 items-center text-[22px] font-semibold">
