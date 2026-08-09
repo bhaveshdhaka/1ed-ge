@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Toaster, toast } from 'sonner'
-import { getPasteSink, bus, api, triggerRebuild } from './api'
-import { RebuildBar } from './RebuildBar'
+import { getPasteSink, bus, api, triggerRebuild, fetchRebuildState } from './api'
+import { NotificationDrawer } from './NotificationDrawer'
 import { CommandPalette } from './CommandPalette'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DayWorkspace } from './tabs/DayWorkspace'
@@ -44,6 +44,36 @@ export default function AdminApp() {
     dirtyRef.current = b
     setDirty(b)
   }, [])
+
+  const [pendingReflections, setPendingReflections] = useState<{ date: string; label: string; overdue: boolean }[]>([])
+  const [pendingPeriods, setPendingPeriods] = useState<{ type: string; anchor: string }[]>([])
+  const [pendingChanges, setPendingChanges] = useState(0)
+  const [dayStatus, setDayStatus] = useState<'unsaved' | 'saved' | 'published' | 'none'>('none')
+  const [gotoDay, setGotoDay] = useState<string | undefined>(undefined)
+  const [gotoReview, setGotoReview] = useState<{ type: string; anchor: string } | undefined>(undefined)
+
+  // load pending reflections, period reviews, and pending changes
+  const loadNotifications = useCallback(async () => {
+    try {
+      const res = await api<{ ok: boolean; pendingDaily: { date: string; label: string; overdue: boolean }[]; pendingPeriods: { type: string; anchor: string; label: string }[] }>('/api/admin/accountability')
+      setPendingReflections(res.pendingDaily ?? [])
+      setPendingPeriods(res.pendingPeriods ?? [])
+    } catch {}
+    try {
+      const st = await fetchRebuildState()
+      setPendingChanges(st.pending?.length ?? 0)
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    loadNotifications()
+    const off = bus.on(loadNotifications)
+    const id = setInterval(loadNotifications, 60000)
+    return () => {
+      off()
+      clearInterval(id)
+    }
+  }, [loadNotifications])
 
   // global clipboard paste: images pasted anywhere route to the active tab's sink
   useEffect(() => {
@@ -160,20 +190,47 @@ export default function AdminApp() {
             >
               ⌘K
             </button>
+            <NotificationDrawer
+              pendingReflections={pendingReflections}
+              pendingPeriods={pendingPeriods}
+              pendingChanges={pendingChanges}
+              dayStatus={dayStatus}
+              onRebuild={async () => {
+                try {
+                  await triggerRebuild()
+                  notify('rebuild started — the drawer will update when live')
+                } catch {
+                  notify('rebuild failed to start', false)
+                }
+              }}
+              onNavigateToDay={(d) => {
+                setGotoDay(d)
+                go('day')
+              }}
+              onNavigateToReview={(type, anchor) => {
+                setGotoReview({ type, anchor })
+                go('reviews')
+              }}
+            />
           </nav>
         </div>
       </header>
 
-      <RebuildBar />
-
       <main className="shell py-6 md:py-8">
         {tab === 'overview' && <OverviewTab notify={notify} go={go} />}
-        {tab === 'day' && <DayWorkspace onDirtyChange={setGlobalDirty} onNavigateLibrary={() => go('library')} />}
+        {tab === 'day' && (
+          <DayWorkspace
+            onDirtyChange={setGlobalDirty}
+            onNavigateLibrary={() => go('library')}
+            onDayStatusChange={setDayStatus}
+            gotoDay={gotoDay}
+          />
+        )}
         {tab === 'accounts' && <AccountsTab notify={notify} />}
         {tab === 'coach' && <CoachTab notify={notify} />}
         {tab === 'media' && <MediaTab notify={notify} />}
         {tab === 'library' && <LibraryTab notify={notify} />}
-        {tab === 'reviews' && <ReviewTab notify={notify} />}
+        {tab === 'reviews' && <ReviewTab notify={notify} gotoReview={gotoReview} />}
       </main>
 
       <Toaster
@@ -208,11 +265,7 @@ export default function AdminApp() {
         }}
         onWrite={(kind) => {
           go('day')
-          notify(`write ${kind} — in the thoughts composer on the day tab`)
-        }}
-        onPolish={() => {
-          go('day')
-          notify('polish a draft — thoughts surface on the day tab')
+          notify(`write ${kind} — in the WriteZone on the day tab`)
         }}
         onAddModel={() => {
           go('library')
@@ -228,7 +281,7 @@ export default function AdminApp() {
         }}
         onAIDraft={() => {
           go('day')
-          notify('AI draft from today — reflection zone on the day tab')
+          notify('AI draft from today — reflection panel in the WriteZone')
         }}
         onRebuild={async () => {
           try {
