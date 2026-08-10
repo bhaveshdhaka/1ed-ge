@@ -78,14 +78,14 @@ export function Card({
   actions?: ReactNode
 }) {
   return (
-    <section className={cn('panel p-4', className)}>
+    <section className={cn('panel', className)}>
       {(title || actions) && (
-        <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 className="text-2xs uppercase tracking-widest text-soft">{title}</h2>}
-          {actions}
+        <div className="card-hd">
+          {title && <span className="card-lbl">{title}</span>}
+          {actions && <div className="ml-auto">{actions}</div>}
         </div>
       )}
-      {children}
+      <div className="p-4">{children}</div>
     </section>
   )
 }

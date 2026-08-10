@@ -158,7 +158,7 @@ export function WriteZone(props: WriteZoneProps) {
               type="button"
               onClick={() => setType(t)}
               aria-pressed={type === t}
-              className={`h-8 px-3 text-2xs transition-colors ${
+              className={`min-h-[36px] rounded-[9px] px-3.5 text-xs transition-colors ${
                 type === t ? 'seg-on' : 'text-dim hover:text-ink'
               }`}
             >
@@ -318,7 +318,7 @@ export function WriteZone(props: WriteZoneProps) {
               </div>
 
               <div>
-                <div className="mb-1 text-2xs uppercase tracking-widest text-dim">models</div>
+                <div className="card-lbl mb-1">models</div>
                 <ModelChipRow
                   models={tradeModels}
                   allModels={props.models}
@@ -329,7 +329,7 @@ export function WriteZone(props: WriteZoneProps) {
               </div>
 
               <div>
-                <div className="mb-1 text-2xs uppercase tracking-widest text-dim">executions (accounts)</div>
+                <div className="card-lbl mb-1">executions (accounts)</div>
                 <div className="space-y-2">
                   {(trade.executions ?? []).map((e, ei) => (
                     <div key={ei} className="flex items-center gap-2">
@@ -405,7 +405,7 @@ export function WriteZone(props: WriteZoneProps) {
       {props.stream.length > 0 && (
         <div className="mt-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-2xs uppercase tracking-widest text-up">published thoughts</span>
+            <span className="card-lbl text-up">published thoughts</span>
             {props.previewHref && (
               <a
                 href={props.previewHref}
