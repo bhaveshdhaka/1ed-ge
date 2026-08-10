@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Toaster, toast } from 'sonner'
 import { getPasteSink, bus, api, triggerRebuild, fetchRebuildState } from './api'
-import { NotificationDrawer } from './NotificationDrawer'
 import { CommandPalette } from './CommandPalette'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DayWorkspace } from './tabs/DayWorkspace'
@@ -190,29 +189,7 @@ export default function AdminApp() {
             >
               ⌘K
             </button>
-            <NotificationDrawer
-              pendingReflections={pendingReflections}
-              pendingPeriods={pendingPeriods}
-              pendingChanges={pendingChanges}
-              dayStatus={dayStatus}
-              onRebuild={async () => {
-                try {
-                  await triggerRebuild()
-                  notify('rebuild started — the drawer will update when live')
-                } catch {
-                  notify('rebuild failed to start', false)
-                }
-              }}
-              onNavigateToDay={(d) => {
-                setGotoDay(d)
-                go('day')
-              }}
-              onNavigateToReview={(type, anchor) => {
-                setGotoReview({ type, anchor })
-                go('reviews')
-              }}
-            />
-          </nav>
+            </nav>
         </div>
       </header>
 
@@ -224,6 +201,25 @@ export default function AdminApp() {
             onNavigateLibrary={() => go('library')}
             onDayStatusChange={setDayStatus}
             gotoDay={gotoDay}
+            pendingReflections={pendingReflections}
+            pendingPeriods={pendingPeriods}
+            pendingChanges={pendingChanges}
+            onRebuild={async () => {
+              try {
+                await triggerRebuild()
+                notify('rebuild started — the drawer will update when live')
+              } catch {
+                notify('rebuild failed to start', false)
+              }
+            }}
+            onNavigateToDay={(d) => {
+              setGotoDay(d)
+              go('day')
+            }}
+            onNavigateToReview={(type, anchor) => {
+              setGotoReview({ type, anchor })
+              go('reviews')
+            }}
           />
         )}
         {tab === 'accounts' && <AccountsTab notify={notify} />}

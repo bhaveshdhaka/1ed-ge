@@ -9,6 +9,7 @@ import { TradeList } from '../TradeCard'
 import { CeremonyProvider, useCeremony } from '../CeremonyMode'
 import { CheckInBand } from '../CheckInBand'
 import { WriteZone, type ReflectionObligation } from '../WriteZone'
+import { NotificationDrawer } from '../NotificationDrawer'
 import { HabitRow } from '../HabitRow'
 import { AIBuildSheet } from '../AIBuildSheet'
 import { IngestSheet } from '../IngestSheet'
@@ -72,11 +73,23 @@ export function DayWorkspace({
   onNavigateLibrary,
   onDayStatusChange,
   gotoDay,
+  pendingReflections,
+  pendingPeriods,
+  pendingChanges,
+  onRebuild,
+  onNavigateToDay,
+  onNavigateToReview,
 }: {
   onDirtyChange?: (dirty: boolean) => void
   onNavigateLibrary?: () => void
   onDayStatusChange?: (status: 'unsaved' | 'saved' | 'published' | 'none') => void
   gotoDay?: string
+  pendingReflections?: { date: string; label: string; overdue: boolean }[]
+  pendingPeriods?: { type: string; anchor: string }[]
+  pendingChanges?: number
+  onRebuild?: () => void
+  onNavigateToDay?: (date: string) => void
+  onNavigateToReview?: (type: string, anchor: string) => void
 }) {
   const [date, setDate] = useState(todayStr())
   const [daysList, setDaysList] = useState<DayListItem[]>([])
@@ -808,9 +821,6 @@ export function DayWorkspace({
               view live →
             </a>
           )}
-          {daysList.some((d) => d.date === date) && (
-            <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
-          )}
           <TextInput type="date" aria-label="day date" value={date} onChange={(e) => selectDate(e.target.value)} className="h-9 w-40" />
         </div>
       </div>
@@ -954,7 +964,25 @@ export function DayWorkspace({
                 <span className="text-dim">·</span>
                 <span className={dayTotals.pnl >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pnl >= 0 ? '+' : ''}${Math.round(dayTotals.pnl).toLocaleString()}</span>
                 <span className="ml-auto text-[11px] text-faint">autosaves on idle · ⌘S flushes</span>
+              {daysList.some((d) => d.date === date) && (
+                <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
+              )}
               </div>
+
+              {/* ---------- NOTIFICATIONS (bottom) ---------- */}
+              {pendingReflections && pendingPeriods && (
+                <div className="flex justify-end">
+                  <NotificationDrawer
+                    pendingReflections={pendingReflections}
+                    pendingPeriods={pendingPeriods}
+                    pendingChanges={pendingChanges ?? 0}
+                    dayStatus={dayStatus}
+                    onRebuild={onRebuild ?? (() => {})}
+                    onNavigateToDay={onNavigateToDay ?? (() => {})}
+                    onNavigateToReview={onNavigateToReview ?? (() => {})}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
