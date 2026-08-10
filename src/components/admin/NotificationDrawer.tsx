@@ -63,7 +63,7 @@ export function NotificationDrawer(props: NotificationDrawerProps) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 border border-line bg-panel shadow-2xl">
+        <div className="absolute bottom-full right-0 z-50 mb-2 w-80 border border-line bg-panel shadow-2xl">
           <div className="border-b border-line px-3 py-2 text-[11px] uppercase tracking-widest text-dim">
             pending ({total})
           </div>
