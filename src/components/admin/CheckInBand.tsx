@@ -123,7 +123,7 @@ export function CheckInBand(props: CheckInBandProps) {
           <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
             {/* mood */}
             <div className="border-b border-line/60 pb-3">
-              <div className="mb-1 text-2xs uppercase tracking-widest text-dim">mood</div>
+              <div className="card-lbl mb-1">mood</div>
               {moodCollapsed && selectedMood ? (
                 <button onClick={() => setMoodCollapsed(false)}
                   className="capsule flex h-7 items-center gap-1 text-accent transition-colors hover:border-accent">
@@ -145,7 +145,7 @@ export function CheckInBand(props: CheckInBandProps) {
 
             {/* sleep */}
             <div className="border-b border-line/60 pb-3">
-              <div className="mb-1 text-2xs uppercase tracking-widest text-dim">sleep</div>
+              <div className="card-lbl mb-1">sleep</div>
               <div className="flex flex-wrap items-center gap-2">
                 <NumInput value={props.sleepHours} onChange={(e) => props.onSleepHours(e.target.value)} className="h-8 w-20 text-xs" placeholder="7.5" />
                 {sleepCollapsed && selectedSleep ? (

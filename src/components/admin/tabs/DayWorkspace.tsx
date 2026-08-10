@@ -942,7 +942,7 @@ export function DayWorkspace({
                 </div>
 
               {/* ---------- FOOTER ---------- */}
-              <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-sm">
+              <div className="panel flex flex-wrap items-center gap-6 px-4 py-3 text-sm">
                 <span className="text-dim">day</span>
                 <span className={dayTotals.R > 0 ? 'text-up' : dayTotals.R < 0 ? 'text-down' : 'text-soft'}>{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
                 <span className="text-dim">·</span>
