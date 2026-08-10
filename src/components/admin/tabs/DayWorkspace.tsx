@@ -1,12 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, bus } from '../api'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, bus } from '../api'
 import { fmtDay, fmtDayWUpper } from '../../../lib/dates'
 import { nowHkt, addDaysIso } from '../../../lib/sessions'
 import { hktHHMM } from '../../../lib/clock'
 import { Card, Button, TextInput } from '../ui'
 import { DayRail } from '../DayRail'
 import { TradeList } from '../TradeCard'
-import { CheckInBand } from '../CheckInBand'
 import { WriteZone, type ReflectionObligation } from '../WriteZone'
 import { NotificationDrawer } from '../NotificationDrawer'
 import { HabitRow } from '../HabitRow'
@@ -18,7 +17,6 @@ import { toast } from 'sonner'
 export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 export interface HabitDef { slug: string; name: string; emoji?: string; color: string; kind?: string; target?: number }
 export interface DayListItem { file: string; date: string; mood: number | null; trades: number; R?: number | null }
-export interface DayImage { id: string; dataUrl: string; url: string }
 interface ExecForm { account: string; size: string }
 export interface TradeForm {
   market: string; session: string; direction: 'long' | 'short'; setup: string
@@ -109,13 +107,6 @@ export function DayWorkspace({
   const [reflection, setReflection] = useState('')
   const [stream, setStream] = useState<ThoughtForm[]>([])
 
-  const [dayText, setDayText] = useState('')
-  const [dayImages, setDayImages] = useState<DayImage[]>([])
-  const dayImagesRef = useRef<DayImage[]>([])
-  // trades produced by the last AI structure pass — a fresh pass replaces these
-  const lastAiTradesRef = useRef<TradeForm[]>([])
-
-  const [editing, setEditing] = useState<string | null>(null)
   const [ingestOpen, setIngestOpen] = useState(false)
   const [dayPickerOpen, setDayPickerOpen] = useState(false)
   const [expandedTrade, setExpandedTrade] = useState<number | null>(null)
@@ -123,15 +114,12 @@ export function DayWorkspace({
   const [loading, setLoading] = useState(true)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [dayBusy, setDayBusy] = useState(false)
-  const [screenBusy, setScreenBusy] = useState(false)
   const [draftBusy, setDraftBusy] = useState(false)
   // ghost-text assist — polled so the ⌘K `view → ghost-text` toggle applies live (same-tab
   // localStorage writes don't fire the `storage` event)
   const [ghostOn, setGhostOn] = useState(ghostTextOn)
-  const debRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
-  // AIBuildSheet/IngestSheet still take the notify(m, ok) callback shape — route it to sonner.
+  // IngestSheet still takes the notify(m, ok) callback shape — route it to sonner.
   const sheetNotify = (m: string, ok?: boolean) => {
     if (ok === false) toast.error(m)
     else toast.success(m)
@@ -150,10 +138,8 @@ export function DayWorkspace({
   const load = useCallback(
     async (d: string) => {
       setLoading(true)
-      setEditing(null)
       setExpandedTrade(null)
       setExpandAll(false)
-      lastAiTradesRef.current = []
       try {
         const res = await api<{ day: any; accounts: AccRow[]; habits: HabitDef[]; models: { slug: string; name: string; premise?: string }[] }>(
           `/api/admin/days?date=${encodeURIComponent(d)}`,
@@ -234,12 +220,6 @@ export function DayWorkspace({
       .then((r) => setJournalDates((r.entries ?? []).map((e) => String(e.data?.date ?? '')).filter(Boolean)))
       .catch(() => {})
   }, [date, load, loadDays])
-
-  useEffect(() => {
-    setPasteSink((files) => addDayImages(files))
-    return () => setPasteSink(null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   // 1s poll of the ghost-text localStorage flag (setState bails when unchanged)
   useEffect(() => {
@@ -333,110 +313,6 @@ export function DayWorkspace({
     if (!d || d === date) return
     if (dirty && !confirm(`unsaved changes on ${date} — discard and open ${d}?`)) return
     setDate(d)
-  }
-
-  // ---------- capture: paste everything, AI builds the day ----------
-  const addDayImages = async (files: File[]) => {
-    const items: DayImage[] = []
-    for (const f of files) {
-      try {
-        const dataUrl = await fileToDataUrl(f)
-        items.push({ id: Math.random().toString(36).slice(2), dataUrl, url: '' })
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : 'read failed')
-      }
-    }
-    if (!items.length) return
-    const next = [...dayImagesRef.current, ...items]
-    dayImagesRef.current = next
-    setDayImages(next)
-    markDirty()
-    clearTimeout(debRef.current)
-    debRef.current = setTimeout(() => runStructure(next), 900)
-  }
-
-  const removeDayImage = (id: string) => {
-    const next = dayImagesRef.current.filter((i) => i.id !== id)
-    dayImagesRef.current = next
-    setDayImages(next)
-  }
-
-  const autoFeatured = () => {
-    if (!featuredImage && deviceScreens.length) setFeaturedImage(deviceScreens[0])
-  }
-
-  const applyStructured = (r: any, images?: DayImage[]) => {
-    if (r.mood) setMood(String(r.mood))
-    if (r.sleepHours) setSleepHours(String(r.sleepHours))
-    if (r.sleepQuality) setSleepQuality(String(r.sleepQuality))
-    if (r.habits && typeof r.habits === 'object') setHabits((h) => ({ ...h, ...r.habits }))
-    const dv = r.device
-    if (dv) {
-      if (dv.iphoneHours != null) setIphoneHours(String(dv.iphoneHours))
-      if (dv.socialHours != null) setSocialHours(String(dv.socialHours))
-      if (dv.macHours != null) setMacHours(String(dv.macHours))
-      if (dv.notes) setDeviceNotes((n) => (n ? n + ' · ' : '') + dv.notes)
-    }
-    if (images?.length && Array.isArray(r.deviceScreens) && (r.deviceScreens as number[]).length) {
-      const urls = (r.deviceScreens as number[])
-        .filter((idx: number) => idx >= 0 && idx < images.length)
-        .map((idx: number) => images[idx].dataUrl)
-      if (urls.length) {
-        setDeviceScreens((prev: string[]) => [...prev, ...urls])
-      }
-    }
-    if (Array.isArray(r.trades) && r.trades.length) {
-      const incomingForms = r.trades.map(toTradeForm)
-      if (images?.length) {
-        for (let i = 0; i < incomingForms.length; i++) {
-          const indices = r.trades[i]?.screenshotIndices as number[] | undefined
-          if (indices?.length) {
-            incomingForms[i].screenshots = indices
-              .filter((idx: number) => idx >= 0 && idx < images.length)
-              .map((idx: number) => images[idx].dataUrl)
-          }
-        }
-      }
-      const prev = lastAiTradesRef.current
-      lastAiTradesRef.current = incomingForms
-      // a fresh structure pass replaces the trades from the previous AI pass;
-      // trades the owner added or edited since then survive (identity match)
-      setTrades((existing) => {
-        const kept = prev.length ? existing.filter((t) => !prev.includes(t)) : existing
-        return [...kept, ...incomingForms]
-      })
-    }
-    const j = r.journal
-    if (j) {
-      if (j.title) setTitle(String(j.title))
-      if (j.summary) setSummary(String(j.summary))
-      if (Array.isArray(j.tags) && j.tags.length) setTags(j.tags.join(', '))
-      if (j.draft) {
-        setReflection((r) => (r && r.trim() ? r : String(j.draft)))
-      }
-    }
-    markDirty()
-    setTimeout(autoFeatured, 0)
-  }
-
-  const runStructure = async (imgs?: DayImage[]) => {
-    const images = imgs ?? dayImagesRef.current
-    if (!dayText.trim() && images.length === 0) return toast.error('paste text or screenshots first')
-    setDayBusy(true)
-    try {
-      const res = await api<{ result: any }>('/api/admin/ai', {
-        method: 'POST',
-        body: { action: 'day', text: dayText, images: images.map((i) => i.dataUrl) },
-      })
-      applyStructured(res.result, images)
-      setDayText('')
-      dayImagesRef.current = []
-      setDayImages([])
-      toast('day built from your evidence — review, override if needed')
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'ai failed')
-    }
-    setDayBusy(false)
   }
 
   // ---------- reflection: AI draft from today's data ----------
@@ -639,26 +515,6 @@ export function DayWorkspace({
   }
 
   // ---------- helpers ----------
-  const onDeviceScreens = async (files: File[]) => {
-    setScreenBusy(true)
-    for (const f of files) {
-      const dataUrl = await fileToDataUrl(f)
-      try {
-        const res = await api<{ result: any }>('/api/admin/ai', {
-          method: 'POST',
-          body: { action: 'screentime', image: dataUrl },
-        })
-        const r = res.result
-        if (r.iphoneHours != null) setIphoneHours(String(r.iphoneHours))
-        if (r.socialHours != null) setSocialHours(String(r.socialHours))
-        if (r.macHours != null) setMacHours(String(r.macHours))
-        if (r.note) setDeviceNotes((n) => (n ? n + ' · ' : '') + r.note)
-        markDirty()
-      } catch {}
-    }
-    setScreenBusy(false)
-  }
-
   const onTradeScreens = async (ti: number, files: File[]) => {
     for (const f of files) {
       const dataUrl = await fileToDataUrl(f)
@@ -781,10 +637,6 @@ export function DayWorkspace({
     // ⌘K palette commands open the sheets (DayWorkspace mounts after go('day'))
     const offOpenIngest = bus.on('open-ingest', () => setIngestOpen(true))
     const offOpenDayPicker = bus.on('open-day-picker', () => setDayPickerOpen(true))
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setEditing(null)
-    }
-    window.addEventListener('keydown', onKey)
     return () => {
       offSave()
       offRebuild()
@@ -794,7 +646,6 @@ export function DayWorkspace({
       offToday()
       offOpenIngest()
       offOpenDayPicker()
-      window.removeEventListener('keydown', onKey)
     }
   })
 
@@ -829,42 +680,7 @@ export function DayWorkspace({
             <Card title="loading"><p className="text-sm text-faint">loading…</p></Card>
           ) : (
             <>
-              {/* ---------- Z1 CHECK-IN ---------- */}
-              <CheckInBand
-                  date={date}
-                  dayText={dayText}
-                  dayImages={dayImages}
-                  dayBusy={dayBusy}
-                  canBuild={!!dayText.trim() || dayImagesRef.current.length > 0}
-                  onDayTextChange={(v) => { setDayText(v); markDirty() }}
-                  onBuildDay={() => runStructure()}
-                  onAddDayImages={addDayImages}
-                  onRemoveDayImage={removeDayImage}
-                  editing={editing}
-                  onStartEdit={setEditing}
-                  onDoneEdit={() => setEditing(null)}
-                  mood={mood}
-                  sleepHours={sleepHours}
-                  sleepQuality={sleepQuality}
-                  iphoneHours={iphoneHours}
-                  socialHours={socialHours}
-                  macHours={macHours}
-                  deviceNotes={deviceNotes}
-                  onMood={(v) => { setMood(v); markDirty() }}
-                  onSleepHours={(v) => { setSleepHours(v); markDirty() }}
-                  onSleepQuality={(v) => { setSleepQuality(v); markDirty() }}
-                  onIphone={(v) => { setIphoneHours(v); markDirty() }}
-                  onSocial={(v) => { setSocialHours(v); markDirty() }}
-                  onMac={(v) => { setMacHours(v); markDirty() }}
-                  onDeviceNotes={(v) => { setDeviceNotes(v); markDirty() }}
-                  screenBusy={screenBusy}
-                  onPasteScreen={onDeviceScreens}
-                  deviceScreens={deviceScreens}
-                  onRemoveDeviceScreen={(s) => setDeviceScreens((x) => x.filter((y) => y !== s))}
-                  onEvidence={() => document.getElementById('sec-capture')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                />
-
-              {/* ---------- Z2 WRITE ZONE ---------- */}
+              {/* ---------- Z1 WRITE ZONE ---------- */}
               <WriteZone
                 date={date}
                 stream={stream}
@@ -886,7 +702,7 @@ export function DayWorkspace({
                 onUnstream={unstreamThought}
               />
 
-              {/* ---------- Z3 HABITS ---------- */}
+              {/* ---------- Z2 HABITS ---------- */}
               <HabitRow
                   habitDefs={habitDefs}
                   habits={habits}
@@ -895,7 +711,7 @@ export function DayWorkspace({
                   onNavigateLibrary={onNavigateLibrary ?? (() => {})}
                 />
 
-                {/* ---------- Z4 TRADES ---------- */}
+                {/* ---------- Z3 TRADES ---------- */}
                 <div id="sec-trades" className="mt-3 md:mt-5 scroll-mt-20">
                   <div className="panel">
                     <div className="card-hd">

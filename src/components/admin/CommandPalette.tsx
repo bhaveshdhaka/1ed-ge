@@ -13,7 +13,6 @@ interface CommandPaletteProps {
   onNextDay: () => void
   onWrite: (kind: 'thought' | 'quote' | 'trade') => void
   onAddModel: () => void
-  onBuildDay: () => void
   onImport: () => void
   onAIDraft: () => void
   onRebuild: () => void
@@ -139,9 +138,6 @@ export function CommandPalette(props: CommandPaletteProps) {
             heading="build"
             className={groupCls}
           >
-            <Command.Item value="build-day" onSelect={run(props.onBuildDay)} className={itemCls}>
-              <span>build this day</span>
-            </Command.Item>
             <Command.Item value="build-import" onSelect={run(props.onImport)} className={itemCls}>
               <span>import trades</span>
             </Command.Item>
@@ -158,9 +154,6 @@ export function CommandPalette(props: CommandPaletteProps) {
             heading="jump"
             className={groupCls}
           >
-            <Command.Item value="jump-checkin" onSelect={run(() => props.onJump('sec-capture'))} className={itemCls}>
-              <span>check-in</span>
-            </Command.Item>
             <Command.Item value="jump-writezone" onSelect={run(() => props.onJump('sec-write'))} className={itemCls}>
               <span>WriteZone</span>
             </Command.Item>
