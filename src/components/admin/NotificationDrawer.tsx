@@ -56,7 +56,7 @@ export function NotificationDrawer(props: NotificationDrawerProps) {
       >
         <span aria-hidden="true">🔔</span>
         {total > 0 && (
-          <span className="absolute right-0 top-0 flex h-4 min-w-[16px] items-center justify-center bg-down px-1 text-[10px] text-ink">
+          <span className="absolute right-0 top-0 flex h-4 min-w-[16px] items-center justify-center bg-line2 px-1 text-[10px] text-dim">
             {total}
           </span>
         )}
