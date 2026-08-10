@@ -1,13 +1,13 @@
 ---
 import { getCollection } from 'astro:content'
-import { todayHkt } from '../lib/sessions'
+import { cmeToday } from '../lib/sessions'
 import { fmtDayWUpper } from '../lib/dates'
 import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
 import type { MarketKey } from '../lib/sessions'
 import NewsBlock from './NewsBlock.astro'
 
-const today = todayHkt()
+const today = cmeToday()
 const news = (await getCollection('market-news')).find((n) => n.data.date === today)
 const red = news?.data.red ?? []
 const orange = news?.data.orange ?? []

@@ -4,6 +4,7 @@ import { listMds, readEntry, writeEntry } from '../../../lib/content'
 import { addChange } from '../../../lib/changes'
 import { coachReply } from '../../../lib/ai'
 import { buildTrends, trendsForLLM } from '../../../lib/trends'
+import { cmeToday } from '../../../lib/sessions'
 
 export const prerender = false
 
@@ -50,7 +51,7 @@ export const POST: APIRoute = async ({ request }) => {
   const text = String(body.text ?? '').trim()
   if (!text) return error('message required')
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = cmeToday()
   const file = `${today}.md`
   const existing = listMds('coach').includes(file)
   const content = existing ? readEntry('coach', file).content : ''

@@ -1,12 +1,12 @@
 ---
-import { todayHkt } from '../lib/sessions'
+import { cmeToday } from '../lib/sessions'
 import { buildStrip, segmentAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
 
 // CME equity-index futures (master clock) narrative for the live `[data-mkt-live]`
 // markers on the widget header / Ambient / calendar / admin. Same phrases as the
 // footer + homepage strip — all sourced from src/lib/strip.ts.
-const today = todayHkt()
+const today = cmeToday()
 const payload: StripPayload = buildStrip(today, Date.now(), [], [])
 ---
 

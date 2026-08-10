@@ -39,6 +39,56 @@ export function todayHkt(): string {
   return new Date(Date.now() + HKT_OFFSET_MS).toISOString().slice(0, 10)
 }
 
+/**
+ * CME session opens at 17:00 America/Chicago.
+ * For any UTC timestamp, determine which CME trading day it belongs to.
+ *
+ * Logic:
+ *   CT hour >= 17 → new session just started → trading date = CT date + 1
+ *   CT hour < 17  → session started yesterday → trading date = CT date
+ *
+ * DST-safe: uses Intl.DateTimeFormat with IANA timezone identifiers.
+ */
+export function cmeDate(ms: number): string {
+  const d = new Date(ms)
+  const ctHour = parseInt(
+    new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric', hour12: false,
+      timeZone: 'America/Chicago',
+    }).format(d),
+  )
+  const ctDateStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d)
+
+  if (ctHour < 17) return ctDateStr
+
+  const [y, m, day] = ctDateStr.split('-').map(Number)
+  const next = new Date(y, m - 1, day + 1)
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`
+}
+
+/** Right now → the current CME trading date */
+export function cmeToday(): string {
+  return cmeDate(Date.now())
+}
+
+/** Display timezone identifiers (IANA). Separate from trading-day boundary. */
+export const DISPLAY_TIMEZONES = {
+  lax: 'America/Los_Angeles',
+  nyc: 'America/New_York',
+  lon: 'Europe/London',
+  del: 'Asia/Kolkata',
+  hk:  'Asia/Hong_Kong',
+  tyo: 'Asia/Tokyo',
+  syd: 'Australia/Sydney',
+} as const
+
+export type DisplayTimezone = keyof typeof DISPLAY_TIMEZONES
+
 /** Current HKT wall time — `YYYY-MM-DDTHH:MM` (the shape accountability uses). */
 export function nowHkt(): string {
   return new Date(Date.now() + HKT_OFFSET_MS).toISOString().slice(0, 16)

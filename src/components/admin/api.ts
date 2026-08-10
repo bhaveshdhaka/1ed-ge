@@ -55,9 +55,24 @@ export async function api<T = any>(
 
 export function todayStr(): string {
   const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-    d.getDate(),
-  ).padStart(2, '0')}`
+  const ctHour = parseInt(
+    new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric', hour12: false,
+      timeZone: 'America/Chicago',
+    }).format(d),
+  )
+  const ctDateStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d)
+
+  if (ctHour < 17) return ctDateStr
+
+  const [y, m, day] = ctDateStr.split('-').map(Number)
+  const next = new Date(y, m - 1, day + 1)
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`
 }
 
 export function fileToDataUrl(file: File): Promise<string> {

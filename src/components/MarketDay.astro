@@ -1,11 +1,11 @@
 ---
 import { getCollection } from 'astro:content'
-import { todayHkt } from '../lib/sessions'
+import { cmeToday } from '../lib/sessions'
 import { fmtDayWUpper } from '../lib/dates'
 import { marketMarker } from '../lib/market'
 import NewsEventsCard from './NewsEventsCard.astro'
 
-const today = todayHkt()
+const today = cmeToday()
 const mk = marketMarker(today)
 const news = await getCollection('market-news')
 const day = news.find((n) => n.data.date === today)

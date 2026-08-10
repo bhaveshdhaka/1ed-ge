@@ -5,7 +5,7 @@ import ThemeBackground from '../components/ThemeBackground.astro'
 import MarketLive from '../components/MarketLive.astro'
 import MarketFooter from '../components/MarketFooter.astro'
 import Lightbox from '../components/Lightbox.astro'
-import { todayHkt } from '../lib/sessions'
+import { cmeToday } from '../lib/sessions'
 import { parseDay } from '../lib/dates'
 
 interface Props {
@@ -33,7 +33,7 @@ const dayIso = (() => {
   const m = Astro.url.pathname.match(/^\/day\/([a-z0-9-]+)\/?$/)
   return m ? parseDay(m[1]) : null
 })()
-const showLiveMarket = dayIso === null || dayIso === todayHkt()
+const showLiveMarket = dayIso === null || dayIso === cmeToday()
 ---
 
 <!doctype html>

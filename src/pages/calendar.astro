@@ -4,10 +4,10 @@ import MarketWidget from '../components/MarketWidget.astro'
 import NewsEventsCard from '../components/NewsEventsCard.astro'
 import Card from '../components/ui/Card.astro'
 import { getCollection } from 'astro:content'
-import { marketEvents, todayHkt, addDaysIso, scheduledDayMarker, daySessionWindows } from '../lib/sessions'
+import { marketEvents, cmeToday, addDaysIso, scheduledDayMarker, daySessionWindows } from '../lib/sessions'
 import { fmtDayWUpper } from '../lib/dates'
 
-const today = todayHkt()
+const today = cmeToday()
 const events = marketEvents(today, 8)
 const news = (await getCollection('market-news')).sort((a, b) => a.data.date.localeCompare(b.data.date))
 const newsByDate = new Map(news.map((n) => [n.data.date, n.data]))

@@ -2,14 +2,14 @@ import type { APIRoute } from 'astro'
 import { requireSession, json, error } from '../../../lib/auth'
 import { env } from '../../../lib/env'
 import { listMds, listMedia } from '../../../lib/content'
-import { todayKey } from '../../../lib/habits'
+import { cmeToday } from '../../../lib/sessions'
 import { getPending, getRebuilds } from '../../../lib/changes'
 
 export const prerender = false
 
 export const GET: APIRoute = async ({ request }) => {
   if (requireSession(request)) return error('unauthorized', 401)
-  const today = todayKey()
+  const today = cmeToday()
 
   let todayDay: Record<string, unknown> | null = null
   try {

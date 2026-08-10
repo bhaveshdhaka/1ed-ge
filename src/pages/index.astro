@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro'
 import { listMds, readEntry } from '../lib/content'
-import { todayHkt, nowHkt, hktDayNumber } from '../lib/sessions'
+import { cmeToday, nowHkt, hktDayNumber } from '../lib/sessions'
 import { fmtDay, fmtDayWUpper } from '../lib/dates'
 import { resolveThoughts, dayFacts } from '../lib/stream'
 import type { DayData } from '../lib/stream'
@@ -18,7 +18,7 @@ import NewsEventsCard from '../components/NewsEventsCard.astro'
 
 export const prerender = false
 
-const iso = todayHkt()
+const iso = cmeToday()
 const dayFiles = listMds('days')
 const habitFiles = listMds('habits')
 const journalFiles = listMds('journal')
