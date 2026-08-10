@@ -25,7 +25,7 @@ const valueCls = (c: FactCell) => {
 
 <div class={`flex flex-wrap gap-px border border-line bg-line ${cls}`}>
   {cells.map((c) => (
-    <div class="flex min-w-[86px] flex-1 flex-col gap-1 bg-panel px-3 py-2">
+    <div class="panel flex min-w-[86px] flex-1 flex-col gap-1 px-3 py-2">
       <span class="text-2xs uppercase tracking-widest text-faint">{c.label}</span>
       <span class:list={['text-sm tabular-nums', valueCls(c)]}>
         {c.ok ? c.value : '—'}

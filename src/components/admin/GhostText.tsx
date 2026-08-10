@@ -30,7 +30,7 @@ export function GhostText({ textareaRef, suggestion, caretPos }: GhostTextProps)
   return (
     <div aria-hidden="true" className="pointer-events-none absolute z-10 overflow-hidden text-faint" style={style}>
       <span className="opacity-60">{suggestion}</span>
-      <kbd className="ml-1.5 select-none border border-line2 bg-bg px-1 text-[10px] text-faint">tab</kbd>
+      <kbd className="ml-1.5 select-none border border-line2 bg-bg px-1 text-3xs text-faint">tab</kbd>
     </div>
   )
 }

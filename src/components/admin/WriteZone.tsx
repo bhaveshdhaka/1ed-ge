@@ -151,37 +151,40 @@ export function WriteZone(props: WriteZoneProps) {
   return (
     <div id="sec-write" className="panel scroll-mt-20 p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-1">
+        <div className="seg flex-wrap">
           {TYPES.map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setType(t)}
               aria-pressed={type === t}
-              className={`h-8 px-3 text-[11px] transition-colors ${
-                type === t ? 'bg-raise text-ink' : 'text-dim hover:text-ink'
+              className={`h-8 px-3 text-2xs transition-colors ${
+                type === t ? 'seg-on' : 'text-dim hover:text-ink'
               }`}
             >
               {t}
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-3 text-[11px] text-faint">
-          {props.obligation && props.obligation.status !== 'done' && (
-            <span
-              className={
-                props.obligation.status === 'overdue' ? 'text-down' : 'text-warn'
-              }
-            >
-              {props.obligation.status === 'overdue' ? 'reflection overdue' : 'reflection due tonight'}
-            </span>
-          )}
+        <div className="flex items-center gap-3 text-2xs text-faint">
           <span className="tabular-nums">{props.stream.length} published</span>
         </div>
       </div>
 
       {type === 'reflection' ? (
         <div className="space-y-3">
+          <div className="card-hd justify-between">
+            <span className="card-lbl">reflection — the end-of-day ritual</span>
+            {props.obligation && props.obligation.status !== 'done' && (
+              <span
+                className={
+                  props.obligation.status === 'overdue' ? 'text-down' : 'text-warn'
+                }
+              >
+                {props.obligation.status === 'overdue' ? 'reflection overdue' : 'reflection due tonight'}
+              </span>
+            )}
+          </div>
           <textarea
             aria-label="reflection draft"
             rows={15}
@@ -197,7 +200,7 @@ export function WriteZone(props: WriteZoneProps) {
             className="input w-full resize-y leading-snug"
           />
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="text-[12px]">
+            <div className="text-xs">
               {props.content.trim() ? (
                 <span className="text-up">● published to /journal</span>
               ) : (
@@ -315,7 +318,7 @@ export function WriteZone(props: WriteZoneProps) {
               </div>
 
               <div>
-                <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">models</div>
+                <div className="mb-1 text-2xs uppercase tracking-widest text-dim">models</div>
                 <ModelChipRow
                   models={tradeModels}
                   allModels={props.models}
@@ -326,7 +329,7 @@ export function WriteZone(props: WriteZoneProps) {
               </div>
 
               <div>
-                <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">executions (accounts)</div>
+                <div className="mb-1 text-2xs uppercase tracking-widest text-dim">executions (accounts)</div>
                 <div className="space-y-2">
                   {(trade.executions ?? []).map((e, ei) => (
                     <div key={ei} className="flex items-center gap-2">
@@ -371,7 +374,7 @@ export function WriteZone(props: WriteZoneProps) {
               </div>
 
               {trade.entry && trade.exit && (
-                <div className="text-[12px]">
+                <div className="text-xs">
                   {(() => {
                     const r = tradeR(trade)
                     return r ? (
@@ -390,7 +393,7 @@ export function WriteZone(props: WriteZoneProps) {
           )}
 
           <div className="flex items-center justify-end gap-2">
-            {type !== 'thought' && <span className="text-[11px] text-faint">⌘⏎</span>}
+            {type !== 'thought' && <span className="text-2xs text-faint">⌘⏎</span>}
             <Button size="sm" variant="primary" onClick={publishCurrent}>
               publish {type}
             </Button>
@@ -402,12 +405,12 @@ export function WriteZone(props: WriteZoneProps) {
       {props.stream.length > 0 && (
         <div className="mt-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] uppercase tracking-widest text-up">published thoughts</span>
+            <span className="text-2xs uppercase tracking-widest text-up">published thoughts</span>
             {props.previewHref && (
               <a
                 href={props.previewHref}
                 target="_blank"
-                className="text-[11px] text-accent transition-colors hover:text-ink"
+                className="text-2xs text-accent transition-colors hover:text-ink"
               >
                 view live →
               </a>
@@ -420,11 +423,11 @@ export function WriteZone(props: WriteZoneProps) {
             return (
               <div
                 key={i}
-                className="flex items-start gap-3 border border-line bg-bg px-3 py-2"
+                className="well flex items-start gap-3 px-3 py-2"
               >
-                <span className="mt-0.5 text-[11px] text-faint">{m.at || '--:--'}</span>
-                <span className="mt-0.5 text-[11px] uppercase tracking-wider text-dim">{m.type === 'note' ? 'thought' : m.type}</span>
-                <div className="min-w-0 flex-1 text-[13px] text-ink">
+                <span className="mt-0.5 text-2xs text-faint">{m.at || '--:--'}</span>
+                <span className="mt-0.5 text-2xs uppercase tracking-wider text-dim">{m.type === 'note' ? 'thought' : m.type}</span>
+                <div className="min-w-0 flex-1 text-sm text-ink">
                   {isTrade ? (
                     <span>
                       {linkedTrade ? (

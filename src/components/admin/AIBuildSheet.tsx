@@ -27,8 +27,8 @@ function SheetFrame({ title, onClose, children }: { title: string; onClose: () =
         style={{ animation: 'sheet-in 60ms ease-out' }}
       >
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
-          <h2 className="text-[12px] uppercase tracking-widest text-soft">{title}</h2>
-          <button onClick={onClose} aria-label="close" className="flex h-8 w-8 items-center justify-center border border-line2 text-[13px] text-dim hover:border-accent hover:text-ink">
+          <h2 className="text-xs uppercase tracking-widest text-soft">{title}</h2>
+          <button onClick={onClose} aria-label="close" className="flex h-8 w-8 items-center justify-center border border-line2 text-sm text-dim hover:border-accent hover:text-ink">
             ×
           </button>
         </div>
@@ -71,14 +71,14 @@ export function AIBuildSheet(props: AIBuildSheetProps) {
             {props.dayImages.map((img) => (
               <div key={img.id} className="relative border border-line bg-bg">
                 <img src={img.url || img.dataUrl} alt="" className="h-16 w-full object-cover" />
-                <button onClick={() => props.onRemoveDayImage(img.id)} className="absolute right-1 top-1 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-[11px] text-down hover:border-down">
+                <button onClick={() => props.onRemoveDayImage(img.id)} className="absolute right-1 top-1 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-2xs text-down hover:border-down">
                   ×
                 </button>
               </div>
             ))}
           </div>
         )}
-        <p className="mt-3 text-[11px] text-faint">on result: the sheet closes and structured data lands in the check-in band.</p>
+        <p className="mt-3 text-2xs text-faint">on result: the sheet closes and structured data lands in the check-in band.</p>
       </Card>
     </SheetFrame>
   )

@@ -23,7 +23,7 @@ interface CommandPaletteProps {
 const GHOST_KEY = '1edge.ghostText'
 
 function Kbd({ children }: { children: ReactNode }) {
-  return <kbd className="border border-line2 bg-bg px-1.5 py-0.5 text-[11px] text-accent">{children}</kbd>
+  return <kbd className="border border-line2 bg-bg px-1.5 py-0.5 text-2xs text-accent">{children}</kbd>
 }
 
 /** Terminal-styled ⌘K command palette (mono, dark, hairline, 2px radius). */
@@ -78,7 +78,7 @@ export function CommandPalette(props: CommandPaletteProps) {
         }}
       >
         <div className="flex items-center gap-2 border-b border-line px-3">
-          <span className="text-[12px] text-faint">›</span>
+          <span className="text-xs text-faint">›</span>
           <Command.Input
             placeholder="type a command…"
             className="h-11 w-full border-0 bg-transparent text-[14px] text-ink outline-none placeholder:text-faint"
@@ -87,11 +87,11 @@ export function CommandPalette(props: CommandPaletteProps) {
         </div>
 
         <Command.List className="max-h-[50vh] overflow-y-auto px-1 py-1">
-          <Command.Empty className="px-3 py-6 text-center text-[12px] text-faint">no command found</Command.Empty>
+          <Command.Empty className="px-3 py-6 text-center text-xs text-faint">no command found</Command.Empty>
 
           <Command.Group
             heading="go"
-            className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-faint"
+            className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-3xs [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-faint"
           >
             <Command.Item value="go-today" onSelect={run(props.onToday)} className={itemCls}>
               <span>today</span>
@@ -99,7 +99,7 @@ export function CommandPalette(props: CommandPaletteProps) {
             </Command.Item>
             <Command.Item value="go-open-day" onSelect={run(props.onOpenDayPicker)} className={itemCls}>
               <span>open day…</span>
-              <span className="text-[10px] text-faint">date picker sheet</span>
+              <span className="text-3xs text-faint">date picker sheet</span>
             </Command.Item>
             <Command.Item value="go-prev" onSelect={run(props.onPrevDay)} className={itemCls}>
               <span>previous day</span>
@@ -166,7 +166,7 @@ export function CommandPalette(props: CommandPaletteProps) {
             </Command.Item>
             <Command.Item value="jump-habits" onSelect={run(() => props.onJump(null))} className={itemCls}>
               <span>habits</span>
-              <span className="text-[10px] text-faint">day surface top</span>
+              <span className="text-3xs text-faint">day surface top</span>
             </Command.Item>
             <Command.Item value="jump-trades" onSelect={run(() => props.onJump('sec-trades'))} className={itemCls}>
               <span>trades</span>
@@ -218,7 +218,7 @@ export function CommandPalette(props: CommandPaletteProps) {
           </Command.Group>
         </Command.List>
 
-        <div className="border-t border-line px-3 py-1.5 text-[11px] text-faint tabular-nums">
+        <div className="border-t border-line px-3 py-1.5 text-2xs text-faint tabular-nums">
           {todayStr()} · {pending} draft change{pending === 1 ? '' : 's'} · esc to close
         </div>
       </Command>
@@ -227,6 +227,6 @@ export function CommandPalette(props: CommandPaletteProps) {
 }
 
 const itemCls =
-  'flex items-center justify-between gap-3 rounded-sm px-3 py-2 text-[13px] text-ink transition-colors data-[selected=true]:bg-raise data-[selected=true]:text-accent'
+  'flex items-center justify-between gap-3 rounded-sm px-3 py-2 text-sm text-ink transition-colors data-[selected=true]:bg-raise data-[selected=true]:text-accent'
 const groupCls =
-  '[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-faint'
+  '[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-3xs [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-faint'

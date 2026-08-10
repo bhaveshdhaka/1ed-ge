@@ -149,7 +149,7 @@ export function ReviewTab({ notify, gotoReview }: { notify: (m: string, ok?: boo
     <div className="space-y-6">
       <h1 className="text-xl">/ reviews</h1>
 
-      <Card title="period" actions={<span className="text-[11px] text-faint">derived from logged days</span>}>
+      <Card title="period" actions={<span className="text-2xs text-faint">derived from logged days</span>}>
         <div className="grid gap-3 md:grid-cols-2">
           <Field label="type">
             <Select value={sel?.type ?? 'week'} onChange={(e) => pickType(e.target.value as PeriodType)}>
@@ -190,7 +190,7 @@ export function ReviewTab({ notify, gotoReview }: { notify: (m: string, ok?: boo
             </Field>
             <MarkdownEditor label="review markdown" rows={18} value={body} onChange={setBody} />
             <div className="flex items-center justify-between border-t border-line pt-3">
-              <span className="text-[11px] text-faint">
+              <span className="text-2xs text-faint">
                 comparison — AI facts, you write the reflection
               </span>
               <Button size="sm" onClick={generate} disabled={generating}>
@@ -198,12 +198,12 @@ export function ReviewTab({ notify, gotoReview }: { notify: (m: string, ok?: boo
               </Button>
             </div>
             <MarkdownEditor label="comparison markdown" rows={10} value={comparison} onChange={setComparison} />
-            {loaded && !dirty && <p className="mt-3 text-[11px] text-faint">saved — queued for rebuild</p>}
+            {loaded && !dirty && <p className="mt-3 text-2xs text-faint">saved — queued for rebuild</p>}
           </div>
         </Card>
       ) : (
         <Card title="no periods yet">
-          <p className="text-[12px] text-faint">no logged days yet — reviews appear once there is day data.</p>
+          <p className="text-xs text-faint">no logged days yet — reviews appear once there is day data.</p>
         </Card>
       )}
     </div>

@@ -68,8 +68,8 @@ function SheetFrame({ title, onClose, children }: { title: string; onClose: () =
         style={{ animation: 'sheet-in 60ms ease-out' }}
       >
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
-          <h2 className="text-[12px] uppercase tracking-widest text-soft">{title}</h2>
-          <button onClick={onClose} aria-label="close" className="flex h-8 w-8 items-center justify-center border border-line2 text-[13px] text-dim hover:border-accent hover:text-ink">
+          <h2 className="text-xs uppercase tracking-widest text-soft">{title}</h2>
+          <button onClick={onClose} aria-label="close" className="flex h-8 w-8 items-center justify-center border border-line2 text-sm text-dim hover:border-accent hover:text-ink">
             ×
           </button>
         </div>
@@ -329,7 +329,7 @@ export function IngestSheet(props: IngestSheetProps) {
               onChange={(e) => setRisk(row.index, e.target.value)}
               placeholder="—"
               aria-label={`risk points for proposed trade ${row.index + 1}`}
-              className="w-20 px-1.5 py-1 text-[11px]"
+              className="w-20 px-1.5 py-1 text-2xs"
             />
           ),
         }),
@@ -358,7 +358,7 @@ export function IngestSheet(props: IngestSheetProps) {
             <Select
               value={state.accountByIndex[row.index] ?? ''}
               onChange={(e) => setAccount(row.index, e.target.value)}
-              className="max-w-[110px] px-1.5 py-1 text-[11px]"
+              className="max-w-[110px] px-1.5 py-1 text-2xs"
             >
               <option value="">— account —</option>
               {knownAccounts.map((id) => (
@@ -372,7 +372,7 @@ export function IngestSheet(props: IngestSheetProps) {
           header: '',
           cell: ({ row }) =>
             row.original.dup ? (
-              <span className="border border-line px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-warn">dup</span>
+              <span className="border border-line px-1.5 py-0.5 text-3xs uppercase tracking-wider text-warn">dup</span>
             ) : null,
         }),
       ] as LegacyColumnDef<PositionProposal>[],
@@ -395,11 +395,11 @@ export function IngestSheet(props: IngestSheetProps) {
         helperText="exports are parsed in memory and never saved"
         ariaLabel="drop exports to import trades"
       />
-      {state.busy && <div className="mt-3 text-[13px] text-faint">importing…</div>}
+      {state.busy && <div className="mt-3 text-sm text-faint">importing…</div>}
 
       {state.result && !state.busy && (
         <div className="mt-4 space-y-3">
-          <div className="flex items-center justify-between text-[12px] text-dim">
+          <div className="flex items-center justify-between text-xs text-dim">
             <span>
               {state.result.proposals.length} proposed
               {state.result.dupes > 0 && <span className="ml-2 text-faint">({state.result.dupes} dup)</span>}
@@ -409,7 +409,7 @@ export function IngestSheet(props: IngestSheetProps) {
 
           {state.result.aliasProposal && (
             <div className="border border-line bg-bg p-3">
-              <div className="mb-2 text-[12px] text-ink">
+              <div className="mb-2 text-xs text-ink">
                 unknown platform id <span className="font-mono text-accent">{state.result.aliasProposal.platformId || '—'}</span> — link to:
               </div>
               <Select
@@ -429,7 +429,7 @@ export function IngestSheet(props: IngestSheetProps) {
           )}
 
           <div className="overflow-x-auto border border-line">
-            <table className="w-full text-left text-[11px]">
+            <table className="w-full text-left text-2xs">
               <thead className="sticky top-0 bg-panel">
                 {table.getHeaderGroups().map((hg) => (
                   <tr key={hg.id} className="border-b border-line">
@@ -463,7 +463,7 @@ export function IngestSheet(props: IngestSheetProps) {
           </div>
 
           <div className="flex items-center justify-between border-t border-line pt-2">
-            <span className="text-[12px] text-dim">{approvedCount} selected</span>
+            <span className="text-xs text-dim">{approvedCount} selected</span>
             <Button onClick={apply} disabled={approvedCount === 0 || state.busy}>
               apply {approvedCount} approved trades →
             </Button>

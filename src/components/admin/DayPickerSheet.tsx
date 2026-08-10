@@ -29,8 +29,8 @@ function SheetFrame({ title, onClose, children }: { title: string; onClose: () =
         style={{ animation: 'sheet-in 60ms ease-out' }}
       >
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
-          <h2 className="text-[12px] uppercase tracking-widest text-soft">{title}</h2>
-          <button onClick={onClose} aria-label="close" className="flex h-8 w-8 items-center justify-center border border-line2 text-[13px] text-dim hover:border-accent hover:text-ink">
+          <h2 className="text-xs uppercase tracking-widest text-soft">{title}</h2>
+          <button onClick={onClose} aria-label="close" className="flex h-8 w-8 items-center justify-center border border-line2 text-sm text-dim hover:border-accent hover:text-ink">
             ×
           </button>
         </div>
@@ -133,7 +133,7 @@ export function DayPickerSheet(props: DayPickerSheetProps) {
       </div>
 
       <div className="mt-4 border-t border-line/60 pt-3">
-        <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">recent</div>
+        <div className="mb-1 text-2xs uppercase tracking-widest text-dim">recent</div>
         <div className="space-y-0.5">
           {props.days.slice(0, 14).map((d) => (
             <button
@@ -142,13 +142,13 @@ export function DayPickerSheet(props: DayPickerSheetProps) {
                 props.onSelectDate(d.date)
                 props.onOpenChange(false)
               }}
-              className={`flex w-full items-center justify-between px-2 py-1.5 text-left text-[11px] transition-colors hover:bg-raise ${d.date === props.selectedDate ? 'bg-raise text-ink' : 'text-dim'}`}
+              className={`flex w-full items-center justify-between px-2 py-1.5 text-left text-2xs transition-colors hover:bg-raise ${d.date === props.selectedDate ? 'bg-raise text-ink' : 'text-dim'}`}
             >
               <span>{d.date.slice(5)}</span>
               {d.trades > 0 && <span className="text-faint">{d.trades}t</span>}
             </button>
           ))}
-          {props.days.length === 0 && <div className="px-3 py-4 text-[12px] text-faint">no days yet</div>}
+          {props.days.length === 0 && <div className="px-3 py-4 text-xs text-faint">no days yet</div>}
         </div>
       </div>
     </SheetFrame>

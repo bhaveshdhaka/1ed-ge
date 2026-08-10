@@ -55,13 +55,13 @@ export function MarkdownEditor({
               type="button"
               onClick={() => setMode(m)}
               aria-pressed={mode === m}
-              className={`h-8 px-2.5 text-[12px] ${mode === m ? 'bg-raise text-ink' : 'text-dim hover:text-ink'}`}
+              className={`h-8 px-2.5 text-xs ${mode === m ? 'bg-raise text-ink' : 'text-dim hover:text-ink'}`}
             >
               {m}
             </button>
           ))}
         </div>
-        <span className="text-[11px] text-faint">{label}</span>
+        <span className="text-2xs text-faint">{label}</span>
       </div>
       {mode === 'write' ? (
         <div className="relative">

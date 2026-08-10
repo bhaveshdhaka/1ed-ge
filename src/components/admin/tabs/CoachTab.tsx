@@ -74,7 +74,7 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
     <div className="flex h-[calc(100vh-10rem)] flex-col space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl">/ coach</h1>
-        <span className="text-[12px] text-dim">
+        <span className="text-xs text-dim">
           f-R-iend · sees your live trends + remembers prior advice
         </span>
       </div>
@@ -82,18 +82,18 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
       <Card title="conversation" className="flex-1 overflow-hidden">
         <div className="h-full space-y-4 overflow-y-auto p-4">
           {all.length === 0 && !busy && (
-            <p className="text-[13px] text-faint">
+            <p className="text-sm text-faint">
               nothing yet. ask f-R-iend anything — or let it read the day and tell you what the
               data says. everything here is public on /coach.
             </p>
           )}
           {all.map((m, i) => (
             <div key={i} className={`max-w-[85%] ${m.role === 'me' ? 'ml-auto' : ''}`}>
-              <div className={`mb-1 text-[10px] uppercase tracking-widest ${m.role === 'me' ? 'text-right text-dim' : 'text-faint'}`}>
+              <div className={`mb-1 text-3xs uppercase tracking-widest ${m.role === 'me' ? 'text-right text-dim' : 'text-faint'}`}>
                 {m.when} · {m.role}
               </div>
               <div
-                className={`whitespace-pre-wrap border px-3 py-2 text-[13px] leading-relaxed ${
+                className={`whitespace-pre-wrap border px-3 py-2 text-sm leading-relaxed ${
                   m.role === 'me' ? 'border-accent/40 bg-accent/10 text-ink' : 'border-line bg-bg text-soft'
                 }`}
               >
@@ -101,21 +101,21 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
               </div>
             </div>
           ))}
-          {busy && <div className="text-[13px] text-warn">coach is thinking…</div>}
+          {busy && <div className="text-sm text-warn">coach is thinking…</div>}
           <div ref={bottomRef} />
         </div>
       </Card>
 
       <details className="border border-line bg-panel">
-        <summary className="cursor-pointer px-3 py-2 text-[11px] uppercase tracking-widest text-dim">
+        <summary className="cursor-pointer px-3 py-2 text-2xs uppercase tracking-widest text-dim">
           the data f-R-iend sees ▾
         </summary>
         {snapshot ? (
-          <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap border-t border-line/60 px-3 py-2 text-[11px] leading-relaxed text-faint">
+          <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap border-t border-line/60 px-3 py-2 text-2xs leading-relaxed text-faint">
             {snapshot}
           </pre>
         ) : (
-          <p className="border-t border-line/60 px-3 py-2 text-[11px] text-faint">loading snapshot…</p>
+          <p className="border-t border-line/60 px-3 py-2 text-2xs text-faint">loading snapshot…</p>
         )}
       </details>
 
@@ -125,7 +125,7 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
             key={p}
             onClick={() => send(p)}
             disabled={busy}
-            className="flex h-8 items-center border border-line px-2.5 text-[11px] text-dim transition-colors hover:border-accent hover:text-ink disabled:opacity-40"
+            className="flex h-8 items-center border border-line px-2.5 text-2xs text-dim transition-colors hover:border-accent hover:text-ink disabled:opacity-40"
           >
             {p}
           </button>

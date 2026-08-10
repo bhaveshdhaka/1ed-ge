@@ -80,7 +80,7 @@ export function MediaTab({ notify }: { notify: (m: string, ok?: boolean) => void
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl">/ media</h1>
-        <span className="text-[12px] text-dim">{filtered.length}/{media.length} files</span>
+        <span className="text-xs text-dim">{filtered.length}/{media.length} files</span>
       </div>
 
       <ImageDropZone onFiles={onFiles} label={busy ? 'uploading…' : 'click, drag, or paste images'} />
@@ -96,12 +96,12 @@ export function MediaTab({ notify }: { notify: (m: string, ok?: boolean) => void
       </div>
 
       {sortedGroups.length === 0 && (
-        <p className="py-10 text-center text-[12px] text-faint">{q ? 'no matches' : 'no media yet'}</p>
+        <p className="py-10 text-center text-xs text-faint">{q ? 'no matches' : 'no media yet'}</p>
       )}
 
       {sortedGroups.map(([g, rels]) => (
         <div key={g}>
-          <div className="mb-2 border-b border-line pb-1 text-[11px] uppercase tracking-widest text-dim">
+          <div className="mb-2 border-b border-line pb-1 text-2xs uppercase tracking-widest text-dim">
             {g} <span className="text-faint">({rels.length})</span>
           </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5">
@@ -111,7 +111,7 @@ export function MediaTab({ notify }: { notify: (m: string, ok?: boolean) => void
                   <img src={`/media/${rel}`} alt={rel} loading="lazy" className="h-36 w-full border-b border-line object-cover" />
                 </a>
                 <div className="space-y-1 p-2">
-                  <div className="truncate text-[10px] text-dim" title={rel}>{rel.split('/').pop()}</div>
+                  <div className="truncate text-3xs text-dim" title={rel}>{rel.split('/').pop()}</div>
                   <div className="flex gap-1">
                     <Button size="sm" className="flex-1" onClick={() => copy(rel)}>
                       {copied === rel ? '✓ copied' : 'copy'}

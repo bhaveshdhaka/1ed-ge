@@ -166,7 +166,7 @@ export default function AdminApp() {
             <span className="brand-word">
               <span className="brand-one">1</span>edge<span className="brand-tk">_</span>
             </span>
-            <span className="ml-2 text-[11px] font-normal uppercase tracking-widest text-faint">zen</span>
+            <span className="ml-2 text-2xs font-normal uppercase tracking-widest text-faint">zen</span>
           </a>
           <nav aria-label="zen tabs" className="flex flex-wrap items-center gap-1">
             {TABS.map((t) => (
@@ -174,18 +174,18 @@ export default function AdminApp() {
                 key={t.id}
                 onClick={() => go(t.id)}
                 aria-current={tab === t.id ? 'page' : undefined}
-                className={`flex h-10 items-center px-3 text-[13px] transition-colors md:h-11 ${
+                className={`flex h-10 items-center px-3 text-sm transition-colors md:h-11 ${
                   tab === t.id ? 'bg-raise text-ink' : 'text-dim hover:text-ink'
                 }`}
               >
-                <span className="mr-1 hidden text-[10px] text-faint sm:inline">{t.key}</span>
+                <span className="mr-1 hidden text-3xs text-faint sm:inline">{t.key}</span>
                 {t.label}
               </button>
             ))}
             <button
               onClick={() => setPaletteOpen(true)}
               aria-label="command palette"
-              className="ml-1 flex h-10 w-10 items-center justify-center border border-line2 text-[13px] text-dim transition-colors hover:border-accent hover:text-ink md:h-11"
+              className="ml-1 flex h-10 w-10 items-center justify-center border border-line2 text-sm text-dim transition-colors hover:border-accent hover:text-ink md:h-11"
             >
               ⌘K
             </button>
@@ -233,7 +233,7 @@ export default function AdminApp() {
         position="top-right"
         theme="dark"
         toastOptions={{
-          className: 'bg-bg! border! border-line2! rounded-[2px]! text-[13px]! font-mono!',
+          className: 'bg-bg! border! border-line2! rounded-[2px]! text-sm! font-mono!',
         }}
       />
 
