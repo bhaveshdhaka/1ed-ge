@@ -66,6 +66,7 @@ const activeHabits = habits.filter((h) => h.data.active !== false)
 const facts = dayFacts(d, activeHabits.length)
 const thoughts = d ? resolveThoughts(d) : []
 const trades = d?.trades ?? []
+const tradesTotalR = trades.reduce((s, t) => s + ROf(t), 0)
 const mk = scheduledDayMarker(iso)
 
 const journalSummary = journalFor && typeof journalFor.data.summary === 'string' ? journalFor.data.summary : null
@@ -122,121 +123,154 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
     </nav>
 
     <section id="facts" class="mt-6 scroll-mt-28">
-      <h2 class="text-lg">/ day facts</h2>
-      <div class="mt-3"><DayFacts cells={facts} /></div>
+      <DayFacts cells={facts} />
     </section>
 
     <section id="trades" class="mt-10 scroll-mt-28">
-      <h2 class="text-lg">/ trades {trades.length > 0 ? `(${trades.length})` : ''}</h2>
-      {trades.length === 0 ? (
-        <div class="mt-3"><EmptyState text="no trades logged this day." /></div>
-      ) : (
-        <div class="mt-4 space-y-4">
-          {trades.map((t, ti) => {
-            const R = ROf(t)
-            const ex = t.executions ?? []
-            const totalPnl = ex.reduce((s, e) => s + t.points * (accMap.get(e.account)?.pointsValue ?? 2) * (e.size ?? 1), 0)
-            return (
-              <Card>
-                <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                  <span class="text-base text-ink">{t.direction === 'long' ? '▲' : '▼'} {t.market}</span>
-                  <span class="text-xs text-dim">{t.session ?? '—'} · {t.setup ?? 'no setup'}</span>
-                  {t.models?.length ? t.models.map((m, i) => <Badge variant={i === 0 ? 'accent' : 'default'}>{m}</Badge>) : (
-                    t.model ? <Badge variant="accent">{t.model}</Badge> : null
-                  )}
-                  <span class:list={['ml-auto text-base', R > 0 ? 'num-up' : R < 0 ? 'num-down' : '']}>
-                    {R > 0 ? '+' : ''}{R.toFixed(2)}R
-                  </span>
-                  <span class:list={['text-sm', totalPnl > 0 ? 'num-up' : totalPnl < 0 ? 'num-down' : 'text-dim']}>
-                    {totalPnl > 0 ? '+' : ''}${totalPnl.toLocaleString('en-US', { maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-dim md:grid-cols-4">
-                  <span>entry <span class="text-ink">{t.entry}</span></span>
-                  <span>exit <span class="text-ink">{t.exit}</span></span>
-                  <span>stop <span class="text-ink">{t.stop ?? '—'}</span></span>
-                  <span>points <span class:list={[t.points > 0 ? 'text-up' : t.points < 0 ? 'text-down' : '']}>{t.points > 0 ? '+' : ''}{t.points}</span></span>
-                </div>
-                {t.commentary && (
-                  <p class="mt-2 border-t border-line/60 pt-2 text-sm text-soft">{t.commentary}</p>
-                )}
-                {(ex.length > 0 || t.note) && (
-                  <div class="mt-2 text-xs text-dim">
-                    {ex.length > 0 && (
-                      <span>accounts: {ex.map((e) => { const a = accMap.get(e.account); return `${a?.firm ?? ''} ${a?.sizeLabel ?? ''}${e.size && e.size > 1 ? ` ×${e.size}` : ''}` }).join(' · ')}</span>
-                    )}
-                    {t.note && <span class="text-soft"> — {t.note}</span>}
-                  </div>
-                )}
-                {(t.screenshots?.length ?? 0) > 0 && (
-                  <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-                    {t.screenshots!.map((s) => (
-                      <a href={s} target="_blank" rel="noopener" data-lb={`day-${iso}-${ti}`} class="block border border-line bg-bg transition-colors hover:border-accent">
-                        <img src={s} alt={altFor(s)} loading="lazy" class="w-full" />
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </Card>
-            )
-          })}
+      <div class="panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">📈</span>
+          <span class="card-lbl">trades</span>
+          <span class="card-sub">
+            {trades.length > 0 ? `${trades.length} · ${tradesTotalR > 0 ? '+' : ''}${tradesTotalR.toFixed(2)}R` : '0'}
+          </span>
         </div>
-      )}
+        <div class="p-3 md:p-4">
+          {trades.length === 0 ? (
+            <EmptyState text="no trades logged this day." />
+          ) : (
+            <div class="space-y-4">
+              {trades.map((t, ti) => {
+                const R = ROf(t)
+                const ex = t.executions ?? []
+                const totalPnl = ex.reduce((s, e) => s + t.points * (accMap.get(e.account)?.pointsValue ?? 2) * (e.size ?? 1), 0)
+                return (
+                  <Card>
+                    <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                      <span class="text-base text-ink">{t.direction === 'long' ? '▲' : '▼'} {t.market}</span>
+                      <span class="text-xs text-dim">{t.session ?? '—'} · {t.setup ?? 'no setup'}</span>
+                      {t.models?.length ? t.models.map((m, i) => <Badge variant={i === 0 ? 'accent' : 'default'}>{m}</Badge>) : (
+                        t.model ? <Badge variant="accent">{t.model}</Badge> : null
+                      )}
+                      <span class:list={['ml-auto text-base', R > 0 ? 'num-up' : R < 0 ? 'num-down' : '']}>
+                        {R > 0 ? '+' : ''}{R.toFixed(2)}R
+                      </span>
+                      <span class:list={['text-sm', totalPnl > 0 ? 'num-up' : totalPnl < 0 ? 'num-down' : 'text-dim']}>
+                        {totalPnl > 0 ? '+' : ''}${totalPnl.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div class="well mt-2 grid grid-cols-2 gap-x-6 gap-y-1 px-3 py-2 text-xs text-dim md:grid-cols-4">
+                      <span>entry <span class="text-ink">{t.entry}</span></span>
+                      <span>exit <span class="text-ink">{t.exit}</span></span>
+                      <span>stop <span class="text-ink">{t.stop ?? '—'}</span></span>
+                      <span>points <span class:list={[t.points > 0 ? 'text-up' : t.points < 0 ? 'text-down' : '']}>{t.points > 0 ? '+' : ''}{t.points}</span></span>
+                    </div>
+                    {t.commentary && (
+                      <p class="mt-2 border-t border-line/60 pt-2 text-sm text-soft">{t.commentary}</p>
+                    )}
+                    {(ex.length > 0 || t.note) && (
+                      <div class="mt-2 text-xs text-dim">
+                        {ex.length > 0 && (
+                          <span>accounts: {ex.map((e) => { const a = accMap.get(e.account); return `${a?.firm ?? ''} ${a?.sizeLabel ?? ''}${e.size && e.size > 1 ? ` ×${e.size}` : ''}` }).join(' · ')}</span>
+                        )}
+                        {t.note && <span class="text-soft"> — {t.note}</span>}
+                      </div>
+                    )}
+                    {(t.screenshots?.length ?? 0) > 0 && (
+                      <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+                        {t.screenshots!.map((s) => (
+                          <a href={s} target="_blank" rel="noopener" data-lb={`day-${iso}-${ti}`} class="block border border-line bg-bg transition-colors hover:border-accent">
+                            <img src={s} alt={altFor(s)} loading="lazy" class="w-full" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
     </section>
 
     {newsFor && (dayRed.length > 0 || dayOrange.length > 0) && (
-      <details id="news" class="group mt-10 scroll-mt-28 panel px-4 py-3" open>
-        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 text-sm">
-          <span class="text-dim">News events</span>
-          <span class="text-dim transition-transform group-open:rotate-180">▾</span>
+      <details id="news" class="group mt-10 scroll-mt-28 panel" open>
+        <summary class="card-hd cursor-pointer list-none select-none border-b border-sep">
+          <span class="card-ico">📰</span>
+          <span class="card-lbl">news events</span>
+          <span class="ml-auto text-dim transition-transform group-open:rotate-180">▾</span>
         </summary>
-        <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2">
+        <div class="p-3 md:p-4">
           <NewsBlock red={dayRed} orange={dayOrange} dayIso={iso} now={Date.now()} />
         </div>
       </details>
     )}
 
     {briefFor && Brief && (
-      <section id="brief" class="mt-10 scroll-mt-28 panel px-4 py-3">
-        <div class="text-sm text-dim">/ brief</div>
-        <div class="prose mt-2 [&>*]:text-sm" set:html={Brief} />
+      <section id="brief" class="mt-10 scroll-mt-28">
+        <div class="panel">
+          <div class="card-hd border-b border-sep">
+            <span class="card-ico">📋</span>
+            <span class="card-lbl">pre-market brief</span>
+          </div>
+          <div class="prose p-4 [&>*]:text-sm" set:html={Brief} />
+        </div>
       </section>
     )}
 
     {journalFor && Reflection && (
       <section id="reflection" class="mt-10 scroll-mt-28">
-        <h2 class="text-lg">/ reflection</h2>
-        <div class="prose mt-4 max-w-3xl panel border-accent px-4 py-3">
-          {journalSummary && <p class="text-sm text-soft">{journalSummary}</p>}
-          <div set:html={Reflection} />
+        <div class="panel panel-hero">
+          <div class="card-hd border-b border-sep">
+            <span class="card-ico">✍️</span>
+            <span class="card-lbl">reflection</span>
+          </div>
+          <div class="prose max-w-3xl p-4">
+            {journalSummary && <p class="text-sm text-soft">{journalSummary}</p>}
+            <div set:html={Reflection} />
+          </div>
         </div>
       </section>
     )}
 
     <section id="thoughts" class="mt-10 scroll-mt-28">
-      <h2 class="text-lg">/ thoughts</h2>
-      {thoughts.length === 0 ? (
-        <div class="mt-3"><EmptyState text="nothing published this day." /></div>
-      ) : (
-        <div class="mt-4 flex max-w-2xl flex-col gap-3">
-          {thoughts.map((t) => <ThoughtCard thought={t} />)}
+      <div class="panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">💭</span>
+          <span class="card-lbl">thoughts</span>
+          <span class="card-sub">{thoughts.length}</span>
         </div>
-      )}
+        <div class="p-3 md:p-4">
+          {thoughts.length === 0 ? (
+            <EmptyState text="nothing published this day." />
+          ) : (
+            <div class="flex max-w-2xl flex-col gap-3">
+              {thoughts.map((t) => <ThoughtCard thought={t} />)}
+            </div>
+          )}
+        </div>
+      </div>
     </section>
 
     {d && (
       <section id="habits" class="mt-10 scroll-mt-28">
-        <h2 class="text-lg">/ habits</h2>
-        <div class="mt-3 flex flex-wrap gap-2">
-          {activeHabits.map((h) => {
-            const val = (d.habits ?? {})[h.id]
-            const done = val === true || (typeof val === 'number' && val > 0)
-            return (
-              <span class="capsule" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
-                {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
-              </span>
-            )
-          })}
+        <div class="panel">
+          <div class="card-hd border-b border-sep">
+            <span class="card-ico">✅</span>
+            <span class="card-lbl">habits</span>
+          </div>
+          <div class="flex flex-wrap gap-2 p-3 md:p-4">
+            {activeHabits.map((h) => {
+              const val = (d.habits ?? {})[h.id]
+              const done = val === true || (typeof val === 'number' && val > 0)
+              return (
+                <span class="capsule" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
+                  {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
+                </span>
+              )
+            })}
+          </div>
         </div>
       </section>
     )}
@@ -255,18 +289,25 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
     <Separator class="mt-10" />
 
     <section id="coach" class="mt-8 scroll-mt-28">
-      <h2 class="text-lg">/ coach</h2>
-      {coachFor && Coaching ? (
-        <article class="mt-4 max-w-3xl border-l-2 border-line2 pl-6">
-          <div class="flex flex-wrap items-center gap-3 text-xs text-dim">
-            <span>{fmtDay(coachDate)}</span>
-            {coachSummary && <span class="text-soft">{coachSummary}</span>}
-          </div>
-          <div class="prose mt-4" set:html={Coaching} />
-        </article>
-      ) : (
-        <div class="mt-3"><EmptyState text="no coaching session this day." /></div>
-      )}
+      <div class="panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">🤖</span>
+          <span class="card-lbl">coach</span>
+        </div>
+        <div class="p-3 md:p-4">
+          {coachFor && Coaching ? (
+            <article class="max-w-3xl border-l-2 border-line2 pl-6">
+              <div class="flex flex-wrap items-center gap-3 text-xs text-dim">
+                <span>{fmtDay(coachDate)}</span>
+                {coachSummary && <span class="text-soft">{coachSummary}</span>}
+              </div>
+              <div class="prose mt-4" set:html={Coaching} />
+            </article>
+          ) : (
+            <EmptyState text="no coaching session this day." />
+          )}
+        </div>
+      </div>
     </section>
   </div>
 </Base>

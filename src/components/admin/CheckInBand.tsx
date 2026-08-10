@@ -87,7 +87,7 @@ export function CheckInBand(props: CheckInBandProps) {
 
       {/* ---------- CAPTURE ---------- */}
       <div id="sec-capture" className="scroll-mt-20">
-        <Card title="capture — paste everything, AI builds the day" actions={<Button size="sm" onClick={props.onEvidence}>evidence ▸</Button>}>
+        <Card title="capture — paste everything, AI builds the day" className="panel-hero" actions={<Button size="sm" onClick={props.onEvidence}>evidence ▸</Button>}>
           <div className="grid gap-3 md:grid-cols-[1fr_auto]">
             <TextArea
               rows={2}
@@ -119,7 +119,12 @@ export function CheckInBand(props: CheckInBandProps) {
 
       {/* ---------- CHECK-IN FACTS (direct-click edit) ---------- */}
       <div id="sec-day" className="scroll-mt-20">
-        <Card title="check-in">
+        <section className="panel">
+          <div className="card-hd">
+            <span className="card-ico" aria-hidden="true">☀️</span>
+            <span className="card-lbl">check-in</span>
+          </div>
+          <div className="p-3 md:p-4">
           <div className="grid gap-x-4 gap-y-3 md:gap-x-8 md:gap-y-4 md:grid-cols-2">
             {/* mood */}
             <div className="border-b border-line/60 pb-3">
@@ -212,7 +217,8 @@ export function CheckInBand(props: CheckInBandProps) {
               )}
             </div>
           </div>
-        </Card>
+          </div>
+        </section>
       </div>
     </>
   )

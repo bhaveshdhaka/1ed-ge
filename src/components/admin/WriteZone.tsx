@@ -149,7 +149,15 @@ export function WriteZone(props: WriteZoneProps) {
   }
 
   return (
-    <div id="sec-write" className="panel scroll-mt-20 p-3 md:p-4">
+    <div id="sec-write" className="panel scroll-mt-20">
+      <div className="card-hd">
+        <span className="card-ico" aria-hidden="true">💭</span>
+        <span className="card-lbl">thoughts</span>
+        <span className="card-sub">
+          {props.stream.length} live{props.reflection.trim() ? ' · 1 draft' : ''}
+        </span>
+      </div>
+      <div className="p-3 md:p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="seg flex-wrap">
           {TYPES.map((t) => (
@@ -165,9 +173,6 @@ export function WriteZone(props: WriteZoneProps) {
               {t}
             </button>
           ))}
-        </div>
-        <div className="flex items-center gap-3 text-2xs text-faint">
-          <span className="tabular-nums">{props.stream.length} published</span>
         </div>
       </div>
 
@@ -457,6 +462,7 @@ export function WriteZone(props: WriteZoneProps) {
           })}
         </div>
       )}
+      </div>
     </div>
   )
 }

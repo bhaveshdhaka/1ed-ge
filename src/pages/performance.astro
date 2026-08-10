@@ -65,30 +65,63 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       </div>
     </div>
 
-    <div id="stats" class="mt-8 grid scroll-mt-28 grid-cols-2 gap-px border border-line bg-line md:grid-cols-4 lg:grid-cols-6">
-      {cards.map((c) => (
-        <div class="bg-bg p-4">
-          <div class="text-[10px] uppercase tracking-widest text-dim">{c.label}</div>
-          <div class:list={['mt-1.5 text-lg', c.dim ? 'text-dim' : c.up === undefined ? 'text-ink' : c.up ? 'num-up' : 'num-down']}>{c.value}</div>
+    <div id="stats" class="mt-8 scroll-mt-28 panel">
+      <div class="card-hd border-b border-sep">
+        <span class="card-ico">📊</span>
+        <span class="card-lbl">R performance</span>
+        <span class="card-sub">{s.totalTrades || 0} trades</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 p-3 md:grid-cols-4 lg:grid-cols-6">
+        {cards.map((c) => (
+          <div class="well p-4">
+            <div class="text-[10px] uppercase tracking-widest text-dim">{c.label}</div>
+            <div class:list={['mt-1.5 text-lg', c.dim ? 'text-dim' : c.up === undefined ? 'text-ink' : c.up ? 'num-up' : 'num-down']}>{c.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div id="charts" class="mt-10 grid scroll-mt-28 gap-6 lg:grid-cols-2">
+      <div class="panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">📈</span>
+          <span class="card-lbl">equity curve</span>
+          <span class="card-sub">cumulative R</span>
         </div>
-      ))}
-    </div>
-
-    <div id="charts" class="mt-10 grid scroll-mt-28 gap-10 lg:grid-cols-2">
-      <div class="panel p-5">
-        <EquityCurve points={s.equityR} color="var(--color-up)" label="equity curve — cumulative R" />
+        <div class="p-4">
+          <EquityCurve points={s.equityR} color="var(--color-up)" />
+        </div>
       </div>
-      <div class="panel p-5">
-        <EquityCurve points={s.equityPnl} color="var(--chart-alt)" label="equity curve — $ pnl (all accounts)" footer={`${s.equityPnl.length} executions`} />
+      <div class="panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">💵</span>
+          <span class="card-lbl">equity curve</span>
+          <span class="card-sub">$ pnl · all accounts</span>
+        </div>
+        <div class="p-4">
+          <EquityCurve points={s.equityPnl} color="var(--chart-alt)" footer={`${s.equityPnl.length} executions`} />
+        </div>
       </div>
     </div>
 
-    <div class="mt-10 panel p-5">
-      <RHistogram rs={trades.map((t) => t.R)} />
+    <div class="mt-10 panel">
+      <div class="card-hd border-b border-sep">
+        <span class="card-ico">📊</span>
+        <span class="card-lbl">R histogram</span>
+        <span class="card-sub">{trades.length} trades</span>
+      </div>
+      <div class="p-4">
+        <RHistogram rs={trades.map((t) => t.R)} />
+      </div>
     </div>
 
-    <h2 id="accounts" class="mt-14 scroll-mt-28 text-lg">/ accounts</h2>
-    <div class="mt-4 overflow-x-auto panel" tabindex="0">
+    <div id="accounts" class="mt-14 scroll-mt-28 panel">
+      <div class="card-hd border-b border-sep">
+        <span class="card-ico">💰</span>
+        <span class="card-lbl">accounts</span>
+        <span class="card-sub">{perAccount.length} tracked</span>
+      </div>
+      <div class="overflow-x-auto" tabindex="0">
       <table class="w-full min-w-[820px] border-collapse">
         <thead>
           <tr>
@@ -134,10 +167,16 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
           )}
         </tbody>
       </table>
+      </div>
     </div>
 
-    <h2 id="recent" class="mt-14 scroll-mt-28 text-lg">/ recent trades</h2>
-    <div class="mt-4 overflow-x-auto panel" tabindex="0">
+    <div id="recent" class="mt-14 scroll-mt-28 panel">
+      <div class="card-hd border-b border-sep">
+        <span class="card-ico">📈</span>
+        <span class="card-lbl">recent trades</span>
+        <span class="card-sub">last {recent.length}</span>
+      </div>
+      <div class="overflow-x-auto" tabindex="0">
       <table class="w-full min-w-[820px] border-collapse">
         <thead>
           <tr>
@@ -181,27 +220,37 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
           )}
         </tbody>
       </table>
+      </div>
     </div>
 
-    <h2 id="habits" class="mt-14 scroll-mt-28 text-lg">/ habits</h2>
-    <div class="mt-4 grid min-w-0 gap-10 lg:grid-cols-2">
-      {habitStats.map((h) => (
-        <div class="min-w-0 panel p-5">
-          <div class="flex items-baseline justify-between">
-            <div class="flex items-baseline gap-2"><span class="text-[15px] text-ink">{h.emoji ?? '·'} {h.name}</span></div>
-            <span class="text-[11px] uppercase tracking-widest text-faint">streak</span>
+    <div id="habits" class="mt-14 scroll-mt-28">
+      <div class="grid min-w-0 gap-6 lg:grid-cols-2">
+        {habitStats.map((h) => (
+          <div class="min-w-0 panel">
+            <div class="card-hd border-b border-sep">
+              <span class="card-ico">{h.emoji ?? '✅'}</span>
+              <span class="card-lbl">{h.name}</span>
+              <span class="tmr">{h.currentStreak}d</span>
+            </div>
+            <div class="p-4">
+              <div class="flex items-baseline gap-4">
+                <span class="text-2xl" style={`color:${h.color}`}>{h.currentStreak}<span class="text-sm text-dim">d</span></span>
+                <div class="text-[12px] text-dim">best {h.bestStreak}d · 30d {h.pct30 === null ? '—' : h.pct30.toFixed(0) + '%'} · all {h.pctAll === null ? '—' : h.pctAll.toFixed(0) + '%'}</div>
+              </div>
+              <div class="mt-5"><Heatmap data={h.heatmap} color={h.color} name={h.name} /></div>
+            </div>
           </div>
-          <div class="mt-1 flex items-baseline gap-4">
-            <span class="text-2xl" style={`color:${h.color}`}>{h.currentStreak}<span class="text-sm text-dim">d</span></span>
-            <div class="text-[12px] text-dim">best {h.bestStreak}d · 30d {h.pct30 === null ? '—' : h.pct30.toFixed(0) + '%'} · all {h.pctAll === null ? '—' : h.pctAll.toFixed(0) + '%'}</div>
-          </div>
-          <div class="mt-5"><Heatmap data={h.heatmap} color={h.color} name={h.name} /></div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
 
-    <h2 id="trends" class="mt-14 scroll-mt-28 text-lg">/ trends</h2>
-    <div class="mt-4 overflow-x-auto panel" tabindex="0">
+    <div id="trends" class="mt-14 scroll-mt-28 panel">
+      <div class="card-hd border-b border-sep">
+        <span class="card-ico">📈</span>
+        <span class="card-lbl">trends</span>
+        <span class="card-sub">rolling windows</span>
+      </div>
+      <div class="overflow-x-auto" tabindex="0">
       <table class="w-full min-w-[720px] border-collapse">
         <thead>
           <tr><th class="th">window</th><th class="th text-right">days</th><th class="th text-right">trades</th><th class="th text-right">win%</th><th class="th text-right">sum R</th><th class="th text-right">avg R</th><th class="th text-right">$ pnl</th></tr>
@@ -220,15 +269,52 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
           ))}
         </tbody>
       </table>
+      </div>
     </div>
 
-    <div class="mt-10 grid min-w-0 gap-10 lg:grid-cols-2">
-      <div class="min-w-0"><h2 class="text-lg">/ R by sleep</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.sleep} /></div></div>
-      <div class="min-w-0"><h2 class="text-lg">/ R by mood</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.mood} /></div></div>
-      <div class="min-w-0"><h2 class="text-lg">/ R by habits</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.habits} /></div></div>
-      <div class="min-w-0"><h2 class="text-lg">/ R by screen</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.screen} /></div></div>
-      <div class="min-w-0"><h2 class="text-lg">/ R by session</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="session" rows={trends.correlations.session} /></div></div>
-      <div class="min-w-0"><h2 class="text-lg">/ R by setup</h2><div class="mt-4 overflow-x-auto panel" tabindex="0"><CorrTable label="setup" rows={trends.correlations.setup} /></div></div>
+    <div class="mt-10 grid min-w-0 gap-6 lg:grid-cols-2">
+      <div class="min-w-0 panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">😴</span>
+          <span class="card-lbl">R by sleep</span>
+        </div>
+        <div class="overflow-x-auto" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.sleep} /></div>
+      </div>
+      <div class="min-w-0 panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">🎭</span>
+          <span class="card-lbl">R by mood</span>
+        </div>
+        <div class="overflow-x-auto" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.mood} /></div>
+      </div>
+      <div class="min-w-0 panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">✅</span>
+          <span class="card-lbl">R by habits</span>
+        </div>
+        <div class="overflow-x-auto" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.habits} /></div>
+      </div>
+      <div class="min-w-0 panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">📱</span>
+          <span class="card-lbl">R by screen</span>
+        </div>
+        <div class="overflow-x-auto" tabindex="0"><CorrTable label="bucket" rows={trends.correlations.screen} /></div>
+      </div>
+      <div class="min-w-0 panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">🕐</span>
+          <span class="card-lbl">R by session</span>
+        </div>
+        <div class="overflow-x-auto" tabindex="0"><CorrTable label="session" rows={trends.correlations.session} /></div>
+      </div>
+      <div class="min-w-0 panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">🎯</span>
+          <span class="card-lbl">R by setup</span>
+        </div>
+        <div class="overflow-x-auto" tabindex="0"><CorrTable label="setup" rows={trends.correlations.setup} /></div>
+      </div>
     </div>
 
     {trends.flags.length > 0 && (

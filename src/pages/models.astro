@@ -28,62 +28,69 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
     {stats.length === 0 ? (
       <div class="mt-6"><EmptyState text="no trading models yet." /></div>
     ) : (
-      <div class="mt-6 space-y-8">
-        {stats.map((m) => (
-          <Card>
-            <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-              <h2 class="text-xl">{m.name}</h2>
-              <Badge variant={statusTone(m.status)}>{m.status}</Badge>
-              {m.lastIso && (
-                <span class="ml-auto text-[12px] text-faint">last trade {fmtDay(m.lastIso)}</span>
+      <div class="mt-6 panel">
+        <div class="card-hd border-b border-sep">
+          <span class="card-ico">🧩</span>
+          <span class="card-lbl">models</span>
+          <span class="card-sub">{stats.reduce((s, m) => s + m.count, 0)} tagged trades</span>
+        </div>
+        <div class="flex flex-col gap-4 p-3 md:p-4">
+          {stats.map((m) => (
+            <Card>
+              <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                <h2 class="text-xl">{m.name}</h2>
+                <Badge variant={statusTone(m.status)}>{m.status}</Badge>
+                {m.lastIso && (
+                  <span class="ml-auto text-[12px] text-faint">last trade {fmtDay(m.lastIso)}</span>
+                )}
+              </div>
+              {m.premise && <p class="mt-2 max-w-2xl text-[13px] text-dim">{m.premise}</p>}
+
+              {m.rules.length > 0 && (
+                <div class="mt-4">
+                  <div class="text-2xs uppercase tracking-widest text-dim">rules</div>
+                  <ul class="mt-2 space-y-1">
+                    {m.rules.map((r, i) => (
+                      <li class="flex items-baseline gap-2 text-[13px] text-soft">
+                        <span class="text-faint">{i + 1}.</span>
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
-            </div>
-            {m.premise && <p class="mt-2 max-w-2xl text-[13px] text-dim">{m.premise}</p>}
 
-            {m.rules.length > 0 && (
-              <div class="mt-4">
-                <div class="text-2xs uppercase tracking-widest text-dim">rules</div>
-                <ul class="mt-2 space-y-1">
-                  {m.rules.map((r, i) => (
-                    <li class="flex items-baseline gap-2 text-[13px] text-soft">
-                      <span class="text-faint">{i + 1}.</span>
-                      <span>{r}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
+                <StatCard label="trades" value={String(m.count)} />
+                <StatCard label="total R" value={`${m.sumR > 0 ? '+' : ''}${m.sumR.toFixed(2)}`} tone={m.sumR > 0 ? 'up' : m.sumR < 0 ? 'down' : 'default'} />
+                <StatCard label="avg R" value={`${m.avgR > 0 ? '+' : ''}${m.avgR.toFixed(2)}`} tone={m.avgR > 0 ? 'up' : m.avgR < 0 ? 'down' : 'default'} />
+                <StatCard label="win rate" value={m.winRate > 0 ? `${Math.round(m.winRate * 100)}%` : '—'} />
               </div>
-            )}
 
-            <div class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-              <StatCard label="trades" value={String(m.count)} />
-              <StatCard label="total R" value={`${m.sumR > 0 ? '+' : ''}${m.sumR.toFixed(2)}`} tone={m.sumR > 0 ? 'up' : m.sumR < 0 ? 'down' : 'default'} />
-              <StatCard label="avg R" value={`${m.avgR > 0 ? '+' : ''}${m.avgR.toFixed(2)}`} tone={m.avgR > 0 ? 'up' : m.avgR < 0 ? 'down' : 'default'} />
-              <StatCard label="win rate" value={m.winRate > 0 ? `${Math.round(m.winRate * 100)}%` : '—'} />
-            </div>
-
-            {m.count > 0 && (
-              <div class="mt-4">
-                <div class="text-2xs uppercase tracking-widest text-dim">recent trades</div>
-                <Table
-                  head={['day', 'market', 'dir', 'setup', 'session', 'R', 'points']}
-                  class="mt-2"
-                >
-                  {m.trades.slice(-8).reverse().map((t, i) => (
-                    <tr>
-                      <td class="td"><a href={`/day/${fmtDay(t.iso)}`} class="text-accent hover:underline">{fmtDay(t.iso)}</a></td>
-                      <td class="td">{t.market}</td>
-                      <td class="td">{t.direction === 'long' ? '▲' : '▼'}</td>
-                      <td class="td">{t.setup ?? '—'}</td>
-                      <td class="td">{t.session ?? '—'}</td>
-                      <td class="td" class:list={[t.R > 0 ? 'text-up' : t.R < 0 ? 'text-down' : 'text-dim']}>{t.R > 0 ? '+' : ''}{t.R.toFixed(2)}</td>
-                      <td class="td" class:list={[t.points > 0 ? 'text-up' : t.points < 0 ? 'text-down' : 'text-dim']}>{t.points > 0 ? '+' : ''}{t.points}</td>
-                    </tr>
-                  ))}
-                </Table>
-              </div>
-            )}
-          </Card>
-        ))}
+              {m.count > 0 && (
+                <div class="mt-4">
+                  <div class="text-2xs uppercase tracking-widest text-dim">recent trades</div>
+                  <Table
+                    head={['day', 'market', 'dir', 'setup', 'session', 'R', 'points']}
+                    class="mt-2"
+                  >
+                    {m.trades.slice(-8).reverse().map((t, i) => (
+                      <tr>
+                        <td class="td"><a href={`/day/${fmtDay(t.iso)}`} class="text-accent hover:underline">{fmtDay(t.iso)}</a></td>
+                        <td class="td">{t.market}</td>
+                        <td class="td">{t.direction === 'long' ? '▲' : '▼'}</td>
+                        <td class="td">{t.setup ?? '—'}</td>
+                        <td class="td">{t.session ?? '—'}</td>
+                        <td class="td" class:list={[t.R > 0 ? 'text-up' : t.R < 0 ? 'text-down' : 'text-dim']}>{t.R > 0 ? '+' : ''}{t.R.toFixed(2)}</td>
+                        <td class="td" class:list={[t.points > 0 ? 'text-up' : t.points < 0 ? 'text-down' : 'text-dim']}>{t.points > 0 ? '+' : ''}{t.points}</td>
+                      </tr>
+                    ))}
+                  </Table>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
       </div>
     )}
     <Separator class="mt-10" />

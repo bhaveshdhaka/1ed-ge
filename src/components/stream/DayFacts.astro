@@ -23,13 +23,21 @@ const valueCls = (c: FactCell) => {
 }
 ---
 
-<div class={`flex flex-wrap gap-px border border-line bg-line ${cls}`}>
-  {cells.map((c) => (
-    <div class="panel flex min-w-[86px] flex-1 flex-col gap-1 px-3 py-2">
-      <span class="text-2xs uppercase tracking-widest text-faint">{c.label}</span>
-      <span class:list={['text-sm tabular-nums', valueCls(c)]}>
-        {c.ok ? c.value : '—'}
-      </span>
+<div class={`panel ${cls}`}>
+  <div class="card-hd border-b border-sep">
+    <span class="card-ico">📊</span>
+    <span class="card-lbl">day facts</span>
+  </div>
+  {cells.length > 0 && (
+    <div class="flex flex-wrap gap-1 p-2">
+      {cells.map((c) => (
+        <div class="well flex min-w-[86px] flex-1 flex-col gap-1 px-3 py-2">
+          <span class="text-2xs uppercase tracking-widest text-faint">{c.label}</span>
+          <span class:list={['text-sm tabular-nums', valueCls(c)]}>
+            {c.ok ? c.value : '—'}
+          </span>
+        </div>
+      ))}
     </div>
-  ))}
+  )}
 </div>

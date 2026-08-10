@@ -3,14 +3,15 @@
 interface Props {
   title?: string
   pad?: 'none' | 'sm' | 'md'
+  hero?: boolean
   class?: string
 }
 
-const { title, pad = 'md', class: cls = '' } = Astro.props
+const { title, pad = 'md', hero = false, class: cls = '' } = Astro.props
 const pads = { none: '', sm: 'p-2', md: 'p-4' }
 ---
 
-<section class={`panel ${pads[pad]} ${cls}`}>
+<section class={`panel ${hero ? 'panel-hero' : ''} ${pads[pad]} ${cls}`}>
   {title !== undefined && (
     <div class="mb-3 flex items-center justify-between gap-3">
       <h2 class="text-2xs uppercase tracking-widest text-soft">{title}</h2>

@@ -31,11 +31,12 @@ const frameStyle = isTrade
 ---
 
 <div class={`panel ${cls}`} style={frameStyle}>
-  <div class="flex items-center gap-3 border-b border-line/60 px-4 py-2 text-2xs text-faint">
-    <span class="tabular-nums text-dim">{thought.at} hkt</span>
-    <span class="uppercase tracking-widest">{meta.label}</span>
+  <div class="card-hd border-b border-sep">
+    <span class="card-ico">{isQuote ? '💬' : isTrade ? '📈' : '💭'}</span>
+    <span class="card-lbl">{meta.label}</span>
+    <span class="card-sub">{thought.at} hkt</span>
     {showDay && (
-      <a href={`/day/${fmtDay(thought.iso)}`} class="ml-auto transition-colors hover:text-accent">
+      <a href={`/day/${fmtDay(thought.iso)}`} class="ml-auto text-2xs text-faint transition-colors hover:text-accent">
         {fmtDay(thought.iso)}
       </a>
     )}
