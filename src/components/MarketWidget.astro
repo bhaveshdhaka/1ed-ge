@@ -176,9 +176,18 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
     try { PAYLOAD = JSON.parse(el.textContent || 'null') } catch {}
     if (!PAYLOAD) return
     const HKT_MS = PAYLOAD.hktOffsetMs || 8 * 3600 * 1000
-    const { onTick, segAt, nextAt, fmtHuman, color, clsName, pad2 } = window.__ticker
+    const { onTick, segAt, nextAt, fmtHuman, color, clsName } = window.__ticker
 
     const nowMarker = document.querySelector('[data-now-marker]')
+    if (nowMarker) {
+      nowMarker.setAttribute('title', 'now (' + Intl.DateTimeFormat().resolvedOptions().timeZone + ')')
+    }
+    // Live clock renders in the visitor's local timezone; the rail position
+    // stays HKT-anchored (structural).
+    const clockFmt = new Intl.DateTimeFormat(navigator.language || 'en-US', {
+      hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    })
 
     const render = () => {
       const now = Date.now()
@@ -242,7 +251,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
       }
       const clockEl = document.querySelector('[data-now-clock]')
       if (clockEl) {
-        clockEl.textContent = pad2(hk.getUTCHours()) + ':' + pad2(hk.getUTCMinutes()) + ':' + pad2(hk.getUTCSeconds())
+        clockEl.textContent = clockFmt.format(new Date())
         if (nowMarker) {
           const railW = nowMarker.parentElement.clientWidth
           const chipW = clockEl.offsetWidth

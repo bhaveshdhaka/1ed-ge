@@ -70,7 +70,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           <div class="mt-3 flex flex-wrap gap-2">
             {todayThoughts.map((t) => (
               <span class="capsule">
-                {thoughtMeta(t.type).glyph} {t.at} {t.type}
+                {thoughtMeta(t.type).glyph} <time datetime={`${iso}T${t.at}:00+08:00`} class="local-time">{t.at}</time> {t.type}
               </span>
             ))}
           </div>

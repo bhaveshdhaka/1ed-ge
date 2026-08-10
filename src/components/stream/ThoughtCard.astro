@@ -36,7 +36,10 @@ const frameCls = isTrade
     : ''
 ---
 
-<Card icon={isQuote ? '💬' : isTrade ? '📈' : '💭'} label={meta.label} subtitle={`${thought.at} hkt`} pad="none" class={[cls, frameCls].filter(Boolean).join(' ')}>
+<Card icon={isQuote ? '💬' : isTrade ? '📈' : '💭'} label={meta.label} pad="none" class={[cls, frameCls].filter(Boolean).join(' ')}>
+  <Fragment slot="subtitle">
+    <time datetime={`${thought.iso}T${thought.at}:00+08:00`} class="local-time">{thought.at} hkt</time>
+  </Fragment>
   {showDay && !hideDate && (
     <Fragment slot="actions">
       <a href={`/day/${fmtDay(thought.iso)}`} class="text-2xs text-faint transition-colors hover:text-accent">

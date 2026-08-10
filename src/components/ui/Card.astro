@@ -63,7 +63,10 @@ const toneCls = stat ? ({ up: 'text-up', down: 'text-down', default: 'text-ink' 
       <div class="card-hd">
         {icon && <span class="card-ico">{icon}</span>}
         {label && <span class="card-lbl">{label}</span>}
-        {subtitle && <span class="card-sub">{subtitle}</span>}
+        {Astro.slots.has('subtitle') && (
+          <span class="card-sub"><slot name="subtitle" /></span>
+        )}
+        {subtitle && !Astro.slots.has('subtitle') && <span class="card-sub">{subtitle}</span>}
         {title && !label && <h2 class="text-2xs uppercase tracking-widest text-soft">{title}</h2>}
         {Astro.slots.has('actions') && (
           <div class="ml-auto flex items-center gap-2"><slot name="actions" /></div>

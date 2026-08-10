@@ -95,5 +95,31 @@ const showLiveMarket = dayIso === null || dayIso === cmeToday()
     </footer>
     {showLiveMarket && <MarketLive />}
     <Lightbox />
+    <script is:inline>
+      ;(function () {
+        // Progressive enhancement: convert <time class="local-time"> elements
+        // from HKT to the visitor's local timezone.
+        // If JS is off, times show in HKT (server-rendered default).
+        var times = document.querySelectorAll('time.local-time[datetime]')
+        if (!times.length) return
+        var tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+        if (tz === 'Asia/Hong_Kong') return // already in HKT, no-op
+        var fmt = new Intl.DateTimeFormat(navigator.language || 'en-US', {
+          hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz
+        })
+        var tzShort = new Intl.DateTimeFormat(navigator.language || 'en-US', {
+          timeZoneName: 'short', timeZone: tz
+        }).formatToParts(new Date()).find(function (p) { return p.type === 'timeZoneName' })
+        var tzAbbr = tzShort ? tzShort.value : ''
+        for (var i = 0; i < times.length; i++) {
+          var el = times[i]
+          var dt = el.getAttribute('datetime')
+          if (!dt) continue
+          var d = new Date(dt)
+          if (isNaN(d)) continue
+          el.textContent = fmt.format(d) + (tzAbbr ? ' ' + tzAbbr : '')
+        }
+      })()
+    </script>
   </body>
 </html>

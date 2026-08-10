@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { api } from '../api'
+import { api, DISPLAY_TIMEZONES, getDisplayTimezone, setDisplayTimezone, formatTime, tzAbbr } from '../api'
 import { Card, Button, Stat, inputCls } from '../ui'
 import type { Tab } from '../AdminApp'
 import type { AccountRuleStatus } from '../../../lib/account-rules'
@@ -29,6 +29,12 @@ export function OverviewTab({
   const [briefDraft, setBriefDraft] = useState('')
   const [briefBusy, setBriefBusy] = useState(false)
   const [accLive, setAccLive] = useState<{ id: string; stage: string; status: AccountRuleStatus }[] | null>(null)
+  const [displayTz, setDisplayTzState] = useState(getDisplayTimezone())
+
+  const handleTzChange = (tz: string) => {
+    setDisplayTimezone(tz)
+    setDisplayTzState(tz)
+  }
 
   const loadBrief = useCallback(async () => {
     try {
@@ -223,7 +229,7 @@ export function OverviewTab({
                 <span>last build</span>
                 <span className="text-dim">
                   {status.build.ok === false ? 'failed · ' : ''}
-                  {new Date(status.build.finishedAt).toLocaleTimeString()}
+                  {formatTime(status.build.finishedAt)}
                 </span>
               </div>
             )}
@@ -320,6 +326,21 @@ export function OverviewTab({
             <span className="text-faint">{status.env.modelStructure} · {status.env.modelVision}</span>
           </div>
         </div>
+        <div className="kv mt-3">
+          <span className="text-dim">display timezone</span>
+          <select
+            value={displayTz}
+            onChange={(e) => handleTzChange(e.target.value)}
+            className="bg-bg text-sm text-ink border border-line rounded-[var(--radius-sm)] px-2 py-1"
+          >
+            {DISPLAY_TIMEZONES.map((tz) => (
+              <option key={tz.value} value={tz.value}>
+                {tz.label} · {tz.city}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="text-2xs text-faint mt-1">times render in {tzAbbr()} · trading day = CME session (17:00 CT)</p>
       </Card>
     </div>
   )

@@ -3,7 +3,7 @@ import { Button, Field, TextInput, NumInput, Select } from './ui'
 import { ModelChipRow } from './ModelChipRow'
 import { GhostText } from './GhostText'
 import { useGhostText } from './useGhostText'
-import { bus } from './api'
+import { bus, formatHktTime } from './api'
 import type { ThoughtForm, TradeForm, AccRow } from './tabs/DayWorkspace'
 
 export interface ReflectionObligation {
@@ -16,6 +16,7 @@ const TYPES = ['thought', 'quote', 'trade', 'reflection'] as const
 type ComposerType = (typeof TYPES)[number]
 
 interface WriteZoneProps {
+  date: string // current day's ISO date — HKT `at` strings convert against this
   stream: ThoughtForm[]
   trades: TradeForm[]
   models: { slug: string; name: string }[]
@@ -430,7 +431,7 @@ export function WriteZone(props: WriteZoneProps) {
                 key={i}
                 className="well flex items-start gap-3 px-3 py-2"
               >
-                <span className="mt-0.5 text-2xs text-faint">{m.at || '--:--'}</span>
+                <span className="mt-0.5 text-2xs text-faint">{formatHktTime(props.date, m.at)}</span>
                 <span className="mt-0.5 text-2xs uppercase tracking-wider text-dim">{m.type === 'note' ? 'thought' : m.type}</span>
                 <div className="min-w-0 flex-1 text-sm text-ink">
                   {isTrade ? (

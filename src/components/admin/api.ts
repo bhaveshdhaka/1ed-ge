@@ -75,6 +75,65 @@ export function todayStr(): string {
   return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`
 }
 
+/** Available display timezones (ordered west→east) */
+export const DISPLAY_TIMEZONES = [
+  { value: 'America/Los_Angeles', label: 'LAX', city: 'Los Angeles' },
+  { value: 'America/New_York', label: 'NYC', city: 'New York' },
+  { value: 'Europe/London', label: 'LON', city: 'London' },
+  { value: 'Asia/Kolkata', label: 'DEL', city: 'Delhi' },
+  { value: 'Asia/Hong_Kong', label: 'HKG', city: 'Hong Kong' },
+  { value: 'Asia/Tokyo', label: 'TYO', city: 'Tokyo' },
+  { value: 'Australia/Sydney', label: 'SYD', city: 'Sydney' },
+] as const
+
+/** Get the stored display timezone (defaults to HKG) */
+export function getDisplayTimezone(): string {
+  if (typeof localStorage === 'undefined') return 'Asia/Hong_Kong'
+  return localStorage.getItem('edge-display-tz') || 'Asia/Hong_Kong'
+}
+
+/** Set the display timezone */
+export function setDisplayTimezone(tz: string): void {
+  localStorage.setItem('edge-display-tz', tz)
+}
+
+/** Format a time in the display timezone (12-hour) */
+export function formatTime(date: Date | string | number): string {
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return '--:--'
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric', minute: '2-digit', hour12: true,
+    timeZone: getDisplayTimezone(),
+  }).format(d)
+}
+
+/** Format a date+time in the display timezone */
+export function formatDateTime(date: Date | string | number): string {
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return '--'
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true,
+    timeZone: getDisplayTimezone(),
+  }).format(d)
+}
+
+/** Get timezone abbreviation (e.g., "HKT", "EDT") */
+export function tzAbbr(): string {
+  const tz = getDisplayTimezone()
+  const part = new Intl.DateTimeFormat('en-US', {
+    timeZoneName: 'short', timeZone: tz,
+  }).formatToParts(new Date()).find(p => p.type === 'timeZoneName')
+  return part?.value || ''
+}
+
+/** Convert an HKT time string (HH:MM) on a given date to a formatted local time */
+export function formatHktTime(iso: string, hktTime: string): string {
+  if (!iso || !hktTime) return hktTime || '--:--'
+  const d = new Date(`${iso}T${hktTime}:00+08:00`)
+  if (isNaN(d.getTime())) return hktTime
+  return formatTime(d)
+}
+
 export function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const r = new FileReader()
