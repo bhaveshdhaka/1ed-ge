@@ -1,0 +1,35 @@
+---
+import { fmtDay, fmtDayWUpper } from '../lib/dates'
+import type { NewsItem } from '../lib/market-news'
+import NewsBlock from './NewsBlock.astro'
+
+interface Props {
+  red: NewsItem[]
+  orange: NewsItem[]
+  dayIso: string
+  isToday: boolean
+}
+
+const { red, orange, dayIso, isToday } = Astro.props
+---
+
+<section class="panel">
+  <div class="card-hd border-b border-sep">
+    <span class="card-ico">📰</span>
+    <span class="card-lbl">news events</span>
+    <span class="card-sub">{fmtDayWUpper(dayIso)}</span>
+  </div>
+  <div class="p-3 md:p-4">
+    {red.length > 0 || orange.length > 0 ? (
+      <div class="mt-1 flex flex-col gap-1">
+        <NewsBlock red={red} orange={orange} dayIso={dayIso} now={Date.now()} />
+      </div>
+    ) : (
+      <p class="text-xs text-faint">
+        no <span class="inline-block h-1.5 w-1.5 rounded-full bg-down align-middle"></span> red or{' '}
+        <span class="inline-block h-1.5 w-1.5 rounded-full bg-warn align-middle"></span> orange news events{' '}
+        {isToday ? 'today' : `for ${fmtDay(dayIso).toUpperCase()}`}.
+      </p>
+    )}
+  </div>
+</section>

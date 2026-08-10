@@ -1,11 +1,10 @@
 ---
 import Base from '../layouts/Base.astro'
 import MarketWidget from '../components/MarketWidget.astro'
-import NewsBlock from '../components/NewsBlock.astro'
-import EmptyState from '../components/ui/EmptyState.astro'
+import NewsEventsCard from '../components/NewsEventsCard.astro'
 import { getCollection } from 'astro:content'
 import { marketEvents, todayHkt, addDaysIso, scheduledDayMarker, daySessionWindows } from '../lib/sessions'
-import { fmtDay, fmtDayW } from '../lib/dates'
+import { fmtDayWUpper } from '../lib/dates'
 
 const today = todayHkt()
 const events = marketEvents(today, 8)
@@ -26,7 +25,7 @@ const rowsByDay = days.map((d) => {
   const n = newsByDate.get(d)
   return {
     d,
-    fmt: fmtDayW(d),
+    fmt: fmtDayWUpper(d),
     dm,
     wins,
     red: n?.red ?? [],
@@ -48,11 +47,11 @@ const rowsByDay = days.map((d) => {
 
     <div class="mt-10 space-y-6">
       {rowsByDay.map((row) => (
-        <div class="panel">
+        <div class:list={['panel', row.d === today && 'panel-hero']}>
           <div class="card-hd border-b border-sep">
             <span class="card-ico">📅</span>
             <span class="card-lbl">{row.fmt}</span>
-            <span class="card-sub tabular-nums">
+            <span class:list={['card-sub tabular-nums', row.dm.cls]}>
               {row.dm.glyph} {row.dm.text}
             </span>
           </div>
@@ -66,16 +65,9 @@ const rowsByDay = days.map((d) => {
               </div>
             </div>
 
-            {(row.red.length > 0 || row.orange.length > 0) && (
-              <div class="mt-3 flex flex-col gap-1">
-                <NewsBlock red={row.red} orange={row.orange} dayIso={row.d} now={Date.now()} />
-              </div>
-            )}
-            {row.red.length === 0 && row.orange.length === 0 && (
-              <div class="mt-3">
-                <EmptyState text={`no major news events · ${row.dm.text}`} />
-              </div>
-            )}
+            <div class="mt-3">
+              <NewsEventsCard red={row.red} orange={row.orange} dayIso={row.d} isToday={row.d === today} />
+            </div>
           </div>
         </div>
       ))}

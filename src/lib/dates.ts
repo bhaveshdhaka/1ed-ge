@@ -15,6 +15,11 @@ export function fmtDayW(iso: string): string {
   return `${wd} | ${fmtDay(iso)}`
 }
 
+/** Format date for display — uppercase day + date, e.g. 'MON | 10-AUG-2028'. */
+export function fmtDayWUpper(iso: string): string {
+  return fmtDayW(iso).toUpperCase()
+}
+
 /** '03-aug-2028' → '2028-08-03' (or null when the slug is malformed) */
 export function parseDay(slug: string): string | null {
   const m = /^(\d{2})-([a-z]{3})-(\d{4})$/.exec(slug)

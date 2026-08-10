@@ -7,7 +7,7 @@
 import { render } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
 import { periodHeader, TAPE, REFLECTION, COMPARISON, THE_NUMBERS, TREND, EMPTY_PERIOD } from '../../lib/copy'
-import { fmtDay, fmtDayW } from '../../lib/dates'
+import { fmtDay, fmtDayWUpper } from '../../lib/dates'
 import { slugFromType, publicAnchor, resolvePeriod, type PeriodRange } from '../../lib/periods'
 import { todayHkt } from '../../lib/sessions'
 import { periodDelta, type TapePoint, type LadderEntry, type PeriodStats, type TrendPoint } from '../../lib/period-stats'
@@ -321,7 +321,7 @@ const last = tape.length - 1
                   href={`/day/${fmtDay(iso)}`}
                   class="border border-line px-2 py-1 text-2xs text-dim transition-colors hover:border-accent hover:text-accent"
                 >
-                  {fmtDayW(iso)}
+                  {fmtDayWUpper(iso)}
                 </a>
               ))}
             </div>
@@ -439,7 +439,7 @@ const last = tape.length - 1
                   href={`/day/${fmtDay(j.data.date)}`}
                   class="well block p-4 transition-colors hover:border-accent"
                 >
-                  <div class="text-2xs text-faint">{fmtDayW(j.data.date)}</div>
+                  <div class="text-2xs text-faint">{fmtDayWUpper(j.data.date)}</div>
                   {j.data.summary && <p class="mt-1 text-sm text-soft">{j.data.summary}</p>}
                   {j.data.tags && j.data.tags.length > 0 && (
                     <div class="mt-2 flex flex-wrap gap-1.5">

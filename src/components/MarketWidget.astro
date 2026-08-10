@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
 import { todayHkt, daySessionWindows, HKT_OFFSET_MS } from '../lib/sessions'
-import { fmtDayW } from '../lib/dates'
+import { fmtDayWUpper } from '../lib/dates'
 import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
 import type { MarketKey } from '../lib/sessions'
@@ -26,10 +26,10 @@ const now = payload.now
 const wins = daySessionWindows(today)
 const mk = marketMarker(today)
 
-const prettyDate = fmtDayW(today)
+const prettyDate = fmtDayWUpper(today)
 
 const markets: { key: MarketKey; flag: string; name: string; window: string }[] = [
-  { key: 'cme', flag: '📈', name: 'CME Globex', window: wins.cme },
+  { key: 'cme', flag: '📈', name: 'CME', window: wins.cme },
   { key: 'nyse', flag: '🇺🇸', name: 'NYC · NYSE', window: wins.nyse },
   { key: 'tse', flag: '🇯🇵', name: 'TYO · TSE', window: wins.tse },
   { key: 'lse', flag: '🇬🇧', name: 'LON · LSE', window: wins.lse },

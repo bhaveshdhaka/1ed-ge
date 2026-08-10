@@ -145,7 +145,7 @@ function describeEnd(market: MarketKey, state: State): { text: string; cls: Stri
 
 /** Display names surfaces attach when the name isn't already shown inline. */
 export const MARKET_NAME: Record<MarketKey, string> = {
-  cme: 'CME Globex',
+  cme: 'CME',
   tse: 'TYO',
   lse: 'LON',
   nyse: 'NYC',
