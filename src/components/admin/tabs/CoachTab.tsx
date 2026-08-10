@@ -71,7 +71,7 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
   const all = sessions.flatMap((s) => s.messages)
 
   return (
-    <div className="flex h-[calc(100vh-10rem)] flex-col space-y-4">
+    <div className="flex h-[calc(100dvh-10rem)] flex-col space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl">/ coach</h1>
         <span className="text-xs text-dim">

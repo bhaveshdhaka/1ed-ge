@@ -799,7 +799,7 @@ export function DayWorkspace({
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 md:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-xl">/ day</h1>
@@ -815,7 +815,7 @@ export function DayWorkspace({
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[44px_1fr]">
+      <div className="grid gap-4 md:gap-6 md:grid-cols-[44px_1fr]">
         <DayRail
           days={daysList}
           selectedDate={date}
@@ -824,7 +824,7 @@ export function DayWorkspace({
           pendingObligationDates={pendingObligationDates}
         />
 
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {loading ? (
             <Card title="loading"><p className="text-sm text-faint">loading…</p></Card>
           ) : (
@@ -895,7 +895,7 @@ export function DayWorkspace({
                 />
 
                 {/* ---------- Z4 TRADES ---------- */}
-                <div id="sec-trades" className="mt-5 scroll-mt-20">
+                <div id="sec-trades" className="mt-3 md:mt-5 scroll-mt-20">
                   <div className="mb-2 flex items-center justify-between">
                     <span className="text-2xs uppercase tracking-widest text-dim">trades ({trades.length})</span>
                     <div className="flex items-center gap-2">
@@ -942,7 +942,7 @@ export function DayWorkspace({
                 </div>
 
               {/* ---------- FOOTER ---------- */}
-              <div className="panel flex flex-wrap items-center gap-6 px-4 py-3 text-sm">
+              <div className="panel flex flex-wrap items-center gap-3 md:gap-6 px-4 py-3 text-sm">
                 <span className="text-dim">day</span>
                 <span className={dayTotals.R > 0 ? 'text-up' : dayTotals.R < 0 ? 'text-down' : 'text-soft'}>{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
                 <span className="text-dim">·</span>

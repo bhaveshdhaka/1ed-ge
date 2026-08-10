@@ -120,7 +120,7 @@ export function CheckInBand(props: CheckInBandProps) {
       {/* ---------- CHECK-IN FACTS (direct-click edit) ---------- */}
       <div id="sec-day" className="scroll-mt-20">
         <Card title="check-in">
-          <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
+          <div className="grid gap-x-4 gap-y-3 md:gap-x-8 md:gap-y-4 md:grid-cols-2">
             {/* mood */}
             <div className="border-b border-line/60 pb-3">
               <div className="card-lbl mb-1">mood</div>

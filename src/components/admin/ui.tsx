@@ -85,7 +85,7 @@ export function Card({
           {actions && <div className="ml-auto">{actions}</div>}
         </div>
       )}
-      <div className="p-4">{children}</div>
+      <div className="p-3 md:p-4">{children}</div>
     </section>
   )
 }

@@ -149,7 +149,7 @@ export function WriteZone(props: WriteZoneProps) {
   }
 
   return (
-    <div id="sec-write" className="panel scroll-mt-20 p-4">
+    <div id="sec-write" className="panel scroll-mt-20 p-3 md:p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="seg flex-wrap">
           {TYPES.map((t) => (
