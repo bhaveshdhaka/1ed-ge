@@ -23,7 +23,7 @@ export function ImageDropZone({
       role="button"
       tabIndex={0}
       aria-label={ariaLabel ?? label ?? 'upload images'}
-      className={`flex cursor-pointer flex-col items-center justify-center gap-1 border border-dashed border-line2 bg-bg px-3 py-5 text-center text-xs text-dim transition-colors hover:border-accent ${className}`}
+      className={`flex cursor-pointer flex-col items-center justify-center gap-1 border border-dashed border-line2 bg-bg px-3 py-3 md:py-5 text-center text-xs text-dim transition-colors hover:border-accent ${className}`}
       onPaste={(e) => {
         const files = Array.from(e.clipboardData?.files ?? [])
         if (files.length) onFiles(files)

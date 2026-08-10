@@ -193,7 +193,7 @@ export default function AdminApp() {
         </div>
       </header>
 
-      <main className="shell py-6 md:py-8">
+      <main className="shell py-4 pb-safe md:py-8">
         {tab === 'overview' && <OverviewTab notify={notify} go={go} />}
         {tab === 'day' && (
           <DayWorkspace
