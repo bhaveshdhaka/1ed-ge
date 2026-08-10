@@ -64,24 +64,24 @@ export function MarketCard() {
   return (
     <Card
       title={`market · ${today || '—'}`}
-      actions={<span data-mkt-live className="text-[12px] text-dim tabular-nums">—</span>}
+      actions={<span data-mkt-live className="text-xs text-dim tabular-nums">—</span>}
     >
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
         {red.map((n) => (
-          <span key={'r' + n.time + n.title} className="text-[13px] text-down">
-            red {n.time} hkt — {n.title} <span className="text-[10px] text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span>
+          <span key={'r' + n.time + n.title} className="text-sm text-down">
+            red {n.time} hkt — {n.title} <span className="text-3xs text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span>
           </span>
         ))}
         {orange.map((n) => (
-          <span key={'o' + n.time + n.title} className="text-[13px] text-warn">
-            orange {n.time} hkt — {n.title} <span className="text-[10px] text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span>
+          <span key={'o' + n.time + n.title} className="text-sm text-warn">
+            orange {n.time} hkt — {n.title} <span className="text-3xs text-faint">[{n.source ?? ''}{n.verified ? ' ✦' : ''}]</span>
           </span>
         ))}
         {red.length === 0 && orange.length === 0 && (
-          <span className="text-[12px] text-faint">no major news events for today.</span>
+          <span className="text-xs text-faint">no major news events for today.</span>
         )}
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-faint">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs text-faint">
         <span>cached {news?.cachedAt ? new Date(news.cachedAt).toLocaleString() : '—'}</span>
         {(refresh?.running || busy) && <span className="text-warn">refreshing… (fetch + rebuild ~30s)</span>}
         {!refresh?.running && refresh?.error && <span className="text-down">last refresh failed — {refresh.error}</span>}

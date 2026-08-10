@@ -50,7 +50,7 @@ export function DayRail({ days, selectedDate, onSelectDate, pendingObligationDat
       className="flex min-w-0 max-h-[80vh] flex-col self-start outline-none focus-visible:ring-1 focus-visible:ring-accent max-[767px]:max-h-none max-[767px]:w-full"
     >
       <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-0.5 max-[767px]:flex-row max-[767px]:items-stretch max-[767px]:gap-1 max-[767px]:overflow-x-auto max-[767px]:overflow-y-visible max-[767px]:pr-1">
-        {days.length === 0 && <p className="text-[10px] leading-tight text-faint">no days yet</p>}
+        {days.length === 0 && <p className="text-3xs leading-tight text-faint">no days yet</p>}
         {days.map((d, i) => {
           const R = d.R
           const isFuture = d.date > today

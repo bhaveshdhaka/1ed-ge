@@ -324,7 +324,7 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
         )}
       </div>
 
-      <Card title="read a statement screenshot" actions={<span className="text-[11px] text-faint">{stmtBusy ? 'reading…' : 'AI proposes · you confirm'}</span>}>
+      <Card title="read a statement screenshot" actions={<span className="text-2xs text-faint">{stmtBusy ? 'reading…' : 'AI proposes · you confirm'}</span>}>
         {!proposal ? (
           <ImageDropZone onFiles={onStmtFiles} label={stmtBusy ? 'reading the statement…' : 'paste a prop-firm statement screenshot (equity / buffer / payouts)'} />
         ) : (
@@ -336,11 +336,11 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
             )}
             <div>
               {!proposal.confident && (
-                <p className="mb-2 border border-warn/40 bg-warn/10 px-2 py-1 text-[12px] text-warn">
+                <p className="mb-2 border border-warn/40 bg-warn/10 px-2 py-1 text-xs text-warn">
                   low confidence — check the numbers before applying
                 </p>
               )}
-              <div className="grid grid-cols-2 gap-2 text-[13px] md:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 text-sm md:grid-cols-3">
                 <div className="kv"><span className="text-dim">firm</span><span className="text-ink">{proposal.firm ?? '—'}</span></div>
                 <div className="kv"><span className="text-dim">size</span><span className="text-ink">{proposal.sizeLabel ?? proposal.size ?? '—'}</span></div>
                 <div className="kv"><span className="text-dim">equity</span><span className="text-ink">{proposal.equity !== null ? `$${proposal.equity.toLocaleString()}` : '—'}</span></div>
@@ -349,9 +349,9 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
                 <div className="kv"><span className="text-dim">stage</span><span className="text-ink">{proposal.stage ?? '—'}</span></div>
               </div>
               {proposal.payout && (
-                <p className="mt-2 text-[12px] text-up">payout detected: +${proposal.payout.toLocaleString()} — a payout record will be added</p>
+                <p className="mt-2 text-xs text-up">payout detected: +${proposal.payout.toLocaleString()} — a payout record will be added</p>
               )}
-              {proposal.note && <p className="mt-2 text-[12px] text-dim">{proposal.note}</p>}
+              {proposal.note && <p className="mt-2 text-xs text-dim">{proposal.note}</p>}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Field label="apply to">
                   <Select value={applyTo} onChange={(e) => setApplyTo(e.target.value)} className="w-44">
@@ -376,7 +376,7 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
             title={a.id}
             actions={
               <div className="flex items-center gap-2">
-                <span className="text-[12px] text-faint">{draft(a).firm} · {draft(a).sizeLabel}</span>
+                <span className="text-xs text-faint">{draft(a).firm} · {draft(a).sizeLabel}</span>
                 <Button size="sm" onClick={() => saveAccount(a)}>save</Button>
                 <Button size="sm" variant="danger" onClick={() => removeAccount(a.id)}>×</Button>
               </div>
@@ -392,13 +392,13 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
 
             {/* lifecycle stepper */}
             <div className="mt-3">
-              <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">stage</div>
+              <div className="mb-1 text-2xs uppercase tracking-widest text-dim">stage</div>
               <div className="flex items-center gap-1">
                 {FLOW.map((s, i) => (
                   <div key={s} className="flex items-center gap-1">
                     <button
                       onClick={() => setStage(a, s)}
-                      className={`flex h-9 items-center border px-2.5 text-[12px] transition-colors ${
+                      className={`flex h-9 items-center border px-2.5 text-xs transition-colors ${
                         draft(a).stage === s
                           ? 'border-accent bg-accent/15 text-accent'
                           : 'border-line2 text-dim hover:border-accent hover:text-ink'
@@ -414,7 +414,7 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
                   <button
                     key={s}
                     onClick={() => setStage(a, s)}
-                    className={`flex h-9 items-center border px-2.5 text-[12px] transition-colors ${
+                    className={`flex h-9 items-center border px-2.5 text-xs transition-colors ${
                       draft(a).stage === s
                         ? s === 'failed'
                           ? 'border-down bg-down/15 text-down'
@@ -426,7 +426,7 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
                   </button>
                 ))}
               </div>
-              <p className="mt-1 text-[11px] text-faint">clicking a stage records it in the history with today's date</p>
+              <p className="mt-1 text-2xs text-faint">clicking a stage records it in the history with today's date</p>
             </div>
 
             <Field label="note" className="mt-3">
@@ -435,7 +435,7 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
 
             {/* owner-dictated rules — no engine, no AI: prop firms change these, keep it editable */}
             <div className="mt-4 border-t border-line/60 pt-3">
-              <div className="mb-2 text-[11px] uppercase tracking-widest text-dim">rules — owner-dictated</div>
+              <div className="mb-2 text-2xs uppercase tracking-widest text-dim">rules — owner-dictated</div>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="daily loss ($)">
                   <NumInput
@@ -483,7 +483,7 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
             </div>
 
             <details className="mt-4">
-              <summary className="cursor-pointer text-[11px] uppercase tracking-widest text-dim">
+              <summary className="cursor-pointer text-2xs uppercase tracking-widest text-dim">
                 stage history ({draft(a).stages.length}) ▾
               </summary>
               <div className="mt-2 space-y-2">
@@ -505,7 +505,7 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
             </details>
           </Card>
         ))}
-        {accounts.length === 0 && <p className="text-[13px] text-faint">no accounts yet.</p>}
+        {accounts.length === 0 && <p className="text-sm text-faint">no accounts yet.</p>}
       </div>
 
       <Card title={`payouts (${payouts.length})`}>

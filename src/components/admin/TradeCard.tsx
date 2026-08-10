@@ -75,11 +75,11 @@ export function TradeCard({
           aria-expanded={expanded}
           className="flex h-9 flex-1 items-baseline gap-3 text-left"
         >
-          <span className="text-[12px] text-faint">{expanded ? '▾' : '▸'}</span>
+          <span className="text-xs text-faint">{expanded ? '▾' : '▸'}</span>
           <span className="text-[14px] text-ink">
             {trade.direction === 'long' ? '▲' : '▼'} {trade.market || 'MNQ'}
           </span>
-          <span className="text-[12px] text-dim">{trade.setup || '—'} · {trade.session || '—'}</span>
+          <span className="text-xs text-dim">{trade.setup || '—'} · {trade.session || '—'}</span>
         </button>
 
         <ModelChipRow
@@ -92,14 +92,14 @@ export function TradeCard({
           showAdd={false}
         />
 
-        <span className={`ml-auto text-[13px] tabular-nums ${r && r.R > 0 ? 'text-up' : r && r.R < 0 ? 'text-down' : 'text-dim'}`}>
+        <span className={`ml-auto text-sm tabular-nums ${r && r.R > 0 ? 'text-up' : r && r.R < 0 ? 'text-down' : 'text-dim'}`}>
           {r ? `${r.R > 0 ? '+' : ''}${r.R.toFixed(2)}R` : '—'}
         </span>
-        <span className={`text-[12px] tabular-nums ${r && r.pts >= 0 ? 'text-up' : r ? 'text-down' : 'text-dim'}`}>
+        <span className={`text-xs tabular-nums ${r && r.pts >= 0 ? 'text-up' : r ? 'text-down' : 'text-dim'}`}>
           {r ? `${r.pts >= 0 ? '+' : ''}${r.pts}pts` : ''}
         </span>
         {trade.executions.filter((e) => e.account).length > 0 && (
-          <span className="text-[11px] text-dim">
+          <span className="text-2xs text-dim">
             {trade.executions.filter((e) => e.account).map((e) => accountLabel(e.account)).join(' · ')}
           </span>
         )}
@@ -165,7 +165,7 @@ export function TradeCard({
           </div>
 
           <div className="mt-3">
-            <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">executions (accounts)</div>
+            <div className="mb-1 text-2xs uppercase tracking-widest text-dim">executions (accounts)</div>
             <div className="space-y-2">
               {trade.executions.map((e, ei) => (
                 <div key={ei} className="flex items-center gap-2">
@@ -190,7 +190,7 @@ export function TradeCard({
                   <button
                     type="button"
                     onClick={() => onChange({ screenshots: trade.screenshots.filter((y) => y !== s) })}
-                    className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-[10px] text-down hover:border-down"
+                    className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg px-1 text-3xs text-down hover:border-down"
                   >
                     ×
                   </button>
@@ -200,7 +200,7 @@ export function TradeCard({
           </div>
 
           <div className="mt-3 flex items-center justify-end gap-2 border-t border-line pt-2">
-            <span className="text-[11px] text-faint">⌘⏎</span>
+            <span className="text-2xs text-faint">⌘⏎</span>
             <Button size="sm" variant="primary" onClick={onPublish} onKeyDown={onPublishKey} title="add this trade to the stream (⌘⏎)">
               publish →
             </Button>
@@ -274,7 +274,7 @@ export function TradeList(props: TradeListProps) {
             />
           ))}
           {props.trades.length === 0 && (
-            <p className="text-[12px] text-faint">no trades — paste charts or ⌘K &quot;new trade&quot;.</p>
+            <p className="text-xs text-faint">no trades — paste charts or ⌘K &quot;new trade&quot;.</p>
           )}
         </div>
       </SortableContext>

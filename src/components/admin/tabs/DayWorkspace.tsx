@@ -803,11 +803,11 @@ export function DayWorkspace({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-xl">/ day</h1>
-          <span className="text-[12px] text-faint">{fmtDayW(date)}</span>
+          <span className="text-xs text-faint">{fmtDayW(date)}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {hasDayRecord && (
-            <a href={`/day/${fmtDay(date)}`} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-[12px] text-accent transition-colors hover:border-accent">
+            <a href={`/day/${fmtDay(date)}`} target="_blank" className="flex h-9 items-center border border-line px-2.5 text-xs text-accent transition-colors hover:border-accent">
               view live →
             </a>
           )}
@@ -826,7 +826,7 @@ export function DayWorkspace({
 
         <div className="space-y-6">
           {loading ? (
-            <Card title="loading"><p className="text-[13px] text-faint">loading…</p></Card>
+            <Card title="loading"><p className="text-sm text-faint">loading…</p></Card>
           ) : (
             <>
               {/* ---------- Z1 CHECK-IN ---------- */}
@@ -897,7 +897,7 @@ export function DayWorkspace({
                 {/* ---------- Z4 TRADES ---------- */}
                 <div id="sec-trades" className="mt-5 scroll-mt-20">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-[11px] uppercase tracking-widest text-dim">trades ({trades.length})</span>
+                    <span className="text-2xs uppercase tracking-widest text-dim">trades ({trades.length})</span>
                     <div className="flex items-center gap-2">
                       {trades.length > 0 && (
                         <Button size="sm" onClick={() => { setExpandAll((e) => !e); setExpandedTrade(null) }}>
@@ -908,7 +908,7 @@ export function DayWorkspace({
                       <button
                         type="button"
                         onClick={() => setIngestOpen(true)}
-                        className="flex h-8 items-center border border-line2 px-2.5 text-[12px] text-dim transition-colors hover:border-accent hover:text-ink"
+                        className="flex h-8 items-center border border-line2 px-2.5 text-xs text-dim transition-colors hover:border-accent hover:text-ink"
                       >
                         ⤓ import trades ▸
                       </button>
@@ -942,14 +942,14 @@ export function DayWorkspace({
                 </div>
 
               {/* ---------- FOOTER ---------- */}
-              <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-[13px]">
+              <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-sm">
                 <span className="text-dim">day</span>
-                <span className={dayTotals.R > 0 ? 'text-up' : dayTotals.R < 0 ? 'text-down' : 'text-ink'}>{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
+                <span className={dayTotals.R > 0 ? 'text-up' : dayTotals.R < 0 ? 'text-down' : 'text-soft'}>{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
                 <span className="text-dim">·</span>
                 <span className={dayTotals.pts > 0 ? 'text-up' : dayTotals.pts < 0 ? 'text-down' : 'text-soft'}>{dayTotals.pts > 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
                 <span className="text-dim">·</span>
                 <span className={dayTotals.pnl > 0 ? 'text-up' : dayTotals.pnl < 0 ? 'text-down' : 'text-soft'}>{dayTotals.pnl > 0 ? '+' : ''}${Math.round(dayTotals.pnl).toLocaleString()}</span>
-                <span className="ml-auto text-[11px] text-faint">autosaves on idle · ⌘S flushes</span>
+                <span className="ml-auto text-2xs text-faint">autosaves on idle · ⌘S flushes</span>
               {daysList.some((d) => d.date === date) && (
                 <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
               )}

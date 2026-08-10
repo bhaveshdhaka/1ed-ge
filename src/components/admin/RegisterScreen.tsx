@@ -33,7 +33,7 @@ export default function RegisterScreen() {
 
   if (done) {
     return (
-      <div className="text-[13px]">
+      <div className="text-sm">
         <p className="text-up">✓ passkey registered.</p>
         <a className="mt-4 inline-block border border-line px-4 py-2 hover:border-accent" href="/zen">open zen →</a>
       </div>
@@ -43,13 +43,13 @@ export default function RegisterScreen() {
   return (
     <div className="flex flex-col items-start gap-3">
       <button
-        className="h-10 border border-line px-5 text-[13px] transition-colors hover:border-accent"
+        className="h-10 border border-line px-5 text-sm transition-colors hover:border-accent"
         onClick={register}
         disabled={busy}
       >
         {busy ? '…' : 'register passkey'}
       </button>
-      {err && <p className="text-[12px] text-down">{err}</p>}
+      {err && <p className="text-xs text-down">{err}</p>}
     </div>
   )
 }

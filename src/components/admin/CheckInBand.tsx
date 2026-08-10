@@ -82,7 +82,7 @@ export function CheckInBand(props: CheckInBandProps) {
         !props.deviceNotes &&
         props.dayImages.length === 0 &&
         !props.dayText.trim() && (
-          <p className="text-[12px] text-faint">the day starts here — paste evidence or just write a thought.</p>
+          <p className="text-xs text-faint">the day starts here — paste evidence or just write a thought.</p>
         )}
 
       {/* ---------- CAPTURE ---------- */}
@@ -109,7 +109,7 @@ export function CheckInBand(props: CheckInBandProps) {
               {props.dayImages.map((img) => (
                 <div key={img.id} className="relative border border-line bg-bg">
                   <img src={img.url || img.dataUrl} alt="" className="h-16 w-full object-cover" />
-                  <button onClick={() => props.onRemoveDayImage(img.id)} className="absolute right-1 top-1 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-[11px] text-down hover:border-down">×</button>
+                  <button onClick={() => props.onRemoveDayImage(img.id)} className="absolute right-1 top-1 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-2xs text-down hover:border-down">×</button>
                 </div>
               ))}
             </div>
@@ -123,10 +123,10 @@ export function CheckInBand(props: CheckInBandProps) {
           <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
             {/* mood */}
             <div className="border-b border-line/60 pb-3">
-              <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">mood</div>
+              <div className="mb-1 text-2xs uppercase tracking-widest text-dim">mood</div>
               {moodCollapsed && selectedMood ? (
                 <button onClick={() => setMoodCollapsed(false)}
-                  className="flex h-7 items-center gap-1 border border-accent/40 px-2 text-[12px] text-accent transition-colors hover:border-accent">
+                  className="capsule flex h-7 items-center gap-1 text-accent transition-colors hover:border-accent">
                   <span aria-hidden="true" className="opacity-60">{selectedMood.emoji}</span>
                   {selectedMood.label}
                 </button>
@@ -134,7 +134,7 @@ export function CheckInBand(props: CheckInBandProps) {
                 <div className="flex flex-wrap gap-1">
                   {MOODS.map((m) => (
                     <button key={m.value} onClick={() => { props.onMood(String(m.value)) }}
-                      className={`flex h-7 items-center gap-1 border px-2 text-[12px] transition-colors ${props.mood === String(m.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
+                      className={`capsule flex h-7 items-center gap-1 transition-colors ${props.mood === String(m.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
                       <span aria-hidden="true" className="opacity-60">{m.emoji}</span>
                       {m.label}
                     </button>
@@ -145,12 +145,12 @@ export function CheckInBand(props: CheckInBandProps) {
 
             {/* sleep */}
             <div className="border-b border-line/60 pb-3">
-              <div className="mb-1 text-[11px] uppercase tracking-widest text-dim">sleep</div>
+              <div className="mb-1 text-2xs uppercase tracking-widest text-dim">sleep</div>
               <div className="flex flex-wrap items-center gap-2">
-                <NumInput value={props.sleepHours} onChange={(e) => props.onSleepHours(e.target.value)} className="h-8 w-20 text-[12px]" placeholder="7.5" />
+                <NumInput value={props.sleepHours} onChange={(e) => props.onSleepHours(e.target.value)} className="h-8 w-20 text-xs" placeholder="7.5" />
                 {sleepCollapsed && selectedSleep ? (
                   <button onClick={() => setSleepCollapsed(false)}
-                    className="flex h-7 items-center gap-1 border border-accent/40 px-2 text-[12px] text-accent transition-colors hover:border-accent">
+                    className="capsule flex h-7 items-center gap-1 text-accent transition-colors hover:border-accent">
                     <span aria-hidden="true" className="opacity-60">{selectedSleep.emoji}</span>
                     {selectedSleep.label}
                   </button>
@@ -158,7 +158,7 @@ export function CheckInBand(props: CheckInBandProps) {
                   <div className="flex flex-wrap gap-1">
                     {SLEEP_QUALITIES.map((s) => (
                       <button key={s.value} onClick={() => { props.onSleepQuality(String(s.value)) }}
-                        className={`flex h-7 items-center gap-1 border px-2 text-[12px] transition-colors ${props.sleepQuality === String(s.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
+                        className={`capsule flex h-7 items-center gap-1 transition-colors ${props.sleepQuality === String(s.value) ? 'border-accent bg-accent/20 text-accent' : 'border-line2 text-dim hover:border-accent hover:text-ink'}`}>
                         <span aria-hidden="true" className="opacity-60">{s.emoji}</span>
                         {s.label}
                       </button>
@@ -170,10 +170,10 @@ export function CheckInBand(props: CheckInBandProps) {
 
             {/* screen-time — values come from the screenshot */}
             <div className="md:col-span-2 border-b border-line/60 pb-3">
-              <div className="mb-1 flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-widest text-dim">screen time</span>
+              <div className="card-hd justify-between">
+                <span className="card-lbl">screen time</span>
                 <div className="flex items-center gap-2">
-                  <label className="flex h-8 cursor-pointer items-center text-[11px] text-accent hover:text-ink">
+                  <label className="flex h-8 cursor-pointer items-center text-2xs text-accent hover:text-ink">
                     {props.screenBusy ? 'reading…' : '＋ paste screenshot'}
                     <input type="file" accept="image/*" multiple className="hidden" aria-label="paste screen time screenshot" onChange={(e) => { props.onPasteScreen(Array.from(e.target.files ?? [])); e.target.value = '' }} />
                   </label>
@@ -189,7 +189,7 @@ export function CheckInBand(props: CheckInBandProps) {
               ) : (
                 <button
                   onClick={() => props.onStartEdit('screen')}
-                  className={`text-left text-[13px] text-soft ${editableHint}`}
+                  className={`well px-3 py-2 text-left text-sm text-soft ${editableHint}`}
                   title="click to correct"
                 >
                   <span>iphone <span className="text-ink">{props.iphoneHours || '—'}h</span></span>
@@ -205,7 +205,7 @@ export function CheckInBand(props: CheckInBandProps) {
                   {props.deviceScreens.map((s) => (
                     <div key={s} className="relative border border-line bg-bg">
                       <img src={s} alt="" className="h-14 w-full object-cover" />
-                      <button onClick={() => props.onRemoveDeviceScreen(s)} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-[10px] text-down hover:border-down">×</button>
+                      <button onClick={() => props.onRemoveDeviceScreen(s)} className="absolute right-0.5 top-0.5 flex min-h-6! h-6 w-6 items-center justify-center border border-line bg-bg text-3xs text-down hover:border-down">×</button>
                     </div>
                   ))}
                 </div>

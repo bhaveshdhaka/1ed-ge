@@ -12,7 +12,7 @@ export function HabitRow(props: HabitRowProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {props.habitDefs.length === 0 && (
-        <p className="text-[12px] text-faint">habits are defined in zen · library.</p>
+        <p className="text-xs text-faint">habits are defined in zen · library.</p>
       )}
       {props.habitDefs.map((h) => {
         const done = props.habits[h.slug] === true
@@ -24,13 +24,13 @@ export function HabitRow(props: HabitRowProps) {
             key={h.slug}
             onClick={() => props.onToggle(h.slug)}
             aria-pressed={done}
-            className={`flex h-7 items-center gap-1.5 border px-2 text-[12px] transition-colors ${done ? 'text-ink' : 'border-line2 bg-raise text-dim hover:border-accent'}`}
+            className={`flex h-7 items-center gap-1.5 border px-2 text-xs transition-colors ${done ? 'text-ink' : 'border-line2 bg-raise text-dim hover:border-accent'}`}
             style={done ? { borderColor: h.color, background: `color-mix(in srgb, ${h.color} 12%, transparent)` } : undefined}
           >
-            <span className="text-[11px]">{h.emoji ?? '·'}</span>
+            <span className="text-2xs">{h.emoji ?? '·'}</span>
             <span>{h.name}</span>
             {count !== null && (
-              <span className="tabular-nums text-[11px] opacity-80">{target ? `${count}/${target}` : String(count)}</span>
+              <span className="tabular-nums text-2xs opacity-80">{target ? `${count}/${target}` : String(count)}</span>
             )}
           </button>
         )
@@ -38,7 +38,7 @@ export function HabitRow(props: HabitRowProps) {
       <button
         type="button"
         onClick={props.onNavigateLibrary}
-        className="flex h-7 items-center border border-line2 px-2 text-[12px] text-accent transition-colors hover:border-accent"
+        className="flex h-7 items-center border border-line2 px-2 text-xs text-accent transition-colors hover:border-accent"
       >
         library ▸
       </button>

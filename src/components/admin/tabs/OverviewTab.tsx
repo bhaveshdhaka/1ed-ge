@@ -108,11 +108,11 @@ export function OverviewTab({
   if (error) {
     return (
       <Card title="connection">
-        <p className="text-[13px] text-down">{error}</p>
+        <p className="text-sm text-down">{error}</p>
       </Card>
     )
   }
-  if (!status) return <Card title="loading"><p className="text-[13px] text-faint">loading…</p></Card>
+  if (!status) return <Card title="loading"><p className="text-sm text-faint">loading…</p></Card>
 
   const habitCount = status.counts.habits
   const screenLogged = !!status.todayDay?.device?.screenshots?.length
@@ -137,7 +137,7 @@ export function OverviewTab({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl">/ overview</h1>
-        <div className="flex items-center gap-3 text-[12px] text-dim">
+        <div className="flex items-center gap-3 text-xs text-dim">
           <span>today: {status.today}</span>
           <a href="/" target="_blank" className="text-accent hover:text-ink">view site →</a>
         </div>
@@ -145,7 +145,7 @@ export function OverviewTab({
 
       {modifiedHours && (
         <div
-          className={`flex flex-wrap items-center gap-2 border px-3 py-2 text-[13px] ${
+          className={`flex flex-wrap items-center gap-2 border px-3 py-2 text-sm ${
             modifiedHours.daysAway <= 2
               ? 'border-warn/50 bg-warn/5 text-warn'
               : 'border-line bg-panel/40 text-dim'
@@ -171,7 +171,7 @@ export function OverviewTab({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="today">
-          <div className="space-y-3 text-[13px] text-soft">
+          <div className="space-y-3 text-sm text-soft">
             <div className="flex items-center justify-between border-b border-line/60 pb-2">
               <span>trades taken</span>
               <span className={status.counts.todayTrades > 0 ? 'text-up' : 'text-dim'}>
@@ -210,7 +210,7 @@ export function OverviewTab({
             </Button>
           }
         >
-          <div className="space-y-2 text-[13px] text-soft">
+          <div className="space-y-2 text-sm text-soft">
             <div className="flex items-center justify-between border-b border-line/60 pb-2">
               <span>status</span>
               <span className={status.build?.running ? 'text-warn' : status.build?.ok === false ? 'text-down' : 'text-up'}>
@@ -226,7 +226,7 @@ export function OverviewTab({
                 </span>
               </div>
             )}
-            <p className="pt-1 text-[12px] leading-relaxed text-dim">
+            <p className="pt-1 text-xs leading-relaxed text-dim">
               public pages are static — after you save a day, journal, account or payout, the site
               rebuilds (~8s) so the public numbers update.
             </p>
@@ -236,10 +236,10 @@ export function OverviewTab({
 
       <Card
         title="accounts — live"
-        actions={<span className="text-[11px] text-faint">owner-dictated rules · refreshes here</span>}
+        actions={<span className="text-2xs text-faint">owner-dictated rules · refreshes here</span>}
       >
         {accLive && accLive.length > 0 ? (
-          <div className="space-y-2 text-[13px]">
+          <div className="space-y-2 text-sm">
             {accLive.map((a) => {
               const s = a.status
               const fmt = (n: number) => `${n > 0 ? '+' : ''}$${Math.round(n).toLocaleString()}`
@@ -263,7 +263,7 @@ export function OverviewTab({
             })}
           </div>
         ) : (
-          <p className="text-[13px] text-faint">{accLive ? 'no accounts yet' : 'loading…'}</p>
+          <p className="text-sm text-faint">{accLive ? 'no accounts yet' : 'loading…'}</p>
         )}
       </Card>
 
@@ -289,17 +289,17 @@ export function OverviewTab({
             aria-label="daily brief"
           />
         ) : (
-          <p className="text-[13px] text-faint">
+          <p className="text-sm text-faint">
             no brief for today yet — “AI draft” writes a short pre-market brief from today’s sessions, the
             red/orange events, and your most recent day. the numbers come from verified data; the AI only
             writes the prose.
           </p>
         )}
-        <p className="mt-2 text-[11px] text-faint">public on the homepage + day page once rebuilt</p>
+        <p className="mt-2 text-2xs text-faint">public on the homepage + day page once rebuilt</p>
       </Card>
 
       <Card title="system">
-        <div className="grid gap-2 text-[13px] md:grid-cols-3">
+        <div className="grid gap-2 text-sm md:grid-cols-3">
           <div className="flex items-center justify-between border-b border-line/60 pb-2">
             <span className="text-dim">admin secret</span>
             <span className={status.env.adminSecretSet ? 'text-up' : 'text-down'}>

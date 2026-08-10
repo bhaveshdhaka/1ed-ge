@@ -145,7 +145,7 @@ export function LibraryTab({ notify }: { notify: (m: string, ok?: boolean) => vo
               key={s.id}
               onClick={() => { setSection(s.id); setEditing(null) }}
               aria-pressed={section === s.id}
-              className={`h-10 px-3 text-[13px] ${section === s.id ? 'bg-raise text-ink' : 'text-dim hover:text-ink'}`}
+              className={`h-10 px-3 text-sm ${section === s.id ? 'bg-raise text-ink' : 'text-dim hover:text-ink'}`}
             >
               {s.label}
             </button>
@@ -177,16 +177,16 @@ export function LibraryTab({ notify }: { notify: (m: string, ok?: boolean) => vo
                   onClick={() => setEditing({ ...row })}
                   className="flex flex-1 items-baseline gap-3 text-left"
                 >
-                  <span className="text-[13px] text-ink">
+                  <span className="text-sm text-ink">
                     {String(row.name ?? row.title ?? row.text ?? row.slug)}
                   </span>
-                  <span className="text-[11px] text-faint">{row.slug}</span>
+                  <span className="text-2xs text-faint">{row.slug}</span>
                 </button>
                 <Button size="sm" variant="danger" onClick={() => remove(row)}>×</Button>
               </div>
             ))
           )}
-          {rows.length === 0 && <p className="text-[12px] text-faint">no {section} yet — add one.</p>}
+          {rows.length === 0 && <p className="text-xs text-faint">no {section} yet — add one.</p>}
         </div>
       </Card>
 
@@ -240,7 +240,7 @@ function EditorForm({
           <Field label="target"><TextInput type="number" value={d.target ?? ''} onChange={(e) => onChange({ target: e.target.value })} /></Field>
         )}
         <Field label="description"><TextInput value={d.description ?? ''} onChange={(e) => onChange({ description: e.target.value })} /></Field>
-        <label className="flex items-center gap-2 text-[13px] text-dim">
+        <label className="flex items-center gap-2 text-sm text-dim">
           <input type="checkbox" checked={d.active !== false} onChange={(e) => onChange({ active: e.target.checked })} />
           active
         </label>
@@ -349,11 +349,11 @@ function SortableLibRow({
         ⠿
       </button>
       <button onClick={() => onEdit(row)} className="flex flex-1 items-baseline gap-3 text-left">
-        <span className="text-[13px] text-ink">
+        <span className="text-sm text-ink">
           {section === 'habits' && row.emoji ? `${row.emoji} ` : ''}
           {String(row.name ?? row.title ?? row.text ?? row.slug)}
         </span>
-        <span className="text-[11px] text-faint">{row.slug}</span>
+        <span className="text-2xs text-faint">{row.slug}</span>
       </button>
       <Button size="sm" variant="danger" onClick={() => onRemove(row)}>×</Button>
     </div>

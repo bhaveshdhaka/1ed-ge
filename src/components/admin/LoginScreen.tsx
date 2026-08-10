@@ -36,10 +36,10 @@ export default function LoginScreen() {
     }
   }
 
-  if (!status) return <div className="shell py-24 text-[13px] text-faint">…</div>
+  if (!status) return <div className="shell py-24 text-sm text-faint">…</div>
   if (!status.hasPasskeys) {
     return (
-      <div className="shell py-24 text-[13px] text-dim">
+      <div className="shell py-24 text-sm text-dim">
         no passkey registered yet — open <span className="text-ink">/zen/setup</span> from your
         recovery URL to register one.
       </div>
@@ -49,15 +49,15 @@ export default function LoginScreen() {
   return (
     <div className="shell flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
       <h1 className="text-xl">zen</h1>
-      <p className="text-[13px] text-dim">sign in with your passkey</p>
+      <p className="text-sm text-dim">sign in with your passkey</p>
       <button
-        className="h-10 border border-line px-5 text-[13px] transition-colors hover:border-accent"
+        className="h-10 border border-line px-5 text-sm transition-colors hover:border-accent"
         onClick={signIn}
         disabled={busy}
       >
         {busy ? '…' : 'sign in'}
       </button>
-      {err && <p className="text-[12px] text-down">{err}</p>}
+      {err && <p className="text-xs text-down">{err}</p>}
     </div>
   )
 }
