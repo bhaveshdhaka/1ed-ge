@@ -110,7 +110,7 @@ export function TradeCard({
           {...listeners}
           aria-label={`reorder trade ${index + 1}`}
           title="drag to reorder"
-          className="cursor-grab touch-none text-faint opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100 active:cursor-grabbing"
+          className="cursor-grab touch-none text-faint opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100 group-active:opacity-100 active:cursor-grabbing"
         >
           ⠿
         </button>

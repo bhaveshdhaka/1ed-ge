@@ -11,10 +11,11 @@ import type { ResolvedThought } from '../../lib/stream'
 interface Props {
   thought: ResolvedThought
   showDay?: boolean
+  hideDate?: boolean
   class?: string
 }
 
-const { thought, showDay = false, class: cls = '' } = Astro.props
+const { thought, showDay = false, hideDate = false, class: cls = '' } = Astro.props
 const meta = thoughtMeta(thought.type)
 const isTrade = thought.type === 'trade' && thought.trade !== null
 const isQuote = thought.type === 'quote'
@@ -35,7 +36,7 @@ const frameStyle = isTrade
     <span class="card-ico">{isQuote ? '💬' : isTrade ? '📈' : '💭'}</span>
     <span class="card-lbl">{meta.label}</span>
     <span class="card-sub">{thought.at} hkt</span>
-    {showDay && (
+    {showDay && !hideDate && (
       <a href={`/day/${fmtDay(thought.iso)}`} class="ml-auto text-2xs text-faint transition-colors hover:text-accent">
         {fmtDay(thought.iso)}
       </a>
@@ -43,7 +44,7 @@ const frameStyle = isTrade
   </div>
 
   {isTrade && thought.trade && (
-    <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 pt-3 text-[13px]">
+    <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 pt-3 text-sm">
       <span class={thought.trade.direction === 'long' ? 'text-up' : 'text-down'}>
         {thought.trade.direction === 'long' ? '▲' : '▼'} {thought.trade.market}
       </span>
@@ -56,12 +57,12 @@ const frameStyle = isTrade
 
   {isQuote ? (
     <div class="px-4 py-3">
-      <p class="text-[13px] leading-relaxed text-soft">"{thought.text ?? ''}"</p>
+      <p class="text-sm leading-relaxed text-soft">"{thought.text ?? ''}"</p>
       {thought.author && <p class="mt-1 text-2xs text-faint">— {thought.author}</p>}
     </div>
   ) : (
     <div class="px-4 py-3">
-      {thought.text && <p class="text-[13px] leading-relaxed text-soft">{thought.text}</p>}
+      {thought.text && <p class="text-sm leading-relaxed text-soft">{thought.text}</p>}
       {isTrade && !thought.text && thought.trade && (
         <p class="text-2xs text-faint">
           {thought.trade.entry} → {thought.trade.exit}

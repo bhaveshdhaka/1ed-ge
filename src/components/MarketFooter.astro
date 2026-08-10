@@ -34,7 +34,7 @@ const clsClass = (cls: string) =>
 ---
 
 <details class="group w-full">
-  <summary class="flex cursor-pointer list-none flex-wrap items-baseline gap-x-4 gap-y-1 py-1 text-[12px]">
+  <summary class="flex cursor-pointer list-none flex-wrap items-baseline gap-x-4 gap-y-1 py-1 text-xs">
     <span class="text-faint tabular-nums">{prettyDate}</span>
 
     <span data-f-market class="min-w-0 flex-1 tabular-nums" style={`color:${cme ? clsColor(cme.cls) : 'var(--color-dim)'}`}>
@@ -56,7 +56,7 @@ const clsClass = (cls: string) =>
   <div class="border-t border-line/50 pt-2">
     <div class="flex flex-col gap-1" data-f-rows>
       {cash.map((c) => (
-        <div class="flex items-baseline gap-2 text-[12px]" data-f-cash-row={c.key}>
+        <div class="flex items-baseline gap-2 text-xs" data-f-cash-row={c.key}>
           <span class="shrink-0">{c.flag}</span>
           <span data-f-cash-text={c.key} class:list={[c.seg ? clsClass(c.seg.cls) : 'text-faint']}>
             {c.seg ? c.seg.text : 'closed'}
@@ -66,14 +66,14 @@ const clsClass = (cls: string) =>
           </span>
         </div>
       ))}
-      <div class="flex items-baseline gap-2 text-[12px]" data-f-news style={nextRed ? '' : 'display:none'}>
+      <div class="flex items-baseline gap-2 text-xs" data-f-news style={nextRed ? '' : 'display:none'}>
         <span data-f-news-dot class:list={['inline-block h-1.5 w-1.5 rounded-full', redKind ? 'bg-down' : 'bg-warn']}></span>
         <span data-f-news-text class:list={[redKind ? 'text-down' : 'text-warn']}>{nextRed?.text ?? ''}</span>
         <span data-f-news-cd class="ml-auto tabular-nums" style={nextRed ? `color:${redKind ? 'var(--color-down)' : 'var(--color-warn)'}` : ''}>
           {nextRed ? fmtHuman((nextRed.at - now) / 1000) : ''}
         </span>
       </div>
-      <div class="flex items-baseline gap-2 text-[12px]" data-f-speaker style={speaker ? '' : 'display:none'}>
+      <div class="flex items-baseline gap-2 text-xs" data-f-speaker style={speaker ? '' : 'display:none'}>
         <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent"></span>
         <span data-f-speaker-text class="text-accent">{speaker?.text ?? ''}</span>
         <span data-f-speaker-cd class="ml-auto tabular-nums text-accent">{speaker ? fmtHuman((speaker.at - now) / 1000) : ''}</span>
@@ -90,40 +90,15 @@ const clsClass = (cls: string) =>
 
 <script type="application/json" id="f-strip" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')} is:inline></script>
 
+<script src="/ticker.js" is:inline></script>
 <script is:inline>
   (() => {
     const el = document.getElementById('f-strip')
-    if (!el) return
+    if (!el || !window.__ticker) return
     let PAYLOAD = null
     try { PAYLOAD = JSON.parse(el.textContent || 'null') } catch {}
     if (!PAYLOAD) return
-
-    const p = (n) => String(n).padStart(2, '0')
-    const fmtHuman = (sec) => {
-      sec = Math.max(0, Math.round(sec))
-      const d = Math.floor(sec / 86400)
-      const h = Math.floor((sec % 86400) / 3600)
-      const m = Math.floor((sec % 3600) / 60)
-      const s = Math.floor(sec % 60)
-      if (d > 0) return h > 0 ? d + 'd ' + h + 'h' : d + 'd'
-      if (h > 0) return m > 0 ? h + 'h ' + m + 'm' : h + 'h'
-      if (m >= 15) return m + 'm'
-      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
-    }
-    const segAt = (segs, now) => {
-      for (const s of segs) if (now >= s.at && now < s.until) return s
-      return null
-    }
-    const nextAt = (list, now) => {
-      const up = list.filter((n) => n.at > now)
-      if (!up.length) return null
-      const red = up.find((n) => n.kind === 'red')
-      return red || up.reduce((a, b) => (b.at < a.at ? b : a))
-    }
-    const color = (cls) =>
-      cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
-    const clsName = (cls) =>
-      cls === 'up' ? 'text-up' : cls === 'warn' ? 'text-warn' : cls === 'down' ? 'text-down' : 'text-dim'
+    const { onTick, segAt, nextAt, fmtHuman, color, clsName } = window.__ticker
 
     const main = document.querySelector('[data-f-market]')
     const cashRows = ['nyse', 'tse', 'lse']
@@ -185,12 +160,12 @@ const clsClass = (cls: string) =>
     }
 
     tick()
-    setInterval(tick, 1000)
+    onTick(tick)
   })()
 </script>
 
 <style>
-  .crt details > summary::-webkit-details-marker {
+  details > summary::-webkit-details-marker {
     display: none;
   }
 </style>

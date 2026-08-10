@@ -109,10 +109,6 @@
   --tracking-tighter: -0.025em;
   --tracking-wide: 0.04em;
   --tracking-widest: 0.14em;
-
-  /* Chart tokens (legacy) */
-  --chart-grid: #242b3d;
-  --chart-alt: #0af;
 }
 
 /* ═════════════════════════════════════════════════════════════════════════════
@@ -234,6 +230,23 @@
     background: linear-gradient(90deg, transparent, rgba(0, 170, 255, 0.45), transparent);
     pointer-events: none;
   }
+
+  /* .panel-static — same as .panel but no entrance animation (for grids) */
+  .panel-static {
+    @apply border border-line;
+    background: var(--color-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(var(--blur-card)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--blur-card)) saturate(150%);
+  }
+  /* .panel-flat — nested card: background + border only, no blur/shadow/animation */
+  .panel-flat {
+    background: var(--color-card);
+    border: 0.5px solid var(--color-sep);
+    border-radius: var(--radius-sm);
+  }
+
   .btn {
     @apply inline-flex items-center gap-2 border border-line2 bg-raise px-3 py-1.5 text-sm text-soft
       transition-colors hover:border-accent hover:text-ink cursor-pointer select-none;
@@ -267,12 +280,6 @@
   }
   .kv {
     @apply flex items-baseline justify-between gap-3 border-b border-line/60 py-2 text-sm last:border-0;
-  }
-  .num-up {
-    @apply text-up;
-  }
-  .num-down {
-    @apply text-down;
   }
   .tag {
     @apply border border-line px-1.5 py-0.5 text-2xs text-dim;
@@ -403,6 +410,7 @@
 /* ---- zen PWA — iOS/touch hardening (zen app only; public pages untouched) ---- */
 .zen-app {
   -webkit-touch-callout: none;
+  overscroll-behavior-y: none;
 }
 /* keep text selection in editable fields — the callout kill is non-editable UI only */
 .zen-app input,
@@ -418,7 +426,7 @@
   .zen-app a,
   .zen-app summary,
   .zen-app label:has(> input[type='checkbox']) {
-    min-height: 44px;
+    min-height: 44px !important;
   }
   /* Safari auto-zooms form fields under 16px on focus — floor the font size.
      Scoped to the zen app so the public terminal density is untouched. */
@@ -567,23 +575,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tb-stars-a,
-  .tb-stars-b,
-  .tb-peak-glow,
-  .brand-word,
-  .brand-tk,
-  .tape-dot-now {
-    animation: none;
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-  .brand-word {
-    color: var(--color-ink);
-    background: none;
-    -webkit-text-fill-color: initial;
-  }
-  .brand-tk {
-    opacity: 0.8;
-  }
+  .brand-word { color: var(--color-ink); background: none; -webkit-text-fill-color: initial; }
+  .brand-tk { opacity: 0.8; }
 }
+
+/* anchor jumps — keep the target clear of the sticky nav */
+[id] { scroll-margin-top: 4rem; }
 
 @media (pointer: coarse) {
   .btn {
@@ -694,8 +696,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border: 1px solid var(--color-line2);
   background: var(--color-bg);
   color: var(--color-dim);

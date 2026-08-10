@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro'
 import { getCollection } from 'astro:content'
 import { buildModelStats } from '../lib/models'
-import { fmtDay } from '../lib/dates'
+import { fmtDay, fmtDayWUpper } from '../lib/dates'
 import Card from '../components/ui/Card.astro'
 import Badge from '../components/ui/Badge.astro'
 import StatCard from '../components/ui/StatCard.astro'
@@ -22,7 +22,7 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
   <div class="shell pt-12 pb-20">
     <header class="flex items-baseline gap-3">
       <h1 class="text-2xl text-ink">/ models</h1>
-      <span class="text-[12px] text-faint">{stats.length} models · {stats.reduce((s, m) => s + m.count, 0)} tagged trades</span>
+      <span class="text-xs text-faint">{stats.length} models · {stats.reduce((s, m) => s + m.count, 0)} tagged trades</span>
     </header>
 
     {stats.length === 0 ? (
@@ -41,17 +41,17 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
                 <h2 class="text-xl">{m.name}</h2>
                 <Badge variant={statusTone(m.status)}>{m.status}</Badge>
                 {m.lastIso && (
-                  <span class="ml-auto text-[12px] text-faint">last trade {fmtDay(m.lastIso)}</span>
+                  <span class="ml-auto text-xs text-faint">last trade {fmtDayWUpper(m.lastIso)}</span>
                 )}
               </div>
-              {m.premise && <p class="mt-2 max-w-2xl text-[13px] text-dim">{m.premise}</p>}
+              {m.premise && <p class="mt-2 max-w-2xl text-sm text-dim">{m.premise}</p>}
 
               {m.rules.length > 0 && (
                 <div class="mt-4">
                   <div class="text-2xs uppercase tracking-widest text-dim">rules</div>
                   <ul class="mt-2 space-y-1">
                     {m.rules.map((r, i) => (
-                      <li class="flex items-baseline gap-2 text-[13px] text-soft">
+                      <li class="flex items-baseline gap-2 text-sm text-soft">
                         <span class="text-faint">{i + 1}.</span>
                         <span>{r}</span>
                       </li>
@@ -76,7 +76,7 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
                   >
                     {m.trades.slice(-8).reverse().map((t, i) => (
                       <tr>
-                        <td class="td"><a href={`/day/${fmtDay(t.iso)}`} class="text-accent hover:underline">{fmtDay(t.iso)}</a></td>
+                        <td class="td"><a href={`/day/${fmtDay(t.iso)}`} class="text-accent hover:underline">{fmtDayWUpper(t.iso)}</a></td>
                         <td class="td">{t.market}</td>
                         <td class="td">{t.direction === 'long' ? '▲' : '▼'}</td>
                         <td class="td">{t.setup ?? '—'}</td>

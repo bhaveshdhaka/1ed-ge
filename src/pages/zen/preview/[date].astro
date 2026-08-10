@@ -5,6 +5,7 @@ import { sessionOk } from '../../../lib/auth'
 import { readEntry, listMds } from '../../../lib/content'
 import { renderMarkdown } from '../../../lib/markdown'
 import { fmtDay } from '../../../lib/dates'
+import { DEFAULT_HABIT_COLOR } from '../../../lib/constants'
 
 const { date } = Astro.params
 const ok = sessionOk(Astro.request) && /^\d{4}-\d{2}-\d{2}$/.test(date ?? '')
@@ -32,7 +33,7 @@ const sumR = trades.reduce((s: number, t: any) => s + (t.points / (t.riskPoints 
 const totalPts = trades.reduce((s: number, t: any) => s + t.points, 0)
 const habitDefs = listMds('habits').map((f) => {
   const h = readEntry('habits', f).data as Record<string, unknown>
-  return { id: f.replace(/\.md$/, ''), name: h.name ?? f, emoji: h.emoji ?? '', color: h.color ?? '#4ade80' }
+  return { id: f.replace(/\.md$/, ''), name: h.name ?? f, emoji: h.emoji ?? '', color: h.color ?? DEFAULT_HABIT_COLOR }
 })
 const dayHabits = (d.habits ?? {}) as Record<string, boolean>
 const accountList = listMds('accounts').map((f) => {
@@ -44,17 +45,17 @@ const accMap = new Map(accountList.map((a) => [a.id, a]))
 
 <Bare title={`preview ${date} — 1ed.ge zen`}>
   {!ok ? (
-    <div class="shell py-24 text-[13px] text-faint">404 — not found</div>
+    <div class="shell py-24 text-sm text-faint">404 — not found</div>
   ) : (
     <article class="shell max-w-4xl pt-safe-10 pb-20">
-      <div class="mb-8 flex flex-wrap items-center justify-between gap-3 border border-accent/40 bg-accent/5 px-4 py-2 text-[12px] text-accent">
+      <div class="mb-8 flex flex-wrap items-center justify-between gap-3 border border-accent/40 bg-accent/5 px-4 py-2 text-xs text-accent">
         <span>preview — saved but not yet published (pending rebuild)</span>
         <a href={`/day/${fmtDay(date!)}`} target="_blank" class="underline underline-offset-4 hover:text-ink">live page →</a>
       </div>
 
       <header class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <h1 class="text-2xl">day {date}</h1>
-        <span class="text-[13px] text-dim">
+        <span class="text-sm text-dim">
           {trades.length} trades · {sumR > 0 ? '+' : ''}{sumR.toFixed(2)}R · {totalPts >= 0 ? '+' : ''}{totalPts}pts
         </span>
       </header>
@@ -86,7 +87,7 @@ const accMap = new Map(accountList.map((a) => [a.id, a]))
           {habitDefs.map((h) => {
             const done = dayHabits[h.id] === true
             return (
-              <span class="flex items-center gap-2 border px-3 py-1.5 text-[13px]" style={done ? `border-color:${h.color};color:${h.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
+              <span class="flex items-center gap-2 border px-3 py-1.5 text-sm" style={done ? `border-color:${h.color};color:${h.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
                 {h.emoji ?? '·'} {h.name} {done ? '✓' : '×'}
               </span>
             )
@@ -97,7 +98,7 @@ const accMap = new Map(accountList.map((a) => [a.id, a]))
       {d.device && (d.device.screenshots?.length ?? 0) > 0 && (
         <div class="mt-10">
           <h2 class="text-lg">/ screen time — proof</h2>
-          <p class="mt-2 text-[13px] text-dim">{d.device.notes ?? 'no note'}</p>
+          <p class="mt-2 text-sm text-dim">{d.device.notes ?? 'no note'}</p>
           <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             {d.device.screenshots.map((s: string) => (
               <a href={s} target="_blank" class="block border border-line bg-panel">
@@ -111,7 +112,7 @@ const accMap = new Map(accountList.map((a) => [a.id, a]))
       <div class="mt-10">
         <h2 class="text-lg">/ trades</h2>
         {trades.length === 0 ? (
-          <p class="mt-3 text-[13px] text-faint">no trades logged this day.</p>
+          <p class="mt-3 text-sm text-faint">no trades logged this day.</p>
         ) : (
           <div class="mt-4 space-y-4">
             {trades.map((t: any, i: number) => {
@@ -123,18 +124,18 @@ const accMap = new Map(accountList.map((a) => [a.id, a]))
                 <div class="panel p-4">
                   <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
                     <span class="text-[15px] text-ink">{t.direction === 'long' ? '▲' : '▼'} {t.market}</span>
-                    <span class="text-[12px] text-dim">{t.session ?? '—'} · {t.setup ?? 'no setup'}</span>
-                    <span class={`ml-auto text-[15px] ${R > 0 ? 'num-up' : R < 0 ? 'num-down' : ''}`}>{R > 0 ? '+' : ''}{R.toFixed(2)}R</span>
-                    <span class={`text-[13px] ${totalPnl >= 0 ? 'num-up' : 'num-down'}`}>{totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString()}</span>
+                    <span class="text-xs text-dim">{t.session ?? '—'} · {t.setup ?? 'no setup'}</span>
+                    <span class={`ml-auto text-[15px] ${R > 0 ? 'text-up' : R < 0 ? 'text-down' : ''}`}>{R > 0 ? '+' : ''}{R.toFixed(2)}R</span>
+                    <span class={`text-sm ${totalPnl >= 0 ? 'text-up' : 'text-down'}`}>{totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString()}</span>
                   </div>
-                  <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-[12px] text-dim md:grid-cols-4">
+                  <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-dim md:grid-cols-4">
                     <span>entry <span class="text-ink">{t.entry}</span></span>
                     <span>exit <span class="text-ink">{t.exit}</span></span>
                     <span>stop <span class="text-ink">{t.stop ?? '—'}</span></span>
                     <span>points <span class={t.points >= 0 ? 'text-up' : 'text-down'}>{t.points >= 0 ? '+' : ''}{t.points}</span></span>
                   </div>
                   {ex.length > 0 && (
-                    <div class="mt-2 text-[12px] text-dim">
+                    <div class="mt-2 text-xs text-dim">
                       accounts: {ex.map((e: any) => { const a = accMap.get(e.account); return `${a?.firm ?? ''} ${a?.sizeLabel ?? ''}${e.size && e.size > 1 ? ` ×${e.size}` : ''}` }).join(' · ')}
                     </div>
                   )}
@@ -158,16 +159,16 @@ const accMap = new Map(accountList.map((a) => [a.id, a]))
         <h2 class="text-lg">/ reflection</h2>
         {journal ? (
           <>
-            <div class="mt-3 flex flex-wrap items-center gap-3 text-[12px] text-dim">
+            <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-dim">
               {journal.data.day && <span class="text-ink">{journal.data.day}</span>}
               <span>{journal.data.date}</span>
               {(journal.data.tags as string[] ?? []).map((t) => <span class="tag">#{t}</span>)}
             </div>
-            {journal.data.summary && <p class="mt-2 text-[13px] text-dim">{journal.data.summary}</p>}
+            {journal.data.summary && <p class="mt-2 text-sm text-dim">{journal.data.summary}</p>}
             <div class="prose mt-6" set:html={html} />
           </>
         ) : (
-          <p class="mt-3 text-[13px] text-faint">no reflection saved for this day.</p>
+          <p class="mt-3 text-sm text-faint">no reflection saved for this day.</p>
         )}
       </div>
     </article>

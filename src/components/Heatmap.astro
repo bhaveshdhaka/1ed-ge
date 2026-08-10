@@ -1,4 +1,6 @@
 ---
+import EmptyState from './ui/EmptyState.astro'
+
 interface Props {
   data: { date: string; value: boolean | null }[]
   color?: string
@@ -9,6 +11,8 @@ const { data, color = 'var(--color-up)', name = 'habit' } = Astro.props
 const CELL = 11
 const GAP = 3
 const PAD_TOP = 16
+
+const hasData = data.length > 0 && data.some((d) => d.value !== null)
 
 const first = data[0]?.date
 const startDow = first ? new Date(first + 'T00:00:00Z').getUTCDay() : 0
@@ -32,35 +36,43 @@ data.forEach((d, i) => {
 const dows = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 ---
 
-<div class="overflow-x-auto" tabindex="0" aria-label={`${name} habit heatmap — scroll horizontally`}>
-  <svg viewBox={`0 0 ${w + GAP} ${h + GAP}`} class="min-w-[540px]" role="img" aria-label={`${name} habit heatmap over the last year`}>
-    <title>{name} — last 365 days, done vs missed</title>
-    {monthLabels.map((m) => (
-      <text x={m.x} y={8} fill="var(--color-dim)" font-size="9">{m.label}</text>
-    ))}
-    {dows.map((d, i) => (
-      <text x={0} y={PAD_TOP + i * (CELL + GAP) + CELL - 2} fill="var(--color-faint)" font-size="8">
-        {d}
-      </text>
-    ))}
-    {data.map((d, i) => {
-      if (d.value === null) return null
-      const pos = startDow + i
-      const col = Math.floor(pos / 7)
-      const row = pos % 7
-      const x = GAP + col * (CELL + GAP)
-      const y = PAD_TOP + row * (CELL + GAP)
-      const fill = d.value === true ? color : 'var(--chart-grid)'
-      return (
-        <rect
-          x={x}
-          y={y}
-          width={CELL}
-          height={CELL}
-          fill={fill}
-          opacity={d.value === true ? 0.92 : 1}
-        />
-      )
-    })}
-  </svg>
-</div>
+{
+  hasData ? (
+    <div class="overflow-x-auto" tabindex="0" aria-label={`${name} habit heatmap — scroll horizontally`}>
+      <svg viewBox={`0 0 ${w + GAP} ${h + GAP}`} class="min-w-[540px]" role="img" aria-label={`${name} habit heatmap over the last year`}>
+        <title>{name} — last 365 days, done vs missed</title>
+        {monthLabels.map((m) => (
+          <text x={m.x} y={8} fill="var(--color-dim)" font-size="9">{m.label}</text>
+        ))}
+        {dows.map((d, i) => (
+          <text x={0} y={PAD_TOP + i * (CELL + GAP) + CELL - 2} fill="var(--color-faint)" font-size="8">
+            {d}
+          </text>
+        ))}
+        {data.map((d, i) => {
+          if (d.value === null) return null
+          const pos = startDow + i
+          const col = Math.floor(pos / 7)
+          const row = pos % 7
+          const x = GAP + col * (CELL + GAP)
+          const y = PAD_TOP + row * (CELL + GAP)
+          const fill = d.value === true ? color : 'var(--color-line2)'
+          return (
+            <rect
+              x={x}
+              y={y}
+              width={CELL}
+              height={CELL}
+              fill={fill}
+              opacity={d.value === true ? 0.92 : 1}
+            >
+              <title>{d.date}: {d.value}</title>
+            </rect>
+          )
+        })}
+      </svg>
+    </div>
+  ) : (
+    <EmptyState text="no data yet." />
+  )
+}

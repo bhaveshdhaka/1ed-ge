@@ -88,8 +88,8 @@ const tWidth = Math.max(tape.length * SPACING + 20, 420)
 const tY = (c: number) => TAPE_H - TAPE_PAD - ((c - tMin) / tRange) * (TAPE_H - TAPE_PAD * 2)
 const tX = (i: number) => i * SPACING + 10
 const tLine = tape.map((p, i) => `${tX(i)},${tY(p.cumulative)}`).join(' ')
-const tColor = (tape[tape.length - 1]?.cumulative ?? 0) >= 0 ? '#4ade80' : '#f87171'
-const dotColor = (sumR: number) => (sumR > 0 ? '#4ade80' : sumR < 0 ? '#f87171' : '#8b8b93')
+const tColor = (tape[tape.length - 1]?.cumulative ?? 0) >= 0 ? 'var(--color-up)' : 'var(--color-down)'
+const dotColor = (sumR: number) => (sumR > 0 ? 'var(--color-up)' : sumR < 0 ? 'var(--color-down)' : 'var(--color-dim)')
 const last = tape.length - 1
 ---
 
@@ -167,7 +167,7 @@ const last = tape.length - 1
             ))}
             {tape.map((p, i) =>
               i % 5 === 4 ? (
-                <text x={tX(i)} y={TAPE_H - 4} fill="#8b8b93" font-size="9" text-anchor="middle">{p.short}</text>
+                <text x={tX(i)} y={TAPE_H - 4} fill="var(--color-dim)" font-size="9" text-anchor="middle">{p.short}</text>
               ) : null,
             )}
             {tape[last]?.current && (
@@ -178,11 +178,11 @@ const last = tape.length - 1
             )}
           </svg>
         </div>
-        <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px]">
+        <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
           {ladder.map((l) => (
             <span>
               <span class="text-faint">{l.label}</span>{' '}
-              <span class:list={['tabular-nums', l.sumR > 0 ? 'num-up' : l.sumR < 0 ? 'num-down' : 'text-ink']}>
+              <span class:list={['tabular-nums', l.sumR > 0 ? 'text-up' : l.sumR < 0 ? 'text-down' : 'text-ink']}>
                 {l.sumR >= 0 ? '+' : ''}{l.sumR.toFixed(1)}R
               </span>
             </span>
@@ -234,7 +234,7 @@ const last = tape.length - 1
                 {stats.pnlByAccount.map((row) => (
                   <tr>
                     <td class="td">{row.account}</td>
-                    <td class:list={['td text-right tabular-nums', row.pnl >= 0 ? 'num-up' : 'num-down']}>
+                    <td class:list={['td text-right tabular-nums', row.pnl >= 0 ? 'text-up' : 'text-down']}>
                       {row.pnl >= 0 ? '+' : ''}${row.pnl.toLocaleString()}
                     </td>
                   </tr>
@@ -264,7 +264,7 @@ const last = tape.length - 1
                     <td
                       class:list={[
                         'td text-right tabular-nums',
-                        row.sumR > 0 ? 'num-up' : row.sumR < 0 ? 'num-down' : '',
+                        row.sumR > 0 ? 'text-up' : row.sumR < 0 ? 'text-down' : '',
                       ]}
                     >
                       {row.sumR > 0 ? '+' : ''}
@@ -343,7 +343,7 @@ const last = tape.length - 1
                 <tr>
                   <td class="td">{pt.label}</td>
                   <td
-                    class:list={['td text-right tabular-nums', pt.sumR > 0 ? 'num-up' : pt.sumR < 0 ? 'num-down' : '']}
+                    class:list={['td text-right tabular-nums', pt.sumR > 0 ? 'text-up' : pt.sumR < 0 ? 'text-down' : '']}
                   >
                     {pt.sumR > 0 ? '+' : ''}
                     {pt.sumR.toFixed(2)}R

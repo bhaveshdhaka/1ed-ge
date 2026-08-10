@@ -51,8 +51,8 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
   <section class="shell pt-12 pb-20">
     <div class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl text-ink">/ stream</h1>
-      <span class="text-[12px] text-faint">{all.length} published thoughts</span>
-      <span class:list={['ml-auto flex items-center gap-2 text-[12px]', live.live ? 'text-up' : 'text-faint']}>
+      <span class="text-xs text-faint">{all.length} published thoughts</span>
+      <span class:list={['ml-auto flex items-center gap-2 text-xs', live.live ? 'text-up' : 'text-faint']}>
         <span class:list={['inline-block h-1.5 w-1.5 rounded-full', live.live ? 'bg-up' : 'bg-line2']}></span>
         {liveLine(live.live, lastSeenDays)}
       </span>
@@ -65,7 +65,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           <span class="card-lbl">today so far</span>
           <span class="card-sub">{fmtDayWUpper(iso)}</span>
           {live.live && <span class="tmr">● live</span>}
-          <a href={`/day/${fmtDay(iso)}`} class="ml-auto text-2xs text-faint transition-colors hover:text-accent">day →</a>
+          <a href={`/day/${fmtDay(iso)}`} class:list={[live.live ? '' : 'ml-auto', 'text-2xs text-faint transition-colors hover:text-accent']}>day →</a>
         </div>
         <div class="p-3 md:p-4">
           <DayFacts cells={todayCells} />

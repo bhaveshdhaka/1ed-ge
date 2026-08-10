@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { api, fileToDataUrl } from './api'
 import { Button, Select, TextInput } from './ui'
 import { ImageDropZone } from './ImageDropZone'
+import { SheetFrame } from './SheetFrame'
 import { importedTrades } from '../../lib/copy'
 import { useLegacyTable, legacyCreateColumnHelper } from '@tanstack/react-table/legacy'
 import type { LegacyColumnDef } from '@tanstack/react-table/legacy'
@@ -56,28 +57,6 @@ interface IngestSheetProps {
 }
 
 const helper = legacyCreateColumnHelper<PositionProposal>()
-
-/** Right-side Sheet chrome — 420px, panel-raised, 60ms fade/slide. */
-function SheetFrame({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-label={title}>
-      <style>{`@keyframes sheet-in { from { opacity: 0; transform: translateX(16px) } to { opacity: 1; transform: none } }`}</style>
-      <div className="fixed inset-0 bg-bg/80" style={{ animation: 'sheet-in 60ms ease-out' }} onClick={onClose} />
-      <div
-        className="panel fixed right-0 top-0 flex h-full w-[420px] max-w-[92vw] flex-col"
-        style={{ animation: 'sheet-in 60ms ease-out' }}
-      >
-        <div className="flex items-center justify-between border-b border-line px-4 py-3">
-          <h2 className="text-xs uppercase tracking-widest text-soft">{title}</h2>
-          <button onClick={onClose} aria-label="close" className="flex h-8 w-8 items-center justify-center border border-line2 text-sm text-dim hover:border-accent hover:text-ink">
-            ×
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4">{children}</div>
-      </div>
-    </div>
-  )
-}
 
 /** Approve-every-trade import ritual (moved from IngestPanel) wrapped in a Sheet. */
 export function IngestSheet(props: IngestSheetProps) {

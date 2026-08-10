@@ -3,13 +3,13 @@
 interface Props {
   head: string[]
   class?: string
-  align?: 'left' | 'right' | 'none'
+  align?: 'right' | 'none'
 }
 
 const { head, class: cls = '', align = 'none' } = Astro.props
 ---
 
-<div class={`overflow-x-auto border border-line bg-panel ${cls}`}>
+<div class={`overflow-x-auto panel ${cls}`}>
   <table class="w-full border-collapse">
     <thead>
       <tr>

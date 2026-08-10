@@ -59,15 +59,16 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
 })
 ---
 
-<section class="panel p-4">
-  <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-    <div class="flex items-baseline gap-2 text-[13px]">
-      <span class="text-faint">{prettyDate}</span>
-    </div>
-    <span data-mkt-live class="text-[12px] tabular-nums" style={`color:${mk.status === 'open' ? 'var(--color-up)' : mk.status === 'early' ? 'var(--color-warn)' : 'var(--color-down)'}`}>
+<section class="panel">
+  <div class="card-hd">
+    <span class="card-ico">📊</span>
+    <span class="card-lbl">market</span>
+    <span class="card-sub">{prettyDate}</span>
+    <span data-mkt-live class="tmr" style={`color:${mk.status === 'open' ? 'var(--color-up)' : mk.status === 'early' ? 'var(--color-warn)' : 'var(--color-down)'}`}>
       {mk.glyph} {mk.text}
     </span>
   </div>
+  <div class="p-3 md:p-4">
 
   <div class="mt-3 px-2" data-rail>
     <div class="relative h-10">
@@ -117,13 +118,13 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
         <div class="flex items-center justify-between gap-x-4 border-t border-line/60 py-2" data-session-row={m.key}>
           <div class="flex min-w-0 items-center gap-2">
             <span class="shrink-0 text-[15px] leading-none">{m.flag}</span>
-            <span class="truncate text-[13px] text-ink">{m.name}</span>
+            <span class="truncate text-sm text-ink">{m.name}</span>
           </div>
           <div class="flex min-w-0 items-center gap-x-3 text-right">
-            <span data-session-text={m.key} class:list={['min-w-0 truncate text-[13px]', seg ? clsClass(seg.cls) : 'text-faint']}>
+            <span data-session-text={m.key} class:list={['min-w-0 truncate text-sm', seg ? clsClass(seg.cls) : 'text-faint']}>
               {seg ? seg.text : 'closed'}
             </span>
-            <span data-session-cd={m.key} class="shrink-0 w-[5.5rem] text-right text-[13px] tabular-nums" style={`color:${seg ? clsColor(seg.cls) : 'var(--color-faint)'}`}>
+            <span data-session-cd={m.key} class="shrink-0 w-[5.5rem] text-right text-sm tabular-nums" style={`color:${seg ? clsColor(seg.cls) : 'var(--color-faint)'}`}>
               {seg ? fmtHuman((seg.until - now) / 1000) : '—'}
             </span>
             <span class="hidden w-[7rem] text-right text-[11px] text-faint tabular-nums sm:inline">{m.window}</span>
@@ -134,11 +135,11 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
   </div>
 
   {showNews && (payload.news.length > 0 || speaker) && (
-    <div class="mt-2 flex flex-col gap-1 border-t border-line/60 pt-2 text-[13px]" data-news-lines>
+    <div class="mt-2 flex flex-col gap-1 border-t border-line/60 pt-2 text-sm" data-news-lines>
       <div class="flex items-baseline gap-2" data-news-row style={nextRed ? '' : 'display:none'}>
         <span data-news-dot class:list={['inline-block h-1.5 w-1.5 shrink-0 rounded-full', redKind ? 'bg-down' : 'bg-warn']}></span>
         <span data-news-text class:list={['min-w-0 flex-1', redKind ? 'text-down' : 'text-warn']}>{nextRed?.text ?? ''}</span>
-        <span data-news-cd class="shrink-0 text-[12px] tabular-nums" style={nextRed ? `color:${redKind ? 'var(--color-down)' : 'var(--color-warn)'}` : ''}>
+        <span data-news-cd class="shrink-0 text-xs tabular-nums" style={nextRed ? `color:${redKind ? 'var(--color-down)' : 'var(--color-warn)'}` : ''}>
           {nextRed ? fmtHuman((nextRed.at - now) / 1000) : ''}
         </span>
       </div>
@@ -146,7 +147,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
         <div class="flex items-baseline gap-2" data-speaker-row>
           <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
           <span data-speaker-text class="min-w-0 flex-1 text-accent">{speaker.text}</span>
-          <span data-speaker-cd class="shrink-0 text-[12px] tabular-nums text-accent">{fmtHuman((speaker.at - now) / 1000)}</span>
+          <span data-speaker-cd class="shrink-0 text-xs tabular-nums text-accent">{fmtHuman((speaker.at - now) / 1000)}</span>
         </div>
       )}
     </div>
@@ -154,7 +155,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
 
   {showNews && (red.length > 0 || orange.length > 0) && (
     <details class="group mt-2 border-t border-line/60">
-      <summary class="flex cursor-pointer list-none items-center justify-between gap-3 py-2 text-[13px]">
+      <summary class="flex cursor-pointer list-none items-center justify-between gap-3 py-2 text-sm">
         <span class="text-dim">News events · all today</span>
         <span class="text-faint transition-transform group-open:rotate-180">▾</span>
       </summary>
@@ -165,46 +166,22 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
   )}
 
   <p class="mt-2 border-t border-line/60 pt-2 text-[11px] text-faint">all times HKT · EDT · EST Nov 1</p>
+  </div>
 </section>
 
 <script type="application/json" id="mkt-strip" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')} is:inline></script>
 
+<script src="/ticker.js" is:inline></script>
 <script is:inline>
   (() => {
     const el = document.getElementById('mkt-strip')
     const container = document.getElementById('mkt-rows')
-    if (!el || !container) return
+    if (!el || !container || !window.__ticker) return
     let PAYLOAD = null
     try { PAYLOAD = JSON.parse(el.textContent || 'null') } catch {}
     if (!PAYLOAD) return
     const HKT_MS = PAYLOAD.hktOffsetMs || 8 * 3600 * 1000
-
-    const p = (n) => String(n).padStart(2, '0')
-    const fmtHuman = (sec) => {
-      sec = Math.max(0, Math.round(sec))
-      const d = Math.floor(sec / 86400)
-      const h = Math.floor((sec % 86400) / 3600)
-      const m = Math.floor((sec % 3600) / 60)
-      const s = Math.floor(sec % 60)
-      if (d > 0) return h > 0 ? d + 'd ' + h + 'h' : d + 'd'
-      if (h > 0) return m > 0 ? h + 'h ' + m + 'm' : h + 'h'
-      if (m >= 15) return m + 'm'
-      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
-    }
-    const segAt = (segs, now) => {
-      for (const s of segs) if (now >= s.at && now < s.until) return s
-      return null
-    }
-    const nextAt = (list, now) => {
-      const up = list.filter((n) => n.at > now)
-      if (!up.length) return null
-      const red = up.find((n) => n.kind === 'red')
-      return red || up.reduce((a, b) => (b.at < a.at ? b : a))
-    }
-    const color = (cls) =>
-      cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
-    const clsName = (cls) =>
-      cls === 'up' ? 'text-up' : cls === 'warn' ? 'text-warn' : cls === 'down' ? 'text-down' : 'text-dim'
+    const { onTick, segAt, nextAt, fmtHuman, color, clsName, pad2 } = window.__ticker
 
     const nowMarker = document.querySelector('[data-now-marker]')
 
@@ -218,14 +195,14 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
         const cd = row.querySelector('[data-session-cd="' + key + '"]')
         if (!seg) {
           txt.textContent = 'closed'
-          txt.className = 'min-w-0 truncate text-[13px] text-faint'
+          txt.className = 'min-w-0 truncate text-sm text-faint'
           cd.textContent = '—'
           cd.style.color = 'var(--color-faint)'
           order.push({ sec: Infinity, row })
           continue
         }
         txt.textContent = seg.text
-        txt.className = 'min-w-0 truncate text-[13px] ' + clsName(seg.cls)
+        txt.className = 'min-w-0 truncate text-sm ' + clsName(seg.cls)
         cd.textContent = fmtHuman((seg.until - now) / 1000)
         cd.style.color = color(seg.cls)
         order.push({ sec: (seg.until - now) / 1000, row })
@@ -270,7 +247,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
       }
       const clockEl = document.querySelector('[data-now-clock]')
       if (clockEl) {
-        clockEl.textContent = p(hk.getUTCHours()) + ':' + p(hk.getUTCMinutes()) + ':' + p(hk.getUTCSeconds())
+        clockEl.textContent = pad2(hk.getUTCHours()) + ':' + pad2(hk.getUTCMinutes()) + ':' + pad2(hk.getUTCSeconds())
         if (nowMarker) {
           const railW = nowMarker.parentElement.clientWidth
           const chipW = clockEl.offsetWidth
@@ -295,6 +272,6 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
     }
 
     render()
-    setInterval(render, 1000)
+    onTick(render)
   })()
 </script>

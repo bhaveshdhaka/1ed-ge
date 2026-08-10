@@ -16,10 +16,10 @@ const manifestHref = ok ? '/zen/manifest.webmanifest' : undefined
   {ok ? (
     <div class="shell py-16">
       <h1 class="mb-1 text-xl">zen setup</h1>
-      <p class="mb-6 text-[13px] text-dim">register a passkey to lock zen to this device / your iCloud Keychain.</p>
+      <p class="mb-6 text-sm text-dim">register a passkey to lock zen to this device / your iCloud Keychain.</p>
       <RegisterScreen client:only="react" />
     </div>
   ) : (
-    <div class="shell py-24 text-[13px] text-faint">404 — not found</div>
+    <div class="shell py-24 text-sm text-faint">404 — not found</div>
   )}
 </Bare>

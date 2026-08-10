@@ -20,7 +20,7 @@ const { title = '1ed.ge', manifest } = Astro.props
       content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
     />
     <meta name="robots" content="noindex,nofollow" />
-    <meta name="theme-color" content="#0a0a0c" />
+    <meta name="theme-color" content="#07080c" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="format-detection" content="telephone=no" />
@@ -29,7 +29,7 @@ const { title = '1ed.ge', manifest } = Astro.props
     {manifest && <link rel="manifest" href={manifest} />}
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   </head>
-  <body class="crt min-h-svh">
+  <body class="min-h-svh">
     <ThemeBackground />
     <slot />
     <MarketLive />

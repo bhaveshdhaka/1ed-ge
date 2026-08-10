@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro'
 import { requireSession, json, error } from '../../../lib/auth'
 import { listMds, readEntry, writeEntry } from '../../../lib/content'
 import { addChange } from '../../../lib/changes'
+import { DEFAULT_HABIT_COLOR } from '../../../lib/constants'
 
 export const prerender = false
 
@@ -86,7 +87,7 @@ export const GET: APIRoute = async ({ request }) => {
   })
   const habits = listMds('habits').map((f) => {
     const data = readEntry('habits', f).data as Record<string, unknown>
-    return { slug: f.replace(/\.md$/, ''), name: data.name ?? f, emoji: data.emoji ?? '', color: data.color ?? '#4ade80' }
+    return { slug: f.replace(/\.md$/, ''), name: data.name ?? f, emoji: data.emoji ?? '', color: data.color ?? DEFAULT_HABIT_COLOR }
   })
   const models = listMds('models').map((f) => {
     const data = readEntry('models', f).data as Record<string, unknown>

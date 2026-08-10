@@ -95,10 +95,10 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
 
     <nav class="mt-4 flex items-center justify-between gap-3 text-xs">
       {prevIso ? (
-        <a href={`/day/${fmtDay(prevIso)}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">← {fmtDay(prevIso)}</a>
+        <a href={`/day/${fmtDay(prevIso)}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">← {fmtDayWUpper(prevIso)}</a>
       ) : (<span class="text-faint">← older</span>)}
       {nextIso ? (
-        <a href={`/day/${fmtDay(nextIso)}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">{fmtDay(nextIso)} →</a>
+        <a href={`/day/${fmtDay(nextIso)}`} class="flex h-10 items-center border border-line px-3 text-dim transition-colors hover:border-accent hover:text-ink">{fmtDayWUpper(nextIso)} →</a>
       ) : (<span class="text-faint">newer →</span>)}
     </nav>
 
@@ -152,10 +152,10 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
                       {t.models?.length ? t.models.map((m, i) => <Badge variant={i === 0 ? 'accent' : 'default'}>{m}</Badge>) : (
                         t.model ? <Badge variant="accent">{t.model}</Badge> : null
                       )}
-                      <span class:list={['ml-auto text-base', R > 0 ? 'num-up' : R < 0 ? 'num-down' : '']}>
+                      <span class:list={['ml-auto text-base', R > 0 ? 'text-up' : R < 0 ? 'text-down' : '']}>
                         {R > 0 ? '+' : ''}{R.toFixed(2)}R
                       </span>
-                      <span class:list={['text-sm', totalPnl > 0 ? 'num-up' : totalPnl < 0 ? 'num-down' : 'text-dim']}>
+                      <span class:list={['text-sm', totalPnl > 0 ? 'text-up' : totalPnl < 0 ? 'text-down' : 'text-dim']}>
                         {totalPnl > 0 ? '+' : ''}${totalPnl.toLocaleString('en-US', { maximumFractionDigits: 2 })}
                       </span>
                     </div>

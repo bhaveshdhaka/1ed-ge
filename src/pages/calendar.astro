@@ -38,7 +38,7 @@ const rowsByDay = days.map((d) => {
   <section class="shell pt-12 pb-20">
     <div class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl">/ calendar</h1>
-      <span class="text-[12px] text-faint">the next week in HKT · deterministic, DST-aware</span>
+      <span class="text-xs text-faint">the next week in HKT · deterministic, DST-aware</span>
     </div>
 
     <div class="mt-8 max-w-3xl">
@@ -57,7 +57,7 @@ const rowsByDay = days.map((d) => {
           </div>
           <div class="p-3 md:p-4">
             <div class="well px-3 py-2">
-              <div class="flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-dim">
+              <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-dim">
                 <span class="flex items-center gap-1.5"><span>🇺🇸</span><span class="tabular-nums">{row.wins.nyse}</span></span>
                 <span class="flex items-center gap-1.5"><span>🇯🇵</span><span class="tabular-nums">{row.wins.tse}</span></span>
                 <span class="flex items-center gap-1.5"><span>🇬🇧</span><span class="tabular-nums">{row.wins.lse}</span></span>
@@ -66,7 +66,7 @@ const rowsByDay = days.map((d) => {
             </div>
 
             <div class="mt-3">
-              <NewsEventsCard red={row.red} orange={row.orange} dayIso={row.d} isToday={row.d === today} />
+              <NewsEventsCard red={row.red} orange={row.orange} dayIso={row.d} isToday={row.d === today} hideDate />
             </div>
           </div>
         </div>
