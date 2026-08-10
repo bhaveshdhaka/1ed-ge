@@ -12,32 +12,14 @@ const payload: StripPayload = buildStrip(today, Date.now(), [], [])
 
 <script type="application/json" id="mkt-data" set:html={JSON.stringify(payload.segments.cme).replace(/</g, '\\u003c')} is:inline></script>
 
+<script src="/ticker.js" is:inline></script>
 <script is:inline>
   (() => {
     const el = document.getElementById('mkt-data')
-    if (!el) return
+    if (!el || !window.__ticker) return
     let SEGS = []
     try { SEGS = JSON.parse(el.textContent || '[]') } catch {}
-
-    const p = (n) => String(n).padStart(2, '0')
-    const fmtHuman = (sec) => {
-      sec = Math.max(0, Math.round(sec))
-      const d = Math.floor(sec / 86400)
-      const h = Math.floor((sec % 86400) / 3600)
-      const m = Math.floor((sec % 3600) / 60)
-      const s = Math.floor(sec % 60)
-      if (d > 0) return h > 0 ? d + 'd ' + h + 'h' : d + 'd'
-      if (h > 0) return m > 0 ? h + 'h ' + m + 'm' : h + 'h'
-      if (m >= 15) return m + 'm'
-      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
-    }
-    const segAt = (segs, now) => {
-      for (const s of segs) if (now >= s.at && now < s.until) return s
-      return null
-    }
-    const color = (cls) =>
-      cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
-    const glyph = (cls) => (cls === 'up' ? '●' : cls === 'warn' ? '◐' : '✕')
+    const { onTick, segAt, fmtHuman, color, glyph } = window.__ticker
 
     const apply = (text, cls) => {
       document.querySelectorAll('[data-mkt-live]').forEach((n) => {
@@ -54,6 +36,6 @@ const payload: StripPayload = buildStrip(today, Date.now(), [], [])
     }
 
     tick()
-    setInterval(tick, 1000)
+    onTick(tick)
   })()
 </script>

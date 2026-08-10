@@ -90,40 +90,15 @@ const clsClass = (cls: string) =>
 
 <script type="application/json" id="f-strip" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')} is:inline></script>
 
+<script src="/ticker.js" is:inline></script>
 <script is:inline>
   (() => {
     const el = document.getElementById('f-strip')
-    if (!el) return
+    if (!el || !window.__ticker) return
     let PAYLOAD = null
     try { PAYLOAD = JSON.parse(el.textContent || 'null') } catch {}
     if (!PAYLOAD) return
-
-    const p = (n) => String(n).padStart(2, '0')
-    const fmtHuman = (sec) => {
-      sec = Math.max(0, Math.round(sec))
-      const d = Math.floor(sec / 86400)
-      const h = Math.floor((sec % 86400) / 3600)
-      const m = Math.floor((sec % 3600) / 60)
-      const s = Math.floor(sec % 60)
-      if (d > 0) return h > 0 ? d + 'd ' + h + 'h' : d + 'd'
-      if (h > 0) return m > 0 ? h + 'h ' + m + 'm' : h + 'h'
-      if (m >= 15) return m + 'm'
-      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
-    }
-    const segAt = (segs, now) => {
-      for (const s of segs) if (now >= s.at && now < s.until) return s
-      return null
-    }
-    const nextAt = (list, now) => {
-      const up = list.filter((n) => n.at > now)
-      if (!up.length) return null
-      const red = up.find((n) => n.kind === 'red')
-      return red || up.reduce((a, b) => (b.at < a.at ? b : a))
-    }
-    const color = (cls) =>
-      cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
-    const clsName = (cls) =>
-      cls === 'up' ? 'text-up' : cls === 'warn' ? 'text-warn' : cls === 'down' ? 'text-down' : 'text-dim'
+    const { onTick, segAt, nextAt, fmtHuman, color, clsName } = window.__ticker
 
     const main = document.querySelector('[data-f-market]')
     const cashRows = ['nyse', 'tse', 'lse']
@@ -185,7 +160,7 @@ const clsClass = (cls: string) =>
     }
 
     tick()
-    setInterval(tick, 1000)
+    onTick(tick)
   })()
 </script>
 

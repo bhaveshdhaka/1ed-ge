@@ -171,42 +171,17 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
 
 <script type="application/json" id="mkt-strip" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')} is:inline></script>
 
+<script src="/ticker.js" is:inline></script>
 <script is:inline>
   (() => {
     const el = document.getElementById('mkt-strip')
     const container = document.getElementById('mkt-rows')
-    if (!el || !container) return
+    if (!el || !container || !window.__ticker) return
     let PAYLOAD = null
     try { PAYLOAD = JSON.parse(el.textContent || 'null') } catch {}
     if (!PAYLOAD) return
     const HKT_MS = PAYLOAD.hktOffsetMs || 8 * 3600 * 1000
-
-    const p = (n) => String(n).padStart(2, '0')
-    const fmtHuman = (sec) => {
-      sec = Math.max(0, Math.round(sec))
-      const d = Math.floor(sec / 86400)
-      const h = Math.floor((sec % 86400) / 3600)
-      const m = Math.floor((sec % 3600) / 60)
-      const s = Math.floor(sec % 60)
-      if (d > 0) return h > 0 ? d + 'd ' + h + 'h' : d + 'd'
-      if (h > 0) return m > 0 ? h + 'h ' + m + 'm' : h + 'h'
-      if (m >= 15) return m + 'm'
-      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
-    }
-    const segAt = (segs, now) => {
-      for (const s of segs) if (now >= s.at && now < s.until) return s
-      return null
-    }
-    const nextAt = (list, now) => {
-      const up = list.filter((n) => n.at > now)
-      if (!up.length) return null
-      const red = up.find((n) => n.kind === 'red')
-      return red || up.reduce((a, b) => (b.at < a.at ? b : a))
-    }
-    const color = (cls) =>
-      cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
-    const clsName = (cls) =>
-      cls === 'up' ? 'text-up' : cls === 'warn' ? 'text-warn' : cls === 'down' ? 'text-down' : 'text-dim'
+    const { onTick, segAt, nextAt, fmtHuman, color, clsName, pad2 } = window.__ticker
 
     const nowMarker = document.querySelector('[data-now-marker]')
 
@@ -272,7 +247,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
       }
       const clockEl = document.querySelector('[data-now-clock]')
       if (clockEl) {
-        clockEl.textContent = p(hk.getUTCHours()) + ':' + p(hk.getUTCMinutes()) + ':' + p(hk.getUTCSeconds())
+        clockEl.textContent = pad2(hk.getUTCHours()) + ':' + pad2(hk.getUTCMinutes()) + ':' + pad2(hk.getUTCSeconds())
         if (nowMarker) {
           const railW = nowMarker.parentElement.clientWidth
           const chipW = clockEl.offsetWidth
@@ -297,6 +272,6 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
     }
 
     render()
-    setInterval(render, 1000)
+    onTick(render)
   })()
 </script>

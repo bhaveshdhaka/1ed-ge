@@ -11,10 +11,11 @@ import type { ResolvedThought } from '../../lib/stream'
 interface Props {
   thought: ResolvedThought
   showDay?: boolean
+  hideDate?: boolean
   class?: string
 }
 
-const { thought, showDay = false, class: cls = '' } = Astro.props
+const { thought, showDay = false, hideDate = false, class: cls = '' } = Astro.props
 const meta = thoughtMeta(thought.type)
 const isTrade = thought.type === 'trade' && thought.trade !== null
 const isQuote = thought.type === 'quote'
@@ -35,7 +36,7 @@ const frameStyle = isTrade
     <span class="card-ico">{isQuote ? '💬' : isTrade ? '📈' : '💭'}</span>
     <span class="card-lbl">{meta.label}</span>
     <span class="card-sub">{thought.at} hkt</span>
-    {showDay && (
+    {showDay && !hideDate && (
       <a href={`/day/${fmtDay(thought.iso)}`} class="ml-auto text-2xs text-faint transition-colors hover:text-accent">
         {fmtDay(thought.iso)}
       </a>

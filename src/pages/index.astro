@@ -12,7 +12,9 @@ import ThoughtCard from '../components/stream/ThoughtCard.astro'
 import DayFacts from '../components/stream/DayFacts.astro'
 import EmptyState from '../components/ui/EmptyState.astro'
 import MarketWidget from '../components/MarketWidget.astro'
-import MarketDay from '../components/MarketDay.astro'
+import { getCollection } from 'astro:content'
+import { marketMarker } from '../lib/market'
+import NewsEventsCard from '../components/NewsEventsCard.astro'
 
 export const prerender = false
 
@@ -74,6 +76,13 @@ const moniker = [liveLine(live.live, lastSeenDays), pendingReflectionsLine(accou
   .filter(Boolean)
   .join(' · ')
 
+// Market day data (same as MarketDay component, inlined for single-card template)
+const mk = marketMarker(iso)
+const news = await getCollection('market-news')
+const dayNews = news.find((n) => n.data.date === iso)
+const red = dayNews?.data.red ?? []
+const orange = dayNews?.data.orange ?? []
+
 // Live page — never serve a stale cached copy (a published thought must show immediately).
 Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
 ---
@@ -98,15 +107,14 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
   </section>
 
   <section class="shell pb-6">
-    <MarketDay />
-  </section>
-
-  <section class="shell pb-6">
     <div class="panel panel-hero">
       <div class="card-hd border-b border-sep">
         <span class="card-ico">📅</span>
         <span class="card-lbl">today</span>
         <span class="card-sub">{fmtDayWUpper(iso)}</span>
+        <span class:list={['tmr', mk.status === 'open' ? 'text-up' : mk.status === 'early' ? 'text-warn' : 'text-down']}>
+          {mk.glyph} {mk.text}{mk.status === 'open' ? ' · full day' : ''}
+        </span>
         {latestIso && latestIso !== iso && (
           <a href={`/day/${fmtDay(latestIso)}`} class="ml-auto text-2xs text-dim transition-colors hover:text-accent">
             last logged day {fmtDayWUpper(latestIso)} →
@@ -114,11 +122,14 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
         )}
       </div>
       <div class="p-3 md:p-4">
-        {dayHasContent ? (
-          <DayFacts cells={cells} />
-        ) : (
-          <EmptyState text="no day logged yet." />
-        )}
+        <NewsEventsCard red={red} orange={orange} dayIso={iso} isToday={true} hideDate={true} />
+        <div class="mt-3">
+          {dayHasContent ? (
+            <DayFacts cells={cells} />
+          ) : (
+            <EmptyState text="no day logged yet." />
+          )}
+        </div>
       </div>
     </div>
   </section>
@@ -146,7 +157,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
               <div class="mt-5">
                 <p class="mb-3 text-2xs uppercase tracking-widest text-dim">latest from {fmtDayWUpper(latestIso)}</p>
                 <div class="flex flex-col gap-3">
-                  {latestThoughts.map((t) => <ThoughtCard thought={t} showDay />)}
+                  {latestThoughts.map((t) => <ThoughtCard thought={t} showDay hideDate />)}
                 </div>
               </div>
             )}
