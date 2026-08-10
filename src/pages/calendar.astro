@@ -51,7 +51,7 @@ const rowsByDay = days.map((d) => {
         <div class="panel p-4">
           <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
             <span class="text-[15px] text-ink">{row.fmt}</span>
-            <span class:list={['text-[12px] tabular-nums', row.dm.cls]} data-mkt-live={row.dm.live ? true : undefined}>
+            <span class="text-[12px] tabular-nums text-dim">
               {row.dm.glyph} {row.dm.text}
             </span>
           </div>
