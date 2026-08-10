@@ -4,6 +4,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.1-alpha] — 2026-08-10
+
+### Added
+
+- **Design system audit** — 81 items across 9 phases, 75 files touched
+- **CME trading day** — organizing unit replaces calendar day; boundary = 17:00 America/Chicago (DST-safe)
+- **Display timezone** — browser-local conversion on public pages via `<time>` elements; admin timezone picker (7 cities)
+- **Lightbox → bottom sheet** — slide-up animation, swipe-to-close, image preload, keyboard nav
+- **Unified Card system** — `Card.astro` is the one panel primitive (default/hero/static/flat variants + stat + actions)
+- **Motion token system** — `--motion-fast/normal/slow`, transitions on `.seg-on`, `.btn`, `.capsule`, `.panel-hero`
+- **Mobile blur reduction** — `backdrop-filter: blur(8px)` on `<768px` for smoother scrolling
+- **Ticker consolidation** — single shared interval (`public/ticker.js`), pauses when tab hidden
+- **Dead dependency cleanup** — 11 unused npm packages removed
+- **`/dev` page** — public build log with stack, features, principles, changelog, token costs
+- **`src/lib/constants.ts`** — `DEFAULT_HABIT_COLOR` constant
+- **`SheetFrame.tsx`** — shared sheet component extracted from 3 duplicates
+- **`public/ticker.js`** — shared market countdown runtime
+
+### Fixed
+
+- **3 UTC bugs** — coach.ts, media.ts, NotificationDrawer.tsx used UTC dates instead of HKT/CT
+- **iOS/Safari** — min-h-svh, safe-area nav, 44px touch targets, theme-color sync, overscroll-behavior
+- **Date compliance** — `fmtDayWUpper` across all surfaces (67 violations → 0)
+- **Type scale** — `text-[12px]`/`text-[13px]` → tokens (67 violations → 0)
+- **Legacy chart tokens** — `--chart-grid`/`--chart-alt` removed
+- **Dead code** — 15 unused component files deleted
+- **Double ml-auto** — index/stream card-hd spacing
+- **Red/orange words** — removed from admin UI
+- **Empty states** — standardized on `EmptyState` component
+
+### Changed
+
+- `todayHkt()` → `cmeToday()` on all market-facing surfaces (8 public pages, 6 admin sites)
+- `todayStr()` (admin) rewritten with CME-aware client-side logic
+- News fetch script: `isoDay(ms)` → `cmeDate(ms)` — events at 00:00-05:59 HKT bucket to previous trading day
+- `StatCard.astro` → thin wrapper around `Card variant="static"`
+- `Table.astro` → thin wrapper around `Card variant="flat"`
+- 14 files migrated from hand-built `panel`+`card-hd` markup to `<Card>` calls
+- Reduced-motion: global kill (`animation-duration: 0.01ms !important`)
+- Chart SVGs: `preserveAspectRatio` removed, `EmptyState` added, `<title>` elements added
+- CorrTable: `scope="col"` + `<caption>` for a11y
+
+### Removed
+
+- 15 dead component files (Dot, Flag, Quote, Button, Input, Textarea, Field, 7 react/* components, MarketCard.tsx)
+- 11 unused npm packages (lucide-react, lucide-static, 7× @radix-ui, class-variance-authority, textarea-caret-position, @fontsource-variable/newsreader)
+- Unused keyframes: `pulse-dot`, `glow-soft`
+- `num-up`/`num-down` CSS aliases (→ `text-up`/`text-down`)
+
 ## [Unreleased]
 
 ### Fixed (QA bug batch — 2026-08-08, pre-prod)

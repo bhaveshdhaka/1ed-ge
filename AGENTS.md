@@ -331,6 +331,7 @@ optional title/summary/tags/featuredImage.
   locally use `curl --resolve 1ed.ge:443:104.21.7.179 https://1ed.ge/`.
 - nginx `/media/` proxies to node (a filesystem `alias` fails because
   `/root` is mode 700).
+- **`/dev` page** — public build log with stack, features, principles, changelog, token costs, and version tracking. Updated whenever meaningful features ship.
 - Style: monospace, off-black (`#0a0a0c`), green `#4ade80` = up, red `#f87171`
   = down, low-contrast dim text, terminal aesthetic. Nav labels are plain
   (`[00] home`) — **no `~` in the menu**. Match Tailwind tokens in

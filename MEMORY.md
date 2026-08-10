@@ -117,6 +117,41 @@ same repo (`main` and `preprod` branches). Full env contract in
 - AI-first day input (paste → structureDayFull → evidence-first)
 - Public pages zero-JS (except lightbox)
 
+## HANDOFF — Design system audit + CME trading day + display timezone (2026-08-10)
+
+**Version: v0.1-alpha.** Three major efforts shipped in one session:
+
+### Design system audit (9 phases, 75 files)
+- iOS/Safari critical fixes (min-h-svh, safe-area, touch targets, lightbox swipe)
+- Card system unification (Card.astro is the one panel primitive, 4 variants)
+- Admin Card icons (icon prop on all cards)
+- Date/typography compliance (fmtDayWUpper, text-xs/sm tokens — 67→0 violations)
+- Chart & SVG audit (preserveAspectRatio, EmptyState, title elements, a11y)
+- Component cleanup (15 dead files deleted, SheetFrame extracted)
+- Motion token system (--motion-fast/normal/slow, transitions on seg/btn/capsule)
+- Mobile blur reduction (blur(8px) on <768px)
+- Lightbox → bottom sheet (slide-up, swipe-to-close, keyboard nav)
+- Unified Card system (Card.astro with variant/stat/actions)
+
+### CME trading day (23 files)
+- `cmeDate(ms)` in sessions.ts — boundary = 17:00 America/Chicago, DST-safe
+- `cmeToday()` replaces `todayHkt()` on all market-facing surfaces
+- News fetch script: `isoDay(ms)` → `cmeDate(ms)` — events at 02:00 HKT bucket to previous trading day
+- Admin `todayStr()` rewritten client-side with same CT logic
+- 3 UTC bugs fixed (coach, media, NotificationDrawer)
+- Display timezone: `<time class="local-time">` on public pages, inline script converts to visitor's local TZ (12-hour, progressive enhancement)
+- Admin timezone picker (7 cities, localStorage)
+
+### /dev page
+- Public build log at `1ed.ge/dev`
+- Stack, principles, features, changelog, token costs
+- Version tracking (v0.1-alpha)
+
+### Token costs
+- v0.0 (pre-2026-08-10): ~$50
+- v0.1-alpha (2026-08-10): ~$4
+- Total: ~$54
+
 ## Model config (2026-08-10)
 
 oh-my-opencode-slim v2.2.11, `opencode-go` preset:
