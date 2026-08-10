@@ -58,7 +58,7 @@ const toneCls = stat ? ({ up: 'text-up', down: 'text-down', default: 'text-ink' 
     {stat!.delta !== undefined && <div class="mt-0.5 text-2xs text-faint">{stat!.delta}</div>}
   </div>
 ) : (
-  <section class={`${variantCls[variant]} ${pads[pad]} ${cls}`}>
+  <section class={`${variantCls[variant]} ${hasHeader ? '' : pads[pad]} ${cls}`}>
     {hasHeader && (
       <div class="card-hd">
         {icon && <span class="card-ico">{icon}</span>}
@@ -79,6 +79,12 @@ const toneCls = stat ? ({ up: 'text-up', down: 'text-down', default: 'text-ink' 
         <div class="flex items-center gap-2"><slot name="actions" /></div>
       </div>
     )}
-    <slot />
+    {hasHeader ? (
+      <div class="p-3 md:p-4">
+        <slot />
+      </div>
+    ) : (
+      <slot />
+    )}
   </section>
 )}
