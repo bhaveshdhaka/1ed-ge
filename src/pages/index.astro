@@ -129,14 +129,13 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
   <section class="shell pb-20">
     <div class="panel">
       <div class="card-hd border-b border-sep">
-        <span class="card-ico">💭</span>
+        <span class="card-ico">📡</span>
         <span class="card-lbl">stream</span>
-        <span class="card-sub">{thoughts.length}</span>
         <span class:list={['ml-auto flex items-center gap-2 text-[12px]', live.live ? 'text-up' : 'text-faint']}>
           <span class:list={['inline-block h-1.5 w-1.5 rounded-full', live.live ? 'bg-up' : 'bg-line2']}></span>
           {moniker}
         </span>
-        <a href="/stream" class="ml-auto text-2xs text-dim transition-colors hover:text-accent">all stream →</a>
+        <a href="/stream" class="ml-auto text-2xs text-dim transition-colors hover:text-accent">all streams →</a>
       </div>
       <div class="p-3 md:p-4">
         {thoughts.length > 0 ? (
