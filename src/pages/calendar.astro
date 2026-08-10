@@ -48,31 +48,35 @@ const rowsByDay = days.map((d) => {
 
     <div class="mt-10 space-y-6">
       {rowsByDay.map((row) => (
-        <div class="panel p-4">
-          <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <span class="text-[15px] text-ink">{row.fmt}</span>
-            <span class="text-[12px] tabular-nums text-dim">
+        <div class="panel">
+          <div class="card-hd border-b border-sep">
+            <span class="card-ico">📅</span>
+            <span class="card-lbl">{row.fmt}</span>
+            <span class="card-sub tabular-nums">
               {row.dm.glyph} {row.dm.text}
             </span>
           </div>
+          <div class="p-3 md:p-4">
+            <div class="well px-3 py-2">
+              <div class="flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-dim">
+                <span class="flex items-center gap-1.5"><span>🇺🇸</span><span class="tabular-nums">{row.wins.nyse}</span></span>
+                <span class="flex items-center gap-1.5"><span>🇯🇵</span><span class="tabular-nums">{row.wins.tse}</span></span>
+                <span class="flex items-center gap-1.5"><span>🇬🇧</span><span class="tabular-nums">{row.wins.lse}</span></span>
+                <span class="flex items-center gap-1.5"><span>📈</span><span class="tabular-nums">{row.wins.cme}</span></span>
+              </div>
+            </div>
 
-          <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 border-t border-line/50 pt-2 text-[12px] text-dim">
-            <span class="flex items-center gap-1.5"><span>🇺🇸</span><span class="tabular-nums">{row.wins.nyse}</span></span>
-            <span class="flex items-center gap-1.5"><span>🇯🇵</span><span class="tabular-nums">{row.wins.tse}</span></span>
-            <span class="flex items-center gap-1.5"><span>🇬🇧</span><span class="tabular-nums">{row.wins.lse}</span></span>
-            <span class="flex items-center gap-1.5"><span>📈</span><span class="tabular-nums">{row.wins.cme}</span></span>
+            {(row.red.length > 0 || row.orange.length > 0) && (
+              <div class="mt-3 flex flex-col gap-1">
+                <NewsBlock red={row.red} orange={row.orange} dayIso={row.d} now={Date.now()} />
+              </div>
+            )}
+            {row.red.length === 0 && row.orange.length === 0 && (
+              <div class="mt-3">
+                <EmptyState text={`no major news events · ${row.dm.text}`} />
+              </div>
+            )}
           </div>
-
-          {(row.red.length > 0 || row.orange.length > 0) && (
-            <div class="mt-2 flex flex-col gap-1 border-t border-line/50 pt-2">
-              <NewsBlock red={row.red} orange={row.orange} dayIso={row.d} now={Date.now()} />
-            </div>
-          )}
-          {row.red.length === 0 && row.orange.length === 0 && (
-            <div class="mt-2 border-t border-line/50 pt-2">
-              <EmptyState text={`no major news events · ${row.dm.text}`} />
-            </div>
-          )}
         </div>
       ))}
     </div>

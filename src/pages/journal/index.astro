@@ -91,41 +91,48 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
       </div>
     </div>
 
-    <div id="journal-list" class="mt-10 max-w-2xl">
-      {groups.map((g, gi) => (
-        <div id={`m-${g.month}`} class="scroll-mt-16">
-          {gi > 0 && <Separator class="my-8" />}
-          <div class="mb-3 flex items-baseline gap-2 text-2xs uppercase tracking-widest text-dim">
-            {monthLabel(g.month)} <span class="text-faint">· {g.entries.length} posts</span>
-          </div>
-          <div class="flex flex-col gap-3">
-            {g.entries.map((j) => {
-              const day = dayByDate.get(j.data.date)
-              const trades = (day?.trades ?? []).length
-              const mood = day?.mood ?? null
-              return (
-                <a href={`/day/${fmtDay(j.data.date)}`} class="group block">
-                  <Card pad="sm" class="transition-colors hover:border-accent">
-                    <div class="flex items-baseline justify-between gap-4">
-                      <div class="flex items-baseline gap-3">
-                        <span class="text-2xs text-faint tabular-nums">{String(journal.length - (numById.get(j.id) ?? 0)).padStart(2, '0')}</span>
-                        <span class="text-sm text-ink transition-colors group-hover:text-accent">{j.data.date}</span>
+    <div id="journal-list" class="mt-10 max-w-2xl panel">
+      <div class="card-hd border-b border-sep">
+        <span class="card-ico">📝</span>
+        <span class="card-lbl">journal</span>
+        <span class="card-sub">{journal.length} posts</span>
+      </div>
+      <div class="p-3 md:p-4">
+        {groups.map((g, gi) => (
+          <div id={`m-${g.month}`} class="scroll-mt-16">
+            {gi > 0 && <Separator class="my-8" />}
+            <div class="mb-3 flex items-baseline gap-2 text-2xs uppercase tracking-widest text-dim">
+              {monthLabel(g.month)} <span class="text-faint">· {g.entries.length} posts</span>
+            </div>
+            <div class="flex flex-col gap-3">
+              {g.entries.map((j) => {
+                const day = dayByDate.get(j.data.date)
+                const trades = (day?.trades ?? []).length
+                const mood = day?.mood ?? null
+                return (
+                  <a href={`/day/${fmtDay(j.data.date)}`} class="group block">
+                    <Card pad="sm" class="transition-colors hover:border-accent">
+                      <div class="flex items-baseline justify-between gap-4">
+                        <div class="flex items-baseline gap-3">
+                          <span class="text-2xs text-faint tabular-nums">{String(journal.length - (numById.get(j.id) ?? 0)).padStart(2, '0')}</span>
+                          <span class="text-sm text-ink transition-colors group-hover:text-accent">{j.data.date}</span>
+                        </div>
                       </div>
-                    </div>
-                    {j.data.summary && <p class="mt-2 text-xs leading-relaxed text-dim">{j.data.summary}</p>}
-                    <div class="mt-3 flex flex-wrap items-center gap-2">
-                      {trades > 0 && <Badge variant="up">{trades} {trades === 1 ? 'trade' : 'trades'}</Badge>}
-                      {mood && <Badge>mood {mood}/5</Badge>}
-                      {j.data.tags?.map((t) => <Tag>#{t}</Tag>)}
-                    </div>
-                  </Card>
-                </a>
-              )
-            })}
+                      {j.data.summary && <p class="mt-2 text-xs leading-relaxed text-dim">{j.data.summary}</p>}
+                      <div class="mt-3 flex flex-wrap items-center gap-2">
+                        {trades > 0 && <Badge variant="up">{trades} {trades === 1 ? 'trade' : 'trades'}</Badge>}
+                        {mood && <Badge>mood {mood}/5</Badge>}
+                        {j.data.tags?.map((t) => <Tag>#{t}</Tag>)}
+                      </div>
+                    </Card>
+                  </a>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      ))}
-      {journal.length === 0 && <EmptyState text="no entries yet — the journal starts when the trading does." />}
+        ))}
+        {journal.length === 0 && <EmptyState text="no entries yet — the journal starts when the trading does." />}
+      </div>
     </div>
 
     <div id="search-results" class="mt-10 max-w-2xl hidden"></div>
