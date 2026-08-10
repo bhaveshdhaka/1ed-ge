@@ -65,7 +65,9 @@ export function NotificationDrawer(props: NotificationDrawerProps) {
       {open && (
         <div className="panel absolute bottom-full right-0 z-50 mb-2 w-80">
           <div className="card-hd">
-            <span className="card-lbl">pending ({total})</span>
+            <span className="card-ico" aria-hidden="true">🔔</span>
+            <span className="card-lbl">notifications</span>
+            <span className="card-sub">{total} pending</span>
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto">

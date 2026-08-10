@@ -68,18 +68,16 @@ export function TradeCard({
       className="group panel"
     >
       {/* ---------- collapsed row ---------- */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">
+      <div className="card-hd flex-wrap">
         <button
           type="button"
           onClick={onToggle}
           aria-expanded={expanded}
-          className="flex h-9 flex-1 items-baseline gap-3 text-left"
+          className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
-          <span className="text-xs text-faint">{expanded ? '▾' : '▸'}</span>
-          <span className="text-[14px] text-ink">
-            {trade.direction === 'long' ? '▲' : '▼'} {trade.market || 'MNQ'}
-          </span>
-          <span className="text-xs text-dim">{trade.setup || '—'} · {trade.session || '—'}</span>
+          <span className="card-ico" aria-hidden="true">{trade.direction === 'long' ? '📈' : '📉'}</span>
+          <span className="card-lbl">{trade.market || 'MNQ'}</span>
+          <span className="card-sub">{trade.setup || '—'} · {trade.session || '—'}</span>
         </button>
 
         <ModelChipRow
@@ -92,7 +90,7 @@ export function TradeCard({
           showAdd={false}
         />
 
-        <span className={`ml-auto text-sm tabular-nums ${r && r.R > 0 ? 'text-up' : r && r.R < 0 ? 'text-down' : 'text-dim'}`}>
+        <span className={`tmr ${r && r.R > 0 ? 'text-up' : r && r.R < 0 ? 'text-down' : ''}`}>
           {r ? `${r.R > 0 ? '+' : ''}${r.R.toFixed(2)}R` : '—'}
         </span>
         <span className={`text-xs tabular-nums ${r && r.pts >= 0 ? 'text-up' : r ? 'text-down' : 'text-dim'}`}>
@@ -121,13 +119,15 @@ export function TradeCard({
       {/* ---------- expanded ---------- */}
       {expanded && (
         <div className="border-t border-line p-3">
-          <ModelChipRow
-            models={models}
-            allModels={allModels}
-            onAdd={(slug) => setModels([...models, slug])}
-            onRemove={(slug) => setModels(models.filter((m) => m !== slug))}
-            onReorder={() => {}}
-          />
+          <div className="well p-3">
+            <ModelChipRow
+              models={models}
+              allModels={allModels}
+              onAdd={(slug) => setModels([...models, slug])}
+              onRemove={(slug) => setModels(models.filter((m) => m !== slug))}
+              onReorder={() => {}}
+            />
+          </div>
 
           <div className="mt-2 grid gap-2 md:grid-cols-2">
             <Field label="commentary (published with the trade)">
@@ -138,13 +138,15 @@ export function TradeCard({
             </Field>
           </div>
 
-          <div className="mt-2 grid gap-2 md:grid-cols-6">
-            <Field label="entry"><NumInput value={trade.entry} onChange={(e) => onChange({ entry: e.target.value })} /></Field>
-            <Field label="stop"><NumInput value={trade.stop} onChange={(e) => onChange({ stop: e.target.value })} /></Field>
-            <Field label="target"><NumInput value={trade.target} onChange={(e) => onChange({ target: e.target.value })} /></Field>
-            <Field label="exit"><NumInput value={trade.exit} onChange={(e) => onChange({ exit: e.target.value })} /></Field>
-            <Field label="risk pts"><NumInput value={trade.riskPoints} onChange={(e) => onChange({ riskPoints: e.target.value })} /></Field>
-            <Field label="points"><NumInput value={trade.points} onChange={(e) => onChange({ points: e.target.value })} /></Field>
+          <div className="well mt-2 p-3">
+            <div className="grid gap-2 md:grid-cols-6">
+              <Field label="entry"><NumInput value={trade.entry} onChange={(e) => onChange({ entry: e.target.value })} /></Field>
+              <Field label="stop"><NumInput value={trade.stop} onChange={(e) => onChange({ stop: e.target.value })} /></Field>
+              <Field label="target"><NumInput value={trade.target} onChange={(e) => onChange({ target: e.target.value })} /></Field>
+              <Field label="exit"><NumInput value={trade.exit} onChange={(e) => onChange({ exit: e.target.value })} /></Field>
+              <Field label="risk pts"><NumInput value={trade.riskPoints} onChange={(e) => onChange({ riskPoints: e.target.value })} /></Field>
+              <Field label="points"><NumInput value={trade.points} onChange={(e) => onChange({ points: e.target.value })} /></Field>
+            </div>
           </div>
 
           <div className="mt-2 grid gap-2 md:grid-cols-5">
@@ -166,7 +168,7 @@ export function TradeCard({
 
           <div className="mt-3">
             <div className="mb-1 text-2xs uppercase tracking-widest text-dim">executions (accounts)</div>
-            <div className="space-y-2">
+            <div className="well space-y-2 p-3">
               {trade.executions.map((e, ei) => (
                 <div key={ei} className="flex items-center gap-2">
                   <Select value={e.account} onChange={(ev) => setExec(ei, { account: ev.target.value })} className="flex-1">

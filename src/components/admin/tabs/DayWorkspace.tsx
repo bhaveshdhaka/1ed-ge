@@ -799,7 +799,7 @@ export function DayWorkspace({
   })
 
   return (
-    <div className="space-y-3 md:space-y-6">
+    <div className="space-y-3 md:space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-xl">/ day</h1>
@@ -824,7 +824,7 @@ export function DayWorkspace({
           pendingObligationDates={pendingObligationDates}
         />
 
-        <div className="space-y-4 md:space-y-6">
+        <div className="space-y-3 md:space-y-4">
           {loading ? (
             <Card title="loading"><p className="text-sm text-faint">loading…</p></Card>
           ) : (
