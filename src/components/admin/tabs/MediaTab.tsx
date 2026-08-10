@@ -101,7 +101,7 @@ export function MediaTab({ notify }: { notify: (m: string, ok?: boolean) => void
 
       {sortedGroups.map(([g, rels]) => (
         <div key={g}>
-          <div className="mb-2 border-b border-line pb-1 text-2xs uppercase tracking-widest text-dim">
+          <div className="mb-2 border-b border-line pb-1 card-lbl">
             {g} <span className="text-faint">({rels.length})</span>
           </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5">

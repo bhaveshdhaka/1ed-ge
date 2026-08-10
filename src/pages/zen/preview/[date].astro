@@ -5,6 +5,7 @@ import { sessionOk } from '../../../lib/auth'
 import { readEntry, listMds } from '../../../lib/content'
 import { renderMarkdown } from '../../../lib/markdown'
 import { fmtDay } from '../../../lib/dates'
+import { DEFAULT_HABIT_COLOR } from '../../../lib/constants'
 
 const { date } = Astro.params
 const ok = sessionOk(Astro.request) && /^\d{4}-\d{2}-\d{2}$/.test(date ?? '')
@@ -32,7 +33,7 @@ const sumR = trades.reduce((s: number, t: any) => s + (t.points / (t.riskPoints 
 const totalPts = trades.reduce((s: number, t: any) => s + t.points, 0)
 const habitDefs = listMds('habits').map((f) => {
   const h = readEntry('habits', f).data as Record<string, unknown>
-  return { id: f.replace(/\.md$/, ''), name: h.name ?? f, emoji: h.emoji ?? '', color: h.color ?? '#4ade80' }
+  return { id: f.replace(/\.md$/, ''), name: h.name ?? f, emoji: h.emoji ?? '', color: h.color ?? DEFAULT_HABIT_COLOR }
 })
 const dayHabits = (d.habits ?? {}) as Record<string, boolean>
 const accountList = listMds('accounts').map((f) => {

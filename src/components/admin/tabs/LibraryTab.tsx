@@ -5,6 +5,7 @@ import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities'
 import { api, notifyChanged } from '../api'
 import { Card, Button, Field, TextInput, TextArea, Select } from '../ui'
+import { DEFAULT_HABIT_COLOR } from '../../../lib/constants'
 import { useDndSensors } from '../TradeCard'
 
 interface LibRow {
@@ -53,7 +54,7 @@ export function LibraryTab({ notify }: { notify: (m: string, ok?: boolean) => vo
     if (section === 'habits') {
       body.name = d.name ?? ''
       body.emoji = d.emoji ?? ''
-      body.color = d.color ?? '#4ade80'
+      body.color = d.color ?? DEFAULT_HABIT_COLOR
       body.description = d.description ?? ''
       body.type = d.kind ?? 'bool'
       body.target = d.kind === 'count' ? Number(d.target ?? 0) : undefined
@@ -224,7 +225,7 @@ function EditorForm({
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="name"><TextInput value={d.name ?? ''} onChange={(e) => onChange({ name: e.target.value })} /></Field>
         <Field label="emoji"><TextInput value={d.emoji ?? ''} onChange={(e) => onChange({ emoji: e.target.value })} /></Field>
-        <Field label="color"><TextInput value={d.color ?? ''} onChange={(e) => onChange({ color: e.target.value })} placeholder="#4ade80" /></Field>
+        <Field label="color"><TextInput value={d.color ?? ''} onChange={(e) => onChange({ color: e.target.value })} placeholder={DEFAULT_HABIT_COLOR} /></Field>
         <Field label="category">
           <Select value={d.category ?? 'general'} onChange={(e) => onChange({ category: e.target.value })}>
             {['health', 'trading', 'discipline', 'mind', 'environment', 'general'].map((c) => (

@@ -10,6 +10,7 @@ import { liveLine, pendingReflectionsLine } from '../lib/copy'
 import { accountabilityStatus } from '../lib/accountability'
 import ThoughtCard from '../components/stream/ThoughtCard.astro'
 import DayFacts from '../components/stream/DayFacts.astro'
+import EmptyState from '../components/ui/EmptyState.astro'
 import MarketWidget from '../components/MarketWidget.astro'
 import MarketDay from '../components/MarketDay.astro'
 
@@ -116,11 +117,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
         {dayHasContent ? (
           <DayFacts cells={cells} />
         ) : (
-          <div class="well px-4 py-6">
-            <p class="text-sm text-faint">
-              no day logged yet.
-            </p>
-          </div>
+          <EmptyState text="no day logged yet." />
         )}
       </div>
     </div>
@@ -143,8 +140,8 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
             {thoughts.map((t) => <ThoughtCard thought={t} />)}
           </div>
         ) : (
-          <div class="max-w-2xl border border-dashed border-line2 px-4 py-6">
-            <p class="text-sm text-faint">no stream yet today — nothing logged.</p>
+          <div class="max-w-2xl">
+            <EmptyState text="no stream yet today — nothing logged." />
             {latestIso && latestThoughts.length > 0 && (
               <div class="mt-5">
                 <p class="mb-3 text-2xs uppercase tracking-widest text-dim">latest from {fmtDayWUpper(latestIso)}</p>
