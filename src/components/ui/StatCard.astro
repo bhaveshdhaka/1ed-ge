@@ -1,5 +1,7 @@
 ---
-/** StatCard.astro — one headline number with a label + optional delta. */
+/** StatCard.astro — thin wrapper around Card with stat variant. */
+import Card from './Card.astro'
+
 interface Props {
   label: string
   value: string
@@ -9,11 +11,6 @@ interface Props {
 }
 
 const { label, value, delta, tone = 'default', class: cls = '' } = Astro.props
-const tones = { up: 'text-up', down: 'text-down', default: 'text-ink' }
 ---
 
-<div class={`panel-static p-3 ${cls}`}>
-  <div class="text-2xs uppercase tracking-widest text-dim">{label}</div>
-  <div class={`mt-1 text-lg font-semibold tabular-nums ${tones[tone]}`}>{value}</div>
-  {delta !== undefined && <div class="mt-0.5 text-2xs text-faint">{delta}</div>}
-</div>
+<Card variant="static" label={label} stat={{ value, delta, tone }} class={cls} />

@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro'
+import Card from '../components/ui/Card.astro'
 import { getCollection } from 'astro:content'
 
 const accounts = await getCollection('accounts')
@@ -32,12 +33,7 @@ const timeline = [
       <span class="text-xs text-faint">why this exists</span>
     </div>
 
-    <div class="mt-8 panel">
-      <div class="card-hd border-b border-sep">
-        <span class="card-ico">📖</span>
-        <span class="card-lbl">about</span>
-      </div>
-      <div class="p-3 md:p-4">
+    <Card icon="📖" label="about" class="mt-8">
         <p class="text-[15px] leading-relaxed text-soft">
           i want to run a hedge fund. but before anyone — including me — should trust me with money,
           i need to prove i can trade. properly. consistently. without hiding the bad days.
@@ -48,8 +44,7 @@ const timeline = [
           risked vs points made — is the centerpiece. it is the one metric that survives changing
           account sizes, changing firms, and changing bankrolls.
         </p>
-      </div>
-    </div>
+    </Card>
 
     <h2 class="mt-14 text-lg">/ the rules</h2>
     <ul class="mt-4 space-y-2">
@@ -66,12 +61,8 @@ const timeline = [
       trading mnq (micro e-mini nasdaq-100) through prop firms. the live P&amp;L of every account is on
       <a href="/performance" class="text-accent underline underline-offset-4"> /performance</a>.
     </p>
-    <div class="mt-4 overflow-x-auto panel" tabindex="0">
-      <div class="card-hd border-b border-sep">
-        <span class="card-ico">💰</span>
-        <span class="card-lbl">accounts</span>
-        <span class="card-sub">{accounts.length} live</span>
-      </div>
+    <Card icon="💰" label="accounts" subtitle={`${accounts.length} live`} class="mt-4">
+      <div class="overflow-x-auto" tabindex="0">
       <table class="w-full min-w-[540px] border-collapse">
         <thead>
           <tr>
@@ -92,7 +83,8 @@ const timeline = [
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </Card>
 
     <h2 class="mt-14 text-lg">/ the plan</h2>
     <div class="mt-4">
@@ -104,12 +96,12 @@ const timeline = [
       ))}
     </div>
 
-    <div class="mt-14 panel p-4">
+    <Card class="mt-14">
       <p class="text-sm leading-relaxed text-dim">
         <span class="text-warn">disclaimer:</span> nothing here is financial advice. i am not a
         licensed advisor. these are the trades of one person proving himself in public. do your
         own work. prop accounts can and do fail — that is part of the record.
       </p>
-    </div>
+    </Card>
   </section>
 </Base>

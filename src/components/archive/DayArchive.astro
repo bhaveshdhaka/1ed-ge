@@ -127,15 +127,7 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
     </section>
 
     <section id="trades" class="mt-10 scroll-mt-28">
-      <div class="panel">
-        <div class="card-hd border-b border-sep">
-          <span class="card-ico">📈</span>
-          <span class="card-lbl">trades</span>
-          <span class="card-sub">
-            {trades.length > 0 ? `${trades.length} · ${tradesTotalR > 0 ? '+' : ''}${tradesTotalR.toFixed(2)}R` : '0'}
-          </span>
-        </div>
-        <div class="p-3 md:p-4">
+      <Card icon="📈" label="trades" subtitle={`${trades.length > 0 ? `${trades.length} · ${tradesTotalR > 0 ? '+' : ''}${tradesTotalR.toFixed(2)}R` : '0'}`}>
           {trades.length === 0 ? (
             <EmptyState text="no trades logged this day." />
           ) : (
@@ -190,8 +182,7 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
               })}
             </div>
           )}
-        </div>
-      </div>
+      </Card>
     </section>
 
     {newsFor && (dayRed.length > 0 || dayOrange.length > 0) && (
@@ -209,39 +200,25 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
 
     {briefFor && Brief && (
       <section id="brief" class="mt-10 scroll-mt-28">
-        <div class="panel">
-          <div class="card-hd border-b border-sep">
-            <span class="card-ico">📋</span>
-            <span class="card-lbl">pre-market brief</span>
-          </div>
-          <div class="prose p-4 [&>*]:text-sm" set:html={Brief} />
-        </div>
+        <Card icon="📋" label="pre-market brief">
+          <div class="prose [&>*]:text-sm" set:html={Brief} />
+        </Card>
       </section>
     )}
 
     {journalFor && Reflection && (
       <section id="reflection" class="mt-10 scroll-mt-28">
-        <div class="panel panel-hero">
-          <div class="card-hd border-b border-sep">
-            <span class="card-ico">✍️</span>
-            <span class="card-lbl">reflection</span>
-          </div>
-          <div class="prose max-w-3xl p-4">
+        <Card variant="hero" icon="✍️" label="reflection">
+          <div class="prose max-w-3xl">
             {journalSummary && <p class="text-sm text-soft">{journalSummary}</p>}
             <div set:html={Reflection} />
           </div>
-        </div>
+        </Card>
       </section>
     )}
 
     <section id="thoughts" class="mt-10 scroll-mt-28">
-      <div class="panel">
-        <div class="card-hd border-b border-sep">
-          <span class="card-ico">💭</span>
-          <span class="card-lbl">thoughts</span>
-          <span class="card-sub">{thoughts.length}</span>
-        </div>
-        <div class="p-3 md:p-4">
+      <Card icon="💭" label="thoughts" subtitle={`${thoughts.length}`}>
           {thoughts.length === 0 ? (
             <EmptyState text="nothing published this day." />
           ) : (
@@ -249,18 +226,13 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
               {thoughts.map((t) => <ThoughtCard thought={t} />)}
             </div>
           )}
-        </div>
-      </div>
+      </Card>
     </section>
 
     {d && (
       <section id="habits" class="mt-10 scroll-mt-28">
-        <div class="panel">
-          <div class="card-hd border-b border-sep">
-            <span class="card-ico">✅</span>
-            <span class="card-lbl">habits</span>
-          </div>
-          <div class="flex flex-wrap gap-2 p-3 md:p-4">
+        <Card icon="✅" label="habits">
+          <div class="flex flex-wrap gap-2">
             {activeHabits.map((h) => {
               const val = (d.habits ?? {})[h.id]
               const done = val === true || (typeof val === 'number' && val > 0)
@@ -271,7 +243,7 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
               )
             })}
           </div>
-        </div>
+        </Card>
       </section>
     )}
 
@@ -289,12 +261,7 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
     <Separator class="mt-10" />
 
     <section id="coach" class="mt-8 scroll-mt-28">
-      <div class="panel">
-        <div class="card-hd border-b border-sep">
-          <span class="card-ico">🤖</span>
-          <span class="card-lbl">coach</span>
-        </div>
-        <div class="p-3 md:p-4">
+      <Card icon="🤖" label="coach">
           {coachFor && Coaching ? (
             <article class="max-w-3xl border-l-2 border-line2 pl-6">
               <div class="flex flex-wrap items-center gap-3 text-xs text-dim">
@@ -306,8 +273,7 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
           ) : (
             <EmptyState text="no coaching session this day." />
           )}
-        </div>
-      </div>
+      </Card>
     </section>
   </div>
 </Base>

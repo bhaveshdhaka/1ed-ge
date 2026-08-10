@@ -9,6 +9,7 @@ import { liveLine } from '../lib/copy'
 import type { DayData, ThoughtType } from '../lib/stream'
 import ThoughtCard from '../components/stream/ThoughtCard.astro'
 import DayFacts from '../components/stream/DayFacts.astro'
+import Card from '../components/ui/Card.astro'
 import EmptyState from '../components/ui/EmptyState.astro'
 
 export const prerender = false
@@ -59,29 +60,24 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
     </div>
 
     <div class="mt-6 flex max-w-2xl flex-col gap-3">
-      <div class="panel">
-        <div class="card-hd border-b border-sep">
-          <span class="card-ico">📊</span>
-          <span class="card-lbl">today so far</span>
-          <span class="card-sub">{fmtDayWUpper(iso)}</span>
+      <Card icon="📊" label="today so far" subtitle={fmtDayWUpper(iso)}>
+        <Fragment slot="actions">
           {live.live && <span class="tmr">● live</span>}
-          <a href={`/day/${fmtDay(iso)}`} class:list={[live.live ? '' : 'ml-auto', 'text-2xs text-faint transition-colors hover:text-accent']}>day →</a>
-        </div>
-        <div class="p-3 md:p-4">
-          <DayFacts cells={todayCells} />
-          {todayThoughts.length > 0 ? (
-            <div class="mt-3 flex flex-wrap gap-2">
-              {todayThoughts.map((t) => (
-                <span class="capsule">
-                  {thoughtMeta(t.type).glyph} {t.at} {t.type}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <div class="mt-3"><EmptyState text="nothing logged yet today." /></div>
-          )}
-        </div>
-      </div>
+          <a href={`/day/${fmtDay(iso)}`} class="text-2xs text-faint transition-colors hover:text-accent">day →</a>
+        </Fragment>
+        <DayFacts cells={todayCells} />
+        {todayThoughts.length > 0 ? (
+          <div class="mt-3 flex flex-wrap gap-2">
+            {todayThoughts.map((t) => (
+              <span class="capsule">
+                {thoughtMeta(t.type).glyph} {t.at} {t.type}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div class="mt-3"><EmptyState text="nothing logged yet today." /></div>
+        )}
+      </Card>
 
       <div class="seg flex-wrap">
         {TYPES.map((t) => {

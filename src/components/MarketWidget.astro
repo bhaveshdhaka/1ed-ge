@@ -7,6 +7,7 @@ import type { StripPayload } from '../lib/strip'
 import type { MarketKey } from '../lib/sessions'
 import { marketMarker } from '../lib/market'
 import { groupNewsHeadlines } from '../lib/market-news'
+import Card from './ui/Card.astro'
 import NewsBlock from './NewsBlock.astro'
 
 interface Props {
@@ -59,17 +60,12 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
 })
 ---
 
-<section class="panel">
-  <div class="card-hd">
-    <span class="card-ico">📊</span>
-    <span class="card-lbl">market</span>
-    <span class="card-sub">{prettyDate}</span>
+<Card icon="📊" label="market" subtitle={prettyDate}>
+  <Fragment slot="actions">
     <span data-mkt-live class="tmr" style={`color:${mk.status === 'open' ? 'var(--color-up)' : mk.status === 'early' ? 'var(--color-warn)' : 'var(--color-down)'}`}>
       {mk.glyph} {mk.text}
     </span>
-  </div>
-  <div class="p-3 md:p-4">
-
+  </Fragment>
   <div class="mt-3 px-2" data-rail>
     <div class="relative h-10">
       {/* event severity dots on the rail */}
@@ -166,8 +162,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
   )}
 
   <p class="mt-2 border-t border-line/60 pt-2 text-[11px] text-faint">all times HKT · EDT · EST Nov 1</p>
-  </div>
-</section>
+</Card>
 
 <script type="application/json" id="mkt-strip" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')} is:inline></script>
 

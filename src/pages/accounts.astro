@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro'
+import Card from '../components/ui/Card.astro'
 import { getCollection } from 'astro:content'
 import { buildStats, flatten, fmtPnl } from '../lib/stats'
 import { accountRuleStatus } from '../lib/account-rules'
@@ -43,12 +44,7 @@ const active = sorted.filter((a) => a.active)
       <span class="text-xs text-faint">eval → funded → buffer → payout</span>
     </div>
 
-    <div class="mt-8 panel">
-      <div class="card-hd border-b border-sep">
-        <span class="card-ico">💰</span>
-        <span class="card-lbl">accounts</span>
-        <span class="card-sub">{sorted.length} · {active.length} active</span>
-      </div>
+    <Card icon="💰" label="accounts" subtitle={`${sorted.length} · ${active.length} active`} class="mt-8">
       <div class="overflow-x-auto" tabindex="0">
       <table class="w-full min-w-[860px] border-collapse">
         <thead>
@@ -118,7 +114,7 @@ const active = sorted.filter((a) => a.active)
         </tbody>
       </table>
       </div>
-    </div>
+    </Card>
 
     <div class="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-xs text-dim">
       <span><span class="text-up">●</span> active: {active.length}</span>
@@ -130,12 +126,7 @@ const active = sorted.filter((a) => a.active)
       <span><span class="text-up">●</span> consistency applies</span>
     </div>
 
-    <div class="mt-14 panel">
-      <div class="card-hd border-b border-sep">
-        <span class="card-ico">📤</span>
-        <span class="card-lbl">payout history</span>
-        <span class="card-sub">{payoutRows.length} paid</span>
-      </div>
+    <Card icon="📤" label="payout history" subtitle={`${payoutRows.length} paid`} class="mt-14">
       <div class="overflow-x-auto" tabindex="0">
       <table class="w-full min-w-[560px] border-collapse">
         <thead>
@@ -166,6 +157,6 @@ const active = sorted.filter((a) => a.active)
         </tbody>
       </table>
       </div>
-    </div>
+    </Card>
   </section>
 </Base>

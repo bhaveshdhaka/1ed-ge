@@ -1,37 +1,81 @@
 ---
-/** Card.astro — the one panel primitive. Optional card-hd header with icon/label/subtitle. */
+/**
+ * Card.astro — the one panel primitive.
+ *
+ * Variants:
+ *   default  — glass panel with optional card-hd header
+ *   hero     — accent glow (panel-hero)
+ *   static   — no entrance animation (panel-static) — for stat grids
+ *   flat     — nested card: bg + border only, no blur/shadow (panel-flat)
+ *
+ * Content patterns:
+ *   <Card icon="📈" label="trades" subtitle="3">         → card-hd with icon
+ *   <Card title="legacy heading">                        → old-style header (backward compat)
+ *   <Card label="R" stat={{value: '+2.5', tone: 'up'}}>  → stat display (no card-hd)
+ *   <Card>                                               → headerless panel
+ *
+ * Named slots:
+ *   actions  — rendered ml-auto in the card-hd row
+ *   default  — card body content
+ */
+
 interface Props {
   icon?: string
   label?: string
   subtitle?: string
-  title?: string       // legacy — renders old-style header
+  title?: string
+  variant?: 'default' | 'hero' | 'static' | 'flat'
   pad?: 'none' | 'sm' | 'md'
-  hero?: boolean
+  stat?: { value: string; delta?: string; tone?: 'up' | 'down' | 'default' }
   class?: string
 }
 
-const { icon, label, subtitle, title, pad = 'md', hero = false, class: cls = '' } = Astro.props
-const pads = { none: '', sm: 'p-2', md: 'p-4' }
+const {
+  icon, label, subtitle, title,
+  variant = 'default',
+  pad = 'md',
+  stat,
+  class: cls = '',
+} = Astro.props
+
+const pads: Record<string, string> = { none: '', sm: 'p-2', md: 'p-4' }
+const variantCls: Record<string, string> = {
+  default: 'panel',
+  hero: 'panel panel-hero',
+  static: 'panel-static',
+  flat: 'panel-flat',
+}
+
 const hasHeader = icon || label || title
+const hasStat = !!stat
+const toneCls = stat ? ({ up: 'text-up', down: 'text-down', default: 'text-ink' }[stat.tone || 'default'] || '') : ''
 ---
 
-<section class={`panel ${hero ? 'panel-hero' : ''} ${pads[pad]} ${cls}`}>
-  {hasHeader && (
-    <div class="card-hd">
-      {icon && <span class="card-ico">{icon}</span>}
-      {label && <span class="card-lbl">{label}</span>}
-      {subtitle && <span class="card-sub">{subtitle}</span>}
-      {title && !label && <h2 class="text-2xs uppercase tracking-widest text-soft">{title}</h2>}
-      {Astro.slots.has('actions') && (
-        <div class="ml-auto flex items-center gap-2"><slot name="actions" /></div>
-      )}
-    </div>
-  )}
-  {!hasHeader && Astro.slots.has('actions') && (
-    <div class="mb-3 flex items-center justify-between gap-3">
-      <div></div>
-      <div class="flex items-center gap-2"><slot name="actions" /></div>
-    </div>
-  )}
-  <slot />
-</section>
+{hasStat ? (
+  <div class={`${variantCls[variant]} ${pads[pad]} ${cls}`}>
+    <div class="text-2xs uppercase tracking-widest text-dim">{label}</div>
+    <div class={`mt-1 text-lg font-semibold tabular-nums ${toneCls}`}>{stat!.value}</div>
+    {stat!.delta !== undefined && <div class="mt-0.5 text-2xs text-faint">{stat!.delta}</div>}
+  </div>
+) : (
+  <section class={`${variantCls[variant]} ${pads[pad]} ${cls}`}>
+    {hasHeader && (
+      <div class="card-hd">
+        {icon && <span class="card-ico">{icon}</span>}
+        {label && <span class="card-lbl">{label}</span>}
+        {subtitle && <span class="card-sub">{subtitle}</span>}
+        {title && !label && <h2 class="text-2xs uppercase tracking-widest text-soft">{title}</h2>}
+        {Astro.slots.has('actions') && (
+          <div class="ml-auto flex items-center gap-2"><slot name="actions" /></div>
+        )}
+      </div>
+    )}
+    {!hasHeader && Astro.slots.has('actions') && (
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <div></div>
+        <div class="flex items-center gap-2"><slot name="actions" /></div>
+      </div>
+    )}
+    <slot />
+  </section>
+)}

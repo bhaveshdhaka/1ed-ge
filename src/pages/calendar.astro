@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro'
 import MarketWidget from '../components/MarketWidget.astro'
 import NewsEventsCard from '../components/NewsEventsCard.astro'
+import Card from '../components/ui/Card.astro'
 import { getCollection } from 'astro:content'
 import { marketEvents, todayHkt, addDaysIso, scheduledDayMarker, daySessionWindows } from '../lib/sessions'
 import { fmtDayWUpper } from '../lib/dates'
@@ -47,29 +48,25 @@ const rowsByDay = days.map((d) => {
 
     <div class="mt-10 space-y-6">
       {rowsByDay.map((row) => (
-        <div class:list={['panel', row.d === today && 'panel-hero']}>
-          <div class="card-hd border-b border-sep">
-            <span class="card-ico">📅</span>
-            <span class="card-lbl">{row.fmt}</span>
+        <Card icon="📅" label={row.fmt} variant={row.d === today ? 'hero' : 'default'}>
+          <Fragment slot="actions">
             <span class:list={['card-sub tabular-nums', row.dm.cls]}>
               {row.dm.glyph} {row.dm.text}
             </span>
-          </div>
-          <div class="p-3 md:p-4">
-            <div class="well px-3 py-2">
-              <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-dim">
-                <span class="flex items-center gap-1.5"><span>🇺🇸</span><span class="tabular-nums">{row.wins.nyse}</span></span>
-                <span class="flex items-center gap-1.5"><span>🇯🇵</span><span class="tabular-nums">{row.wins.tse}</span></span>
-                <span class="flex items-center gap-1.5"><span>🇬🇧</span><span class="tabular-nums">{row.wins.lse}</span></span>
-                <span class="flex items-center gap-1.5"><span>📈</span><span class="tabular-nums">{row.wins.cme}</span></span>
-              </div>
+          </Fragment>
+          <div class="well px-3 py-2">
+            <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-dim">
+              <span class="flex items-center gap-1.5"><span>🇺🇸</span><span class="tabular-nums">{row.wins.nyse}</span></span>
+              <span class="flex items-center gap-1.5"><span>🇯🇵</span><span class="tabular-nums">{row.wins.tse}</span></span>
+              <span class="flex items-center gap-1.5"><span>🇬🇧</span><span class="tabular-nums">{row.wins.lse}</span></span>
+              <span class="flex items-center gap-1.5"><span>📈</span><span class="tabular-nums">{row.wins.cme}</span></span>
             </div>
+          </div>
 
-            <div class="mt-3">
-              <NewsEventsCard red={row.red} orange={row.orange} dayIso={row.d} isToday={row.d === today} hideDate />
-            </div>
+          <div class="mt-3">
+            <NewsEventsCard red={row.red} orange={row.orange} dayIso={row.d} isToday={row.d === today} hideDate />
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   </section>

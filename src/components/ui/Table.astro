@@ -1,5 +1,7 @@
 ---
-/** Table.astro — data table. `head` = column labels; default slot = <tr> rows using .td. */
+/** Table.astro — data table inside a Card panel. */
+import Card from './Card.astro'
+
 interface Props {
   head: string[]
   class?: string
@@ -9,17 +11,19 @@ interface Props {
 const { head, class: cls = '', align = 'none' } = Astro.props
 ---
 
-<div class={`overflow-x-auto panel ${cls}`}>
-  <table class="w-full border-collapse">
-    <thead>
-      <tr>
-        {head.map((h) => (
-          <th class={`th ${align === 'right' ? 'text-right' : ''}`}>{h}</th>
-        ))}
-      </tr>
-    </thead>
-    <tbody class={align === 'right' ? '[&>tr>td]:text-right' : ''}>
-      <slot />
-    </tbody>
-  </table>
-</div>
+<Card variant="flat" pad="none" class={cls}>
+  <div class="overflow-x-auto">
+    <table class="w-full border-collapse">
+      <thead>
+        <tr>
+          {head.map((h) => (
+            <th class={`th ${align === 'right' ? 'text-right' : ''}`}>{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody class={align === 'right' ? '[&>tr>td]:text-right' : ''}>
+        <slot />
+      </tbody>
+    </table>
+  </div>
+</Card>
