@@ -145,8 +145,9 @@ src/components/MarketLive.astro   CME-event JSON + inline live countdown script 
 src/components/MarketWidget.astro one-glance market box: chronograph rail (hour ticks + event dots +
                              live now-marker) + CME-framed status + session countdowns + news
 src/components/MarketDay.astro    homepage "the day" panel — facts + stream at a glance (SSR)
+src/components/NewsEventsCard.astro reusable news events panel (card header + dot severity empty state)
 src/components/Lightbox.astro     native <dialog> lightbox — the site's single zero-JS exception on public pages
-src/components/stream/      public stream components (MomentCard, DayFacts) — moments are trade|note|quote;
+src/components/stream/      public stream components (ThoughtCard, DayFacts) — moments are trade|note|quote;
                              thumbnails with altFor() open the shared lightbox (zero JS otherwise)
 src/components/archive/DayArchive.astro  posterized day archive (facts + moments + model-tagged trades);
                              trade screenshots open the lightbox via data-lb
@@ -334,6 +335,25 @@ optional title/summary/tags/featuredImage.
   = down, low-contrast dim text, terminal aesthetic. Nav labels are plain
   (`[00] home`) — **no `~` in the menu**. Match Tailwind tokens in
   `src/styles/global.css`.
+- **Design system (WhatsApp Logger v2 aesthetic):** 3-layer token architecture
+  in `src/styles/app.css` — palette (`--hue-*`), semantic (`--color-*`),
+  material (`--radius`, `--shadow-card`, `--blur-card`). Glass cards use
+  `.panel` (translucent `rgba(13,15,22,.78)` + `backdrop-filter: blur(18px)`).
+  Featured cards use `.panel-hero` (accent border, gradient bg, glow top-line).
+  Card headers use `.card-hd` / `.card-ico` / `.card-lbl` / `.card-sub` / `.tmr`.
+  Inset wells use `.well`. Pills use `.capsule`. Segmented controls use
+  `.seg` / `.seg-on`. Accent is `#0af` (electric blue). Body has ambient
+  radial gradients behind every translucent surface.
+- **Same card type = same look everywhere.** Never duplicate card markup.
+  One reusable component per card type. Consistency is non-negotiable.
+- **No words "red" or "orange" in UI.** Use dot severity indicators
+  (🔴 `bg-down` / 🟠 `bg-warn`) instead.
+- **Uppercase dates everywhere.** Use `fmtDayWUpper()` from `src/lib/dates.ts`.
+- **"CME" not "CME Globex".** Everywhere: MarketWidget, MarketFooter,
+  MarketLive, brief.ts, strip.ts.
+- **"news events" not "the day".** The news card label is "news events".
+- **Stream icon is 📡, not 💭.** 💭 is for thoughts. Stream is the feed.
+- **No `/zen` link on public pages.** Single-user site.
 
 ## Versioning
 
