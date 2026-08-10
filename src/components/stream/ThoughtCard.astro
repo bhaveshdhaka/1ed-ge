@@ -50,11 +50,11 @@ const frameCls = isTrade
 
   {isTrade && thought.trade && (
     <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 pt-3 text-sm">
-      <span class={thought.trade.direction === 'long' ? 'text-up' : 'text-down'}>
+      <span class={`font-semibold ${thought.trade.direction === 'long' ? 'text-up' : 'text-down'}`}>
         {thought.trade.direction === 'long' ? '▲' : '▼'} {thought.trade.market}
       </span>
       <span class="text-faint">{thought.trade.session ?? '—'} · {thought.trade.models?.length ? thought.trade.models.join(' · ') : (thought.trade.model ?? thought.trade.setup ?? 'no model')}</span>
-      <span class:list={['ml-auto font-semibold tabular-nums', R > 0 ? 'text-up' : R < 0 ? 'text-down' : 'text-dim']}>
+      <span class:list={['ml-auto text-sm font-bold tabular-nums', R > 0 ? 'text-up' : R < 0 ? 'text-down' : 'text-dim']}>
         {R > 0 ? '+' : ''}{R.toFixed(2)}R
       </span>
     </div>

@@ -432,7 +432,7 @@ export function WriteZone(props: WriteZoneProps) {
                 className="well flex items-start gap-3 px-3 py-2"
               >
                 <span className="mt-0.5 text-2xs text-faint">{formatHktTime(props.date, m.at)}</span>
-                <span className="mt-0.5 text-2xs uppercase tracking-wider text-dim">{m.type === 'note' ? 'thought' : m.type}</span>
+                <span className="mt-0.5 text-2xs uppercase tracking-wide text-dim">{m.type === 'note' ? 'thought' : m.type}</span>
                 <div className="min-w-0 flex-1 text-sm text-ink">
                   {isTrade ? (
                     <span>

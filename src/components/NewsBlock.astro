@@ -38,8 +38,8 @@ const groups = groupNewsHeadlines(red, orange)
           </span>
           <span class="min-w-0 flex-1 text-sm leading-snug">
             <span class:list={[past ? 'text-faint line-through decoration-line/60' : g.kind === 'red' ? 'text-down' : 'text-warn']}>{g.title}</span>
-            {g.source && <span class="ml-1.5 text-[10px] text-faint">[{g.source}]</span>}
-            {g.verified && <span class="ml-1 text-[11px] text-accent">✦</span>}
+            {g.source && <span class="ml-1.5 text-3xs text-faint">[{g.source}]</span>}
+            {g.verified && <span class="ml-1 text-2xs text-accent">✦</span>}
           </span>
         </div>
         {g.rest.length > 0 && (
@@ -62,8 +62,8 @@ const groups = groupNewsHeadlines(red, orange)
                     </span>
                     <span class="min-w-0 flex-1 text-sm leading-snug">
                       <span class:list={[rpast ? 'text-faint line-through decoration-line/60' : n.kind === 'red' ? 'text-down' : 'text-warn']}>{n.title}</span>
-                      {n.source && <span class="ml-1.5 text-[10px] text-faint">[{n.source}]</span>}
-                      {n.verified && <span class="ml-1 text-[11px] text-accent">✦</span>}
+                      {n.source && <span class="ml-1.5 text-3xs text-faint">[{n.source}]</span>}
+                      {n.verified && <span class="ml-1 text-2xs text-accent">✦</span>}
                     </span>
                   </div>
                 )

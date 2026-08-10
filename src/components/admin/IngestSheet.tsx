@@ -351,7 +351,7 @@ export function IngestSheet(props: IngestSheetProps) {
           header: '',
           cell: ({ row }) =>
             row.original.dup ? (
-              <span className="border border-line px-1.5 py-0.5 text-3xs uppercase tracking-wider text-warn">dup</span>
+              <span className="border border-line px-1.5 py-0.5 text-3xs uppercase tracking-wide text-warn">dup</span>
             ) : null,
         }),
       ] as LegacyColumnDef<PositionProposal>[],
@@ -413,7 +413,7 @@ export function IngestSheet(props: IngestSheetProps) {
                 {table.getHeaderGroups().map((hg) => (
                   <tr key={hg.id} className="border-b border-line">
                     {hg.headers.map((h) => (
-                      <th key={h.id} className="whitespace-nowrap px-2 py-1.5 font-normal uppercase tracking-wider text-faint">
+                      <th key={h.id} className="whitespace-nowrap px-2 py-1.5 font-normal uppercase tracking-wide text-faint">
                         {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
                       </th>
                     ))}

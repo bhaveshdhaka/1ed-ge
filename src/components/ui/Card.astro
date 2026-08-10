@@ -53,7 +53,7 @@ const toneCls = stat ? ({ up: 'text-up', down: 'text-down', default: 'text-ink' 
 
 {hasStat ? (
   <div class={`${variantCls[variant]} ${pads[pad]} ${cls}`}>
-    <div class="text-2xs uppercase tracking-widest text-dim">{label}</div>
+    <div class="text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">{label}</div>
     <div class={`mt-1 text-lg font-semibold tabular-nums ${toneCls}`}>{stat!.value}</div>
     {stat!.delta !== undefined && <div class="mt-0.5 text-2xs text-faint">{stat!.delta}</div>}
   </div>
@@ -67,7 +67,7 @@ const toneCls = stat ? ({ up: 'text-up', down: 'text-down', default: 'text-ink' 
           <span class="card-sub"><slot name="subtitle" /></span>
         )}
         {subtitle && !Astro.slots.has('subtitle') && <span class="card-sub">{subtitle}</span>}
-        {title && !label && <h2 class="text-2xs uppercase tracking-widest text-soft">{title}</h2>}
+        {title && !label && <h2 class="text-2xs font-bold uppercase text-soft" style="letter-spacing:0.6px">{title}</h2>}
         {Astro.slots.has('actions') && (
           <div class="ml-auto flex items-center gap-2"><slot name="actions" /></div>
         )}
