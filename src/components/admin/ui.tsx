@@ -92,7 +92,7 @@ export function Card({
 
 export function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="bg-bg p-4">
+    <div className="well p-4">
       <div className="text-2xs uppercase tracking-widest text-dim">{label}</div>
       <div className="mt-1.5 text-lg text-ink">{value}</div>
     </div>
