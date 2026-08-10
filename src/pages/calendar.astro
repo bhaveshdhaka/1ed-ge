@@ -5,7 +5,7 @@ import NewsBlock from '../components/NewsBlock.astro'
 import EmptyState from '../components/ui/EmptyState.astro'
 import { getCollection } from 'astro:content'
 import { marketEvents, todayHkt, addDaysIso, scheduledDayMarker, daySessionWindows } from '../lib/sessions'
-import { fmtDay } from '../lib/dates'
+import { fmtDay, fmtDayW } from '../lib/dates'
 
 const today = todayHkt()
 const events = marketEvents(today, 8)
@@ -26,7 +26,7 @@ const rowsByDay = days.map((d) => {
   const n = newsByDate.get(d)
   return {
     d,
-    fmt: fmtDay(d),
+    fmt: fmtDayW(d),
     dm,
     wins,
     red: n?.red ?? [],
