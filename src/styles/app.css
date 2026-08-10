@@ -5,24 +5,86 @@
 @theme {
   --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, 'Menlo', Consolas, monospace;
 
-  /* ---- color tokens (summit palette — the one skin) ---- */
-  --color-bg: #07080c;
-  --color-panel: #0d0f16;
-  --color-raise: #12141d;
-  --color-line: #1c2030;
-  --color-line2: #2a2f42;
-  --color-ink: #e6ebf5;
-  --color-soft: #aab2c6;
-  --color-dim: #8b93a6;
-  --color-faint: #7d859a;
-  --color-accent: #8ab4ff;
-  --color-up: #6ea88a;
-  --color-down: #c2725e;
-  --color-warn: #d9a441;
-  --color-purp: #c084fc; /* reserved: AI-generated content markers — 3s tint */
-  --color-clay: #b06a5e;
+  /* ═════════════════════════════════════════════════════════════════════════════
+   * LAYER 1: PALETTE (the hue layer — swap these to re-theme)
+   * Raw hex/rgba values. To create a new theme, redefine only these.
+   * ═════════════════════════════════════════════════════════════════════════════ */
+  
+  /* Base surfaces */
+  --hue-bg: #07080c;
+  --hue-panel: #0d0f16;
+  --hue-raise: #12141d;
+  --hue-line: #1c2030;
+  --hue-line2: #2a2f42;
+  
+  /* Text hierarchy */
+  --hue-ink: #e6ebf5;
+  --hue-soft: #aab2c6;
+  --hue-dim: #8b93a6;
+  --hue-faint: #7d859a;
+  
+  /* Accent + semantic colors */
+  --hue-accent: #8ab4ff;
+  --hue-up: #6ea88a;
+  --hue-down: #c2725e;
+  --hue-warn: #d9a441;
+  --hue-purp: #c084fc; /* reserved: AI-generated content markers — 3s tint */
+  --hue-clay: #b06a5e;
+  
+  /* Translucent surfaces (reference aesthetic) */
+  --hue-card: rgba(13, 15, 22, 0.78);
+  --hue-card-hi: rgba(18, 20, 29, 0.88);
+  --hue-inset: rgba(0, 0, 0, 0.28);
+  --hue-sep: rgba(255, 255, 255, 0.06);
+  --hue-sep2: rgba(255, 255, 255, 0.10);
+  --hue-accent-dim: rgba(138, 180, 255, 0.12);
+  --hue-accent-glow: rgba(138, 180, 255, 0.22);
 
-  /* ---- type scale (mono-only; Syne reserved for the wordmark) ---- */
+  /* ═════════════════════════════════════════════════════════════════════════════
+   * LAYER 2: SEMANTIC ROLES (stable — components reference these, never change)
+   * Each role aliases to a palette token. To re-theme, only Layer 1 changes.
+   * ═════════════════════════════════════════════════════════════════════════════ */
+  
+  --color-bg: var(--hue-bg);
+  --color-panel: var(--hue-panel);
+  --color-raise: var(--hue-raise);
+  --color-line: var(--hue-line);
+  --color-line2: var(--hue-line2);
+  --color-ink: var(--hue-ink);
+  --color-soft: var(--hue-soft);
+  --color-dim: var(--hue-dim);
+  --color-faint: var(--hue-faint);
+  --color-accent: var(--hue-accent);
+  --color-up: var(--hue-up);
+  --color-down: var(--hue-down);
+  --color-warn: var(--hue-warn);
+  --color-purp: var(--hue-purp); /* reserved: AI-generated content markers */
+  --color-clay: var(--hue-clay);
+  
+  /* New semantic roles (translucent surfaces) */
+  --color-card: var(--hue-card);
+  --color-card-hi: var(--hue-card-hi);
+  --color-inset: var(--hue-inset);
+  --color-sep: var(--hue-sep);
+  --color-sep2: var(--hue-sep2);
+  --color-accent-dim: var(--hue-accent-dim);
+  --color-accent-glow: var(--hue-accent-glow);
+
+  /* ═════════════════════════════════════════════════════════════════════════════
+   * LAYER 3: MATERIAL / MOTION (radii, shadows, blur, animation tokens)
+   * ═════════════════════════════════════════════════════════════════════════════ */
+  
+  --radius: 10px;
+  --radius-sm: 8px;
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px rgba(0, 0, 0, 0.18);
+  --blur-card: 10px;
+  --ease-out: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
+
+  /* ═════════════════════════════════════════════════════════════════════════════
+   * TYPE SCALE (mono-only; Syne reserved for the wordmark)
+   * ═════════════════════════════════════════════════════════════════════════════ */
+  
   --text-3xs: 0.625rem;
   --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;
@@ -35,7 +97,7 @@
   --text-4xl: 2.5rem;
   --text-5xl: 3rem;
 
-  /* ---- weights / leading / tracking ---- */
+  /* Weights / leading / tracking */
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
@@ -47,12 +109,35 @@
   --tracking-wide: 0.04em;
   --tracking-widest: 0.14em;
 
-  /* ---- material ---- */
-  --radius: 2px;
-  --radius-sm: 1px;
-  --shadow-panel: 0 1px 0 rgba(138, 180, 255, 0.06), 0 8px 28px -12px rgba(0, 0, 0, 0.55);
+  /* Chart tokens (legacy) */
   --chart-grid: #242b3d;
   --chart-alt: #8ab4ff;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+ * KEYFRAMES — reference aesthetic motion language
+ * ═════════════════════════════════════════════════════════════════════════════ */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.2);
+  }
 }
 
 @layer base {
@@ -101,9 +186,27 @@
     @apply mx-auto w-full max-w-6xl px-5 md:px-8;
   }
   .panel {
-    @apply border border-line bg-panel;
+    @apply border border-line;
+    background: var(--color-card);
     border-radius: var(--radius);
-    box-shadow: var(--shadow-panel);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(var(--blur-card)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--blur-card)) saturate(150%);
+    animation: fade-up 0.4s var(--ease-out) both;
+  }
+  
+  /* Stagger first 5 panels for orchestrated entrance */
+  .panel:nth-of-type(1) { animation-delay: 0.02s; }
+  .panel:nth-of-type(2) { animation-delay: 0.06s; }
+  .panel:nth-of-type(3) { animation-delay: 0.10s; }
+  .panel:nth-of-type(4) { animation-delay: 0.14s; }
+  .panel:nth-of-type(5) { animation-delay: 0.18s; }
+  
+  /* Respect reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .panel {
+      animation: none;
+    }
   }
   .btn {
     @apply inline-flex items-center gap-2 border border-line2 bg-raise px-3 py-1.5 text-sm text-soft
@@ -149,6 +252,71 @@
     @apply border border-line px-1.5 py-0.5 text-2xs text-dim;
   }
 
+  /* ═════════════════════════════════════════════════════════════════════════════
+   * NEW PRIMITIVE UTILITIES — reference aesthetic components
+   * ═════════════════════════════════════════════════════════════════════════════ */
+
+  /* .capsule — pill: rounded-full, accent-tint, hairline (mood chips, counts, badges) */
+  .capsule {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--color-accent-dim);
+    border: 0.5px solid var(--color-sep2);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* .well — inset row background for nested content */
+  .well {
+    background: var(--color-inset);
+    border: 0.5px solid var(--color-sep);
+    border-radius: var(--radius-sm);
+  }
+
+  /* .seg / .seg-on — segmented control shell + active segment */
+  .seg {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 0.5px solid var(--color-sep);
+  }
+
+  .seg-on {
+    background: var(--color-card-hi);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+
+  /* .card-hd / .card-lbl / .card-sub — card header row, label, sub */
+  .card-hd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    min-height: 48px;
+    border-bottom: 0.5px solid var(--color-sep);
+  }
+
+  .card-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--color-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  .card-sub {
+    font-size: 10px;
+    color: var(--color-faint);
+    font-weight: 500;
+    margin-left: 2px;
+  }
 }
 
 @layer utilities {

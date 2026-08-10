@@ -261,7 +261,7 @@ export default function AdminApp() {
         }}
         onWrite={(kind) => {
           go('day')
-          notify(`write ${kind} — in the WriteZone on the day tab`)
+          setTimeout(() => bus.emit(`compose-${kind}`), 80)
         }}
         onAddModel={() => {
           go('library')
