@@ -2,13 +2,13 @@
  * copy.ts — the single source of every public-facing message on the site.
  *
  * Owner directive: the language of ALL messages/reminders must be well-thought,
- * consistent, using proper terminologies. Every surface (homepage nudge, zen
+ * consistent, using proper terminologies. Every surface (homepage nudge, admin
  * reminder, period pages, AI comparison labels) imports from here —
  * consistency by construction, the same way `strip.ts` owns market phrases.
  *
  * Locked vocabulary (do not paraphrase):
  * - **trader** — third-person moniker for the owner.
- * - **zen** — the private area (never "admin"/"cockpit").
+ * - **admin** — the private area (never "cockpit").
  * - **reflection** — the written end-of-period note.
  * - **period review** — the review surface.
  * - **comparison · from verified data** — the AI comparison label.

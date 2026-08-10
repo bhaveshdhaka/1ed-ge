@@ -22,7 +22,7 @@ verify live → curl-verify the changed bits. Kill test servers when finished.
 |--------|------|
 | `7aabc2a` | Design spec |
 | `2565492` | CSS foundation: `#0af` accent, body gradients, `.panel-hero`, `.card-ico`/`.tmr`, responsive density, `--text-4xs` (9px), `@keyframes glow-soft` |
-| `903d7b3` | Zen admin: card headers (☀️ check-in, 💭 thoughts, 📈 trades, 🔔 notifications), `.well` on trade expanded details, `.tmr` R pills, `.panel-hero` on capture card |
+| `903d7b3` | Admin: card headers (☀️ check-in, 💭 thoughts, 📈 trades, 🔔 notifications), `.well` on trade expanded details, `.tmr` R pills, `.panel-hero` on capture card |
 | `e12def8` | Public surfaces: card headers on ThoughtCard/DayFacts/DayArchive (7 sections), `.panel-hero` on reflection + today, `.well` on fact cells + trade details, `.seg`/`.seg-on` on stream filters |
 | `6481506` | Remaining pages: card headers + wells on calendar, about, performance, journal, models, accounts, tape |
 | `7c658ed` | News card: "news events" label (not "the day"), dot severity empty state, removed `/zen` from public homepage |
@@ -90,7 +90,7 @@ same repo (`main` and `preprod` branches). Full env contract in
 - `bash scripts/sync-to-prod.sh -y` — preprod → main (blocks `src/content/*`)
 - `bash scripts/verify-env.sh {test|prod}` — HTTP 200 + noindex checks
 - Preprod has sandbox filler (6 accounts, 180 payouts, review data)
-- Prod is a clean slate (owner starts real days from zen)
+- Prod is a clean slate (owner starts real days from admin)
 
 ## Gotchas
 
@@ -109,7 +109,7 @@ same repo (`main` and `preprod` branches). Full env contract in
 - Week = Mon–Fri trading week (no exceptions)
 - Reflection habit = every Mon–Fri (even zero trades), strict 3h grace
 - Fortnight = skipped
-- Everything public except zen
+- Everything public except admin
 - R = points / riskPoints (centerpiece metric)
 - Files are the database (markdown frontmatter)
 - Save ≠ rebuild (RebuildBar for queued changes)

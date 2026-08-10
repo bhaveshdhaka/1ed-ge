@@ -12,11 +12,11 @@ if (!ok) {
 const manifestHref = ok ? '/zen/manifest.webmanifest' : undefined
 ---
 
-<Bare title={ok ? 'zen — setup' : 'not found'} manifest={manifestHref}>
+<Bare title={ok ? 'admin — setup' : 'not found'} manifest={manifestHref}>
   {ok ? (
     <div class="shell py-16">
-      <h1 class="mb-1 text-xl">zen setup</h1>
-      <p class="mb-6 text-sm text-dim">register a passkey to lock zen to this device / your iCloud Keychain.</p>
+      <h1 class="mb-1 text-xl">admin setup</h1>
+      <p class="mb-6 text-sm text-dim">register a passkey to lock admin to this device / your iCloud Keychain.</p>
       <RegisterScreen client:only="react" />
     </div>
   ) : (

@@ -8,7 +8,7 @@ single source of truth for how this project is built, run, and shipped.
 `1ed.ge` is a **public trading journal** — a two-year, everything-public
 experiment on the road to a hedge fund. Every trade, every account, every
 mood, every sleep hour, every screen-time screenshot, every miss is public.
-The only private thing is the **zen** area at `/zen/<secret>` (the old
+The only private thing is the **admin** area at `/zen/<secret>` (the old
 `/admin/<secret>` path redirects there).
 
 The centerpiece metric is **R** = points risked vs points made. All
@@ -28,7 +28,7 @@ deploy or sync. The pipeline guarantees:
 - Wrong-env actions fail loud (`require_env <expected>` in every script).
 - **Direct `git push` to main/preprod is refused** by the pre-push hook —
   the path is `bash scripts/ship.sh <direction>`, not `git push`.
-- **Zen auth is passkey-based** (`/zen`, WebAuthn). The setup/recovery URL is
+- **Admin auth is passkey-based** (`/zen`, WebAuthn). The setup/recovery URL is
   `/zen/setup?key=<ADMIN_SECRET>` — the secret is no longer in the daily URL.
   Admin API auth = session cookie, not the `x-admin-secret` header.
 
@@ -132,7 +132,7 @@ src/lib/periods.ts           period engine — week (Mon–Fri)/month/quarter/ha
 src/lib/period-stats.ts      period aggregation — R/P&L/per-account/per-model/life + periodDelta + trendSeries
 src/lib/review-compare.ts    AI factual comparison (deepseek v4 flash 0731, formatter-over-numbers) + fallback
 src/lib/accountability.ts    pending reflections — Mon–Fri every day (3h grace), completed periods only
-src/lib/copy.ts              SINGLE source of every public message string (trader/zen/reflection vocabulary)
+src/lib/copy.ts              SINGLE source of every public message string (trader/admin/reflection vocabulary)
 src/lib/ingest.ts            import pipeline — CSV/PDF/image parse (cheap model + poppler), CT→HKT,
                              fill-id attribution, fill→position grouping, per-account dedup (tested)
 src/lib/live.ts             admin-heartbeat read/write (/tmp/1edge-live.json, 5-min live window)
@@ -155,10 +155,10 @@ src/pages/                  public pages: / /stream /journal /models /calendar /
                              /accounts /coach /about /day/[date] + the tape (/week /month /q1..q4 /h1/h2
                              /year + anchored forms via [periodType]/[...anchor], all SSR)
                              + rss + sitemap (/ + /stream + review routes are SSR)
-src/pages/zen/[secret]/    private zen (SSR), renders the React app; the old
+src/pages/zen/[secret]/    private admin (SSR), renders the React app; the old
                              /admin/[secret] is a thin redirect to /zen;
                              /zen/<secret>/manifest.webmanifest is a secret-guarded
-                             PWA manifest (start_url/scope = the zen mount) so zen
+                             PWA manifest (start_url/scope = the admin mount) so admin
                              installs standalone on iPhone/iPad/MacBook
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/api/admin/market.ts    USD news GET + refresh (spawns market-news-fetch.mjs)

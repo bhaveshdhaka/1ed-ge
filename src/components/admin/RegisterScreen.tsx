@@ -35,7 +35,7 @@ export default function RegisterScreen() {
     return (
       <div className="text-sm">
         <p className="text-up">✓ passkey registered.</p>
-        <a className="mt-4 inline-block border border-line px-4 py-2 hover:border-accent" href="/zen">open zen →</a>
+        <a className="mt-4 inline-block border border-line px-4 py-2 hover:border-accent" href="/zen">open admin →</a>
       </div>
     )
   }

@@ -273,7 +273,7 @@ export function marketSchedule(year: number): { holidays: string[]; earlyCloses:
 }
 
 /* ------------------------------------------------------------------ */
-/* Modified-hours day lookup. The owner only looks at zen and needs    */
+/* Modified-hours day lookup. The owner only looks at admin and needs    */
 /* to know in advance when CME will be shortened so they don't get     */
 /* caught in thin-volume Asia-hours mess. Scans the next `withinDays`  */
 /* days from `fromIso` for any early-halt (MLK/Presidents/Memorial) or */

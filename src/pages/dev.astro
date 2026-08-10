@@ -9,7 +9,7 @@ const stack = [
   { layer: 'Framework', tech: 'Astro 5 (static-first) + @astrojs/node (SSR)', note: 'zero JS on public pages' },
   { layer: 'Styling', tech: 'Tailwind CSS v4', note: '3-layer token architecture' },
   { layer: 'Language', tech: 'TypeScript', note: 'strict mode' },
-  { layer: 'Admin', tech: 'React (islands)', note: 'client-side, zen area only' },
+  { layer: 'Admin', tech: 'React (islands)', note: 'client-side, admin area only' },
   { layer: 'AI', tech: 'OpenRouter — DeepSeek + Qwen2.5-VL', note: 'day structuring, coach, screenshot reading' },
   { layer: 'Images', tech: 'sharp (webp)', note: 'auto-conversion on upload' },
   { layer: 'Content', tech: 'Markdown + gray-matter', note: 'files are the database' },
@@ -59,7 +59,7 @@ const features = [
     'Payouts — per-account payout records',
     'Reviews — period review notes with AI comparison',
   ]},
-  { category: 'Admin (Zen)', items: [
+  { category: 'Admin', items: [
     'Passkey auth (WebAuthn) — biometric login, no passwords',
     'Day workspace — ephemeral capture → AI structure → evidence-first summary → trades → moments → reflection',
     'AI-first input — paste screenshots, AI reads and structures everything',
@@ -107,13 +107,156 @@ const features = [
   ]},
 ]
 
+const traceability = [
+  {
+    category: 'Public Pages',
+    items: [
+      { file: 'pages/index.astro', feature: 'Homepage', what: 'Today card, market widget, stream feed' },
+      { file: 'pages/stream.astro', feature: 'Stream', what: 'Rolling feed of published thoughts' },
+      { file: 'pages/journal/index.astro', feature: 'Journal', what: 'Daily entries with search, month grouping' },
+      { file: 'pages/calendar.astro', feature: 'Calendar', what: '8-day market calendar with session windows' },
+      { file: 'pages/performance.astro', feature: 'Performance', what: 'R dashboard: equity, histogram, heatmap, correlations' },
+      { file: 'pages/models.astro', feature: 'Models', what: 'Trading models with rules and stats' },
+      { file: 'pages/accounts.astro', feature: 'Accounts', what: 'Prop-firm lifecycle and drawdown tracking' },
+      { file: 'pages/coach.astro', feature: 'Coach', what: 'AI f-R-iend conversations' },
+      { file: 'pages/about.astro', feature: 'About', what: 'Manifesto, rules, roadmap' },
+      { file: 'pages/day/[date].astro', feature: 'Day Archive', what: 'Per-day page with all sections' },
+      { file: 'pages/[periodType]/[...anchor].astro', feature: 'The Tape', what: 'Period reviews (week/month/quarter/half/year)' },
+      { file: 'pages/dev.astro', feature: '/dev', what: 'This page — build log, stack, features, changelog' },
+      { file: 'pages/rss.xml.ts', feature: 'RSS', what: 'RSS feed of journal entries' },
+    ],
+  },
+  {
+    category: 'Market Data',
+    items: [
+      { file: 'components/MarketWidget.astro', feature: 'Market Widget', what: 'Chronograph rail, session rows, live clock' },
+      { file: 'components/MarketFooter.astro', feature: 'Market Footer', what: 'Collapsible per-page market status' },
+      { file: 'components/MarketLive.astro', feature: 'Live Ticker', what: 'CME narrative for all live markers' },
+      { file: 'components/MarketDay.astro', feature: 'Today Panel', what: 'Homepage today card with news' },
+      { file: 'components/NewsEventsCard.astro', feature: 'News Card', what: 'Reusable news panel with dot severity' },
+      { file: 'components/NewsBlock.astro', feature: 'News Rows', what: 'Icon + past-state news rows' },
+      { file: 'lib/market.ts', feature: 'Market Calendar', what: 'NYSE/CME calendars, holidays, DST' },
+      { file: 'lib/sessions.ts', feature: 'Sessions', what: 'CME trading day, market events, session windows' },
+      { file: 'lib/strip.ts', feature: 'Narrative Strip', what: 'Countdown segments for market widget' },
+      { file: 'lib/ticker.ts', feature: 'Ticker', what: 'Shared 1s interval runtime' },
+      { file: 'lib/market-news.ts', feature: 'News Model', what: 'News file I/O, emoji rules, grouping' },
+      { file: 'lib/brief.ts', feature: 'Pre-Market Brief', what: 'AI-generated daily snapshot' },
+      { file: 'scripts/market-news-fetch.mjs', feature: 'News Fetcher', what: 'TradingView + Faireconomy fetch' },
+      { file: 'public/ticker.js', feature: 'Ticker Runtime', what: 'Browser-side shared interval' },
+    ],
+  },
+  {
+    category: 'Content Model',
+    items: [
+      { file: 'lib/content.ts', feature: 'File I/O', what: 'fs + gray-matter helpers' },
+      { file: 'lib/stats.ts', feature: 'Stats Engine', what: 'R/P&L/equity/drawdown computation' },
+      { file: 'lib/stream.ts', feature: 'Stream Model', what: 'Thoughts, day facts, R math' },
+      { file: 'lib/periods.ts', feature: 'Period Engine', what: 'Week/month/quarter/half/year ranges' },
+      { file: 'lib/period-stats.ts', feature: 'Period Aggregation', what: 'Period stats, deltas, trends' },
+      { file: 'lib/models.ts', feature: 'Model Stats', what: 'Per-model aggregation' },
+      { file: 'lib/habits.ts', feature: 'Habit Stats', what: 'Streaks, heatmaps, percentages' },
+      { file: 'lib/account-rules.ts', feature: 'Account Rules', what: 'Prop-firm rule engine' },
+      { file: 'lib/accountability.ts', feature: 'Accountability', what: 'Pending reflections with grace' },
+      { file: 'lib/copy.ts', feature: 'Copy', what: 'Single source of public message strings' },
+      { file: 'lib/dates.ts', feature: 'Date Formatting', what: 'fmtDay, fmtDayWUpper, parseDay' },
+      { file: 'lib/constants.ts', feature: 'Constants', what: 'DEFAULT_HABIT_COLOR and shared values' },
+    ],
+  },
+  {
+    category: 'Admin',
+    items: [
+      { file: 'components/admin/AdminApp.tsx', feature: 'Admin Shell', what: 'Tab router, keyboard shortcuts, paste sink' },
+      { file: 'components/admin/api.ts', feature: 'API Client', what: 'Fetch wrapper, event bus, timezone helpers' },
+      { file: 'components/admin/ui.tsx', feature: 'Admin UI Kit', what: 'Field, TextInput, Card, Stat, Button' },
+      { file: 'components/admin/tabs/OverviewTab.tsx', feature: 'Overview', what: 'Today status, build, accounts, brief, system' },
+      { file: 'components/admin/tabs/DayWorkspace.tsx', feature: 'Day Workspace', what: 'Capture → AI → trades → moments → reflection' },
+      { file: 'components/admin/tabs/AccountsTab.tsx', feature: 'Accounts', what: 'Statement reader, account CRUD, payouts' },
+      { file: 'components/admin/tabs/CoachTab.tsx', feature: 'Coach', what: 'AI conversation with data context' },
+      { file: 'components/admin/tabs/LibraryTab.tsx', feature: 'Library', what: 'Habits/models/rules/quotes CRUD' },
+      { file: 'components/admin/tabs/ReviewTab.tsx', feature: 'Reviews', what: 'Period review notes + AI comparison' },
+      { file: 'components/admin/tabs/MediaTab.tsx', feature: 'Media', what: 'Image/document management' },
+      { file: 'components/admin/MarkdownEditor.tsx', feature: 'Markdown Editor', what: 'Write/preview with ghost text' },
+      { file: 'components/admin/TradeCard.tsx', feature: 'Trade Editor', what: 'Editable trade with model chips' },
+      { file: 'components/admin/CheckInBand.tsx', feature: 'Check-in', what: 'Capture zone with AI structure' },
+      { file: 'components/admin/WriteZone.tsx', feature: 'Moments Composer', what: 'Publish thoughts, draft reflection' },
+      { file: 'components/admin/SheetFrame.tsx', feature: 'Sheet Frame', what: 'Shared slide-over modal' },
+      { file: 'components/admin/CommandPalette.tsx', feature: 'Command Palette', what: '⌘K quick actions' },
+      { file: 'components/admin/NotificationDrawer.tsx', feature: 'Notifications', what: 'Pending reflections, rebuild status' },
+    ],
+  },
+  {
+    category: 'Admin APIs',
+    items: [
+      { file: 'api/admin/days.ts', feature: 'Day CRUD', what: 'GET/POST/DELETE day records' },
+      { file: 'api/admin/journal.ts', feature: 'Journal API', what: 'Journal entry CRUD' },
+      { file: 'api/admin/ai.ts', feature: 'AI Actions', what: 'Structure, vision, coach, assist, brief' },
+      { file: 'api/admin/media.ts', feature: 'Media API', what: 'Upload, list, delete media' },
+      { file: 'api/admin/ingest.ts', feature: 'Trade Ingest', what: 'CSV/PDF statement parsing' },
+      { file: 'api/admin/accounts.ts', feature: 'Accounts API', what: 'Account + payout CRUD' },
+      { file: 'api/admin/coach.ts', feature: 'Coach API', what: 'Coach sessions + AI replies' },
+      { file: 'api/admin/library.ts', feature: 'Library API', what: 'Habits/models/rules CRUD + reorder' },
+      { file: 'api/admin/reviews.ts', feature: 'Reviews API', what: 'Period review notes + AI comparison' },
+      { file: 'api/admin/rebuild.ts', feature: 'Rebuild API', what: 'Trigger build, status, history' },
+      { file: 'api/admin/status.ts', feature: 'System Status', what: 'Env flags, content counts, build state' },
+      { file: 'api/admin/accountability.ts', feature: 'Accountability', what: 'Pending reflections computation' },
+    ],
+  },
+  {
+    category: 'Design System',
+    items: [
+      { file: 'styles/app.css', feature: 'Design Tokens', what: '3-layer architecture, all CSS classes' },
+      { file: 'components/ui/Card.astro', feature: 'Card', what: 'One panel primitive, 4 variants' },
+      { file: 'components/ui/StatCard.astro', feature: 'Stat Card', what: 'Card stat wrapper' },
+      { file: 'components/ui/Badge.astro', feature: 'Badge', what: 'Status chip, 7 variants' },
+      { file: 'components/ui/Tag.astro', feature: 'Tag', what: 'Neutral metadata label' },
+      { file: 'components/ui/Table.astro', feature: 'Table', what: 'Data table in flat Card' },
+      { file: 'components/ui/EmptyState.astro', feature: 'Empty State', what: 'Consistent nothing-here block' },
+      { file: 'components/ui/Icon.astro', feature: 'Icon', what: 'Zero-JS Lucide SVG icons' },
+      { file: 'components/ui/Separator.astro', feature: 'Separator', what: 'Hairline divider' },
+      { file: 'components/Lightbox.astro', feature: 'Lightbox', what: 'Bottom-sheet image viewer' },
+      { file: 'components/Nav.astro', feature: 'Navigation', what: 'Terminal-styled nav' },
+      { file: 'components/ThemeBackground.astro', feature: 'Background', what: 'Stars + mountain ambient' },
+      { file: 'layouts/Base.astro', feature: 'Public Layout', what: 'Full HTML shell for public pages' },
+      { file: 'layouts/Bare.astro', feature: 'Admin Layout', what: 'Minimal shell for admin' },
+    ],
+  },
+  {
+    category: 'Infrastructure',
+    items: [
+      { file: 'scripts/ship.sh', feature: 'Ship', what: 'Single deploy command (preprod↔main)' },
+      { file: 'scripts/deploy-test.sh', feature: 'Deploy Test', what: 'Build + restart preprod' },
+      { file: 'scripts/deploy-prod.sh', feature: 'Deploy Prod', what: 'Docker compose + nginx + crons' },
+      { file: 'scripts/verify-env.sh', feature: 'Verify', what: 'HTTP 200 + noindex checks' },
+      { file: 'scripts/where-am-i.sh', feature: 'Env Snapshot', what: 'Print env/branch/worktree state' },
+      { file: 'scripts/seed.mjs', feature: 'Test Seed', what: 'Idempotent test data' },
+      { file: 'scripts/migrate.mjs', feature: 'Migration', what: 'Legacy data merge' },
+      { file: 'lib/env.ts', feature: 'Env Access', what: '.env accessors' },
+      { file: 'lib/changes.ts', feature: 'Pending Changes', what: 'Rebuild queue + history' },
+      { file: 'lib/live.ts', feature: 'Heartbeat', what: 'Admin live window' },
+      { file: 'lib/auth.ts', feature: 'Auth Guard', what: 'Session validation' },
+      { file: 'lib/webauthn.ts', feature: 'WebAuthn', what: 'Passkey registration + login' },
+    ],
+  },
+  {
+    category: 'AI Integration',
+    items: [
+      { file: 'lib/ai.ts', feature: 'OpenRouter Client', what: 'All AI calls: structure, vision, coach, assist' },
+      { file: 'lib/ingest.ts', feature: 'Ingest Pipeline', what: 'CSV/PDF/image parse, CT→HKT, dedup' },
+      { file: 'lib/review-compare.ts', feature: 'Review Comparison', what: 'AI factual comparison of periods' },
+      { file: 'lib/media-alt.ts', feature: 'Alt Text', what: 'Cheap-model SEO alt text for uploads' },
+    ],
+  },
+]
+
 const principles = [
-  { rule: 'Everything public', detail: 'Every trade, every account, every R. The only private thing is the zen admin area.' },
+  { rule: 'Everything public', detail: 'I open every position, show every ticket, log every trade, every result, every move. Nothing hidden.' },
+  { rule: 'Kaizen', detail: 'Trading is continuous daily improvement. Keep what works, drop what doesn\'t, tweak the exact same things every single day.' },
   { rule: 'Files are the database', detail: 'Markdown frontmatter. No SQL, no ORM, no migrations.' },
   { rule: 'Zero JS on public pages', detail: 'All charts are server-rendered SVG. The lightbox and timezone script are the only exceptions.' },
   { rule: 'CME is the master clock', detail: 'Day status comes from the CME equity-index-futures calendar. NYSE/TSE/LSE are secondary.' },
   { rule: 'R is the only metric', detail: 'R = points risked vs points made. Performance math is risk-based.' },
-  { rule: 'Security by obscurity', detail: 'The admin is at a secret URL. API keys are in .env (gitignored).' },
+  { rule: 'Security by obscurity', detail: 'The admin is at a secret URL. API keys are in .env (gitignored). The route stays obscure.' },
+  { rule: 'The rules are dead simple', detail: 'Trade every day. Never risk more than you can afford. Focus on the move, not the number. Stay small, nimble, consistent. Have fun. Surpass the S&P.' },
 ]
 
 const changelog = [
@@ -145,7 +288,7 @@ const changelog = [
     date: 'pre-2026-08-10',
     features: [
       'Initial build — public trading journal with all core features',
-      'Admin (zen) with passkey auth and AI-first day input',
+      'Admin with passkey auth and AI-first day input',
       'Market news (deterministic fetch), pre-market brief',
       'Performance dashboard, period reviews, models & rules',
       'Accounts & payouts, coach (AI f-R-iend)',
@@ -254,6 +397,43 @@ const totalCost = '$54'
                   </li>
                 ))}
               </ul>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+
+    <!-- Traceability -->
+    <div class="mt-6">
+      <Card icon="🔍" label="traceability" subtitle="every file → its feature">
+        <p class="mb-4 text-xs text-dim">
+          Every file in the codebase is mapped to a feature. If a file exists and isn't listed here, it's dead code.
+          This mapping is maintained as features are added or removed.
+        </p>
+        <div class="space-y-6">
+          {traceability.map((cat) => (
+            <div>
+              <div class="mb-2 text-2xs uppercase tracking-widest text-dim">{cat.category} ({cat.items.length} files)</div>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                  <thead>
+                    <tr>
+                      <th class="th">file</th>
+                      <th class="th">feature</th>
+                      <th class="th">what it does</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cat.items.map((item) => (
+                      <tr>
+                        <td class="td text-ink font-mono text-2xs">{item.file}</td>
+                        <td class="td text-dim">{item.feature}</td>
+                        <td class="td text-faint">{item.what}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ))}
         </div>

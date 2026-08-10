@@ -11,7 +11,7 @@ const authed = sessionOk(Astro.request)
 const manifestHref = '/zen/manifest.webmanifest'
 ---
 
-<Bare title={authed ? 'zen — 1ed.ge' : 'zen sign in'} manifest={manifestHref}>
+<Bare title={authed ? 'admin — 1ed.ge' : 'admin sign in'} manifest={manifestHref}>
   {authed ? (
     <AdminApp client:only="react" />
   ) : (

@@ -123,7 +123,7 @@ export function OverviewTab({
   const habitCount = status.counts.habits
   const screenLogged = !!status.todayDay?.device?.screenshots?.length
 
-  // The owner only looks at zen — surface the next modified-hours CME day
+  // The owner only looks at admin — surface the next modified-hours CME day
   // here so they don't get caught in thin-volume Asia-hours mess.
   const modifiedHours = nextModifiedHoursDay(status.today, 180)
   const modifiedHoursLine = (m: ModifiedHoursDay): string => {
