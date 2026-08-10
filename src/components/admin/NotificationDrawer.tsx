@@ -127,9 +127,10 @@ export function NotificationDrawer(props: NotificationDrawerProps) {
                       <button
                         type="button"
                         onClick={() => { props.onNavigateToReview(p.type, p.anchor); setOpen(false) }}
-                        className="w-full text-left text-[12px] text-dim hover:text-ink"
+                        className="flex w-full items-center justify-between text-left text-[12px] text-dim hover:text-ink"
                       >
-                        {p.type} {p.anchor}
+                        <span>{p.type} {p.anchor}</span>
+                        <span className="text-[10px] uppercase text-warn">due today</span>
                       </button>
                     </li>
                   ))}
