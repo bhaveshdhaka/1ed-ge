@@ -166,9 +166,9 @@ export default function AdminApp() {
             <span className="brand-word">
               <span className="brand-one">1</span>edge<span className="brand-tk">_</span>
             </span>
-            <span className="ml-2 text-2xs font-normal uppercase tracking-widest text-faint">zen</span>
+            <span className="ml-2 text-2xs font-normal uppercase tracking-widest text-faint">admin</span>
           </a>
-          <nav aria-label="zen tabs" className="flex flex-wrap items-center gap-1">
+          <nav aria-label="admin tabs" className="flex flex-wrap items-center gap-1">
             {TABS.map((t) => (
               <button
                 key={t.id}

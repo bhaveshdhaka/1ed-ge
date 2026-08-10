@@ -177,7 +177,7 @@ export function CommandPalette(props: CommandPaletteProps) {
           </Command.Group>
 
           <Command.Group
-            heading="zen"
+            heading="admin"
             className={groupCls}
           >
             {(['overview', 'day', 'accounts', 'coach', 'media', 'library', 'reviews'] as const).map((t) => (

@@ -12,7 +12,7 @@ export function HabitRow(props: HabitRowProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {props.habitDefs.length === 0 && (
-        <p className="text-xs text-faint">habits are defined in zen · library.</p>
+        <p className="text-xs text-faint">habits are defined in admin · library.</p>
       )}
       {props.habitDefs.map((h) => {
         const done = props.habits[h.slug] === true

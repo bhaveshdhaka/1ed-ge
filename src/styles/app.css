@@ -407,7 +407,7 @@
   }
 }
 
-/* ---- zen PWA — safe-area utilities (zen pages only) ---- */
+/* ---- admin PWA — safe-area utilities (admin pages only) ---- */
 /* max() keeps the normal desktop/mobile spacing when the device has no inset,
    and clears the Dynamic Island / notch / home indicator in standalone mode. */
 @utility pt-safe-3 {
@@ -429,7 +429,7 @@
   top: calc(env(safe-area-inset-top, 0px) + 3.5rem);
 }
 
-/* ---- zen PWA — iOS/touch hardening (zen app only; public pages untouched) ---- */
+/* ---- admin PWA — iOS/touch hardening (admin app only; public pages untouched) ---- */
 .zen-app {
   -webkit-touch-callout: none;
   overscroll-behavior-y: none;
@@ -451,7 +451,7 @@
     min-height: 44px !important;
   }
   /* Safari auto-zooms form fields under 16px on focus — floor the font size.
-     Scoped to the zen app so the public terminal density is untouched. */
+     Scoped to the admin app so the public terminal density is untouched. */
   .zen-app input:not([type='checkbox']):not([type='file']),
   .zen-app select,
   .zen-app textarea {

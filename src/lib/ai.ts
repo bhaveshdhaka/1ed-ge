@@ -49,7 +49,7 @@ export async function orChat(messages: OrMessage[], model: string, json = true, 
   return content
 }
 
-/** Streaming chat — yields content deltas as they arrive (powers the zen ghost-text assist). */
+/** Streaming chat — yields content deltas as they arrive (powers the admin ghost-text assist). */
 export async function* orChatStream(messages: OrMessage[]): AsyncGenerator<string> {
   const key = env.openrouterKey()
   if (!key) throw new Error('OPENROUTER_API_KEY is not set')

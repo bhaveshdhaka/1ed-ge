@@ -6,9 +6,9 @@ export const prerender = false
 export const GET: APIRoute = async ({ request }) => {
   if (!sessionOk(request)) return new Response('unauthorized', { status: 401 })
   const manifest = {
-    name: 'zen — 1ed.ge',
-    short_name: 'zen',
-    description: 'zen — the private trading desk of 1ed.ge',
+    name: 'admin — 1ed.ge',
+    short_name: 'admin',
+    description: 'admin — the private trading desk of 1ed.ge',
     start_url: '/zen/',
     scope: '/zen/',
     display: 'standalone',

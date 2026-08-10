@@ -48,7 +48,7 @@ export default function LoginScreen() {
 
   return (
     <div className="shell flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
-      <h1 className="text-xl">zen</h1>
+      <h1 className="text-xl">admin</h1>
       <p className="text-sm text-dim">sign in with your passkey</p>
       <button
         className="h-10 border border-line px-5 text-sm transition-colors hover:border-accent"
