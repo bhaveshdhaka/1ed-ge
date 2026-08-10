@@ -108,7 +108,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
         <span class="card-sub">{fmtDayWUpper(iso)}</span>
         {latestIso && latestIso !== iso && (
           <a href={`/day/${fmtDay(latestIso)}`} class="ml-auto text-2xs text-dim transition-colors hover:text-accent">
-            last logged day {fmtDay(latestIso)} →
+            last logged day {fmtDayWUpper(latestIso)} →
           </a>
         )}
       </div>
@@ -117,7 +117,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           <DayFacts cells={cells} />
         ) : (
           <div class="well px-4 py-6">
-            <p class="text-[13px] text-faint">
+            <p class="text-sm text-faint">
               no day logged yet.
             </p>
           </div>
@@ -131,11 +131,11 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
       <div class="card-hd border-b border-sep">
         <span class="card-ico">📡</span>
         <span class="card-lbl">stream</span>
-        <span class:list={['ml-auto flex items-center gap-2 text-[12px]', live.live ? 'text-up' : 'text-faint']}>
+        <span class:list={['ml-auto flex items-center gap-2 text-xs', live.live ? 'text-up' : 'text-faint']}>
           <span class:list={['inline-block h-1.5 w-1.5 rounded-full', live.live ? 'bg-up' : 'bg-line2']}></span>
           {moniker}
         </span>
-        <a href="/stream" class="ml-auto text-2xs text-dim transition-colors hover:text-accent">all streams →</a>
+        <a href="/stream" class="text-2xs text-dim transition-colors hover:text-accent">all streams →</a>
       </div>
       <div class="p-3 md:p-4">
         {thoughts.length > 0 ? (
@@ -144,10 +144,10 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           </div>
         ) : (
           <div class="max-w-2xl border border-dashed border-line2 px-4 py-6">
-            <p class="text-[13px] text-faint">no stream yet today — nothing logged.</p>
+            <p class="text-sm text-faint">no stream yet today — nothing logged.</p>
             {latestIso && latestThoughts.length > 0 && (
               <div class="mt-5">
-                <p class="mb-3 text-2xs uppercase tracking-widest text-dim">latest from {fmtDay(latestIso)}</p>
+                <p class="mb-3 text-2xs uppercase tracking-widest text-dim">latest from {fmtDayWUpper(latestIso)}</p>
                 <div class="flex flex-col gap-3">
                   {latestThoughts.map((t) => <ThoughtCard thought={t} showDay />)}
                 </div>

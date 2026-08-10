@@ -139,13 +139,15 @@ export function LibraryTab({ notify }: { notify: (m: string, ok?: boolean) => vo
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl">/ library</h1>
-        <div className="flex gap-1">
+        <div className="seg">
           {SECTIONS.map((s) => (
             <button
               key={s.id}
               onClick={() => { setSection(s.id); setEditing(null) }}
               aria-pressed={section === s.id}
-              className={`h-10 px-3 text-sm ${section === s.id ? 'bg-raise text-ink' : 'text-dim hover:text-ink'}`}
+              className={`min-h-[36px] rounded-[9px] px-3.5 text-xs transition-colors ${
+                section === s.id ? 'seg-on' : 'text-dim hover:text-ink'
+              }`}
             >
               {s.label}
             </button>

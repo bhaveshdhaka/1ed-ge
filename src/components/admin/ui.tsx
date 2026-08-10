@@ -25,7 +25,7 @@ export function Field({
 }
 
 export const inputCls =
-  'w-full border border-line bg-bg px-2.5 py-1.5 text-sm text-ink outline-none placeholder:text-faint focus:border-accent'
+  'w-full border border-line bg-bg px-2.5 py-1.5 text-sm text-ink outline-none placeholder:text-faint focus:border-accent rounded-[var(--radius-sm)]'
 
 export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={cn(inputCls, props.className)} />
@@ -68,19 +68,22 @@ export function Button({
 
 export function Card({
   title,
+  icon,
   children,
   className = '',
   actions,
 }: {
   title?: string
+  icon?: string
   children: ReactNode
   className?: string
   actions?: ReactNode
 }) {
   return (
     <section className={cn('panel', className)}>
-      {(title || actions) && (
+      {(title || icon || actions) && (
         <div className="card-hd">
+          {icon && <span className="card-ico">{icon}</span>}
           {title && <span className="card-lbl">{title}</span>}
           {actions && <div className="ml-auto">{actions}</div>}
         </div>

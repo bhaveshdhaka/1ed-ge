@@ -1,4 +1,6 @@
 ---
+import EmptyState from './ui/EmptyState.astro'
+
 interface Props {
   points: { i: number; equity: number }[]
   height?: number
@@ -31,29 +33,30 @@ const last = points[points.length - 1]
 
 {
   points.length === 0 ? (
-    <div class="flex h-40 items-center justify-center border border-dashed border-line text-[12px] text-faint">
-      no trades yet — the curve starts the day the first trade is logged
-    </div>
+    <div class="p-1"><EmptyState text="no trades yet — the curve starts the day the first trade is logged" /></div>
   ) : (
     <div class="relative">
       {label && (
         <div class="absolute -top-1 left-2 text-[11px] uppercase tracking-widest text-dim">{label}</div>
       )}
-      <svg viewBox={`0 0 ${W} ${H}`} class="w-full" preserveAspectRatio="none" role="img" aria-label={label ?? 'equity curve'}>
-        <line x1={padX} x2={W - padX} y1={zeroY} y2={zeroY} stroke="var(--chart-grid)" stroke-width="1" stroke-dasharray="3 5" />
-        <path d={area} fill={color} fill-opacity="0.12" />
-        <path d={line} fill="none" stroke={color} stroke-width="1.6" />
-        {last && <circle cx={px(last.i)} cy={py(last.equity)} r="3.2" fill={color} />}
-        <text x={padX + 2} y={py(maxY) - 4} fill="var(--color-dim)" font-size="10" font-family="inherit">
-          {maxY > 0 ? `+${maxY.toFixed(0)}` : maxY.toFixed(0)}
-        </text>
-        <text x={padX + 2} y={py(minY) + 12} fill="var(--color-dim)" font-size="10">
-          {minY < 0 ? minY.toFixed(0) : `+${minY.toFixed(0)}`}
-        </text>
-        <text x={W - padX - 3} y={H - 4} fill="var(--color-faint)" font-size="10" text-anchor="end">
-          {footer ?? `${points.length} trades`}
-        </text>
-      </svg>
+      <div class="overflow-x-auto" tabindex="0">
+        <svg viewBox={`0 0 ${W} ${H}`} class="w-full min-w-[540px]" role="img" aria-label={label ?? 'equity curve'}>
+          {label && <title>{label}</title>}
+          <line x1={padX} x2={W - padX} y1={zeroY} y2={zeroY} stroke="var(--color-line2)" stroke-width="1" stroke-dasharray="3 5" />
+          <path d={area} fill={color} fill-opacity="0.12" />
+          <path d={line} fill="none" stroke={color} stroke-width="1.6" />
+          {last && <circle cx={px(last.i)} cy={py(last.equity)} r="3.2" fill={color} />}
+          <text x={padX + 2} y={py(maxY) - 4} fill="var(--color-dim)" font-size="10" font-family="inherit">
+            {maxY > 0 ? `+${maxY.toFixed(0)}` : maxY.toFixed(0)}
+          </text>
+          <text x={padX + 2} y={py(minY) + 12} fill="var(--color-dim)" font-size="10">
+            {minY < 0 ? minY.toFixed(0) : `+${minY.toFixed(0)}`}
+          </text>
+          <text x={W - padX - 3} y={H - 4} fill="var(--color-faint)" font-size="10" text-anchor="end">
+            {footer ?? `${points.length} trades`}
+          </text>
+        </svg>
+      </div>
     </div>
   )
 }

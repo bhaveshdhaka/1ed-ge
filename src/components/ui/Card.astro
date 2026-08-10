@@ -1,23 +1,36 @@
 ---
-/** Card.astro — the one panel primitive. Optional title row + named `actions` slot. */
+/** Card.astro — the one panel primitive. Optional card-hd header with icon/label/subtitle. */
 interface Props {
-  title?: string
+  icon?: string
+  label?: string
+  subtitle?: string
+  title?: string       // legacy — renders old-style header
   pad?: 'none' | 'sm' | 'md'
   hero?: boolean
   class?: string
 }
 
-const { title, pad = 'md', hero = false, class: cls = '' } = Astro.props
+const { icon, label, subtitle, title, pad = 'md', hero = false, class: cls = '' } = Astro.props
 const pads = { none: '', sm: 'p-2', md: 'p-4' }
+const hasHeader = icon || label || title
 ---
 
 <section class={`panel ${hero ? 'panel-hero' : ''} ${pads[pad]} ${cls}`}>
-  {title !== undefined && (
-    <div class="mb-3 flex items-center justify-between gap-3">
-      <h2 class="text-2xs uppercase tracking-widest text-soft">{title}</h2>
+  {hasHeader && (
+    <div class="card-hd">
+      {icon && <span class="card-ico">{icon}</span>}
+      {label && <span class="card-lbl">{label}</span>}
+      {subtitle && <span class="card-sub">{subtitle}</span>}
+      {title && !label && <h2 class="text-2xs uppercase tracking-widest text-soft">{title}</h2>}
       {Astro.slots.has('actions') && (
-        <div class="flex items-center gap-2"><slot name="actions" /></div>
+        <div class="ml-auto flex items-center gap-2"><slot name="actions" /></div>
       )}
+    </div>
+  )}
+  {!hasHeader && Astro.slots.has('actions') && (
+    <div class="mb-3 flex items-center justify-between gap-3">
+      <div></div>
+      <div class="flex items-center gap-2"><slot name="actions" /></div>
     </div>
   )}
   <slot />

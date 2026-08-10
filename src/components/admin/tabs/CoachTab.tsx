@@ -106,18 +106,24 @@ export function CoachTab({ notify }: { notify: (m: string, ok?: boolean) => void
         </div>
       </Card>
 
-      <details className="border border-line bg-panel">
-        <summary className="cursor-pointer px-3 py-2 text-2xs uppercase tracking-widest text-dim">
-          the data f-R-iend sees ▾
-        </summary>
-        {snapshot ? (
-          <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap border-t border-line/60 px-3 py-2 text-2xs leading-relaxed text-faint">
-            {snapshot}
-          </pre>
-        ) : (
-          <p className="border-t border-line/60 px-3 py-2 text-2xs text-faint">loading snapshot…</p>
-        )}
-      </details>
+      <div className="panel">
+        <details>
+          <summary className="cursor-pointer list-none">
+            <div className="card-hd">
+              <span className="card-ico" aria-hidden="true">🤖</span>
+              <span className="card-lbl">data f-R-iend sees</span>
+              <span className="tmr text-dim">▾</span>
+            </div>
+          </summary>
+          {snapshot ? (
+            <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap px-3 py-2 text-2xs leading-relaxed text-faint">
+              {snapshot}
+            </pre>
+          ) : (
+            <p className="px-3 py-2 text-2xs text-faint">loading snapshot…</p>
+          )}
+        </details>
+      </div>
 
       <div className="flex flex-wrap gap-1.5">
         {PROMPTS.map((p) => (

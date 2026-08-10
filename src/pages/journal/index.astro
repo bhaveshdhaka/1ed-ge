@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro'
 import { getCollection } from 'astro:content'
-import { fmtDay } from '../../lib/dates'
+import { fmtDay, fmtDayWUpper } from '../../lib/dates'
 import Card from '../../components/ui/Card.astro'
 import Badge from '../../components/ui/Badge.astro'
 import Tag from '../../components/ui/Tag.astro'
@@ -15,7 +15,7 @@ const dayByDate = new Map(days.map((d) => [d.data.date, d.data]))
 
 const monthLabel = (m: string) => {
   const [y, mo] = m.split('-')
-  const names = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+  const names = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
   return `${names[parseInt(mo, 10) - 1]} ${y}`
 }
 
@@ -115,7 +115,7 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
                       <div class="flex items-baseline justify-between gap-4">
                         <div class="flex items-baseline gap-3">
                           <span class="text-2xs text-faint tabular-nums">{String(journal.length - (numById.get(j.id) ?? 0)).padStart(2, '0')}</span>
-                          <span class="text-sm text-ink transition-colors group-hover:text-accent">{j.data.date}</span>
+                          <span class="text-sm text-ink transition-colors group-hover:text-accent">{fmtDayWUpper(j.data.date)}</span>
                         </div>
                       </div>
                       {j.data.summary && <p class="mt-2 text-xs leading-relaxed text-dim">{j.data.summary}</p>}
@@ -161,7 +161,10 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
     try { index = JSON.parse(indexEl.textContent || '[]') } catch {}
 
     const MON = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+    const MON_UP = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    const WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
     const fmt = (iso) => { const [y, m, d] = iso.split('-'); return d + '-' + MON[+m - 1] + '-' + y }
+    const fmtUp = (iso) => { const [y, m, d] = iso.split('-').map(Number); return WD[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] + ' | ' + String(d).padStart(2, '0') + '-' + MON_UP[m - 1] + '-' + y }
     window.__jumpDay = (v) => { if (v) location.href = '/day/' + fmt(v) }
 
     const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
@@ -198,7 +201,7 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
       <a href="/day/${fmt(e.date)}" class="group block border-b border-line/70 py-6">
         <div class="flex items-baseline gap-3">
           <span class="text-2xs text-faint">${String(i + 1).padStart(2, '0')}</span>
-          <span class="text-sm text-ink group-hover:text-accent">${escHtml(e.title)}</span>
+          <span class="text-sm text-ink group-hover:text-accent">${escHtml(fmtUp(e.title))}</span>
         </div>
         ${e.summary ? `<p class="mt-2 text-xs leading-relaxed text-dim">${escHtml(e.summary)}</p>` : ''}
         <div class="mt-2 flex flex-wrap items-center gap-2">

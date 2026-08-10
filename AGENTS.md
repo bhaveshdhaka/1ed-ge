@@ -334,7 +334,7 @@ optional title/summary/tags/featuredImage.
 - Style: monospace, off-black (`#0a0a0c`), green `#4ade80` = up, red `#f87171`
   = down, low-contrast dim text, terminal aesthetic. Nav labels are plain
   (`[00] home`) — **no `~` in the menu**. Match Tailwind tokens in
-  `src/styles/global.css`.
+  `src/styles/app.css`.
 - **Design system (WhatsApp Logger v2 aesthetic):** 3-layer token architecture
   in `src/styles/app.css` — palette (`--hue-*`), semantic (`--color-*`),
   material (`--radius`, `--shadow-card`, `--blur-card`). Glass cards use

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, bus } from '../api'
-import { fmtDay, fmtDayW } from '../../../lib/dates'
+import { fmtDay, fmtDayWUpper } from '../../../lib/dates'
 import { nowHkt, addDaysIso } from '../../../lib/sessions'
 import { hktHHMM } from '../../../lib/clock'
 import { Card, Button, TextInput } from '../ui'
@@ -803,7 +803,7 @@ export function DayWorkspace({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-xl">/ day</h1>
-          <span className="text-xs text-faint">{fmtDayW(date)}</span>
+          <span className="text-xs text-faint">{fmtDayWUpper(date)}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {hasDayRecord && (
@@ -896,9 +896,12 @@ export function DayWorkspace({
 
                 {/* ---------- Z4 TRADES ---------- */}
                 <div id="sec-trades" className="mt-3 md:mt-5 scroll-mt-20">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-2xs uppercase tracking-widest text-dim">trades ({trades.length})</span>
-                    <div className="flex items-center gap-2">
+                  <div className="panel">
+                    <div className="card-hd">
+                      <span className="card-ico">📈</span>
+                      <span className="card-lbl">trades</span>
+                      <span className="card-sub">{trades.length}</span>
+                      <div className="ml-auto flex items-center gap-2">
                       {trades.length > 0 && (
                         <Button size="sm" onClick={() => { setExpandAll((e) => !e); setExpandedTrade(null) }}>
                           {expandAll ? 'collapse all' : 'expand all'}
@@ -914,7 +917,8 @@ export function DayWorkspace({
                       </button>
                     </div>
                   </div>
-                  <TradeList
+                  <div className="p-3 md:p-4">
+                    <TradeList
                     trades={trades}
                     allModels={models}
                     accountLabel={accountLabel}
@@ -939,20 +943,28 @@ export function DayWorkspace({
                       markDirty()
                     }}
                   />
+                  </div>
                 </div>
+              </div>
 
               {/* ---------- FOOTER ---------- */}
-              <div className="panel flex flex-wrap items-center gap-3 md:gap-6 px-4 py-3 text-sm">
-                <span className="text-dim">day</span>
-                <span className={dayTotals.R > 0 ? 'text-up' : dayTotals.R < 0 ? 'text-down' : 'text-soft'}>{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
-                <span className="text-dim">·</span>
-                <span className={dayTotals.pts > 0 ? 'text-up' : dayTotals.pts < 0 ? 'text-down' : 'text-soft'}>{dayTotals.pts > 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
-                <span className="text-dim">·</span>
-                <span className={dayTotals.pnl > 0 ? 'text-up' : dayTotals.pnl < 0 ? 'text-down' : 'text-soft'}>{dayTotals.pnl > 0 ? '+' : ''}${Math.round(dayTotals.pnl).toLocaleString()}</span>
-                <span className="ml-auto text-2xs text-faint">autosaves on idle · ⌘S flushes</span>
-              {daysList.some((d) => d.date === date) && (
-                <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
-              )}
+              <div className="panel">
+                <div className="card-hd">
+                  <span className="card-ico">📊</span>
+                  <span className="card-lbl">day totals</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 md:gap-6 p-3 md:p-4 text-sm">
+                  <span className="text-dim">day</span>
+                  <span className={dayTotals.R > 0 ? 'text-up' : dayTotals.R < 0 ? 'text-down' : 'text-soft'}>{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
+                  <span className="text-dim">·</span>
+                  <span className={dayTotals.pts > 0 ? 'text-up' : dayTotals.pts < 0 ? 'text-down' : 'text-soft'}>{dayTotals.pts > 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
+                  <span className="text-dim">·</span>
+                  <span className={dayTotals.pnl > 0 ? 'text-up' : dayTotals.pnl < 0 ? 'text-down' : 'text-soft'}>{dayTotals.pnl > 0 ? '+' : ''}${Math.round(dayTotals.pnl).toLocaleString()}</span>
+                  <span className="ml-auto text-2xs text-faint">autosaves on idle · ⌘S flushes</span>
+                  {daysList.some((d) => d.date === date) && (
+                    <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
+                  )}
+                </div>
               </div>
 
               {/* ---------- NOTIFICATIONS (bottom) ---------- */}

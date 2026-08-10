@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { useHktNow } from '../../lib/clock'
-import { fmtDayW } from '../../lib/dates'
+import { fmtDayWUpper } from '../../lib/dates'
 import type { DayListItem } from './tabs/DayWorkspace'
 
 export interface DayRailProps {
@@ -57,7 +57,7 @@ export function DayRail({ days, selectedDate, onSelectDate, pendingObligationDat
           const isToday = d.date === today
           const isSel = !isFuture && d.date === selectedDate
           const h = cellHeight(d.trades)
-          const title = `${fmtDayW(d.date)} · ${R != null ? `${R >= 0 ? '+' : ''}${R.toFixed(2)}R` : 'R —'} · ${d.trades} trade${d.trades === 1 ? '' : 's'}`
+          const title = `${fmtDayWUpper(d.date)} · ${R != null ? `${R >= 0 ? '+' : ''}${R.toFixed(2)}R` : 'R —'} · ${d.trades} trade${d.trades === 1 ? '' : 's'}`
           const fill = isFuture
             ? 'border-line/40 bg-bg'
             : R != null

@@ -40,7 +40,7 @@ const showLiveMarket = dayIso === null || dayIso === todayHkt()
 <html lang="en" class="bg-bg" data-theme={theme}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#07080c" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -76,19 +76,19 @@ const showLiveMarket = dayIso === null || dayIso === todayHkt()
       }
     </script>
   </head>
-  <body class="crt flex min-h-screen flex-col">
+  <body class="flex min-h-svh flex-col">
     <ThemeBackground />
     <Nav />
     <main class="flex-1">
       <slot />
     </main>
     <footer class="shell py-10 pb-safe">
-      <div class="flex flex-col gap-2 border-t border-line pt-6 text-[12px] text-dim md:flex-row md:items-center md:justify-between">
+      <div class="flex flex-col gap-2 border-t border-line pt-6 text-xs text-dim md:flex-row md:items-center md:justify-between">
         <span>1edge — everything public, nothing hidden</span>
         <span class="text-faint">R is the only metric that matters.</span>
       </div>
       {showLiveMarket && (
-        <div class="mt-4 border-t border-line/50 pt-2 text-[12px]">
+        <div class="mt-4 border-t border-line/50 pt-2 text-xs">
           <MarketFooter />
         </div>
       )}

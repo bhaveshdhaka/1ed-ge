@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro'
 import { getCollection, render } from 'astro:content'
 import EmptyState from '../components/ui/EmptyState.astro'
+import { fmtDayWUpper } from '../lib/dates'
 
 const coach = (await getCollection('coach')).sort((a, b) => b.data.date.localeCompare(a.data.date))
 const rendered = await Promise.all(
@@ -19,14 +20,14 @@ const rendered = await Promise.all(
   <section class="shell pt-12 pb-20">
     <div class="flex items-baseline gap-3">
       <h1 class="text-2xl">/ coach</h1>
-      <span class="text-[12px] text-faint">f-R-iend — reads the data, calls it straight</span>
+      <span class="text-xs text-faint">f-R-iend — reads the data, calls it straight</span>
     </div>
 
     <div class="mt-10 max-w-3xl space-y-10">
       {rendered.map(({ c, Content }) => (
         <article class="border-l-2 border-line2 pl-6">
-          <div class="flex flex-wrap items-baseline gap-3 text-[12px] text-dim">
-            <span>{c.data.date}</span>
+          <div class="flex flex-wrap items-baseline gap-3 text-xs text-dim">
+            <span>{fmtDayWUpper(c.data.date)}</span>
             {c.data.summary && <span class="text-soft">{c.data.summary}</span>}
           </div>
           <div class="prose mt-4">

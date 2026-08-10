@@ -1,7 +1,7 @@
 ---
 /**
  * Icon.astro — zero-JS inline SVG icons (Lucide paths, MIT).
- * Public pages: use this component, never emoji (except flags → Flag.astro).
+ * Public pages: emoji for card headers (intentional aesthetic). Use Icon for UI action buttons (close, chevron, search, arrows).
  * Admin: use lucide-react instead. Both share the same visual language.
  */
 interface Props {
@@ -29,7 +29,7 @@ const ICONS: Record<string, Paths> = {
   check: ['M20 6 9 17l-5-5'],
   'chevron-left': ['m15 18-6-6 6-6'],
   'chevron-right': ['m9 18 6-6-6-6'],
-  'circle-check': ['m9 12 2 2 4-4'],
+  'circle-check': ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20', 'm9 12 2 2 4-4'],
   'circle-x': ['m15 9-6 6', 'm9 9 6 6'],
   clock: ['M12 6v6l4 2'],
   crosshair: ['M4 12h4', 'M16 12h4', 'M12 4v4', 'M12 16v4', 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20'],

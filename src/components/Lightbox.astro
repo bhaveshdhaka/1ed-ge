@@ -45,5 +45,17 @@
     dlg.addEventListener('click', (e) => {
       if (e.target === dlg) dlg.close()
     })
+    // Swipe gestures for touch devices
+    let startX = 0
+    let startY = 0
+    dlg.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }, { passive: true })
+    dlg.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - startX
+      const dy = e.changedTouches[0].clientY - startY
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) { const prev = dlg.querySelector('[data-lb-prev]'); prev?.click() }
+        else { const next = dlg.querySelector('[data-lb-next]'); next?.click() }
+      }
+    })
   })()
 </script>

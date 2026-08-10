@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { api, todayStr, notifyChanged, fileToDataUrl, uploadDataUrl } from '../api'
 import { Card, Button, Field, TextInput, NumInput, Select } from '../ui'
 import { ImageDropZone } from '../ImageDropZone'
+import { fmtDayWUpper } from '../../../lib/dates'
 
 interface StatementRead {
   accountId: string | null
@@ -530,9 +531,9 @@ export function AccountsTab({ notify }: { notify: (m: string, ok?: boolean) => v
             <tbody>
               {payouts.map((p) => (
                 <tr key={p.file}>
-                  <td className="td text-dim">{p.date}</td>
+                  <td className="td text-dim">{fmtDayWUpper(p.date)}</td>
                   <td className="td">{p.account}</td>
-                  <td className="td text-right num-up">+${p.amount.toLocaleString()}</td>
+                  <td className="td text-right text-up">+${p.amount.toLocaleString()}</td>
                   <td className="td"><span className={p.status === 'paid' ? 'text-up' : 'text-warn'}>{p.status}</span></td>
                   <td className="td text-dim">{p.note ?? ''}</td>
                   <td className="td"><Button size="sm" variant="danger" onClick={() => removePayout(p.file)}>×</Button></td>

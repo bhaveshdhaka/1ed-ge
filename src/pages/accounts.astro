@@ -81,10 +81,10 @@ const active = sorted.filter((a) => a.active)
               <td class="td text-right text-dim">{a.sizeLabel}</td>
               <td class="td text-right text-dim">${a.drawdownLimit.toLocaleString()}</td>
               <td class="td text-right" class:list={[muted && 'text-faint']}>{a.trades}</td>
-              <td class="td text-right" class:list={[muted ? 'text-faint' : a.grossPnl > 0 ? 'num-up' : a.grossPnl < 0 ? 'num-down' : 'text-dim']}>{fmtPnl(a.grossPnl)}</td>
+              <td class="td text-right" class:list={[muted ? 'text-faint' : a.grossPnl > 0 ? 'text-up' : a.grossPnl < 0 ? 'text-down' : 'text-dim']}>{fmtPnl(a.grossPnl)}</td>
               <td class="td text-right text-dim">{a.payouts ? fmtPnl(-a.payouts) : '—'}</td>
-              <td class="td text-right" class:list={[muted ? 'text-faint' : a.netPnl > 0 ? 'num-up' : a.netPnl < 0 ? 'num-down' : 'text-dim']}>{fmtPnl(a.netPnl)}</td>
-              <td class="td text-right" class:list={[muted ? 'text-faint' : a.sumR > 0 ? 'num-up' : a.sumR < 0 ? 'num-down' : 'text-dim']}>{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
+              <td class="td text-right" class:list={[muted ? 'text-faint' : a.netPnl > 0 ? 'text-up' : a.netPnl < 0 ? 'text-down' : 'text-dim']}>{fmtPnl(a.netPnl)}</td>
+              <td class="td text-right" class:list={[muted ? 'text-faint' : a.sumR > 0 ? 'text-up' : a.sumR < 0 ? 'text-down' : 'text-dim']}>{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
               <td class="td">
                 <div class="flex items-center justify-end gap-2">
                   <div class="h-1.5 w-20 bg-raise">
@@ -154,7 +154,7 @@ const active = sorted.filter((a) => a.active)
               <tr>
                 <td class="td text-dim">{p.data.date}</td>
                 <td class="td">{acc?.data.firm ?? ''} {acc?.data.sizeLabel ?? ''} <span class="text-faint">·{p.data.account}</span></td>
-                <td class="td text-right num-up">{fmtPnl(p.data.amount).replace(/^\+/, '')}</td>
+                <td class="td text-right text-up">{fmtPnl(p.data.amount).replace(/^\+/, '')}</td>
                 <td class="td"><span class={p.data.status === 'paid' ? 'text-up' : 'text-warn'}>{p.data.status}</span></td>
                 <td class="td text-dim">{p.data.note ?? ''}</td>
               </tr>

@@ -48,14 +48,14 @@ export function MarkdownEditor({
   return (
     <div className="border border-line">
       <div className="flex items-center justify-between border-b border-line px-2 py-1">
-        <div className="flex gap-1">
+        <div className="seg">
           {(['write', 'preview'] as const).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
               aria-pressed={mode === m}
-              className={`h-8 px-2.5 text-xs ${mode === m ? 'bg-raise text-ink' : 'text-dim hover:text-ink'}`}
+              className={`px-3 py-1.5 text-xs font-semibold ${mode === m ? 'seg-on rounded-[9px]' : 'text-dim'}`}
             >
               {m}
             </button>

@@ -4,7 +4,7 @@ import { Card, Button, Stat, inputCls } from '../ui'
 import type { Tab } from '../AdminApp'
 import type { AccountRuleStatus } from '../../../lib/account-rules'
 import { nextModifiedHoursDay, cmeModifiedCt, ctToHktHhmm, type ModifiedHoursDay } from '../../../lib/market'
-import { fmtDayW } from '../../../lib/dates'
+import { fmtDayWUpper } from '../../../lib/dates'
 
 interface Status {
   env: { adminSecretSet: boolean; openrouterKeySet: boolean; modelStructure: string; modelVision: string }
@@ -107,12 +107,12 @@ export function OverviewTab({
 
   if (error) {
     return (
-      <Card title="connection">
+      <Card title="connection" icon="🔌">
         <p className="text-sm text-down">{error}</p>
       </Card>
     )
   }
-  if (!status) return <Card title="loading"><p className="text-sm text-faint">loading…</p></Card>
+  if (!status) return <Card title="loading" icon="⏳"><p className="text-sm text-faint">loading…</p></Card>
 
   const habitCount = status.counts.habits
   const screenLogged = !!status.todayDay?.device?.screenshots?.length
@@ -130,7 +130,7 @@ export function OverviewTab({
     const mt = cmeModifiedCt(m.iso)
     const hkt = mt ? ctToHktHhmm(m.iso, mt.hh, mt.mm) : '--:--'
     const kind = m.kind === 'early-halt' ? `early halt ${hkt} hkt` : `early close ${hkt} hkt`
-    return `next modified-hours day: ${fmtDayW(m.iso)} (${m.reason}) — ${kind}, ${away}`
+    return `next modified-hours day: ${fmtDayWUpper(m.iso)} (${m.reason}) — ${kind}, ${away}`
   }
 
   return (
@@ -170,25 +170,25 @@ export function OverviewTab({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="today">
+        <Card title="today" icon="☀️">
           <div className="space-y-3 text-sm text-soft">
-            <div className="flex items-center justify-between border-b border-line/60 pb-2">
+            <div className="kv">
               <span>trades taken</span>
               <span className={status.counts.todayTrades > 0 ? 'text-up' : 'text-dim'}>
                 {status.counts.todayTrades}
               </span>
             </div>
-            <div className="flex items-center justify-between border-b border-line/60 pb-2">
+            <div className="kv">
               <span>habits done</span>
               <span className={status.habitsDoneToday === habitCount && habitCount ? 'text-up' : 'text-ink'}>
                 {status.habitsDoneToday}/{habitCount}
               </span>
             </div>
-            <div className="flex items-center justify-between border-b border-line/60 pb-2">
+            <div className="kv">
               <span>screen time logged</span>
               <span className={screenLogged ? 'text-up' : 'text-dim'}>{screenLogged ? 'yes' : 'no'}</span>
             </div>
-            <div className="flex items-center justify-between border-b border-line/60 pb-2">
+            <div className="kv">
               <span>journal written</span>
               <span className={status.journalToday ? 'text-up' : 'text-dim'}>
                 {status.journalToday ? 'yes' : 'no'}
@@ -204,6 +204,7 @@ export function OverviewTab({
 
         <Card
           title="build"
+          icon="🔨"
           actions={
             <Button size="sm" onClick={doRebuild} disabled={rebuilding || status.build?.running}>
               {status.build?.running ? 'building…' : 'rebuild now'}
@@ -211,14 +212,14 @@ export function OverviewTab({
           }
         >
           <div className="space-y-2 text-sm text-soft">
-            <div className="flex items-center justify-between border-b border-line/60 pb-2">
+            <div className="kv">
               <span>status</span>
               <span className={status.build?.running ? 'text-warn' : status.build?.ok === false ? 'text-down' : 'text-up'}>
                 {status.build?.running ? 'running' : status.build ? 'idle' : 'never run'}
               </span>
             </div>
             {status.build?.finishedAt && (
-              <div className="flex items-center justify-between border-b border-line/60 pb-2">
+              <div className="kv">
                 <span>last build</span>
                 <span className="text-dim">
                   {status.build.ok === false ? 'failed · ' : ''}
@@ -236,6 +237,7 @@ export function OverviewTab({
 
       <Card
         title="accounts — live"
+        icon="💰"
         actions={<span className="text-2xs text-faint">owner-dictated rules · refreshes here</span>}
       >
         {accLive && accLive.length > 0 ? (
@@ -269,6 +271,7 @@ export function OverviewTab({
 
       <Card
         title="daily brief"
+        icon="📋"
         actions={
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={genBrief} disabled={briefBusy}>
@@ -291,28 +294,28 @@ export function OverviewTab({
         ) : (
           <p className="text-sm text-faint">
             no brief for today yet — “AI draft” writes a short pre-market brief from today’s sessions, the
-            red/orange events, and your most recent day. the numbers come from verified data; the AI only
+            high/medium impact events, and your most recent day. the numbers come from verified data; the AI only
             writes the prose.
           </p>
         )}
         <p className="mt-2 text-2xs text-faint">public on the homepage + day page once rebuilt</p>
       </Card>
 
-      <Card title="system">
+      <Card title="system" icon="⚙️">
         <div className="grid gap-2 text-sm md:grid-cols-3">
-          <div className="flex items-center justify-between border-b border-line/60 pb-2">
+          <div className="kv">
             <span className="text-dim">admin secret</span>
             <span className={status.env.adminSecretSet ? 'text-up' : 'text-down'}>
               {status.env.adminSecretSet ? 'set' : 'MISSING'}
             </span>
           </div>
-          <div className="flex items-center justify-between border-b border-line/60 pb-2">
+          <div className="kv">
             <span className="text-dim">openrouter key</span>
             <span className={status.env.openrouterKeySet ? 'text-up' : 'text-down'}>
               {status.env.openrouterKeySet ? 'set' : 'MISSING'}
             </span>
           </div>
-          <div className="flex items-center justify-between border-b border-line/60 pb-2">
+          <div className="kv">
             <span className="text-dim">models</span>
             <span className="text-faint">{status.env.modelStructure} · {status.env.modelVision}</span>
           </div>

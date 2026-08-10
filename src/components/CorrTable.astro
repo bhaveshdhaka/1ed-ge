@@ -13,14 +13,15 @@ const { rows, label = 'bucket' } = Astro.props as { rows: Row[]; label?: string 
 ---
 
 <table class="w-full border-collapse">
+  <caption class="sr-only">Correlation matrix</caption>
   <thead>
     <tr>
-      <th class="th">{label}</th>
-      <th class="th text-right">days</th>
-      <th class="th text-right">trades</th>
-      <th class="th text-right">sum R</th>
-      <th class="th text-right">avg R</th>
-      <th class="th text-right">win%</th>
+      <th scope="col" class="th">{label}</th>
+      <th scope="col" class="th text-right">days</th>
+      <th scope="col" class="th text-right">trades</th>
+      <th scope="col" class="th text-right">sum R</th>
+      <th scope="col" class="th text-right">avg R</th>
+      <th scope="col" class="th text-right">win%</th>
     </tr>
   </thead>
   <tbody>
@@ -30,7 +31,7 @@ const { rows, label = 'bucket' } = Astro.props as { rows: Row[]; label?: string 
         <td class="td text-right text-dim">{r.days ?? '—'}</td>
         <td class="td text-right">{r.trades}</td>
         <td class="td text-right text-dim">{r.sumR > 0 ? '+' : ''}{r.sumR.toFixed(2)}</td>
-        <td class:list={['td text-right', r.avgR > 0 ? 'num-up' : r.avgR < 0 ? 'num-down' : '']}>
+        <td class:list={['td text-right', r.avgR > 0 ? 'text-up' : r.avgR < 0 ? 'text-down' : '']}>
           {r.avgR > 0 ? '+' : ''}{r.avgR.toFixed(2)}R
         </td>
         <td class="td text-right">{r.winRate === null ? '—' : r.winRate.toFixed(0) + '%'}</td>

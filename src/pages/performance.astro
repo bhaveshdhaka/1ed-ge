@@ -4,7 +4,7 @@ import { getCollection } from 'astro:content'
 import { buildStats, fmtPnl, fmtPts } from '../lib/stats'
 import { buildHabitStats } from '../lib/habits'
 import { buildTrends } from '../lib/trends'
-import { fmtDay } from '../lib/dates'
+import { fmtDay, fmtDayWUpper } from '../lib/dates'
 import EquityCurve from '../components/EquityCurve.astro'
 import RHistogram from '../components/RHistogram.astro'
 import Heatmap from '../components/Heatmap.astro'
@@ -45,11 +45,11 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
   <section class="shell pt-12 pb-20">
     <div class="flex items-baseline gap-3">
       <h1 class="text-2xl">/ performance</h1>
-      <span class="text-[12px] text-faint">R = points risked vs points made</span>
+      <span class="text-xs text-faint">R = points risked vs points made</span>
     </div>
 
     <div class="sticky top-0 z-10 mt-6 -mx-1 border-b border-line bg-bg/95 px-1 py-1 backdrop-blur">
-      <div class="flex gap-1 overflow-x-auto text-[12px]" tabindex="0">
+      <div class="flex gap-1 overflow-x-auto text-xs" tabindex="0">
         {[
           ['summary', 'stats'],
           ['charts', 'charts'],
@@ -74,8 +74,8 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       <div class="grid grid-cols-2 gap-2 p-3 md:grid-cols-4 lg:grid-cols-6">
         {cards.map((c) => (
           <div class="well p-4">
-            <div class="text-[10px] uppercase tracking-widest text-dim">{c.label}</div>
-            <div class:list={['mt-1.5 text-lg', c.dim ? 'text-dim' : c.up === undefined ? 'text-ink' : c.up ? 'num-up' : 'num-down']}>{c.value}</div>
+            <div class="text-3xs uppercase tracking-widest text-dim">{c.label}</div>
+            <div class:list={['mt-1.5 text-lg', c.dim ? 'text-dim' : c.up === undefined ? 'text-ink' : c.up ? 'text-up' : 'text-down']}>{c.value}</div>
           </div>
         ))}
       </div>
@@ -99,7 +99,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
           <span class="card-sub">$ pnl · all accounts</span>
         </div>
         <div class="p-4">
-          <EquityCurve points={s.equityPnl} color="var(--chart-alt)" footer={`${s.equityPnl.length} executions`} />
+          <EquityCurve points={s.equityPnl} color="var(--color-accent)" footer={`${s.equityPnl.length} executions`} />
         </div>
       </div>
     </div>
@@ -142,22 +142,22 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
             <tr>
               <td class="td">
                 <div class="text-ink">{a.firm}</div>
-                <div class="text-[11px] text-faint">{a.sizeLabel} · {a.id}</div>
+                <div class="text-2xs text-faint">{a.sizeLabel} · {a.id}</div>
               </td>
               <td class="td"><span class={stageColor[a.stage] ?? ''}>{a.stage}</span></td>
               <td class="td text-right text-dim">${a.drawdownLimit.toLocaleString()}</td>
               <td class="td text-right">{a.trades}</td>
               <td class="td text-right">{a.winRate === null ? '—' : a.winRate.toFixed(0) + '%'}</td>
-              <td class:list={['td text-right', a.grossPnl >= 0 ? 'num-up' : 'num-down']}>{fmtPnl(a.grossPnl)}</td>
+              <td class:list={['td text-right', a.grossPnl >= 0 ? 'text-up' : 'text-down']}>{fmtPnl(a.grossPnl)}</td>
               <td class="td text-right text-dim">{a.payouts ? fmtPnl(-a.payouts) : '—'}</td>
-              <td class:list={['td text-right', a.netPnl >= 0 ? 'num-up' : 'num-down']}>{fmtPnl(a.netPnl)}</td>
-              <td class:list={['td text-right', a.sumR >= 0 ? 'num-up' : 'num-down']}>{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
+              <td class:list={['td text-right', a.netPnl >= 0 ? 'text-up' : 'text-down']}>{fmtPnl(a.netPnl)}</td>
+              <td class:list={['td text-right', a.sumR >= 0 ? 'text-up' : 'text-down']}>{a.sumR > 0 ? '+' : ''}{a.sumR.toFixed(2)}R</td>
               <td class="td">
                 <div class="flex items-center justify-end gap-2">
                   <div class="h-1.5 w-20 bg-raise">
                     <div class="h-full" style={`width:${a.ddUsedPct}%`} class:list={[a.ddUsedPct > 70 ? 'bg-down' : 'bg-up']} />
                   </div>
-                  <span class="w-24 text-right text-[11px] text-dim">${a.buffer.toLocaleString()} left</span>
+                  <span class="w-24 text-right text-2xs text-dim">${a.buffer.toLocaleString()} left</span>
                 </div>
               </td>
             </tr>
@@ -195,17 +195,17 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
         <tbody>
           {recent.map((t) => (
             <tr>
-              <td class="td text-dim"><a class="hover:text-accent" href={`/day/${fmtDay(t.day)}`}>{fmtDay(t.day)}</a></td>
+              <td class="td text-dim"><a class="hover:text-accent" href={`/day/${fmtDay(t.day)}`}>{fmtDayWUpper(t.day)}</a></td>
               <td class="td">
-                <span class={t.direction === 'long' ? 'num-up' : 'num-down'}>{t.direction === 'long' ? '▲ L' : '▼ S'}</span>
+                <span class={t.direction === 'long' ? 'text-up' : 'text-down'}>{t.direction === 'long' ? '▲ L' : '▼ S'}</span>
               </td>
               <td class="td text-dim">{t.setup ?? '—'}</td>
               <td class="td text-right">{t.entry}</td>
               <td class="td text-right">{t.exit}</td>
               <td class="td text-right">{fmtPts(t.points)}</td>
               <td class="td text-right text-dim">{t.riskPoints}pts</td>
-              <td class:list={['td text-right', t.R > 0 ? 'num-up' : t.R < 0 ? 'num-down' : '']}>{t.R > 0 ? '+' : ''}{t.R.toFixed(2)}R</td>
-              <td class="td text-[12px] text-dim">
+              <td class:list={['td text-right', t.R > 0 ? 'text-up' : t.R < 0 ? 'text-down' : '']}>{t.R > 0 ? '+' : ''}{t.R.toFixed(2)}R</td>
+              <td class="td text-xs text-dim">
                 {(() => {
                   const day = days.find((d) => d.data.date === t.day)
                   const exec = day?.data.trades[t.tradeId]?.executions ?? []
@@ -235,7 +235,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
             <div class="p-4">
               <div class="flex items-baseline gap-4">
                 <span class="text-2xl" style={`color:${h.color}`}>{h.currentStreak}<span class="text-sm text-dim">d</span></span>
-                <div class="text-[12px] text-dim">best {h.bestStreak}d · 30d {h.pct30 === null ? '—' : h.pct30.toFixed(0) + '%'} · all {h.pctAll === null ? '—' : h.pctAll.toFixed(0) + '%'}</div>
+                <div class="text-xs text-dim">best {h.bestStreak}d · 30d {h.pct30 === null ? '—' : h.pct30.toFixed(0) + '%'} · all {h.pctAll === null ? '—' : h.pctAll.toFixed(0) + '%'}</div>
               </div>
               <div class="mt-5"><Heatmap data={h.heatmap} color={h.color} name={h.name} /></div>
             </div>
@@ -263,8 +263,8 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
               <td class="td text-right">{w.trades}</td>
               <td class="td text-right">{w.winRate === null ? '—' : w.winRate.toFixed(1) + '%'}</td>
               <td class="td text-right text-dim">{w.sumR > 0 ? '+' : ''}{w.sumR.toFixed(2)}</td>
-              <td class:list={['td text-right', w.avgR > 0 ? 'num-up' : w.avgR < 0 ? 'num-down' : '']}>{w.avgR > 0 ? '+' : ''}{w.avgR.toFixed(2)}R</td>
-              <td class:list={['td text-right', w.sumPnl >= 0 ? 'num-up' : 'num-down']}>{w.sumPnl >= 0 ? '+' : ''}${Math.round(w.sumPnl).toLocaleString()}</td>
+              <td class:list={['td text-right', w.avgR > 0 ? 'text-up' : w.avgR < 0 ? 'text-down' : '']}>{w.avgR > 0 ? '+' : ''}{w.avgR.toFixed(2)}R</td>
+              <td class:list={['td text-right', w.sumPnl >= 0 ? 'text-up' : 'text-down']}>{w.sumPnl >= 0 ? '+' : ''}${Math.round(w.sumPnl).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
@@ -322,7 +322,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
         <h2 class="text-lg">/ observations</h2>
         <ul class="mt-4 space-y-2">
           {trends.flags.map((f) => (
-            <li class="flex gap-3 border-b border-line/60 pb-2 text-[13px] text-soft"><span class="text-faint">›</span><span>{f}</span></li>
+            <li class="flex gap-3 border-b border-line/60 pb-2 text-sm text-soft"><span class="text-faint">›</span><span>{f}</span></li>
           ))}
         </ul>
       </div>

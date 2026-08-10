@@ -14,10 +14,10 @@ const links = [
 const path = Astro.url.pathname
 ---
 
-<nav class="shell flex items-center justify-between gap-4 py-4 md:py-5">
+<nav class="shell flex items-center justify-between gap-4 pt-safe-4 pb-4 md:py-5">
   <Brand />
 
-  <div class="hidden items-center gap-1 text-[12px] md:flex md:gap-3 md:text-[13px]">
+  <div class="hidden items-center gap-1 text-xs md:flex md:gap-3 md:text-sm">
     {links.map((l) => (
       <a
         href={l.href}
@@ -35,7 +35,7 @@ const path = Astro.url.pathname
   <details class="group relative md:hidden">
     <summary
       aria-label="menu"
-      class="flex h-11 w-11 list-none cursor-pointer items-center justify-center border border-line2 text-[13px] text-soft transition-colors hover:border-accent hover:text-ink"
+      class="flex h-11 w-11 list-none cursor-pointer items-center justify-center border border-line2 text-sm text-soft transition-colors hover:border-accent hover:text-ink"
     >
       <span class="flex flex-col items-center gap-[5px]">
         <span class="block h-px w-5 bg-current transition-transform group-open:translate-y-[6px] group-open:rotate-45"></span>
@@ -49,7 +49,7 @@ const path = Astro.url.pathname
           href={l.href}
           aria-current={path === l.href ? 'page' : undefined}
           class:list={[
-            'flex h-11 items-center gap-2 border-b border-line/60 px-4 text-[13px] last:border-0',
+            'flex h-11 items-center gap-2 border-b border-line/60 px-4 text-sm last:border-0',
             path === l.href ? 'bg-raise text-ink' : 'text-dim',
           ]}
         >

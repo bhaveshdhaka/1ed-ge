@@ -34,7 +34,7 @@ const clsClass = (cls: string) =>
 ---
 
 <details class="group w-full">
-  <summary class="flex cursor-pointer list-none flex-wrap items-baseline gap-x-4 gap-y-1 py-1 text-[12px]">
+  <summary class="flex cursor-pointer list-none flex-wrap items-baseline gap-x-4 gap-y-1 py-1 text-xs">
     <span class="text-faint tabular-nums">{prettyDate}</span>
 
     <span data-f-market class="min-w-0 flex-1 tabular-nums" style={`color:${cme ? clsColor(cme.cls) : 'var(--color-dim)'}`}>
@@ -56,7 +56,7 @@ const clsClass = (cls: string) =>
   <div class="border-t border-line/50 pt-2">
     <div class="flex flex-col gap-1" data-f-rows>
       {cash.map((c) => (
-        <div class="flex items-baseline gap-2 text-[12px]" data-f-cash-row={c.key}>
+        <div class="flex items-baseline gap-2 text-xs" data-f-cash-row={c.key}>
           <span class="shrink-0">{c.flag}</span>
           <span data-f-cash-text={c.key} class:list={[c.seg ? clsClass(c.seg.cls) : 'text-faint']}>
             {c.seg ? c.seg.text : 'closed'}
@@ -66,14 +66,14 @@ const clsClass = (cls: string) =>
           </span>
         </div>
       ))}
-      <div class="flex items-baseline gap-2 text-[12px]" data-f-news style={nextRed ? '' : 'display:none'}>
+      <div class="flex items-baseline gap-2 text-xs" data-f-news style={nextRed ? '' : 'display:none'}>
         <span data-f-news-dot class:list={['inline-block h-1.5 w-1.5 rounded-full', redKind ? 'bg-down' : 'bg-warn']}></span>
         <span data-f-news-text class:list={[redKind ? 'text-down' : 'text-warn']}>{nextRed?.text ?? ''}</span>
         <span data-f-news-cd class="ml-auto tabular-nums" style={nextRed ? `color:${redKind ? 'var(--color-down)' : 'var(--color-warn)'}` : ''}>
           {nextRed ? fmtHuman((nextRed.at - now) / 1000) : ''}
         </span>
       </div>
-      <div class="flex items-baseline gap-2 text-[12px]" data-f-speaker style={speaker ? '' : 'display:none'}>
+      <div class="flex items-baseline gap-2 text-xs" data-f-speaker style={speaker ? '' : 'display:none'}>
         <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent"></span>
         <span data-f-speaker-text class="text-accent">{speaker?.text ?? ''}</span>
         <span data-f-speaker-cd class="ml-auto tabular-nums text-accent">{speaker ? fmtHuman((speaker.at - now) / 1000) : ''}</span>
@@ -190,7 +190,7 @@ const clsClass = (cls: string) =>
 </script>
 
 <style>
-  .crt details > summary::-webkit-details-marker {
+  details > summary::-webkit-details-marker {
     display: none;
   }
 </style>
