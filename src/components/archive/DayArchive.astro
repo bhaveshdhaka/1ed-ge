@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro'
 import { listMds, readEntry } from '../../lib/content'
 import { renderMarkdown } from '../../lib/markdown'
 import { newsForDate } from '../../lib/market-news'
-import { fmtDay, fmtDayW } from '../../lib/dates'
+import { fmtDay, fmtDayWUpper } from '../../lib/dates'
 import { scheduledDayMarker } from '../../lib/sessions'
 import { dayFacts, resolveThoughts, ROf } from '../../lib/stream'
 import type { DayData } from '../../lib/stream'
@@ -87,7 +87,7 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
 >
   <div class="shell pt-12 pb-20">
     <header class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-      <h1 class="text-2xl text-ink">/ day <span class="text-faint">{fmtDayW(iso)}</span></h1>
+      <h1 class="text-2xl text-ink">/ day <span class="text-faint">{fmtDayWUpper(iso)}</span></h1>
       <span class={`text-xs tabular-nums ${mk.cls}`}>
         {mk.glyph} {mk.text}
       </span>

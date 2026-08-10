@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro'
 import { listMds, readEntry } from '../lib/content'
 import { todayHkt, nowHkt, hktDayNumber } from '../lib/sessions'
-import { fmtDay, fmtDayW } from '../lib/dates'
+import { fmtDay, fmtDayWUpper } from '../lib/dates'
 import { flattenStream, resolveThoughts, thoughtMeta, dayFacts } from '../lib/stream'
 import { readLiveState } from '../lib/live'
 import { liveLine } from '../lib/copy'
@@ -63,7 +63,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
         <div class="card-hd border-b border-sep">
           <span class="card-ico">📊</span>
           <span class="card-lbl">today so far</span>
-          <span class="card-sub">{fmtDayW(iso)}</span>
+          <span class="card-sub">{fmtDayWUpper(iso)}</span>
           {live.live && <span class="tmr">● live</span>}
           <a href={`/day/${fmtDay(iso)}`} class="ml-auto text-2xs text-faint transition-colors hover:text-accent">day →</a>
         </div>

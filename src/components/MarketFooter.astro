@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
 import { todayHkt } from '../lib/sessions'
-import { fmtDayW } from '../lib/dates'
+import { fmtDayWUpper } from '../lib/dates'
 import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
 import type { MarketKey } from '../lib/sessions'
@@ -25,7 +25,7 @@ const nextRed = nextNewsAt(payload.news, now)
 const speaker = nextSpeakerAt(payload.speaker, now)
 const redKind = nextRed?.kind === 'red'
 
-const prettyDate = fmtDayW(today)
+const prettyDate = fmtDayWUpper(today)
 
 const clsColor = (cls: string) =>
   cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
@@ -35,11 +35,10 @@ const clsClass = (cls: string) =>
 
 <details class="group w-full">
   <summary class="flex cursor-pointer list-none flex-wrap items-baseline gap-x-4 gap-y-1 py-1 text-[12px]">
-    <span class="text-faint uppercase tracking-widest">market</span>
     <span class="text-faint tabular-nums">{prettyDate}</span>
 
     <span data-f-market class="min-w-0 flex-1 tabular-nums" style={`color:${cme ? clsColor(cme.cls) : 'var(--color-dim)'}`}>
-      {cme ? `CME Globex ${cme.text} ${fmtHuman((cme.until - now) / 1000)}` : '—'}
+      {cme ? `CME ${cme.text} ${fmtHuman((cme.until - now) / 1000)}` : '—'}
     </span>
 
     {cash.find((c) => c.seg?.cls === 'up' || c.seg?.cls === 'warn') && (
@@ -133,7 +132,7 @@ const clsClass = (cls: string) =>
       const now = Date.now()
       const cme = segAt(PAYLOAD.segments.cme, now)
       if (main && cme) {
-        main.textContent = 'CME Globex ' + cme.text + ' ' + fmtHuman((cme.until - now) / 1000)
+        main.textContent = 'CME ' + cme.text + ' ' + fmtHuman((cme.until - now) / 1000)
         main.style.color = color(cme.cls)
       }
       for (const key of cashRows) {
