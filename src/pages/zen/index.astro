@@ -3,6 +3,8 @@ export const prerender = false
 import Bare from '../../layouts/Bare.astro'
 import AdminApp from '../../components/admin/AdminApp'
 import LoginScreen from '../../components/admin/LoginScreen'
+import MarketWidget from '../../components/MarketWidget.astro'
+import MarketDay from '../../components/MarketDay.astro'
 import { sessionOk } from '../../lib/auth'
 
 const authed = sessionOk(Astro.request)
@@ -15,4 +17,10 @@ const manifestHref = '/zen/manifest.webmanifest'
   ) : (
     <LoginScreen client:only="react" />
   )}
+  <footer class="shell pb-20 pt-10">
+    <div class="flex flex-col gap-4">
+      <MarketWidget />
+      <MarketDay />
+    </div>
+  </footer>
 </Bare>

@@ -71,7 +71,7 @@ export function CommandPalette(props: CommandPaletteProps) {
     <div role="dialog" aria-modal="true" aria-label="command palette" className="fixed inset-0 z-[60] flex items-start justify-center bg-bg/80 p-4 pt-[12vh]" onClick={close}>
       <Command
         shouldFilter
-        className="w-full max-w-lg overflow-hidden border border-line bg-panel font-mono shadow-2xl"
+        className="panel w-full max-w-lg overflow-hidden font-mono"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
           if (e.key === 'Escape') close()

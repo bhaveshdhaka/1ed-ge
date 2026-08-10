@@ -136,7 +136,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
 
   {showNews && (payload.news.length > 0 || speaker) && (
     <div class="mt-2 flex flex-col gap-1 border-t border-line/60 pt-2 text-[13px]" data-news-lines>
-      <div class="flex items-baseline gap-3" data-news-row style={nextRed ? '' : 'display:none'}>
+      <div class="flex items-baseline gap-2" data-news-row style={nextRed ? '' : 'display:none'}>
         <span data-news-dot class:list={['inline-block h-1.5 w-1.5 shrink-0 rounded-full', redKind ? 'bg-down' : 'bg-warn']}></span>
         <span data-news-text class:list={['min-w-0 flex-1', redKind ? 'text-down' : 'text-warn']}>{nextRed?.text ?? ''}</span>
         <span data-news-cd class="shrink-0 text-[12px] tabular-nums" style={nextRed ? `color:${redKind ? 'var(--color-down)' : 'var(--color-warn)'}` : ''}>
@@ -144,7 +144,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
         </span>
       </div>
       {speaker && (
-        <div class="flex items-baseline gap-3" data-speaker-row>
+        <div class="flex items-baseline gap-2" data-speaker-row>
           <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
           <span data-speaker-text class="min-w-0 flex-1 text-accent">{speaker.text}</span>
           <span data-speaker-cd class="shrink-0 text-[12px] tabular-nums text-accent">{fmtHuman((speaker.at - now) / 1000)}</span>

@@ -65,7 +65,7 @@ export function TradeCard({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : undefined }}
-      className="group border border-line bg-bg"
+      className="group panel"
     >
       {/* ---------- collapsed row ---------- */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2">

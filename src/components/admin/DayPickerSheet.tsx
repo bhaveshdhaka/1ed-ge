@@ -25,7 +25,7 @@ function SheetFrame({ title, onClose, children }: { title: string; onClose: () =
       <style>{`@keyframes sheet-in { from { opacity: 0; transform: translateX(16px) } to { opacity: 1; transform: none } }`}</style>
       <div className="fixed inset-0 bg-bg/80" style={{ animation: 'sheet-in 60ms ease-out' }} onClick={onClose} />
       <div
-        className="fixed right-0 top-0 flex h-full w-[420px] max-w-[92vw] flex-col border-l border-line bg-panel shadow-2xl"
+        className="panel fixed right-0 top-0 flex h-full w-[420px] max-w-[92vw] flex-col"
         style={{ animation: 'sheet-in 60ms ease-out' }}
       >
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
