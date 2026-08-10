@@ -252,7 +252,7 @@ const principles = [
   { rule: 'Everything public', detail: 'I open every position, show every ticket, log every trade, every result, every move. Nothing hidden.' },
   { rule: 'Kaizen', detail: 'Trading is continuous daily improvement. Keep what works, drop what doesn\'t, tweak the exact same things every single day.' },
   { rule: 'Files are the database', detail: 'Markdown frontmatter. No SQL, no ORM, no migrations.' },
-  { rule: 'Zero JS on public pages', detail: 'All charts are server-rendered SVG. The lightbox and timezone script are the only exceptions.' },
+  { rule: 'Minimal JS on public pages', detail: 'All charts are server-rendered SVG. ~15KB inline JS total (lightbox, timezone, market ticker). No external JS dependencies.' },
   { rule: 'CME is the master clock', detail: 'Day status comes from the CME equity-index-futures calendar. NYSE/TSE/LSE are secondary.' },
   { rule: 'R is the only metric', detail: 'R = points risked vs points made. Performance math is risk-based.' },
   { rule: 'Security by obscurity', detail: 'The admin is at a secret URL. API keys are in .env (gitignored). The route stays obscure.' },

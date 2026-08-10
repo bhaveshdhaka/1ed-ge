@@ -40,7 +40,7 @@ wired-up check: `bash scripts/audit-pipeline.sh`. The single ship command:
 
 - **Astro 5** (static-first) + **@astrojs/node** (standalone SSR for the few
   server routes) + **Tailwind CSS v4** + TypeScript.
-- React islands only on the admin page (client-side). Public pages ship zero JS.
+- React islands only on the admin page (client-side). Public pages ship minimal JS (~15KB inline: lightbox, timezone, market ticker).
 - **Markdown editor in the admin** — plain textarea + write/preview tabs
   (`src/components/admin/MarkdownEditor.tsx`, unified/remark/rehype, raw HTML
   escaped). Milkdown Crepe is gone. Images paste → upload to `/api/admin/media`

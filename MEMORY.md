@@ -143,9 +143,24 @@ same repo (`main` and `preprod` branches). Full env contract in
 - Admin timezone picker (7 cities, localStorage)
 
 ### /dev page
-- Public build log at `1ed.ge/dev`
-- Stack, principles, features, changelog, token costs
-- Version tracking (v0.1-alpha)
+- Public build log at `1ed.ge/dev` (linked from /about, not in nav)
+- Stack, principles, features, changelog, token costs, version tracking
+- **Full traceability**: 89 files mapped to features (8 categories)
+- **Every code change must update /dev**: changelog entry + traceability if new files added
+- Version increments when meaningful features ship; token costs table updated
+
+### Design system — NON-NEGOTIABLE (2026-08-10)
+The /dev page cards were wrong on first write. I built custom markup instead of using `<Card>`. Root cause: skipped the design system.
+
+**Rule: Every new page uses the Card component.** Never hand-build `panel` + `card-hd` markup. If Card doesn't support a pattern, extend it. This is non-negotiable.
+
+**Rule: Every new surface goes through the designer agent or uses existing Card patterns.** No exceptions.
+
+### Card spacing (desktop)
+`.card-hd` padding: `10px 14px`, min-height: `44px` (tightened from 12px/48px). Body: `p-3 md:p-4`. Global fix in app.css.
+
+### JS budget
+~15KB inline JS (lightbox, timezone, ticker/widget/footer). No external JS. All charts are SSR SVG. "Minimal JS" not "zero JS."
 
 ### Token costs
 - v0.0 (pre-2026-08-10): ~$50
