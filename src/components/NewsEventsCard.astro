@@ -8,16 +8,17 @@ interface Props {
   orange: NewsItem[]
   dayIso: string
   isToday: boolean
+  hideDate?: boolean
 }
 
-const { red, orange, dayIso, isToday } = Astro.props
+const { red, orange, dayIso, isToday, hideDate = false } = Astro.props
 ---
 
 <section class="panel">
   <div class="card-hd border-b border-sep">
     <span class="card-ico">📰</span>
     <span class="card-lbl">news events</span>
-    <span class="card-sub">{fmtDayWUpper(dayIso)}</span>
+    {!hideDate && <span class="card-sub">{fmtDayWUpper(dayIso)}</span>}
   </div>
   <div class="p-3 md:p-4">
     {red.length > 0 || orange.length > 0 ? (
@@ -26,9 +27,9 @@ const { red, orange, dayIso, isToday } = Astro.props
       </div>
     ) : (
       <p class="text-xs text-faint">
-        no <span class="inline-block h-1.5 w-1.5 rounded-full bg-down align-middle"></span> red or{' '}
-        <span class="inline-block h-1.5 w-1.5 rounded-full bg-warn align-middle"></span> orange news events{' '}
-        {isToday ? 'today' : `for ${fmtDay(dayIso).toUpperCase()}`}.
+        no <span class="inline-block h-1.5 w-1.5 rounded-full bg-down align-middle"></span>{' '}
+        <span class="inline-block h-1.5 w-1.5 rounded-full bg-warn align-middle"></span>{' '}
+        news events {isToday ? 'today' : `for ${fmtDay(dayIso).toUpperCase()}`}.
       </p>
     )}
   </div>
