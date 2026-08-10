@@ -866,6 +866,7 @@ export function DayWorkspace({
 
               {/* ---------- Z2 WRITE ZONE ---------- */}
               <WriteZone
+                date={date}
                 stream={stream}
                 trades={trades}
                 models={models.map(({ slug, name }) => ({ slug, name }))}
