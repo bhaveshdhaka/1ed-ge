@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from './ui'
+import { todayStr } from './api'
 
 interface NotificationDrawerProps {
   pendingReflections: { date: string; label: string; overdue: boolean }[]
@@ -40,7 +41,7 @@ export function NotificationDrawer(props: NotificationDrawerProps) {
     none: 'no day yet',
   }[props.dayStatus]
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayStr()
   const overdue = props.pendingReflections.filter((p) => p.overdue)
   const grace = props.pendingReflections.filter((p) => !p.overdue && p.date === today)
   const otherGrace = props.pendingReflections.filter((p) => !p.overdue && p.date !== today)

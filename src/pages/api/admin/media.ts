@@ -6,6 +6,7 @@ import { requireSession, json, error } from '../../../lib/auth'
 import { MEDIA, listMedia, sanitizeSlug } from '../../../lib/content'
 import { captionAlt } from '../../../lib/ai'
 import { setAlt, removeAlt } from '../../../lib/media-alt'
+import { cmeToday } from '../../../lib/sessions'
 
 export const prerender = false
 
@@ -30,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
   const buf = Buffer.from(match[2], 'base64')
   if (!buf.length) return error('empty image')
 
-  const date = new Date().toISOString().slice(0, 10)
+  const date = cmeToday()
   const base = sanitizeSlug(path.parse(String(body.name ?? 'image')).name) || 'image'
   const dir = path.join(MEDIA, date)
   fs.mkdirSync(dir, { recursive: true })

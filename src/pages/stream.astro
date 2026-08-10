@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro'
 import { listMds, readEntry } from '../lib/content'
-import { todayHkt, nowHkt, hktDayNumber } from '../lib/sessions'
+import { cmeToday, nowHkt, hktDayNumber } from '../lib/sessions'
 import { fmtDay, fmtDayWUpper } from '../lib/dates'
 import { flattenStream, resolveThoughts, thoughtMeta, dayFacts } from '../lib/stream'
 import { readLiveState } from '../lib/live'
@@ -33,7 +33,7 @@ const lastSeenDays = live.lastOnlineIso
   ? Math.max(0, hktDayNumber(`${nowHkt()}:00+08:00`) - hktDayNumber(live.lastOnlineIso))
   : null
 
-const iso = todayHkt()
+const iso = cmeToday()
 const today = days.find((d) => d.date === iso) ?? null
 const todayThoughts = today ? resolveThoughts(today) : []
 const todayCells = dayFacts(today, habitEntries.filter((h) => h.data.active).length)

@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
-import { todayHkt, daySessionWindows, HKT_OFFSET_MS } from '../lib/sessions'
+import { cmeToday, daySessionWindows, HKT_OFFSET_MS } from '../lib/sessions'
 import { fmtDayWUpper } from '../lib/dates'
 import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
@@ -15,7 +15,7 @@ interface Props {
 }
 
 const { news: showNews = true } = Astro.props
-const today = todayHkt()
+const today = cmeToday()
 const news = showNews ? await getCollection('market-news') : []
 const newsToday = news.find((n) => n.data.date === today)
 const red = newsToday?.data.red ?? []

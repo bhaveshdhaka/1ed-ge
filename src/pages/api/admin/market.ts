@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process'
 import { requireSession, json, error } from '../../../lib/auth'
 import { ROOT } from '../../../lib/content'
 import { newsForDate, listNewsDates } from '../../../lib/market-news'
-import { todayKey } from '../../../lib/habits'
+import { cmeToday } from '../../../lib/sessions'
 
 export const prerender = false
 
@@ -25,10 +25,10 @@ function getStatus() {
 
 export const GET: APIRoute = async ({ request, url }) => {
   if (requireSession(request)) return error('unauthorized', 401)
-  const date = url.searchParams.get('date') ?? todayKey()
+  const date = url.searchParams.get('date') ?? cmeToday()
   return json({
     ok: true,
-    today: todayKey(),
+    today: cmeToday(),
     news: newsForDate(date),
     dates: listNewsDates().slice(0, 14),
     refresh: getStatus(),
