@@ -131,7 +131,7 @@ export function thoughtMeta(type: ThoughtType): ThoughtMeta {
     case 'trade':
       return { glyph: '▲', label: 'trade' }
     case 'note':
-      return { glyph: '·', label: 'note' }
+      return { glyph: '·', label: 'thought' }
     case 'quote':
       return { glyph: '"', label: 'quote' }
   }

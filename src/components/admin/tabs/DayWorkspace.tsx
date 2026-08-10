@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, todayStr, fileToDataUrl, uploadDataUrl, notifyChanged, triggerRebuild, setPasteSink, bus } from '../api'
 import { fmtDay, fmtDayW } from '../../../lib/dates'
 import { nowHkt, addDaysIso } from '../../../lib/sessions'
@@ -6,7 +6,6 @@ import { hktHHMM } from '../../../lib/clock'
 import { Card, Button, TextInput } from '../ui'
 import { DayRail } from '../DayRail'
 import { TradeList } from '../TradeCard'
-import { CeremonyProvider, useCeremony } from '../CeremonyMode'
 import { CheckInBand } from '../CheckInBand'
 import { WriteZone, type ReflectionObligation } from '../WriteZone'
 import { NotificationDrawer } from '../NotificationDrawer'
@@ -60,12 +59,6 @@ const toTradeForm = (t: any): TradeForm => ({
     ? t.accounts.map((a: string) => ({ account: a, size: '' }))
     : [],
 })
-
-/** Z1–Z4 ceremony dim: when the reflection editor is focused, siblings drop to 40%. */
-function CeremonyDim({ children }: { children: ReactNode }) {
-  const { active } = useCeremony()
-  return <div className={active ? 'opacity-40 transition-opacity duration-200' : ''}>{children}</div>
-}
 
 export function DayWorkspace({
   onDirtyChange,
@@ -806,7 +799,6 @@ export function DayWorkspace({
   })
 
   return (
-    <CeremonyProvider>
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -837,9 +829,8 @@ export function DayWorkspace({
             <Card title="loading"><p className="text-[13px] text-faint">loading…</p></Card>
           ) : (
             <>
-              <CeremonyDim>
-                {/* ---------- Z1 CHECK-IN ---------- */}
-                <CheckInBand
+              {/* ---------- Z1 CHECK-IN ---------- */}
+              <CheckInBand
                   date={date}
                   dayText={dayText}
                   dayImages={dayImages}
@@ -872,7 +863,6 @@ export function DayWorkspace({
                   onRemoveDeviceScreen={(s) => setDeviceScreens((x) => x.filter((y) => y !== s))}
                   onEvidence={() => document.getElementById('sec-capture')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 />
-              </CeremonyDim>
 
               {/* ---------- Z2 WRITE ZONE ---------- */}
               <WriteZone
@@ -895,9 +885,8 @@ export function DayWorkspace({
                 onUnstream={unstreamThought}
               />
 
-              <CeremonyDim>
-                {/* ---------- Z3 HABITS ---------- */}
-                <HabitRow
+              {/* ---------- Z3 HABITS ---------- */}
+              <HabitRow
                   habitDefs={habitDefs}
                   habits={habits}
                   onToggle={(slug) => { setHabits((x) => ({ ...x, [slug]: !(x[slug] === true) })); markDirty() }}
@@ -951,16 +940,15 @@ export function DayWorkspace({
                     }}
                   />
                 </div>
-              </CeremonyDim>
 
               {/* ---------- FOOTER ---------- */}
               <div className="flex flex-wrap items-center gap-6 border border-line bg-bg px-4 py-3 text-[13px]">
                 <span className="text-dim">day</span>
                 <span className={dayTotals.R > 0 ? 'text-up' : dayTotals.R < 0 ? 'text-down' : 'text-ink'}>{dayTotals.R > 0 ? '+' : ''}{dayTotals.R.toFixed(2)}R</span>
                 <span className="text-dim">·</span>
-                <span className={dayTotals.pts >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pts >= 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
+                <span className={dayTotals.pts > 0 ? 'text-up' : dayTotals.pts < 0 ? 'text-down' : 'text-soft'}>{dayTotals.pts > 0 ? '+' : ''}{dayTotals.pts.toFixed(1)}pts</span>
                 <span className="text-dim">·</span>
-                <span className={dayTotals.pnl >= 0 ? 'text-up' : 'text-down'}>{dayTotals.pnl >= 0 ? '+' : ''}${Math.round(dayTotals.pnl).toLocaleString()}</span>
+                <span className={dayTotals.pnl > 0 ? 'text-up' : dayTotals.pnl < 0 ? 'text-down' : 'text-soft'}>{dayTotals.pnl > 0 ? '+' : ''}${Math.round(dayTotals.pnl).toLocaleString()}</span>
                 <span className="ml-auto text-[11px] text-faint">autosaves on idle · ⌘S flushes</span>
               {daysList.some((d) => d.date === date) && (
                 <Button size="sm" variant="danger" onClick={removeDay}>delete day</Button>
@@ -1002,6 +990,5 @@ export function DayWorkspace({
         onSelectDate={selectDate}
       />
     </div>
-    </CeremonyProvider>
   )
 }

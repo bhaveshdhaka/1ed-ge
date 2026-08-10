@@ -1,8 +1,9 @@
-import { useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Button, Field, TextInput, NumInput, Select } from './ui'
 import { ModelChipRow } from './ModelChipRow'
 import { GhostText } from './GhostText'
 import { useGhostText } from './useGhostText'
+import { bus } from './api'
 import type { ThoughtForm, TradeForm, AccRow } from './tabs/DayWorkspace'
 
 export interface ReflectionObligation {
@@ -87,6 +88,17 @@ export function WriteZone(props: WriteZoneProps) {
   const [trade, setTrade] = useState<Partial<TradeForm>>(emptyTrade)
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const { suggestion, caretPos } = useGhostText(composerRef, props.ghostTextEnabled ?? false)
+
+  // ⌘K "new thought/quote/trade" switches the composer type + focuses it
+  useEffect(() => {
+    const offs = (['thought', 'quote', 'trade'] as const).map((t) =>
+      bus.on(`compose-${t}`, () => {
+        setType(t)
+        setTimeout(() => composerRef.current?.focus(), 50)
+      }),
+    )
+    return () => offs.forEach((off) => off())
+  }, [])
 
   const resetComposer = () => {
     setText('')
@@ -175,6 +187,12 @@ export function WriteZone(props: WriteZoneProps) {
             rows={15}
             value={props.reflection}
             onChange={(e) => props.onReflectionChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault()
+                if (props.reflection.trim() && !props.saving) props.onPublishReflection()
+              }
+            }}
             placeholder="write the end-of-day reflection…"
             className="input w-full resize-y leading-snug"
           />
@@ -405,7 +423,7 @@ export function WriteZone(props: WriteZoneProps) {
                 className="flex items-start gap-3 border border-line bg-bg px-3 py-2"
               >
                 <span className="mt-0.5 text-[11px] text-faint">{m.at || '--:--'}</span>
-                <span className="mt-0.5 text-[11px] uppercase tracking-wider text-dim">{m.type}</span>
+                <span className="mt-0.5 text-[11px] uppercase tracking-wider text-dim">{m.type === 'note' ? 'thought' : m.type}</span>
                 <div className="min-w-0 flex-1 text-[13px] text-ink">
                   {isTrade ? (
                     <span>
