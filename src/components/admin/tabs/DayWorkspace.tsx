@@ -11,7 +11,6 @@ import { CheckInBand } from '../CheckInBand'
 import { WriteZone, type ReflectionObligation } from '../WriteZone'
 import { NotificationDrawer } from '../NotificationDrawer'
 import { HabitRow } from '../HabitRow'
-import { AIBuildSheet } from '../AIBuildSheet'
 import { IngestSheet } from '../IngestSheet'
 import { DayPickerSheet } from '../DayPickerSheet'
 import { ghostTextOn } from '../useGhostText'
@@ -124,7 +123,6 @@ export function DayWorkspace({
   const lastAiTradesRef = useRef<TradeForm[]>([])
 
   const [editing, setEditing] = useState<string | null>(null)
-  const [aiBuildOpen, setAiBuildOpen] = useState(false)
   const [ingestOpen, setIngestOpen] = useState(false)
   const [dayPickerOpen, setDayPickerOpen] = useState(false)
   const [expandedTrade, setExpandedTrade] = useState<number | null>(null)
@@ -751,9 +749,9 @@ export function DayWorkspace({
     if (!weekday(date) || posted) return { type: 'daily', status: 'done' as const }
     const dueIso = `${addDaysIso(date, 1)}T03:00`
     const now = nowHkt()
-    // Only show as overdue after 3am next day — before that, not yet due
+    // Day reflection: "due tonight" until 03:00 next day, then "overdue".
     if (now.slice(0, 16) >= dueIso) return { type: 'daily', status: 'overdue' as const }
-    return null
+    return { type: 'daily', status: 'grace' as const }
   }, [date, content])
 
   const scrollTo = (id: string) => {
@@ -872,7 +870,7 @@ export function DayWorkspace({
                   onPasteScreen={onDeviceScreens}
                   deviceScreens={deviceScreens}
                   onRemoveDeviceScreen={(s) => setDeviceScreens((x) => x.filter((y) => y !== s))}
-                  onEvidence={() => setAiBuildOpen(true)}
+                  onEvidence={() => document.getElementById('sec-capture')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 />
               </CeremonyDim>
 
@@ -988,19 +986,6 @@ export function DayWorkspace({
         </div>
       </div>
 
-      <AIBuildSheet
-        open={aiBuildOpen}
-        onOpenChange={setAiBuildOpen}
-        dayText={dayText}
-        dayImages={dayImages}
-        dayBusy={dayBusy}
-        canBuild={!!dayText.trim() || dayImagesRef.current.length > 0}
-        onDayTextChange={(v) => { setDayText(v); markDirty() }}
-        onBuildDay={() => runStructure()}
-        onAddDayImages={addDayImages}
-        onRemoveDayImage={removeDayImage}
-        notify={sheetNotify}
-      />
       <IngestSheet
         open={ingestOpen}
         onOpenChange={setIngestOpen}
