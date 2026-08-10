@@ -18,6 +18,8 @@ echo "→ fetching USD market news (red/orange, no build)"
 node scripts/market-news-fetch.mjs --no-build || echo "  warn: market fetch failed — deploy continues"
 
 echo "→ building"
+echo "→ ensuring data dir exists"
+mkdir -p "$ROOT/data"
 npm run build
 
 echo "→ starting node server on port $SITE_PORT (kill any stale process first)"
@@ -36,7 +38,8 @@ set -a
 . "$ROOT/.env"
 set +a
 
-PORT="$SITE_PORT" HOST=127.0.0.1 nohup node "$ROOT/dist/server/entry.mjs" > /tmp/preprod.log 2>&1 &
+PORT="$SITE_PORT" HOST=127.0.0.1 setsid node "$ROOT/dist/server/entry.mjs" < /dev/null > /tmp/preprod.log 2>&1 &
+disown
 echo $! > /tmp/preprod.pid
 sleep 2
 
@@ -44,8 +47,12 @@ echo "→ installing test nginx vhost"
 sudo cp "$ROOT/nginx/test.1ed.ge.conf" /etc/nginx/sites-enabled/test.1ed.ge
 sudo nginx -t && sudo systemctl reload nginx
 
-echo "→ seeding (idempotent — only writes missing files; SITE_ENV=test passes the guard)"
-node scripts/seed.mjs || true
+# Auto-seed intentionally disabled (2026-08-09, owner-confirmed clean-slate request).
+# The default 4 accounts + 6 habits + Day Zero journal would re-appear on every
+# test deploy and conflict with the schema/data-structure changes in the new
+# day-surface rebuild. `scripts/seed.mjs` is unchanged and can be run manually
+# (`SITE_ENV=test node scripts/seed.mjs`) for a one-shot bootstrap if needed.
+echo "→ skipping auto-seed (clean-slate) — set SITE_ENV=test and run scripts/seed.mjs manually to bootstrap"
 
 echo
 echo "→ verifying live"

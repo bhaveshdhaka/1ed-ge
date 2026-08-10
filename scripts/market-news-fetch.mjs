@@ -32,7 +32,29 @@ const TV_HEADERS = {
 }
 
 const pad = (n) => String(n).padStart(2, '0')
-const isoDay = (ms) => new Date(ms + HKT_OFFSET).toISOString().slice(0, 10)
+
+// CME trading-day date for a UTC timestamp: the trading date rolls over at
+// 17:00 CT (the CME futures day boundary), not at midnight.
+function cmeDate(ms) {
+  const d = new Date(ms)
+  const ctHour = parseInt(
+    new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric', hour12: false,
+      timeZone: 'America/Chicago',
+    }).format(d),
+  )
+  const ctDateStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Chicago',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(d)
+
+  if (ctHour < 17) return ctDateStr
+
+  const [y, m, day] = ctDateStr.split('-').map(Number)
+  const next = new Date(y, m - 1, day + 1)
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`
+}
+
 const hktTime = (ms) => new Date(ms + HKT_OFFSET).toISOString().slice(11, 16)
 const yq = (s) => '"' + String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"'
 
@@ -87,7 +109,7 @@ function merge(tv, ff) {
 function writeDays(merged, cachedAt) {
   const byDay = new Map()
   for (const e of merged) {
-    const day = isoDay(e.ms)
+    const day = cmeDate(e.ms)
     if (!byDay.has(day)) byDay.set(day, { red: [], orange: [], anyVerified: false })
     const bucket = byDay.get(day)
     bucket[e.level].push({ time: hktTime(e.ms), currency: 'USD', title: e.title, source: e.source, verified: e.verified })
@@ -116,7 +138,7 @@ function writeDays(merged, cachedAt) {
     written++
   }
 
-  const cutoff = isoDay(Date.now() - KEEP_DAYS * DAY)
+  const cutoff = cmeDate(Date.now() - KEEP_DAYS * DAY)
   let pruned = 0
   for (const f of fs.readdirSync(OUT)) {
     if (!f.endsWith('.md')) continue
@@ -162,7 +184,7 @@ async function main() {
   const unverified = merged.filter((e) => !e.verified)
   if (unverified.length) {
     console.error(`market-news: ${unverified.length} unverified (single source):`)
-    for (const e of unverified) console.error(`  ${e.source} ${isoDay(e.ms)} ${hktTime(e.ms)} ${e.level} ${e.title}`)
+    for (const e of unverified) console.error(`  ${e.source} ${cmeDate(e.ms)} ${hktTime(e.ms)} ${e.level} ${e.title}`)
   }
 
   if (!noBuild) {

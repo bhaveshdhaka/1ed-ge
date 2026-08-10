@@ -30,10 +30,12 @@ const accounts = defineCollection({
     platformIds: z.array(z.string()).default([]),
     rules: z
       .object({
-        dailyLoss: z.number().positive().optional(),
-        breach: z.enum(['drawdown', 'daily', 'either']).optional(),
-        consistency: z.enum(['none', 'eval', 'funded', 'both']).optional(),
-        consistencyNote: z.string().optional(),
+        dailyLossLimit: z.number().positive().optional(), // DLL — daily soft breach
+        profitTarget: z.number().positive().optional(), // eval profit target
+        consistencyPct: z.number().min(0).max(100).optional(), // % — largest-day ≤ X%
+        bufferBalance: z.number().positive().optional(), // MLL + 100, locks at this balance
+        drawdownMode: z.enum(['eod', 'intraday', 'intraday-to-eod']).default('eod'),
+        payoutSplit: z.number().min(0).max(100).default(90), // trader's cut %
       })
       .optional(),
   }),
@@ -51,6 +53,7 @@ const trade = z.object({
   direction: z.enum(['long', 'short']),
   setup: z.string().optional(),
   model: z.string().optional(),
+  models: z.array(z.string()).default([]),
   entry: z.number(),
   stop: z.number().optional(),
   target: z.number().optional(),
@@ -64,11 +67,11 @@ const trade = z.object({
   executions: z.array(execution).default([]),
 })
 
-const momentType = z.enum(['trade', 'note', 'quote'])
+const thoughtType = z.enum(['trade', 'note', 'quote'])
 
-const moment = z.object({
+const thought = z.object({
   at: z.string(),
-  type: momentType,
+  type: thoughtType,
   text: z.string().optional(),
   tradeIdx: z.number().int().nonnegative().optional(),
   images: z.array(z.string()).default([]),
@@ -99,11 +102,11 @@ const days = defineCollection({
     habits: z.record(z.string(), z.union([z.boolean(), z.number()])).optional(),
     device,
     trades: z.array(trade).default([]),
-    stream: z.array(moment).default([]),
+    stream: z.array(thought).default([]),
     draft: z
       .object({
         reflection: z.string().optional(),
-        moments: z.array(moment).default([]),
+        moments: z.array(thought).default([]),
       })
       .optional(),
   }),
