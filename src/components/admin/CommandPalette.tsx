@@ -80,7 +80,7 @@ export function CommandPalette(props: CommandPaletteProps) {
           <span className="text-xs text-faint">›</span>
           <Command.Input
             placeholder="type a command…"
-            className="h-11 w-full border-0 bg-transparent text-[14px] text-ink outline-none placeholder:text-faint"
+            className="h-11 w-full border-0 bg-transparent text-base text-ink outline-none placeholder:text-faint"
           />
           <Kbd>esc</Kbd>
         </div>

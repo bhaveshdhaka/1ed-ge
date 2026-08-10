@@ -96,7 +96,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
                 class:list={[
                   'w-px',
                   major ? 'h-3 bg-line2' : 'h-1.5 bg-line',
-                  !major && i % 2 !== 0 ? 'hidden lg:block' : !major && i % 2 === 0 ? 'hidden sm:block' : '',
+                  !major && i % 2 !== 0 ? 'hidden md:block' : !major && i % 2 === 0 ? 'hidden sm:block' : '',
                 ]}
               ></span>
               {major && <span class="mt-0.5 text-2xs tabular-nums text-faint">{String(i).padStart(2, '0')}</span>}
@@ -113,7 +113,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
       return (
         <div class="flex items-center justify-between gap-x-4 border-t border-line/60 py-2" data-session-row={m.key}>
           <div class="flex min-w-0 items-center gap-2">
-            <span class="shrink-0 text-[15px] leading-none">{m.flag}</span>
+            <span class="shrink-0 text-base leading-none">{m.flag}</span>
             <span class="truncate text-sm text-ink">{m.name}</span>
           </div>
           <div class="flex min-w-0 items-center gap-x-3 text-right">
@@ -123,7 +123,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
             <span data-session-cd={m.key} class="shrink-0 w-[5.5rem] text-right text-sm tabular-nums" style={`color:${seg ? clsColor(seg.cls) : 'var(--color-faint)'}`}>
               {seg ? fmtHuman((seg.until - now) / 1000) : '—'}
             </span>
-            <span class="hidden w-[7rem] text-right text-[11px] text-faint tabular-nums sm:inline">{m.window}</span>
+            <span class="hidden w-[7rem] text-right text-2xs text-faint tabular-nums sm:inline">{m.window}</span>
           </div>
         </div>
       )
@@ -161,7 +161,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
     </details>
   )}
 
-  <p class="mt-2 border-t border-line/60 pt-2 text-[11px] text-faint">all times HKT · EDT · EST Nov 1</p>
+  <p class="mt-2 border-t border-line/60 pt-2 text-2xs text-faint">all times HKT · EDT · EST Nov 1</p>
 </Card>
 
 <script type="application/json" id="mkt-strip" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')} is:inline></script>

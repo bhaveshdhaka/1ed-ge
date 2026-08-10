@@ -139,12 +139,12 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
                 return (
                   <Card>
                     <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                      <span class="text-base text-ink">{t.direction === 'long' ? '▲' : '▼'} {t.market}</span>
+                      <span class="text-sm font-semibold text-ink">{t.direction === 'long' ? '▲' : '▼'} {t.market}</span>
                       <span class="text-xs text-dim">{t.session ?? '—'} · {t.setup ?? 'no setup'}</span>
                       {t.models?.length ? t.models.map((m, i) => <Badge variant={i === 0 ? 'accent' : 'default'}>{m}</Badge>) : (
                         t.model ? <Badge variant="accent">{t.model}</Badge> : null
                       )}
-                      <span class:list={['ml-auto text-base', R > 0 ? 'text-up' : R < 0 ? 'text-down' : '']}>
+                      <span class:list={['ml-auto text-sm font-bold', R > 0 ? 'text-up' : R < 0 ? 'text-down' : '']}>
                         {R > 0 ? '+' : ''}{R.toFixed(2)}R
                       </span>
                       <span class:list={['text-sm', totalPnl > 0 ? 'text-up' : totalPnl < 0 ? 'text-down' : 'text-dim']}>

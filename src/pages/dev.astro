@@ -262,15 +262,32 @@ const changelog = [
   {
     version: 'v0.2-alpha',
     date: '2026-08-10',
-    features: [],
+    features: [
+      'Typography consistency pass — unified font sizes, weights, tracking across all surfaces',
+      'Type scale: added text-xl (20px), removed dead tokens (text-quote, text-5xl, tracking-tighter)',
+      'Card headers: card-sub/capsule/tmr/card-lbl tokenized (raw px → --text-3xs/--text-2xs)',
+      'Fact labels: 11px/400 → 9px/700 (smaller, bolder, matches reference)',
+      'Stat values: ensured font-semibold everywhere (admin Stat was 400)',
+      'Trade market/R: 15px/400 → 13px/600-700 (consistent across DayArchive, ThoughtCard)',
+      'Arbitrary text-[Npx] → tokens (10 files, 0 remaining)',
+      'Prose body: text-[15px] → text-sm token',
+      'tracking-wider strays → tracking-wide (themed token)',
+    ],
     removed: [
       'Capture card — "paste everything, AI builds the day" panel-hero + AI pipeline',
       'Check-in card — mood picker, sleep fields, screen-time row (CheckInBand.tsx deleted)',
       'AIBuildSheet — "build this day" capture ritual sheet (deleted)',
       'Screen-time section — iPhone/Mac/Social hours tracking + AI screenshot reading',
       'Unused state — dayText, dayImages, dayBusy, screenBusy removed from DayWorkspace',
+      'Dead CSS tokens — --text-quote, --text-5xl, --tracking-tighter',
     ],
-    rationale: 'Simplify the day workspace. Thoughts, quotes, trades, and reflections are entered directly through WriteZone. Images can still be added to individual moments.',
+    fixes: [
+      'Ticker.js 404 on prod — file was on preprod but not synced to main branch',
+      'Clock showing --:--:-- — ticker.js now serves correctly (200)',
+      'Preprod→prod sync: content.config, market-news-fetch (cmeDate), deploy-test',
+      'Chronograph rail: every-hour ticks now visible at ≥768px (was ≥1024px)',
+    ],
+    rationale: 'Simplify the day workspace. Unify the typography system. Fix broken clock.',
   },
   {
     version: 'v0.1-alpha',
@@ -328,17 +345,43 @@ const totalCost = '$54'
       How this site was built. What it uses. What it cost. Everything public.
     </p>
 
-    <!-- Principles -->
+    <!-- Token Costs -->
     <div class="mt-10">
-      <Card icon="🧭" label="principles" subtitle="the rules we build by">
-        <div class="flex flex-col gap-3">
-          {principles.map((p) => (
-            <div class="flex flex-col gap-0.5">
-              <span class="text-sm text-ink">{p.rule}</span>
-              <span class="text-xs text-dim">{p.detail}</span>
-            </div>
-          ))}
+      <Card icon="💰" label="token costs" subtitle="what it took to build this">
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr>
+                <th class="th">version</th>
+                <th class="th">date</th>
+                <th class="th">what</th>
+                <th class="th text-right">estimate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {costs.map((c) => (
+                <tr>
+                  <td class="td text-ink">{c.version}</td>
+                  <td class="td text-dim">{c.date}</td>
+                  <td class="td text-faint">{c.what}</td>
+                  <td class="td text-right text-ink">{c.estimate}</td>
+                </tr>
+              ))}
+              <tr>
+                <td class="td font-semibold text-ink" colspan="3">total</td>
+                <td class="td text-right font-semibold text-ink">{totalCost}</td>
+              </tr>
+              <tr>
+                <td class="td text-faint" colspan="3">lines of code — src/ · scripts/ · public/</td>
+                <td class="td text-right text-dim tabular-nums">20,295</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+        <p class="mt-3 text-2xs text-faint">
+          Estimates based on OpenRouter pricing for DeepSeek v4 Flash and Qwen 3.7 Plus.
+          Actual costs vary by token volume and model selection per agent run.
+        </p>
       </Card>
     </div>
 
@@ -390,6 +433,20 @@ const totalCost = '$54'
               ))}
             </tbody>
           </table>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Principles -->
+    <div class="mt-6">
+      <Card icon="🧭" label="principles" subtitle="the rules we build by">
+        <div class="flex flex-col gap-3">
+          {principles.map((p) => (
+            <div class="flex flex-col gap-0.5">
+              <span class="text-sm text-ink">{p.rule}</span>
+              <span class="text-xs text-dim">{p.detail}</span>
+            </div>
+          ))}
         </div>
       </Card>
     </div>
@@ -507,42 +564,6 @@ const totalCost = '$54'
             </div>
           ))}
         </div>
-      </Card>
-    </div>
-
-    <!-- Token Costs -->
-    <div class="mt-6">
-      <Card icon="💰" label="token costs" subtitle="what it took to build this">
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse">
-            <thead>
-              <tr>
-                <th class="th">version</th>
-                <th class="th">date</th>
-                <th class="th">what</th>
-                <th class="th text-right">estimate</th>
-              </tr>
-            </thead>
-            <tbody>
-              {costs.map((c) => (
-                <tr>
-                  <td class="td text-ink">{c.version}</td>
-                  <td class="td text-dim">{c.date}</td>
-                  <td class="td text-faint">{c.what}</td>
-                  <td class="td text-right text-ink">{c.estimate}</td>
-                </tr>
-              ))}
-              <tr>
-                <td class="td font-semibold text-ink" colspan="3">total</td>
-                <td class="td text-right font-semibold text-ink">{totalCost}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="mt-3 text-2xs text-faint">
-          Estimates based on OpenRouter pricing for DeepSeek v4 Flash and Qwen 3.7 Plus.
-          Actual costs vary by token volume and model selection per agent run.
-        </p>
       </Card>
     </div>
 
