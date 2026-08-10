@@ -1,6 +1,7 @@
 ---
 import { fmtDay, fmtDayWUpper } from '../lib/dates'
 import type { NewsItem } from '../lib/market-news'
+import Card from './ui/Card.astro'
 import NewsBlock from './NewsBlock.astro'
 
 interface Props {
@@ -14,13 +15,7 @@ interface Props {
 const { red, orange, dayIso, isToday, hideDate = false } = Astro.props
 ---
 
-<section class="panel">
-  <div class="card-hd border-b border-sep">
-    <span class="card-ico">📰</span>
-    <span class="card-lbl">news events</span>
-    {!hideDate && <span class="card-sub">{fmtDayWUpper(dayIso)}</span>}
-  </div>
-  <div class="p-3 md:p-4">
+<Card icon="📰" label="news events" subtitle={hideDate ? undefined : fmtDayWUpper(dayIso)}>
     {red.length > 0 || orange.length > 0 ? (
       <div class="mt-1 flex flex-col gap-1">
         <NewsBlock red={red} orange={orange} dayIso={dayIso} now={Date.now()} />
@@ -32,5 +27,4 @@ const { red, orange, dayIso, isToday, hideDate = false } = Astro.props
         news events {isToday ? 'today' : `for ${fmtDay(dayIso).toUpperCase()}`}.
       </p>
     )}
-  </div>
-</section>
+</Card>

@@ -7,6 +7,7 @@ import { thoughtMeta } from '../../lib/stream'
 import { fmtDay } from '../../lib/dates'
 import { altFor } from '../../lib/media-alt'
 import type { ResolvedThought } from '../../lib/stream'
+import Card from '../ui/Card.astro'
 
 interface Props {
   thought: ResolvedThought
@@ -23,25 +24,26 @@ const R = thought.trade?.R ?? 0
 const imgs: string[] = isTrade ? (thought.trade?.screenshots ?? []) : (thought.images ?? [])
 const lbGroup = `${thought.iso}-${thought.at}`
 // Frame identity: note (thought) = quiet hairline, quote = accent left rail,
-// trade = up/down left rail matched to the ▲/▼ glyph.
-const frameStyle = isTrade
-  ? `border-left:2px solid ${thought.trade?.direction === 'long' ? 'var(--color-up)' : 'var(--color-down)'}`
+// trade = up/down left rail matched to the ▲/▼ glyph. Card.astro doesn't
+// forward inline style, so the rail is expressed as a Tailwind arbitrary
+// property class (same value the inline style carried).
+const frameCls = isTrade
+  ? thought.trade?.direction === 'long'
+    ? '[border-left:2px_solid_var(--color-up)]'
+    : '[border-left:2px_solid_var(--color-down)]'
   : isQuote
-    ? 'border-left:2px solid var(--color-accent)'
-    : undefined
+    ? '[border-left:2px_solid_var(--color-accent)]'
+    : ''
 ---
 
-<div class={`panel ${cls}`} style={frameStyle}>
-  <div class="card-hd border-b border-sep">
-    <span class="card-ico">{isQuote ? '💬' : isTrade ? '📈' : '💭'}</span>
-    <span class="card-lbl">{meta.label}</span>
-    <span class="card-sub">{thought.at} hkt</span>
-    {showDay && !hideDate && (
-      <a href={`/day/${fmtDay(thought.iso)}`} class="ml-auto text-2xs text-faint transition-colors hover:text-accent">
+<Card icon={isQuote ? '💬' : isTrade ? '📈' : '💭'} label={meta.label} subtitle={`${thought.at} hkt`} pad="none" class={[cls, frameCls].filter(Boolean).join(' ')}>
+  {showDay && !hideDate && (
+    <Fragment slot="actions">
+      <a href={`/day/${fmtDay(thought.iso)}`} class="text-2xs text-faint transition-colors hover:text-accent">
         {fmtDay(thought.iso)}
       </a>
-    )}
-  </div>
+    </Fragment>
+  )}
 
   {isTrade && thought.trade && (
     <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 pt-3 text-sm">
@@ -88,4 +90,4 @@ const frameStyle = isTrade
       ))}
     </div>
   )}
-</div>
+</Card>

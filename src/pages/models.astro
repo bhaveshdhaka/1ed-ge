@@ -28,13 +28,8 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
     {stats.length === 0 ? (
       <div class="mt-6"><EmptyState text="no trading models yet." /></div>
     ) : (
-      <div class="mt-6 panel">
-        <div class="card-hd border-b border-sep">
-          <span class="card-ico">🧩</span>
-          <span class="card-lbl">models</span>
-          <span class="card-sub">{stats.reduce((s, m) => s + m.count, 0)} tagged trades</span>
-        </div>
-        <div class="flex flex-col gap-4 p-3 md:p-4">
+      <Card icon="🧩" label="models" subtitle={`${stats.reduce((s, m) => s + m.count, 0)} tagged trades`} class="mt-6">
+        <div class="flex flex-col gap-4">
           {stats.map((m) => (
             <Card>
               <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -91,7 +86,7 @@ const statusTone = (s: string) => (s === 'active' ? 'up' : s === 'paused' ? 'war
             </Card>
           ))}
         </div>
-      </div>
+      </Card>
     )}
     <Separator class="mt-10" />
     <p class="mt-4 text-[11px] text-faint">models and their rules are the owner's own — never AI-generated.</p>

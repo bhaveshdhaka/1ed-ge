@@ -1,61 +1,169 @@
 ---
-/** One native <dialog> lightbox, shared by every Base page. Zero deps. The site's single zero-JS exception. */
+/** Lightbox.astro — bottom-sheet image viewer (the site's single JS exception) */
 ---
 
-<dialog id="lb" class="lb" aria-label="image viewer">
-  <button type="button" data-lb-close class="lb-btn lb-close" aria-label="close">×</button>
-  <div class="lb-body"></div>
-  <button type="button" data-lb-prev class="lb-btn lb-prev" aria-label="previous">‹</button>
-  <button type="button" data-lb-next class="lb-btn lb-next" aria-label="next">›</button>
+<dialog id="lb" class="lb" aria-label="Image viewer">
+  <div class="lb-sheet" id="lb-sheet">
+    <div class="lb-handle" id="lb-handle"><i></i></div>
+    <div class="lb-header">
+      <span class="lb-counter" id="lb-counter"></span>
+      <span class="lb-caption" id="lb-caption"></span>
+      <button class="lb-close-btn" id="lb-close" aria-label="Close">×</button>
+    </div>
+    <div class="lb-body" id="lb-body">
+      <img id="lb-img" alt="" />
+    </div>
+  </div>
+  <button class="lb-nav lb-prev" id="lb-prev" aria-label="Previous image">‹</button>
+  <button class="lb-nav lb-next" id="lb-next" aria-label="Next image">›</button>
 </dialog>
 
 <script is:inline>
-  (() => {
-    const dlg = document.getElementById('lb')
-    if (!dlg) return
-    const body = dlg.querySelector('.lb-body')
-    if (!body) return
-    const links = Array.from(document.querySelectorAll('[data-lb]'))
-    if (!links.length) return
-    let group = []
-    let idx = 0
-    const show = (i) => {
-      idx = (i + group.length) % group.length
-      const src = group[idx].getAttribute('href') ?? ''
-      const alt = group[idx].querySelector('img')?.getAttribute('alt') ?? ''
-      body.innerHTML = ''
-      const im = new Image()
-      im.src = src
-      im.alt = alt
-      body.appendChild(im)
-    }
-    dlg.querySelector('[data-lb-close]')?.addEventListener('click', () => dlg.close())
-    dlg.querySelector('[data-lb-prev]')?.addEventListener('click', () => show(idx - 1))
-    dlg.querySelector('[data-lb-next]')?.addEventListener('click', () => show(idx + 1))
-    document.addEventListener('click', (e) => {
-      if (!(e.target instanceof Element)) return
-      const a = e.target.closest('[data-lb]')
-      if (!a) return
-      e.preventDefault()
-      const g = a.getAttribute('data-lb') ?? ''
-      group = links.filter((l) => l.getAttribute('data-lb') === g)
-      show(group.indexOf(a))
-      dlg.showModal()
-    })
-    dlg.addEventListener('click', (e) => {
-      if (e.target === dlg) dlg.close()
-    })
-    // Swipe gestures for touch devices
-    let startX = 0
-    let startY = 0
-    dlg.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }, { passive: true })
-    dlg.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - startX
-      const dy = e.changedTouches[0].clientY - startY
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-        if (dx > 0) { const prev = dlg.querySelector('[data-lb-prev]'); prev?.click() }
-        else { const next = dlg.querySelector('[data-lb-next]'); next?.click() }
+;(function () {
+  var dlg = document.getElementById('lb')
+  var sheet = document.getElementById('lb-sheet')
+  var handle = document.getElementById('lb-handle')
+  var counter = document.getElementById('lb-counter')
+  var caption = document.getElementById('lb-caption')
+  var closeBtn = document.getElementById('lb-close')
+  var img = document.getElementById('lb-img')
+  var prevBtn = document.getElementById('lb-prev')
+  var nextBtn = document.getElementById('lb-next')
+
+  if (!dlg || !sheet || !img) return
+
+  var groups = new Map()
+  var currentGroup = []
+  var currentIndex = 0
+
+  function preload(index) {
+    for (var offset of [-1, 1]) {
+      var i = index + offset
+      if (i >= 0 && i < currentGroup.length) {
+        var p = new Image()
+        p.src = currentGroup[i].href
       }
+    }
+  }
+
+  function show(index) {
+    if (!currentGroup.length) return
+    currentIndex = ((index % currentGroup.length) + currentGroup.length) % currentGroup.length
+    var item = currentGroup[currentIndex]
+    img.classList.remove('lb-visible')
+    var loader = new Image()
+    loader.onload = function () {
+      img.src = item.href
+      img.alt = item.alt
+      img.classList.add('lb-visible')
+    }
+    loader.src = item.href
+    counter.textContent = (currentIndex + 1) + ' / ' + currentGroup.length
+    caption.textContent = item.alt || ''
+    preload(currentIndex)
+  }
+
+  function open(groupKey, index) {
+    currentGroup = groups.get(groupKey) || []
+    if (!currentGroup.length) return
+    dlg.showModal()
+    requestAnimationFrame(function () {
+      sheet.classList.add('lb-open')
     })
-  })()
+    show(index)
+  }
+
+  function close() {
+    sheet.classList.remove('lb-open')
+    setTimeout(function () {
+      dlg.close()
+      img.src = ''
+      img.classList.remove('lb-visible')
+    }, 350)
+  }
+
+  function prev() { show(currentIndex - 1) }
+  function next() { show(currentIndex + 1) }
+
+  function collectGroups() {
+    groups.clear()
+    document.querySelectorAll('[data-lb]').forEach(function (el) {
+      var key = el.getAttribute('data-lb') || ''
+      if (!groups.has(key)) groups.set(key, [])
+      groups.get(key).push({
+        href: el.getAttribute('href'),
+        alt: (el.querySelector('img') ? el.querySelector('img').getAttribute('alt') : '') || ''
+      })
+    })
+  }
+
+  document.addEventListener('click', function (e) {
+    var anchor = e.target.closest('[data-lb]')
+    if (!anchor) return
+    e.preventDefault()
+    collectGroups()
+    var key = anchor.getAttribute('data-lb') || ''
+    var group = groups.get(key) || []
+    var index = group.findIndex(function (g) { return g.href === anchor.getAttribute('href') })
+    open(key, Math.max(0, index))
+  })
+
+  closeBtn.addEventListener('click', close)
+  dlg.addEventListener('click', function (e) {
+    if (e.target === dlg) close()
+  })
+  prevBtn.addEventListener('click', prev)
+  nextBtn.addEventListener('click', next)
+
+  dlg.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev() }
+    if (e.key === 'ArrowRight') { e.preventDefault(); next() }
+    if (e.key === 'Escape') { e.preventDefault(); close() }
+  })
+
+  var startX = 0, startY = 0, dragging = false
+  sheet.addEventListener('touchstart', function (e) {
+    startX = e.touches[0].clientX
+    startY = e.touches[0].clientY
+    dragging = true
+  }, { passive: true })
+
+  sheet.addEventListener('touchend', function (e) {
+    if (!dragging) return
+    dragging = false
+    var dx = e.changedTouches[0].clientX - startX
+    var dy = e.changedTouches[0].clientY - startY
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx > 0) prev(); else next()
+    } else if (dy > 80 && Math.abs(dy) > Math.abs(dx)) {
+      close()
+    }
+  }, { passive: true })
+
+  var handleStartY = 0, handleDragging = false
+  handle.addEventListener('touchstart', function (e) {
+    handleStartY = e.touches[0].clientY
+    handleDragging = true
+    sheet.style.transition = 'none'
+  }, { passive: true })
+
+  handle.addEventListener('touchmove', function (e) {
+    if (!handleDragging) return
+    var dy = e.touches[0].clientY - handleStartY
+    if (dy > 0) sheet.style.transform = 'translateY(' + dy + 'px)'
+  }, { passive: true })
+
+  handle.addEventListener('touchend', function (e) {
+    if (!handleDragging) return
+    handleDragging = false
+    sheet.style.transition = ''
+    var dy = e.changedTouches[0].clientY - handleStartY
+    if (dy > 100) {
+      close()
+    } else {
+      sheet.style.transform = ''
+      sheet.classList.add('lb-open')
+    }
+  }, { passive: true })
+})()
 </script>
