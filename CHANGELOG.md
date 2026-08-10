@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.2-alpha] — 2026-08-10
+
+### Removed
+
+- **Capture card** — the "paste everything, AI builds the day" panel-hero card and its AI pipeline (runStructure, addDayImages, removeDayImage)
+- **Check-in card** — mood picker, sleep fields, screen-time row (CheckInBand.tsx deleted)
+- **AIBuildSheet** — the "build this day" capture ritual sheet (AIBuildSheet.tsx deleted)
+- **Screen-time section** — iPhone/Mac/Social hours tracking and AI screenshot reading
+- **Unused state** — dayText, dayImages, dayBusy, screenBusy removed from DayWorkspace
+
+### What stays
+
+- WriteZone (thoughts, quotes, trades, reflection — text-based)
+- Trades section (trade list with add/edit/import)
+- Day Totals footer (R/pts/pnl summary)
+- DayRail (day navigation)
+- NotificationDrawer (pending reflections/periods)
+
+### Rationale
+
+Simplify the day workspace. The capture/checkin flow was complex and underused.
+Thoughts, quotes, trades, and reflections are entered directly through the WriteZone composer.
+Images can still be added to individual moments if needed.
+
 ## [v0.1-alpha] — 2026-08-10
 
 ### Added

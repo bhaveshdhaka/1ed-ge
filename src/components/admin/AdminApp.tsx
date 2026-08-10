@@ -267,10 +267,6 @@ export default function AdminApp() {
           go('library')
           notify('add a model in the library tab')
         }}
-        onBuildDay={() => {
-          go('day')
-          notify('build this day — paste screenshots in the check-in band')
-        }}
         onImport={() => {
           go('day')
           setTimeout(() => bus.emit('open-ingest'), 80)

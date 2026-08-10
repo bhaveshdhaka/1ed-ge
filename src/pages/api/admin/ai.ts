@@ -1,9 +1,7 @@
 import type { APIRoute } from 'astro'
 import { requireSession, json, error } from '../../../lib/auth'
 import {
-  structureDayFull,
   readScreenshot,
-  readScreenTime,
   readStatement,
   assist,
   draftReflection,
@@ -20,21 +18,8 @@ export const POST: APIRoute = async ({ request }) => {
   const body = await request.json().catch(() => ({}))
   const action = String(body.action ?? '')
   try {
-    if (action === 'day' || action === 'structure') {
-      const accounts = listMds('accounts').map((f) => f.replace(/\.md$/, ''))
-      const habits = listMds('habits').map((f) => f.replace(/\.md$/, ''))
-      const images = Array.isArray(body.images)
-        ? body.images.filter((s: unknown): s is string => typeof s === 'string' && s.startsWith('data:image'))
-        : []
-      const result = await structureDayFull(String(body.text ?? ''), images, { accounts, habits })
-      return json({ ok: true, result })
-    }
     if (action === 'vision') {
       const result = await readScreenshot(String(body.image ?? ''))
-      return json({ ok: true, result })
-    }
-    if (action === 'screentime') {
-      const result = await readScreenTime(String(body.image ?? ''))
       return json({ ok: true, result })
     }
     if (action === 'statement') {

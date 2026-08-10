@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro'
 import Card from '../components/ui/Card.astro'
 
-const VERSION = 'v0.1-alpha'
+const VERSION = 'v0.2-alpha'
 const VERSION_DATE = '2026-08-10'
 
 const stack = [
@@ -169,7 +169,7 @@ const traceability = [
       { file: 'components/admin/api.ts', feature: 'API Client', what: 'Fetch wrapper, event bus, timezone helpers' },
       { file: 'components/admin/ui.tsx', feature: 'Admin UI Kit', what: 'Field, TextInput, Card, Stat, Button' },
       { file: 'components/admin/tabs/OverviewTab.tsx', feature: 'Overview', what: 'Today status, build, accounts, brief, system' },
-      { file: 'components/admin/tabs/DayWorkspace.tsx', feature: 'Day Workspace', what: 'Capture → AI → trades → moments → reflection' },
+      { file: 'components/admin/tabs/DayWorkspace.tsx', feature: 'Day Workspace', what: 'Trades → moments → reflection' },
       { file: 'components/admin/tabs/AccountsTab.tsx', feature: 'Accounts', what: 'Statement reader, account CRUD, payouts' },
       { file: 'components/admin/tabs/CoachTab.tsx', feature: 'Coach', what: 'AI conversation with data context' },
       { file: 'components/admin/tabs/LibraryTab.tsx', feature: 'Library', what: 'Habits/models/rules/quotes CRUD' },
@@ -177,7 +177,6 @@ const traceability = [
       { file: 'components/admin/tabs/MediaTab.tsx', feature: 'Media', what: 'Image/document management' },
       { file: 'components/admin/MarkdownEditor.tsx', feature: 'Markdown Editor', what: 'Write/preview with ghost text' },
       { file: 'components/admin/TradeCard.tsx', feature: 'Trade Editor', what: 'Editable trade with model chips' },
-      { file: 'components/admin/CheckInBand.tsx', feature: 'Check-in', what: 'Capture zone with AI structure' },
       { file: 'components/admin/WriteZone.tsx', feature: 'Moments Composer', what: 'Publish thoughts, draft reflection' },
       { file: 'components/admin/SheetFrame.tsx', feature: 'Sheet Frame', what: 'Shared slide-over modal' },
       { file: 'components/admin/CommandPalette.tsx', feature: 'Command Palette', what: '⌘K quick actions' },
@@ -260,6 +259,19 @@ const principles = [
 ]
 
 const changelog = [
+  {
+    version: 'v0.2-alpha',
+    date: '2026-08-10',
+    features: [],
+    removed: [
+      'Capture card — "paste everything, AI builds the day" panel-hero + AI pipeline',
+      'Check-in card — mood picker, sleep fields, screen-time row (CheckInBand.tsx deleted)',
+      'AIBuildSheet — "build this day" capture ritual sheet (deleted)',
+      'Screen-time section — iPhone/Mac/Social hours tracking + AI screenshot reading',
+      'Unused state — dayText, dayImages, dayBusy, screenBusy removed from DayWorkspace',
+    ],
+    rationale: 'Simplify the day workspace. Thoughts, quotes, trades, and reflections are entered directly through WriteZone. Images can still be added to individual moments.',
+  },
   {
     version: 'v0.1-alpha',
     date: '2026-08-10',
@@ -463,7 +475,7 @@ const totalCost = '$54'
                   </ul>
                 </div>
               )}
-              {c.fixes.length > 0 && (
+              {c.fixes && c.fixes.length > 0 && (
                 <div>
                   <div class="mb-1 text-2xs uppercase tracking-widest text-dim">fixes</div>
                   <ul class="flex flex-col gap-1">
@@ -475,6 +487,22 @@ const totalCost = '$54'
                     ))}
                   </ul>
                 </div>
+              )}
+              {c.removed && c.removed.length > 0 && (
+                <div class="mb-2">
+                  <div class="mb-1 text-2xs uppercase tracking-widest text-dim">removed</div>
+                  <ul class="flex flex-col gap-1">
+                    {c.removed.map((r) => (
+                      <li class="flex items-start gap-2 text-xs text-soft">
+                        <span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-down"></span>
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {c.rationale && (
+                <p class="mt-2 text-2xs text-faint">{c.rationale}</p>
               )}
             </div>
           ))}
