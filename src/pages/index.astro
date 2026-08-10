@@ -108,7 +108,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
 
   <section class="shell pb-6">
     <div class="panel panel-hero">
-      <div class="card-hd border-b border-sep">
+      <div class="card-hd">
         <span class="card-ico">📅</span>
         <span class="card-lbl">today</span>
         <span class="card-sub">{fmtDayWUpper(iso)}</span>
@@ -136,7 +136,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
 
   <section class="shell pb-20">
     <div class="panel">
-      <div class="card-hd border-b border-sep">
+      <div class="card-hd">
         <span class="card-ico">📡</span>
         <span class="card-lbl">stream</span>
         <span class:list={['ml-auto flex items-center gap-2 text-xs', live.live ? 'text-up' : 'text-faint']}>
