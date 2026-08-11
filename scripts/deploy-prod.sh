@@ -20,8 +20,18 @@ node scripts/market-news-fetch.mjs --no-build || echo "  warn: market fetch fail
 echo "→ building + starting container"
 docker compose up -d --build
 
+echo "→ git cliff changelog"
+TODAY=$(TZ=Asia/Hong_Kong date +%Y-%m-%d)
+git cliff --output "changelog/${TODAY}.md" 2>/dev/null || echo "  warn: git-cliff failed"
+
+echo "→ design lint"
+bash scripts/design-lint.sh || echo "  warn: design-lint failed"
+
 echo "→ post-deploy bookkeeping (changelog, build.json, tokenomics, pending clear)"
 node scripts/post-deploy.mjs || echo "  warn: post-deploy failed"
+
+echo "→ syncing preprod"
+bash scripts/sync-branches.sh || echo "  warn: preprod sync failed"
 
 echo "→ installing prod nginx vhost"
 sudo cp nginx/1ed.ge.conf /etc/nginx/sites-enabled/1ed.ge

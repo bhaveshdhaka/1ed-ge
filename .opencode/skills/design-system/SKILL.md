@@ -51,97 +51,11 @@ Two hard rules govern everything:
 
 ---
 
-## Tokens (`src/styles/app.css` @theme)
+## Tokens
 
-**Never use arbitrary values.** `text-[13px]`, `#c07a6d`, `leading-[1.6]` are
-forbidden in new code. Use the tokens:
+Current list: see [/build](https://1ed.ge/build/) — auto-generated from `src/styles/app.css` on each deploy.
 
-### Color (summit palette — the only skin)
-
-**Core principle: blue is the ONLY UI accent.** Green/red are for DATA ONLY
-(up/down P&L, positive/negative metrics). Never use green/red for UI chrome
-(labels, badges, buttons, links).
-
-| token | value | use |
-|---|---|---|
-| `--color-bg` | `#07080c` | page background |
-| `--color-panel` | `#0d0f16` | solid surfaces |
-| `--color-raise` | `#12141d` | hover, raised surfaces |
-| `--color-line` | `#1c2030` | borders, dividers |
-| `--color-line2` | `#2a2f42` | stronger borders |
-| `--color-ink` | `#e6ebf5` | primary text |
-| `--color-soft` | `#aab2c6` | body prose |
-| `--color-dim` | `#8b93a6` | secondary text, timestamps, labels |
-| `--color-faint` | `#7d859a` | hints, captions |
-<<<<<<< HEAD
-| `--color-accent` | `#8ab4ff` | **UI accent: links, focus, interactive, capsule tint** |
-| `--color-up` | `#6ea88a` | **DATA ONLY: up / profit / positive** |
-| `--color-down` | `#c2725e` | **DATA ONLY: down / loss / negative** |
-=======
-| `--color-accent` | `#0af` | links, focus, brand accent |
-| `--color-up` | `#6ea88a` | **green = up / profit / positive** |
-| `--color-down` | `#c2725e` | **red = down / loss / negative** |
->>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
-| `--color-warn` | `#d9a441` | warnings, early-close |
-| `--color-purp` | `#c084fc` | AI-generated content markers |
-| `--color-clay` | `#b06a5e` | hazard dots, pre-market risk |
-
-**Translucent surfaces:**
-| token | value | use |
-|---|---|---|
-| `--color-card` | `rgba(13, 15, 22, 0.78)` | panel/card background (translucent) |
-| `--color-card-hi` | `rgba(18, 20, 29, 0.88)` | active/hover card surface |
-| `--color-inset` | `rgba(0, 0, 0, 0.28)` | nested wells/rows |
-| `--color-sep` | `rgba(255, 255, 255, 0.06)` | hairline separators |
-| `--color-sep2` | `rgba(255, 255, 255, 0.10)` | stronger separators |
-| `--color-accent-dim` | `rgba(138, 180, 255, 0.12)` | capsule/accent tint bg |
-| `--color-accent-glow` | `rgba(138, 180, 255, 0.22)` | accent glow |
-
-Utilities: `bg-panel text-ink border-line text-up text-down text-dim
-text-faint text-accent text-warn text-purp text-clay` etc. Opacity modifiers
-are fine (`border-line/60`, `bg-up/10`).
-
-### Type scale (mono-only — Syne is reserved for the wordmark only)
-
-| token | value | role |
-|---|---|---|
-| `text-3xs` | 0.625rem (10px) | densest data: mini-calendar digits, chart axes |
-| `text-2xs` | 0.6875rem (11px) | table headers, micro-labels, captions, `.label` |
-| `text-xs` | 0.75rem (12px) | table cells, meta, chips |
-| `text-sm` | 0.8125rem (13px) | nav, buttons, secondary body |
-| `text-base` | 0.9375rem (15px) | body |
-| `text-lg` | 1.125rem (18px) | section titles |
-| `text-quote` | 1.125rem (18px) | quotes, blockquotes |
-| `text-2xl` | 1.5rem (24px) | h2 |
-| `text-3xl` | 2rem (32px) | h1 page title |
-| `text-4xl` | 2.5rem (40px) | day hero |
-| `text-5xl` | 3rem (48px) | homepage headline |
-
-- **Bold is a weight, never a size or color.** `font-medium` (500),
-  `font-semibold` (600), `font-bold` (700). In prose use `<strong>`.
-- **One `h1` per page.** Sections are `h2`, subsections `h3`. Headings get
-  weight 600 + tight leading from the base layer automatically.
-- **Every number is `tabular-nums`** — money, R, stats, dates in tables and
-  stat cards. Never let digits jiggle between rows.
-- Leading: `leading-tight` (headings) / `leading-snug` (tables) /
-  `leading-normal` (body) / `leading-relaxed` (prose only).
-- Tracking: `tracking-tight` big headings, `tracking-widest` uppercase
-  micro-headers (the terminal caption look).
-
-### Material
-<<<<<<< HEAD
-
-- Radius: `--radius: 14px` (panels/cards), `--radius-sm: 10px` (buttons/inputs).
-  `.panel` carries the shadow + border + blur; never hand-roll a card.
-- Cards use **translucent surfaces** with `backdrop-filter: blur(18px) saturate(150%)`.
-  This is the reference aesthetic — do NOT replace with solid backgrounds.
-- Shadows: `--shadow-card` = `0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px rgba(0, 0, 0, 0.18)`
-- Motion: `fade-up` (translateY 8px, 0.4s ease-out), staggered 0.04s for first 5 panels.
-  `prefers-reduced-motion: reduce` disables animation.
-=======
-- Radius: `rounded` = 14px (panels, `var(--radius)`), `rounded-sm` = 10px (buttons/inputs, `var(--radius-sm)`).
-  `.panel` carries the shadow + border; never hand-roll a card.
->>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
+The page renders all `@theme` tokens live. If a token exists in `app.css`, it appears on /build automatically.
 
 ---
 
@@ -169,70 +83,9 @@ new patterns.**
 
 ## Primitives (components)
 
-### Public (zero-JS) — `src/components/ui/*.astro`
+Current list: see [/build](https://1ed.ge/build/) — auto-generated from `src/components/ui/*.astro` on each deploy.
 
-| primitive | use for |
-|---|---|
-| `Card` | any panel/card; 4 variants (default/hero/static/flat) + stat mode; icon, label, subtitle, actions slot |
-| `StatCard` | one headline number with label and optional delta |
-| `Badge` | compact status chip; variants `up/down/warn/accent/muted/neutral/info` |
-| `Tag` | neutral inline label; set `href` to render as a navigation link |
-| `Table` | data tables (`head` prop + `.td` rows) inside a flat Card |
-| `Separator` | hairline divider |
-| `EmptyState` | the one "nothing here" block |
-| `Icon` | Lucide inline SVG (never emoji except flags) |
-<<<<<<< HEAD
-| `Flag` | 🇺🇸🇧🇯🇵 session flags (emoji is correct here — Lucide has no flags) |
-=======
-| `KvRow` | key-value row (`label` + `value` or slot) — use for any key-value pair list |
-| `SegControl` | segmented filter/toggle bar (`segments` array with label/href/count/active) |
-| `Capsule` | accent-tinted pill chip — use for live indicators, timestamp chips, counts |
-| `Well` | inset recessed surface — use for cells inside cards |
-| `Button` | button or link; variants `default/primary/danger`, sizes `default/sm`, optional `href` |
-| `SectionNav` | sticky section jump bar for long pages — `sections` prop (label/id pairs) |
-| `LogList` | collapsible monospace log list — `items` + `show` (default 4) |
-
-**CSS-only tokens (no component):**
-| token | use for |
-|---|---|
-| `.rail-up` / `.rail-down` / `.rail-accent` / `.rail-quiet` | left-rail identity bars on cards — trade direction, quote accent, quiet notes |
->>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
-
-**Public rule:** if a primitive exists for it, use it. Never write a raw
-`<button class="btn…">` in a public page — use `<Button>`. Never write
-`<div class="kv">` — use `<KvRow>`. Never inline `style={{color:…}}`
-when a token exists.
-
-<<<<<<< HEAD
-### Stream components — `src/components/stream/*.astro`
-
-| component | use for |
-|---|---|
-| `ThoughtCard` | one published stream item (trade/thought/quote) |
-| `DayFacts` | tokenized facts strip (R, mood, sleep, habits) |
-
-**Vocabulary:** "thought" everywhere — never "note" or "moment" in display copy.
-The stream type stays `note` internally; public display = "thought".
-
-### Admin (React) — `src/components/ui/react/*.tsx`
-
-| primitive | use for |
-|---|---|
-| `Button` (cva) | admin buttons; variants default/primary/danger/ghost/accent |
-| `Dialog` + `DialogTrigger` + `DialogContent` + `DialogTitle` + `DialogDescription` | modals — focus trap + Esc for free; never a hand-rolled overlay |
-| `Tooltip` + `TooltipTrigger` + `TooltipContent` (wrap in `TooltipProvider`) | hover hints |
-| `ToastProvider` + `Toast` + `ToastViewport` | notifications — `ok={false}` for failures, `aria-live` built in |
-| `Select` + `SelectTrigger` + `SelectValue` + `SelectContent` + `SelectItem` | selects with labels |
-| `Tabs` + `TabsList` + `TabsTrigger` + `TabsContent` | tab groups |
-| `Checkbox` | boolean inputs |
-| `cn` (from `src/lib/utils.ts`) | class merging — every component uses it |
-=======
-### Admin (React)
->>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
-
-The admin area (`/zen`) uses React islands (`client:only="react"`). Current admin kit lives in `src/components/admin/ui.tsx` (legacy `Field`, `TextInput`, `NumInput`, `TextArea`, `Select`, `Button`, `Card`, `Stat`) plus Radix-based primitives where available. The `src/components/ui/react/` directory is **not yet built** — when the admin is fully migrated, new primitives go there.
-
-**Admin rule:** if a Radix primitive exists for a pattern (Dialog, Toast, Tooltip, Select, Tabs, Checkbox), use it. Legacy `admin/ui.tsx` is deprecated for new work but stays until migration is complete.
+The page renders every primitive live. If a primitive exists in `src/components/ui/`, it appears on /build automatically. No manual update needed.
 
 ---
 

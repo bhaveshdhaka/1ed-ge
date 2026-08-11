@@ -31,30 +31,76 @@ function readJson(p) {
 
 // ── 1. changelog ────────────────────────────────────────────────────────────
 function generateChangelog() {
-  const today = new Date().toISOString().slice(0, 10)
+  // HKT date via Intl (same pattern as todayHkt in src/lib/sessions.ts)
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Hong_Kong' }).format(new Date())
   const outFile = path.join(CHANGELOG_DIR, `${today}.md`)
+
+  let existingContent = ''
+  let lastHash = null
+
   if (fs.existsSync(outFile)) {
-    console.log(`  changelog: ${today}.md already exists, skipping`)
-    return
+    existingContent = fs.readFileSync(outFile, 'utf8')
+    // Extract last commit hash from <!-- last:HASH --> header
+    const hashMatch = existingContent.match(/^<!-- last:([a-f0-9]+) -->/)
+    if (hashMatch) lastHash = hashMatch[1]
   }
 
-  // Find last changelog date
-  let since = null
-  try {
-    const files = fs.readdirSync(CHANGELOG_DIR)
-      .filter(f => /^\d{4}-\d{2}-\d{2}\.md$/.test(f))
-      .sort()
-    if (files.length) since = files[files.length - 1].replace('.md', '')
-  } catch { /* no dir yet */ }
+  // Determine which commits to process
+  let log
+  if (lastHash) {
+    // Get commits since the last recorded hash
+    log = sh(`git log ${lastHash}..HEAD --format="%h %s" --no-merges`)
+  } else if (existingContent) {
+    // File exists but no hash header — find last changelog across all days
+    let since = null
+    try {
+      const files = fs.readdirSync(CHANGELOG_DIR)
+        .filter(f => /^\d{4}-\d{2}-\d{2}\.md$/.test(f) && f !== `${today}.md`)
+        .sort()
+      if (files.length) {
+        const prevFile = path.join(CHANGELOG_DIR, files[files.length - 1])
+        const prevContent = fs.readFileSync(prevFile, 'utf8')
+        const prevHash = prevContent.match(/^<!-- last:([a-f0-9]+) -->/)
+        if (prevHash) since = prevHash[1]
+      }
+    } catch { /* no dir yet */ }
+    log = since
+      ? sh(`git log ${since}..HEAD --format="%h %s" --no-merges`)
+      : sh('git log --since="7 days ago" --format="%h %s" --no-merges')
+  } else {
+    // No file exists — find last changelog across all days
+    let since = null
+    try {
+      const files = fs.readdirSync(CHANGELOG_DIR)
+        .filter(f => /^\d{4}-\d{2}-\d{2}\.md$/.test(f))
+        .sort()
+      if (files.length) {
+        const prevFile = path.join(CHANGELOG_DIR, files[files.length - 1])
+        const prevContent = fs.readFileSync(prevFile, 'utf8')
+        const prevHash = prevContent.match(/^<!-- last:([a-f0-9]+) -->/)
+        if (prevHash) since = prevHash[1]
+      }
+    } catch { /* no dir yet */ }
+    log = since
+      ? sh(`git log ${since}..HEAD --format="%h %s" --no-merges`)
+      : sh('git log --since="7 days ago" --format="%h %s" --no-merges')
+  }
 
-  const sinceFlag = since ? `--since="${since}"` : '--since="7 days ago"'
-  const log = sh(`git log ${sinceFlag} --format="%h %s" --no-merges`)
   if (!log) {
-    console.log('  changelog: no commits found')
+    console.log('  changelog: no new commits')
     return
   }
 
   const lines = log.split('\n').filter(Boolean)
+  if (lines.length === 0) {
+    console.log('  changelog: no new commits')
+    return
+  }
+
+  // Get latest commit hash
+  const latestHash = sh('git log -1 --format="%h"') || 'unknown'
+
+  // Group new commits by prefix
   const groups = { Added: [], Fixed: [], Changed: [], Maintenance: [] }
   for (const line of lines) {
     if (/^.{7} feat[:\(]/.test(line)) groups.Added.push(line)
@@ -64,24 +110,45 @@ function generateChangelog() {
     else groups.Maintenance.push(line)
   }
 
-  let md = `# ${today}\n\n`
+  // Build new entries markdown
+  let newEntries = ''
   for (const [section, items] of Object.entries(groups)) {
     if (items.length === 0) continue
-    md += `### ${section}\n\n`
+    newEntries += `### ${section}\n\n`
     for (const item of items) {
       const msg = item.replace(/^.{7}\s*/, '')
-      md += `- ${msg}\n`
+      newEntries += `- ${msg}\n`
     }
-    md += '\n'
+    newEntries += '\n'
   }
 
-  writeFile(outFile, md)
-  console.log(`  changelog: wrote ${today}.md (${lines.length} commits)`)
+  if (existingContent) {
+    // Append new entries to existing file
+    // Insert new entries after the header comment and title, before existing entries
+    const headerEnd = existingContent.indexOf('\n### ')
+    if (headerEnd !== -1) {
+      // Insert before the first existing section
+      const updated = existingContent.slice(0, headerEnd) + '\n\n' + newEntries + existingContent.slice(headerEnd)
+      // Update the last hash
+      const final = updated.replace(/^<!-- last:[a-f0-9]+ -->/, `<!-- last:${latestHash} -->`)
+      writeFile(outFile, final)
+    } else {
+      // No existing sections — just append
+      const final = existingContent.replace(/^<!-- last:[a-f0-9]+ -->/, `<!-- last:${latestHash} -->`) + '\n' + newEntries
+      writeFile(outFile, final)
+    }
+    console.log(`  changelog: appended ${lines.length} commits to ${today}.md`)
+  } else {
+    // Write fresh file
+    const md = `<!-- last:${latestHash} -->\n# ${today}\n\n${newEntries}`
+    writeFile(outFile, md)
+    console.log(`  changelog: wrote ${today}.md (${lines.length} commits)`)
+  }
 }
 
 // ── 2. build stamp ──────────────────────────────────────────────────────────
 function writeBuildStamp() {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Hong_Kong' }).format(new Date())
   const commit = sh('git log -1 --format="%h %s"') || 'unknown'
   const build = {
     version: today,
@@ -212,4 +279,14 @@ try { generateChangelog() } catch (e) { console.error('  changelog failed:', e.m
 try { writeBuildStamp() } catch (e) { console.error('  build stamp failed:', e.message) }
 try { fetchTokenomics() } catch (e) { console.error('  tokenomics failed:', e.message) }
 try { clearPending() } catch (e) { console.error('  clear pending failed:', e.message) }
+
+try {
+  const lintOut = sh('bash scripts/design-lint.sh')
+  if (lintOut) console.log(`  ${lintOut}`)
+} catch (e) { console.error('  design-lint failed:', e.message) }
+
+try {
+  const reviewOut = sh('node scripts/design-review.mjs')
+  if (reviewOut) console.log(`  ${reviewOut}`)
+} catch (e) { console.error('  design-review failed:', e.message) }
 console.log('post-deploy: done')

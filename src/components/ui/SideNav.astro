@@ -1,0 +1,121 @@
+---
+/**
+ * SideNav.astro — vertical sticky right sidebar navigation.
+ * For long pages (/build, /status). Active section highlighting via IntersectionObserver.
+ * On mobile (< 768px), falls back to top SectionNav.
+ */
+interface Props {
+  groups: { label: string; items: [string, string][] }[]
+  class?: string
+}
+
+const { groups, class: cls = '' } = Astro.props as Props
+
+// Flatten all items for the mobile fallback
+const flatItems = groups.flatMap(g => g.items)
+---
+
+<!-- Desktop: right sidebar (hidden on mobile) -->
+<nav class:list={['side-nav hidden md:flex fixed right-0 top-0 z-30 h-screen w-48 flex-col overflow-y-auto border-l border-line bg-bg/95 backdrop-blur pt-20 pb-8 px-3', cls]} aria-label="Page navigation">
+  {groups.map((group, gi) => (
+    <div class:list={[gi > 0 ? 'mt-4' : '']}>
+      <div class="text-3xs uppercase tracking-widest text-faint px-2 mb-1 select-none">{group.label}</div>
+      <div class="flex flex-col gap-0.5">
+        {group.items.map(([label, id]) => (
+          <a
+            href={`#${id}`}
+            class="side-nav-link flex items-center px-2 py-1 text-xs text-dim transition-colors hover:text-ink rounded-sm"
+            data-section={id}
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+    </div>
+  ))}
+</nav>
+
+<!-- Mobile: top nav (hidden on desktop) — uses SectionNav -->
+<div class="md:hidden">
+  <!-- This slot is where the SectionNav goes on mobile -->
+  <slot name="mobile-nav" />
+</div>
+
+<style>
+  .side-nav-link.active {
+    color: var(--color-accent);
+    background: var(--color-accent-dim);
+  }
+  
+  .side-nav {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+  
+  .side-nav::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .side-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .side-nav::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 2px;
+  }
+
+  /* Safe area for iPhone notch */
+  @supports (padding-top: env(safe-area-inset-top)) {
+    .side-nav {
+      padding-top: calc(5rem + env(safe-area-inset-top));
+      padding-right: calc(0.75rem + env(safe-area-inset-right));
+    }
+  }
+</style>
+
+<script>
+  // Active section highlighting via IntersectionObserver
+  function initSideNav() {
+    const links = document.querySelectorAll('.side-nav-link[data-section]')
+    if (!links.length) return
+
+    const sections: { id: string; el: Element }[] = []
+    links.forEach(link => {
+      const id = link.getAttribute('data-section')
+      if (id) {
+        const el = document.getElementById(id)
+        if (el) sections.push({ id, el })
+      }
+    })
+
+    if (!sections.length) return
+
+    // Find the scroll container (nearest scrollable parent or window)
+    const scrollEl = document.querySelector('.side-nav')?.closest('.shell') || document.documentElement
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id
+            links.forEach(link => {
+              link.classList.toggle('active', link.getAttribute('data-section') === id)
+            })
+          }
+        })
+      },
+      {
+        root: null,
+        rootMargin: '-20% 0px -70% 0px',
+        threshold: 0,
+      }
+    )
+
+    sections.forEach(({ el }) => observer.observe(el))
+  }
+
+  // Run on page load and after view transitions
+  document.addEventListener('astro:page-load', initSideNav)
+  if (document.readyState !== 'loading') initSideNav()
+</script>
