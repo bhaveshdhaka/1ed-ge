@@ -1,0 +1,299 @@
+---
+/**
+ * Chamber of Intentions — write, validate, save.
+ * SSR page with client-side 5Ps validation. Dark terminal aesthetic.
+ */
+import Bare from '../../../../layouts/Bare.astro'
+import PrivateNav from '../../../../components/private/PrivateNav.astro'
+import IntentionOverlay from '../../../../components/private/IntentionOverlay.astro'
+import { listMds, readEntry } from '../../../../lib/content'
+import { sessionOk } from '../../../../lib/auth'
+
+export const prerender = false
+
+// Auth gate — the zen session cookie must be present (passkey session).
+if (!sessionOk(Astro.request)) {
+  return Astro.redirect('/zen')
+}
+
+// Load saved intentions for the overlay
+let intentions: { date: string; time?: string | null; text: string; file: string }[] = []
+try {
+  const files = listMds('intentions').sort().reverse()
+  intentions = files.map(f => {
+    const entry = readEntry('intentions', f)
+    return {
+      file: f,
+      date: String(entry.data.date ?? ''),
+      time: typeof entry.data.time === 'string' ? entry.data.time : null,
+      text: entry.body?.trim() ?? '',
+    }
+  }).filter(i => i.text.length > 0)
+} catch {}
+---
+
+<Bare title="intentions — private — 1ed.ge">
+  <section class="shell pt-12 pb-32">
+    <!-- Header -->
+    <div class="mx-auto max-w-2xl">
+      <div class="text-2xs uppercase tracking-widest text-accent">step two</div>
+      <h1 class="mt-2 text-2xl font-semibold text-ink">Chamber of Intentions</h1>
+      <p class="mt-2 text-sm text-dim">
+        The 5 Ps: Personal · Positive · Powerful · Past · Private.
+      </p>
+    </div>
+
+    <!-- Textarea -->
+    <div class="mx-auto mt-8 max-w-2xl">
+      <textarea
+        id="intention-text"
+        class="w-full min-h-[160px] rounded-lg border border-line bg-raise p-4 text-base text-ink placeholder:text-faint focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 resize-none"
+        placeholder="I am…"
+        aria-label="Write your intention"
+      ></textarea>
+    </div>
+
+    <!-- 5 Ps checklist -->
+    <div class="mx-auto mt-6 max-w-2xl flex flex-col gap-3" id="ps-checklist">
+      <!-- P1 Personal -->
+      <div class="flex items-start gap-3 rounded-lg border border-line bg-raise/50 p-3" data-p="1">
+        <div class="mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 border-line flex items-center justify-center transition-colors" data-p-indicator="1">
+          <div class="h-2.5 w-2.5 rounded-full bg-accent opacity-0 transition-opacity" data-p-fill="1"></div>
+        </div>
+        <div>
+          <div class="text-sm font-semibold text-ink">Personal</div>
+          <div class="text-xs text-dim">Begin with "I am" or "I have".</div>
+        </div>
+      </div>
+
+      <!-- P2 Positive -->
+      <div class="flex items-start gap-3 rounded-lg border border-line bg-raise/50 p-3" data-p="2">
+        <div class="mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 border-line flex items-center justify-center transition-colors" data-p-indicator="2">
+          <div class="h-2.5 w-2.5 rounded-full bg-accent opacity-0 transition-opacity" data-p-fill="2"></div>
+        </div>
+        <div>
+          <div class="text-sm font-semibold text-ink">Positive</div>
+          <div class="text-xs text-dim">In favor of what you want, never against what you fear.</div>
+        </div>
+      </div>
+
+      <!-- P3 Powerful -->
+      <div class="flex items-start gap-3 rounded-lg border border-line bg-raise/50 p-3" data-p="3">
+        <div class="mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 border-line flex items-center justify-center transition-colors" data-p-indicator="3">
+          <div class="h-2.5 w-2.5 rounded-full bg-accent opacity-0 transition-opacity" data-p-fill="3"></div>
+        </div>
+        <div>
+          <div class="text-sm font-semibold text-ink">Powerful</div>
+          <div class="text-xs text-dim">Stir awe — use vibrant, luminous words.</div>
+        </div>
+      </div>
+
+      <!-- P4 Past/Present -->
+      <div class="flex items-start gap-3 rounded-lg border border-line bg-raise/50 p-3" data-p="4">
+        <div class="mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 border-line flex items-center justify-center transition-colors" data-p-indicator="4">
+          <div class="h-2.5 w-2.5 rounded-full bg-accent opacity-0 transition-opacity" data-p-fill="4"></div>
+        </div>
+        <div>
+          <div class="text-sm font-semibold text-ink">Past / Present</div>
+          <div class="text-xs text-dim">Written as if it has already come to pass.</div>
+        </div>
+      </div>
+
+      <!-- P5 Private (locked) -->
+      <div class="flex items-start gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3" data-p="5">
+        <div class="mt-0.5 h-5 w-5 shrink-0 flex items-center justify-center text-accent">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div>
+          <div class="text-sm font-semibold text-ink">Private</div>
+          <div class="text-xs text-dim">Share this with no one — to protect its energy.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="mx-auto mt-8 max-w-2xl flex flex-col gap-3">
+      <button
+        id="save-intention-btn"
+        class="flex w-full items-center justify-center gap-2 rounded-full bg-line px-6 py-3.5 text-sm font-medium text-dim transition-colors cursor-not-allowed min-h-[48px]"
+        disabled
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span class="uppercase tracking-widest text-2xs">Save with Serenity</span>
+      </button>
+
+      <button
+        id="read-intentions-btn"
+        class="flex w-full items-center justify-center gap-2 rounded-full border border-line bg-transparent px-6 py-3.5 text-sm font-medium text-ink transition-colors hover:border-accent/50 min-h-[48px]"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span class="uppercase tracking-widest text-2xs">Read My Intentions</span>
+      </button>
+    </div>
+  </section>
+
+  <PrivateNav active="intentions" />
+  <IntentionOverlay intentions={intentions} />
+</Bare>
+
+<script>
+  // ── 5 Ps Auto-Validation (hybrid: stemming + fuzzy + contractions) ────────
+  const textarea = document.getElementById('intention-text') as HTMLTextAreaElement
+  const saveBtn = document.getElementById('save-intention-btn') as HTMLButtonElement
+  const fills: Record<number, HTMLElement> = {}
+  const indicators: Record<number, HTMLElement> = {}
+  for (let i = 1; i <= 5; i++) {
+    fills[i] = document.querySelector<HTMLElement>(`[data-p-fill="${i}"]`)!
+    indicators[i] = document.querySelector<HTMLElement>(`[data-p-indicator="${i}"]`)!
+  }
+
+  // Stemmer: strip common suffixes
+  function stem(word: string): string {
+    return word.toLowerCase()
+      .replace(/(?:ation|ments?|ment|ness|ity|ence|ance|ious|eous|ful|less|able|ible|ally|ically|ing|ed|er|est|ly|ous|ive|ize|ise|s|es)$/, '')
+      || word.toLowerCase()
+  }
+
+  // Levenshtein distance
+  function lev(a: string, b: string): number {
+    if (a === b) return 0
+    if (!a.length) return b.length
+    if (!b.length) return a.length
+    const matrix: number[][] = []
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i]
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        const cost = b[i - 1] === a[j - 1] ? 0 : 1
+        matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost)
+      }
+    }
+    return matrix[b.length][a.length]
+  }
+
+  // Root word sets
+  const P1_ROOTS = new Set(['i','am','have','live','get','create','attract','manifest','choose','welcome','embrace','carry','hold','embody','exist','breathe','feel','know','see'])
+  const P2_NEGATIONS = new Set(['not','never','no','hardly','barely','scarcely'])
+  const P3_POWER = new Set(['master','lord','universe','desire','trust','abundant','powerful','magnificent','extraordinary','create','manifest','attract','prosper','thrive','flourish','radiate','limitless','boundless','supreme','divine','blessed','grateful','joyful','peaceful','serene','confident','unstoppable','luminous','vibrant','awe','inspire','grace','harmoni','courage','strength','wisdom','clarity','focus','determin','resilient','fearless'])
+
+  // Contraction expansion
+  const CONTRACTIONS: Record<string, string> = {
+    "i'm": "i am", "ive": "i have", "i've": "i have", "i'll": "i will",
+    "don't": "do not", "can't": "can not", "won't": "will not",
+    "isn't": "is not", "aren't": "are not", "wasn't": "was not", "weren't": "were not",
+    "i'd": "i would", "im": "i am",
+  }
+
+  function expandContractions(text: string): string {
+    let result = text.toLowerCase()
+    for (const [contraction, expansion] of Object.entries(CONTRACTIONS)) {
+      result = result.replace(new RegExp(`\\b${contraction}\\b`, 'gi'), expansion)
+    }
+    return result
+  }
+
+  function tokenize(text: string): string[] {
+    const expanded = expandContractions(text)
+    return expanded.replace(/[^a-z\s]/g, '').split(/\s+/).filter(w => w.length > 0)
+  }
+
+  function fuzzyMatch(word: string, targets: Set<string>, maxDist = 2): boolean {
+    const stemmed = stem(word)
+    if (targets.has(stemmed)) return true
+    for (const target of targets) {
+      if (lev(stemmed, target) <= maxDist) return true
+    }
+    return false
+  }
+
+  function checkP1(tokens: string[]): boolean {
+    if (tokens.length < 2) return false
+    // Must start with "i" (or "i am/i have" after expansion)
+    if (tokens[0] !== 'i') return false
+    // Must contain at least one P1 root word (stemmed or fuzzy)
+    return tokens.some(t => fuzzyMatch(t, P1_ROOTS, 2))
+  }
+
+  function checkP2(tokens: string[]): boolean {
+    // No negation words found (stemmed, word-boundary safe)
+    return !tokens.some(t => {
+      const stemmed = stem(t)
+      return P2_NEGATIONS.has(stemmed) || fuzzyMatch(t, P2_NEGATIONS, 1)
+    })
+  }
+
+  function checkP3(tokens: string[]): boolean {
+    // Contains at least one power word (stemmed or fuzzy)
+    return tokens.some(t => fuzzyMatch(t, P3_POWER, 2))
+  }
+
+  function checkP4(tokens: string[]): boolean {
+    // Contains am/have/live/exist (present tense markers)
+    const presentMarkers = new Set(['am','have','live','exist','breathe','feel','know','see'])
+    return tokens.some(t => {
+      const stemmed = stem(t)
+      return presentMarkers.has(stemmed) || fuzzyMatch(t, presentMarkers, 1)
+    })
+  }
+
+  function validate() {
+    const text = textarea.value.trim()
+    const tokens = tokenize(text)
+    const results = {
+      1: text.length > 0 && checkP1(tokens),
+      2: text.length > 0 && checkP2(tokens),
+      3: text.length > 0 && checkP3(tokens),
+      4: text.length > 0 && checkP4(tokens),
+      5: true, // always satisfied
+    }
+
+    // Update indicators
+    for (let i = 1; i <= 5; i++) {
+      const satisfied = results[i as keyof typeof results]
+      fills[i].style.opacity = satisfied ? '1' : '0'
+      indicators[i].style.borderColor = satisfied ? 'var(--color-accent)' : 'var(--color-line)'
+    }
+
+    // Update save button
+    const allSatisfied = Object.values(results).every(Boolean) && text.length > 10
+    saveBtn.disabled = !allSatisfied
+    saveBtn.className = allSatisfied
+      ? 'flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-medium text-bg transition-colors cursor-pointer min-h-[48px]'
+      : 'flex w-full items-center justify-center gap-2 rounded-full bg-line px-6 py-3.5 text-sm font-medium text-dim transition-colors cursor-not-allowed min-h-[48px]'
+  }
+
+  textarea.addEventListener('input', validate)
+
+  // Save intention
+  saveBtn.addEventListener('click', async () => {
+    const text = textarea.value.trim()
+    if (!text || saveBtn.disabled) return
+
+    saveBtn.disabled = true
+    saveBtn.textContent = 'Saving…'
+
+    try {
+      const resp = await fetch('/api/admin/intentions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      const data = await resp.json()
+      if (data.ok) {
+        textarea.value = ''
+        validate()
+        saveBtn.innerHTML = '<span class="uppercase tracking-widest text-2xs">✓ Saved</span>'
+        setTimeout(() => {
+          saveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span class="uppercase tracking-widest text-2xs">Save with Serenity</span>`
+          validate()
+        }, 2000)
+      } else {
+        saveBtn.textContent = 'Error — try again'
+        setTimeout(() => { validate() }, 2000)
+      }
+    } catch {
+      saveBtn.textContent = 'Error — try again'
+      setTimeout(() => { validate() }, 2000)
+    }
+  })
+</script>

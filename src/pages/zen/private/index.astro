@@ -1,0 +1,96 @@
+---
+/**
+ * Private home — the meditation corner.
+ * SSR, auth-gated by zen session. Dark terminal aesthetic.
+ */
+import { getCollection } from 'astro:content'
+import Bare from '../../../layouts/Bare.astro'
+import Card from '../../../components/ui/Card.astro'
+import KvRow from '../../../components/ui/KvRow.astro'
+import Icon from '../../../components/ui/Icon.astro'
+import PrivateNav from '../../../components/private/PrivateNav.astro'
+import { sessionOk } from '../../../lib/auth'
+
+export const prerender = false
+
+// Auth gate — the zen session cookie must be present (passkey session).
+if (!sessionOk(Astro.request)) {
+  return Astro.redirect('/zen')
+}
+
+// Random meditation quote
+let quote = { text: 'The wound is the place where the Light enters you.', author: 'Rumi' }
+try {
+  const quotes = await getCollection('meditationQuotes')
+  if (quotes.length > 0) {
+    const q = quotes[Math.floor(Math.random() * quotes.length)]
+    quote = { text: q.body?.trim() ?? quote.text, author: q.data.author ?? 'Unknown' }
+  }
+} catch {}
+
+// Activity cards
+const base = '/zen/private'
+const activities = [
+  { id: 'quiet', label: 'Quiet Time', icon: 'waves', href: '#', disabled: true },
+  { id: 'nature', label: 'Nature Time', icon: 'leaf', href: '#', disabled: true },
+  { id: 'exercises', label: 'Daily Exercises', icon: 'book-open', href: '#', disabled: true },
+  { id: 'intentions', label: 'Intentions', icon: 'feather', href: `${base}/intentions/`, disabled: false },
+  { id: 'rewiring', label: 'Re-Wiring', icon: 'activity', href: '#', disabled: true },
+  { id: 'mindmovie', label: 'Mind Movie', icon: 'film', href: '#', disabled: true },
+  { id: '21days', label: '21 Days', icon: 'calendar-check', href: '#', disabled: true },
+]
+---
+
+<Bare title="private — 1ed.ge">
+  <section class="shell pt-12 pb-32">
+    <!-- Hero quote -->
+    <div class="mx-auto max-w-2xl text-center">
+      <blockquote class="text-2xl font-medium leading-tight text-ink">
+        "{quote.text}"
+      </blockquote>
+      <p class="mt-3 text-sm text-dim">— {quote.author}</p>
+    </div>
+
+    <!-- Tagline -->
+    <div class="mx-auto mt-10 max-w-2xl">
+      <div class="flex items-center gap-3">
+        <div class="h-px w-6 bg-accent"></div>
+        <span class="text-2xs uppercase tracking-widest text-dim">small daily actions create extraordinary results</span>
+      </div>
+    </div>
+
+    <!-- Activity cards grid -->
+    <div class="mx-auto mt-8 max-w-2xl">
+      <div class="text-2xs uppercase tracking-widest text-faint mb-4">begin somewhere</div>
+      <div class="grid grid-cols-3 gap-3 md:grid-cols-4">
+        {activities.map((a) => (
+          <a
+            href={a.disabled ? undefined : a.href}
+            class:list={[
+              'flex flex-col items-center gap-2 rounded-lg border border-line p-4 transition-colors min-h-[100px] justify-center',
+              a.disabled
+                ? 'bg-raise/30 opacity-40 pointer-events-none'
+                : 'bg-raise hover:border-accent/50 hover:bg-raise/80',
+            ]}
+          >
+            <Icon name={a.icon} size={20} class={a.disabled ? 'text-dim' : 'text-accent'} />
+            <span class="text-xs font-medium text-ink text-center">{a.label}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <!-- Today status -->
+    <div class="mx-auto mt-10 max-w-2xl">
+      <div class="text-2xs uppercase tracking-widest text-faint mb-4">today</div>
+      <Card variant="flat">
+        <KvRow label="Quiet Time" value="Incomplete" />
+        <KvRow label="Nature Time" value="0 / 20 min" />
+        <KvRow label="Daily Exercise" value="Incomplete" />
+        <KvRow label="Current Streak" value="0 days" />
+      </Card>
+    </div>
+  </section>
+
+  <PrivateNav active="home" />
+</Bare>
