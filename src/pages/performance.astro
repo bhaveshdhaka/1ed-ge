@@ -11,6 +11,7 @@ import EquityCurve from '../components/EquityCurve.astro'
 import RHistogram from '../components/RHistogram.astro'
 import Heatmap from '../components/Heatmap.astro'
 import CorrTable from '../components/CorrTable.astro'
+import SectionNav from '../components/ui/SectionNav.astro'
 
 const [accounts, days, payouts, habits] = await Promise.all([
   getCollection('accounts'),
@@ -50,22 +51,14 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       <span class="text-xs text-faint">R = points risked vs points made</span>
     </div>
 
-    <div class="sticky top-0 z-10 mt-6 -mx-1 border-b border-line bg-bg/95 px-1 py-1 backdrop-blur">
-      <div class="flex gap-1 overflow-x-auto text-xs" tabindex="0">
-        {[
-          ['summary', 'stats'],
-          ['charts', 'charts'],
-          ['accounts', 'accounts'],
-          ['recent trades', 'recent'],
-          ['habits', 'habits'],
-          ['trends', 'trends'],
-        ].map(([label, id]) => (
-          <a href={`#${id}`} class="flex h-8 items-center whitespace-nowrap px-2 text-dim transition-colors hover:text-ink">
-            {label}
-          </a>
-        ))}
-      </div>
-    </div>
+    <SectionNav sections={[
+      ['summary', 'stats'],
+      ['charts', 'charts'],
+      ['accounts', 'accounts'],
+      ['recent trades', 'recent'],
+      ['habits', 'habits'],
+      ['trends', 'trends'],
+    ]} />
 
     <div id="stats" class="mt-8 scroll-mt-28">
       <Card icon="📊" label="R performance" subtitle={`${s.totalTrades || 0} trades`}>

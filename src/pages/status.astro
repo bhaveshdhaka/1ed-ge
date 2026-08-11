@@ -13,6 +13,8 @@ import Well from '../components/ui/Well.astro'
 import Badge from '../components/ui/Badge.astro'
 import Table from '../components/ui/Table.astro'
 import { fmtDayWUpper } from '../lib/dates'
+import SectionNav from '../components/ui/SectionNav.astro'
+import LogList from '../components/ui/LogList.astro'
 
 export const prerender = false
 
@@ -21,6 +23,7 @@ interface Snapshot {
   market?: {
     lastDay?: string | null
     lastFetched?: string | null
+    nextFetch?: string | null
     tv?: number | null
     ff?: number | null
     events?: number | null
@@ -109,16 +112,12 @@ const mkt = snap?.market ?? {}
 const rebuilds = Array.isArray(snap?.rebuilds) ? snap!.rebuilds! : []
 const pending = Array.isArray(snap?.pending) ? snap!.pending! : []
 const lastRebuild = rebuilds.length ? rebuilds[rebuilds.length - 1] : null
-const lastRebuilds = rebuilds.slice(-10).reverse()
+const lastRebuilds = rebuilds.slice(-4).reverse()
 const sys = snap?.system ?? {}
 const git = snap?.git ?? {}
 const live = snap?.live ?? {}
 const logTail: string[] = Array.isArray(mkt.logTail) ? mkt.logTail : []
 const unverified: string[] = Array.isArray(mkt.unverified) ? mkt.unverified : []
-const logHead = logTail.slice(0, 4)
-const logRest = logTail.slice(4)
-const unverifiedHead = unverified.slice(0, 3)
-const unverifiedRest = unverified.slice(3)
 
 const dockerUp = !!sys.container?.up
 const hasUpstream = git.ahead != null && git.behind != null
@@ -138,6 +137,14 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
       )}
     </header>
 
+    <SectionNav sections={[
+      ['market', 'market'],
+      ['rebuilds', 'rebuilds'],
+      ['system', 'system'],
+      ['git', 'git'],
+      ['live', 'live'],
+    ]} />
+
     {!snap && (
       <p class="mt-4 max-w-2xl text-sm text-dim">
         no snapshot yet. host collector writes <code class="text-accent">data/status.json</code> every minute
@@ -147,12 +154,20 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
 
     <div class="mt-6 flex max-w-2xl flex-col gap-4">
       <!-- market news fetch -->
+      <div id="market" class="scroll-mt-28">
       <Card
         icon="📡"
         label="market news fetch"
         subtitle={mkt.lastDay ? `last day ${fmtDayWUpper(mkt.lastDay)}` : 'no market-news files'}
       >
         <KvRow label="last fetched" value={stamp(mkt.lastFetched)} />
+        <KvRow label="next fetch">
+          {mkt.nextFetch ? (
+            <span data-next-fetch={mkt.nextFetch} class="tabular-nums text-accent"></span>
+          ) : (
+            '—'
+          )}
+        </KvRow>
         <KvRow label="tv sources" value={num(mkt.tv)} />
         <KvRow label="ff sources" value={num(mkt.ff)} />
         <KvRow label="events" value={num(mkt.events)} />
@@ -164,23 +179,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           <div class="mt-3">
             <div class="text-2xs uppercase tracking-widest text-dim">unverified (single source)</div>
             <Well class="mt-1 p-3">
-              <ul class="space-y-0.5">
-                {unverifiedHead.map((u) => (
-                  <li class="font-mono text-2xs leading-relaxed text-dim">{u.trim()}</li>
-                ))}
-              </ul>
-              {unverifiedRest.length > 0 && (
-                <details class="mt-2">
-                  <summary class="cursor-pointer text-2xs text-faint select-none hover:text-dim">
-                    +{unverifiedRest.length} more
-                  </summary>
-                  <ul class="mt-1 space-y-0.5">
-                    {unverifiedRest.map((u) => (
-                      <li class="font-mono text-2xs leading-relaxed text-dim">{u.trim()}</li>
-                    ))}
-                  </ul>
-                </details>
-              )}
+              <LogList items={unverified} show={3} />
             </Well>
           </div>
         )}
@@ -189,29 +188,15 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           <div class="mt-3">
             <div class="text-2xs uppercase tracking-widest text-dim">log</div>
             <Well class="mt-1 p-3">
-              <ul class="space-y-0.5">
-                {logHead.map((line) => (
-                  <li class="font-mono text-2xs leading-relaxed text-dim">{line.trim()}</li>
-                ))}
-              </ul>
-              {logRest.length > 0 && (
-                <details class="mt-2">
-                  <summary class="cursor-pointer text-2xs text-faint select-none hover:text-dim">
-                    +{logRest.length} more lines
-                  </summary>
-                  <ul class="mt-1 space-y-0.5">
-                    {logRest.map((line) => (
-                      <li class="font-mono text-2xs leading-relaxed text-dim">{line.trim()}</li>
-                    ))}
-                  </ul>
-                </details>
-              )}
+              <LogList items={logTail} show={4} />
             </Well>
           </div>
         )}
       </Card>
+      </div>
 
       <!-- rebuilds -->
+      <div id="rebuilds" class="scroll-mt-28">
       <Card icon="🔨" label="rebuilds" subtitle={`${pending.length} pending change${pending.length === 1 ? '' : 's'}`}>
         <KvRow label="last rebuild">
           {lastRebuild ? (
@@ -242,7 +227,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
 
         {rebuilds.length > 0 && (
           <div class="mt-3">
-            <div class="text-2xs uppercase tracking-widest text-dim">last 10 rebuilds</div>
+            <div class="text-2xs uppercase tracking-widest text-dim">recent rebuilds</div>
             <Table head={['at', 'status', 'changes']} class="mt-1">
               {lastRebuilds.map((r) => (
                 <tr>
@@ -257,8 +242,10 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           </div>
         )}
       </Card>
+      </div>
 
       <!-- system -->
+      <div id="system" class="scroll-mt-28">
       <Card icon="💻" label="system">
         <KvRow label="container">
           <Badge variant={dockerUp ? 'up' : 'down'}>{dockerUp ? 'up' : 'down'}</Badge>
@@ -278,8 +265,10 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           value={sys.nodeProcesses != null ? String(sys.nodeProcesses) : '—'}
         />
       </Card>
+      </div>
 
       <!-- git -->
+      <div id="git" class="scroll-mt-28">
       <Card icon="🌿" label="git">
         <KvRow label="branch" value={git.branch ?? '—'} />
         <KvRow label="last commit" value={git.lastCommit ?? '—'} />
@@ -302,8 +291,10 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           )}
         </KvRow>
       </Card>
+      </div>
 
       <!-- live -->
+      <div id="live" class="scroll-mt-28">
       <Card icon="🟢" label="live">
         <KvRow label="trader">
           <Badge variant={live.live ? 'up' : 'muted'}>{live.live ? '● live' : '○ offline'}</Badge>
@@ -313,6 +304,28 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           <KvRow label="last seen (durable)" value={stamp(live.lastOnlineIso)} />
         )}
       </Card>
+      </div>
     </div>
   </section>
+  <script>
+    (function() {
+      const el = document.querySelector('[data-next-fetch]')
+      if (!el) return
+      const node = el
+      const target = new Date(el.getAttribute('data-next-fetch')!).getTime()
+      function fmt(sec: number): string {
+        sec = Math.max(0, Math.round(sec))
+        const h = Math.floor(sec / 3600)
+        const m = Math.floor((sec % 3600) / 60)
+        const s = Math.floor(sec % 60)
+        return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
+      }
+      function tick() {
+        const left = (target - Date.now()) / 1000
+        node.textContent = left > 0 ? fmt(left) : 'fetching...'
+      }
+      tick()
+      setInterval(tick, 1000)
+    })()
+  </script>
 </Base>

@@ -94,6 +94,8 @@ are fine (`border-line/60`, `bg-up/10`).
 | `Capsule` | accent-tinted pill chip — use for live indicators, timestamp chips, counts |
 | `Well` | inset recessed surface — use for cells inside cards |
 | `Button` | button or link; variants `default/primary/danger`, sizes `default/sm`, optional `href` |
+| `SectionNav` | sticky section jump bar for long pages — `sections` prop (label/id pairs) |
+| `LogList` | collapsible monospace log list — `items` + `show` (default 4) |
 
 **CSS-only tokens (no component):**
 | token | use for |

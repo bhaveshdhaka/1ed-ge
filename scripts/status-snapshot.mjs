@@ -62,6 +62,7 @@ try {
 let market = {
   lastDay: null,
   lastFetched,
+  nextFetch: null,
   tv: null,
   ff: null,
   events: null,
@@ -85,6 +86,20 @@ for (const line of logTail) {
 }
 market.unverified = logTail.filter((l) => /^\s{2}(TV|FF) /.test(l)).slice(0, 20)
 
+// Next fetch: cron is 0 */8 * * * UTC (00:00, 08:00, 16:00 UTC)
+// Compute next 8h boundary after lastFetched
+if (lastFetched) {
+  const last = new Date(lastFetched)
+  const h = last.getUTCHours()
+  const nextH = Math.ceil((h + 1) / 8) * 8
+  const next = new Date(last)
+  next.setUTCHours(nextH % 24, 0, 0, 0)
+  if (nextH >= 24) next.setUTCDate(next.getUTCDate() + 1)
+  // If next is in the past (lastFetched was a while ago), jump forward
+  while (next <= last) next.setUTCHours(next.getUTCHours() + 8)
+  market.nextFetch = next.toISOString()
+}
+
 try {
   const dir = path.join(ROOT, 'src/content/market-news')
   const files = fs
@@ -97,8 +112,8 @@ try {
 }
 
 // ── rebuilds / pending ──────────────────────────────────────────────────────
-const rebuildsRaw = readJson('/tmp/1edge-rebuilds.json')
-const pendingRaw = readJson('/tmp/1edge-pending.json')
+const rebuildsRaw = readJson(path.join(ROOT, 'data', 'rebuilds.json'))
+const pendingRaw = readJson(path.join(ROOT, 'data', 'pending.json'))
 const rebuilds = Array.isArray(rebuildsRaw) ? rebuildsRaw : []
 const pending = Array.isArray(pendingRaw) ? pendingRaw : []
 

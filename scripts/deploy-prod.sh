@@ -20,6 +20,9 @@ node scripts/market-news-fetch.mjs --no-build || echo "  warn: market fetch fail
 echo "→ building + starting container"
 docker compose up -d --build
 
+echo "→ clearing pending changes queue"
+echo '[]' > data/pending.json
+
 echo "→ installing prod nginx vhost"
 sudo cp nginx/1ed.ge.conf /etc/nginx/sites-enabled/1ed.ge
 sudo nginx -t && sudo systemctl reload nginx

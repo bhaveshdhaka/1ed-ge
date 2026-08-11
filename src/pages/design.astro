@@ -13,6 +13,7 @@ import SegControl from '../components/ui/SegControl.astro'
 import Capsule from '../components/ui/Capsule.astro'
 import Well from '../components/ui/Well.astro'
 import Button from '../components/ui/Button.astro'
+import SectionNav from '../components/ui/SectionNav.astro'
 import DayFacts from '../components/stream/DayFacts.astro'
 import ThoughtCard from '../components/stream/ThoughtCard.astro'
 import type { FactCell, ResolvedThought } from '../lib/stream'
@@ -130,12 +131,26 @@ const sampleThoughts: ResolvedThought[] = [
       <h1 class="text-2xl text-ink">/ design</h1>
       <span class="text-xs text-faint">{DESIGN_VERSION} · the card system</span>
     </div>
+    <SectionNav sections={[
+      ['architecture', 'architecture'],
+      ['palette', 'palette'],
+      ['type', 'type'],
+      ['material', 'material'],
+      ['cards', 'cards'],
+      ['typography', 'typography'],
+      ['primitives', 'primitives'],
+      ['composites', 'composites'],
+      ['rules', 'rules'],
+      ['skill', 'skill'],
+      ['backlog', 'backlog'],
+      ['changelog', 'changelog'],
+    ]} />
     <p class="mt-2 max-w-2xl text-sm text-dim">
       Every surface on 1ed.ge uses the same design system. One Card component, one type scale, one token architecture. This page documents every element, its rules, and how to use it.
     </p>
 
     <!-- Token Architecture -->
-    <div class="mt-10">
+    <div id="architecture" class="mt-10 scroll-mt-28">
       <Card icon="🎨" label="token architecture" subtitle="3-layer system">
         <p class="mb-4 text-sm text-soft">
           The design system uses a 3-layer token architecture. To re-theme, only Layer 1 changes. Layer 2 and Layer 3 are stable.
@@ -161,7 +176,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- Palette -->
-    <div class="mt-6">
+    <div id="palette" class="mt-6 scroll-mt-28">
       <Card icon="🎨" label="palette" subtitle="Layer 1">
         <div class="overflow-x-auto">
           <table class="w-full border-collapse">
@@ -192,7 +207,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- Type Scale -->
-    <div class="mt-6">
+    <div id="type" class="mt-6 scroll-mt-28">
       <Card icon="🔤" label="type scale" subtitle="mono-only · JetBrains Mono Variable">
         <p class="mb-3 text-xs text-dim">Syne Variable is reserved for the wordmark only.</p>
         <div class="overflow-x-auto">
@@ -221,7 +236,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- Material Tokens -->
-    <div class="mt-6">
+    <div id="material" class="mt-6 scroll-mt-28">
       <Card icon="⚙️" label="material tokens" subtitle="Layer 3">
         <div class="overflow-x-auto">
           <table class="w-full border-collapse">
@@ -247,7 +262,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- Card System -->
-    <div class="mt-10">
+    <div id="cards" class="mt-10 scroll-mt-28">
       <Card icon="🃏" label="card system" subtitle="the one panel primitive">
         <p class="mb-4 text-sm text-soft">
           Every surface on 1ed.ge uses the <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">Card</code> component. Never hand-build <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">.panel</code> + <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">.card-hd</code> markup. This is non-negotiable.
@@ -339,7 +354,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- Typography Rules -->
-    <div class="mt-6">
+    <div id="typography" class="mt-6 scroll-mt-28">
       <Card icon="📐" label="typography rules" subtitle="every element, one spec">
         <p class="mb-4 text-sm text-soft">
           Every text element in every card follows this spec. No exceptions.
@@ -374,7 +389,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- UI Primitives -->
-    <div class="mt-10">
+    <div id="primitives" class="mt-10 scroll-mt-28">
       <Card icon="🧩" label="UI primitives" subtitle="14 primitives + CSS tokens">
         <p class="mb-4 text-sm text-soft">
           The <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">src/components/ui/</code> directory contains 14 components. Every other component builds on these. Below, each primitive is rendered live — what you see is exactly what you get.
@@ -542,7 +557,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- Composite Components -->
-    <div class="mt-6">
+    <div id="composites" class="mt-6 scroll-mt-28">
       <Card icon="📦" label="composite components" subtitle="built on primitives · rendered live">
         <p class="mb-4 text-sm text-soft">
           These components are built entirely from the primitives above. Each is rendered live with real trading-shaped data — what you see is exactly what ships.
@@ -577,7 +592,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- Design Rules -->
-    <div class="mt-10">
+    <div id="rules" class="mt-10 scroll-mt-28">
       <Card icon="📏" label="design rules" subtitle="non-negotiable">
         <div class="flex flex-col gap-3">
           <div class="kv">
@@ -697,7 +712,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- Design Skill -->
-    <div class="mt-10">
+    <div id="skill" class="mt-10 scroll-mt-28">
       <Card icon="🧠" label="design skill" subtitle="how the AI maintains consistency">
         <p class="mb-3 text-sm text-soft">
           The design system is enforced by a <strong>design skill</strong> — a set of instructions loaded into every AI agent session. It ensures every new surface uses the Card component, follows the typography spec, and respects the design rules.
@@ -727,7 +742,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- Backlog / Roadmap -->
-    <div class="mt-6">
+    <div id="backlog" class="mt-6 scroll-mt-28">
       <Card icon="🗺" label="backlog" subtitle="remaining improvements">
         <div class="overflow-x-auto">
           <table class="w-full border-collapse">
@@ -755,7 +770,7 @@ const sampleThoughts: ResolvedThought[] = [
     </div>
 
     <!-- Changelog -->
-    <div class="mt-6">
+    <div id="changelog" class="mt-6 scroll-mt-28">
       <Card icon="📋" label="changelog" subtitle="design system versions">
         <div>
           <div class="mb-4">

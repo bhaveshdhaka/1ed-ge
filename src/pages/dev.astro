@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro'
 import Card from '../components/ui/Card.astro'
 import KvRow from '../components/ui/KvRow.astro'
+import SectionNav from '../components/ui/SectionNav.astro'
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 import { join } from 'node:path'
@@ -412,12 +413,24 @@ const osInfo = `${process.platform} ${process.arch}`
       <h1 class="text-2xl text-ink">/ dev</h1>
       <span class="text-xs text-faint">{VERSION} · {VERSION_DATE}</span>
     </div>
+    <SectionNav sections={[
+      ['costs', 'costs'],
+      ['stack', 'stack'],
+      ['tools', 'tools'],
+      ['principles', 'principles'],
+      ['features', 'features'],
+      ['traceability', 'traceability'],
+      ['source', 'source'],
+      ['content', 'content'],
+      ['versions', 'versions'],
+      ['changelog', 'changelog'],
+    ]} />
     <p class="mt-2 max-w-2xl text-sm text-dim">
       How this site was built. What it uses. What it cost. Everything public.
     </p>
 
     <!-- Token Costs -->
-    <div class="mt-10">
+    <div id="costs" class="mt-10 scroll-mt-28">
       <Card icon="💰" label="token costs" subtitle="what it took to build this">
         <div class="overflow-x-auto">
           <table class="w-full border-collapse">
@@ -457,7 +470,7 @@ const osInfo = `${process.platform} ${process.arch}`
     </div>
 
     <!-- Stack -->
-    <div class="mt-6">
+    <div id="stack" class="mt-6 scroll-mt-28">
       <Card icon="🛠" label="stack" subtitle="what we use">
         <div class="overflow-x-auto">
           <table class="w-full border-collapse">
@@ -483,7 +496,7 @@ const osInfo = `${process.platform} ${process.arch}`
     </div>
 
     <!-- Build Tools -->
-    <div class="mt-6">
+    <div id="tools" class="mt-6 scroll-mt-28">
       <Card icon="🤖" label="build tools" subtitle="AI-assisted development">
         <div class="overflow-x-auto">
           <table class="w-full border-collapse">
@@ -509,7 +522,7 @@ const osInfo = `${process.platform} ${process.arch}`
     </div>
 
     <!-- Principles -->
-    <div class="mt-6">
+    <div id="principles" class="mt-6 scroll-mt-28">
       <Card icon="🧭" label="principles" subtitle="the rules we build by">
         <div class="flex flex-col gap-3">
           {principles.map((p) => (
@@ -523,7 +536,7 @@ const osInfo = `${process.platform} ${process.arch}`
     </div>
 
     <!-- Features -->
-    <div class="mt-6">
+    <div id="features" class="mt-6 scroll-mt-28">
       <Card icon="✨" label="features" subtitle="what the site does">
         <div class="grid gap-6 md:grid-cols-2">
           {features.map((f) => (
@@ -544,7 +557,7 @@ const osInfo = `${process.platform} ${process.arch}`
     </div>
 
     <!-- Traceability -->
-    <div class="mt-6">
+    <div id="traceability" class="mt-6 scroll-mt-28">
       <Card icon="🔍" label="traceability" subtitle="every file → its feature">
         <p class="mb-4 text-xs text-dim">
           Every file in the codebase is mapped to a feature. If a file exists and isn't listed here, it's dead code.
@@ -581,7 +594,7 @@ const osInfo = `${process.platform} ${process.arch}`
     </div>
 
     <!-- Source Code Stats -->
-    <div class="mt-6">
+    <div id="source" class="mt-6 scroll-mt-28">
       <Card icon="📊" label="source code" subtitle="lines of code">
         <div class="grid gap-4 md:grid-cols-2">
           <div>
@@ -602,7 +615,7 @@ const osInfo = `${process.platform} ${process.arch}`
     </div>
 
     <!-- Content Counts -->
-    <div class="mt-6">
+    <div id="content" class="mt-6 scroll-mt-28">
       <Card icon="📁" label="content" subtitle="live counts">
         <div class="grid gap-4 md:grid-cols-2">
           <KvRow label="days recorded" value={String(days)} />
@@ -617,7 +630,7 @@ const osInfo = `${process.platform} ${process.arch}`
     </div>
 
     <!-- Stack Versions -->
-    <div class="mt-6">
+    <div id="versions" class="mt-6 scroll-mt-28">
       <Card icon="⚙️" label="stack" subtitle="versions">
         <KvRow label="node.js" value={nodeVersion} />
         <KvRow label="astro" value={astroVersion} />
@@ -627,7 +640,7 @@ const osInfo = `${process.platform} ${process.arch}`
     </div>
 
     <!-- Changelog -->
-    <div class="mt-6">
+    <div id="changelog" class="mt-6 scroll-mt-28">
       <Card icon="📋" label="changelog" subtitle="what changed">
         <div class="flex flex-col gap-6">
           {changelog.map((c) => (
