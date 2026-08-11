@@ -20,8 +20,8 @@ node scripts/market-news-fetch.mjs --no-build || echo "  warn: market fetch fail
 echo "→ building + starting container"
 docker compose up -d --build
 
-echo "→ clearing pending changes queue"
-echo '[]' > data/pending.json
+echo "→ post-deploy bookkeeping (changelog, build.json, tokenomics, pending clear)"
+node scripts/post-deploy.mjs || echo "  warn: post-deploy failed"
 
 echo "→ installing prod nginx vhost"
 sudo cp nginx/1ed.ge.conf /etc/nginx/sites-enabled/1ed.ge
