@@ -50,8 +50,18 @@ const logTail = (readFile('/tmp/1edge-market.log') ?? '').split('\n').filter(Boo
 const SUMMARY = /market-news: (\d+) tv \+ (\d+) ff -> (\d+) events \((\d+) red, (\d+) verified\)/
 const UNVERIFIED_COUNT = /market-news: (\d+) unverified \(single source\):/
 
+// Last fetch time = mtime of the market log file (most reliable signal)
+let lastFetched = null
+try {
+  const stat = fs.statSync('/tmp/1edge-market.log')
+  lastFetched = stat.mtime.toISOString()
+} catch {
+  /* keep null */
+}
+
 let market = {
   lastDay: null,
+  lastFetched,
   tv: null,
   ff: null,
   events: null,

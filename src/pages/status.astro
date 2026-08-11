@@ -20,6 +20,7 @@ interface Snapshot {
   at?: string
   market?: {
     lastDay?: string | null
+    lastFetched?: string | null
     tv?: number | null
     ff?: number | null
     events?: number | null
@@ -66,6 +67,7 @@ function readSnapshot(): Snapshot | null {
   return null
 }
 
+/** Relative time: "3m ago", "2h 15m ago", "5d ago" */
 function rel(iso: string | null | undefined): string {
   if (!iso) return 'never'
   const ms = Date.now() - Date.parse(iso)
@@ -78,6 +80,20 @@ function rel(iso: string | null | undefined): string {
   if (h < 24) return `${h}h ${m % 60}m ago`
   const d = Math.floor(h / 24)
   return `${d}d ago`
+}
+
+/** Uniform timestamp: "11-AUG-2026 04:30 · 2h 15m ago" */
+function stamp(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+  const mon = months[d.getUTCMonth()]
+  const yr = d.getUTCFullYear()
+  const hh = String(d.getUTCHours()).padStart(2, '0')
+  const mm = String(d.getUTCMinutes()).padStart(2, '0')
+  return `${day}-${mon}-${yr} ${hh}:${mm} · ${rel(iso)}`
 }
 
 function num(v: number | null | undefined): string {
@@ -97,8 +113,10 @@ const lastRebuilds = rebuilds.slice(-10).reverse()
 const sys = snap?.system ?? {}
 const git = snap?.git ?? {}
 const live = snap?.live ?? {}
-const logTail = Array.isArray(mkt.logTail) ? mkt.logTail : []
-const unverified = Array.isArray(mkt.unverified) ? mkt.unverified : []
+const logTail: string[] = Array.isArray(mkt.logTail) ? mkt.logTail : []
+const unverified: string[] = Array.isArray(mkt.unverified) ? mkt.unverified : []
+const logHead = logTail.slice(0, 4)
+const logRest = logTail.slice(4)
 
 const dockerUp = !!sys.container?.up
 const hasUpstream = git.ahead != null && git.behind != null
@@ -126,11 +144,13 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
     )}
 
     <div class="mt-6 flex max-w-2xl flex-col gap-4">
+      <!-- market news fetch -->
       <Card
         icon="📡"
         label="market news fetch"
         subtitle={mkt.lastDay ? `last day ${fmtDayWUpper(mkt.lastDay)}` : 'no market-news files'}
       >
+        <KvRow label="last fetched" value={stamp(mkt.lastFetched)} />
         <KvRow label="tv sources" value={num(mkt.tv)} />
         <KvRow label="ff sources" value={num(mkt.ff)} />
         <KvRow label="events" value={num(mkt.events)} />
@@ -151,19 +171,44 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           </div>
         )}
 
-        <div class="mt-3">
-          <div class="text-2xs uppercase tracking-widest text-dim">log tail · last 50 lines</div>
-          <Well class="mt-1 p-3">
-            <pre class="whitespace-pre-wrap break-words font-mono text-2xs leading-relaxed text-dim">{logTail.length ? logTail.join('\n') : '—'}</pre>
-          </Well>
-        </div>
+        {logTail.length > 0 && (
+          <div class="mt-3">
+            <div class="text-2xs uppercase tracking-widest text-dim">log</div>
+            <Well class="mt-1 p-3">
+              <ul class="space-y-0.5">
+                {logHead.map((line) => (
+                  <li class="font-mono text-2xs leading-relaxed text-dim">{line.trim()}</li>
+                ))}
+              </ul>
+              {logRest.length > 0 && (
+                <details class="mt-2">
+                  <summary class="cursor-pointer text-2xs text-faint select-none hover:text-dim">
+                    +{logRest.length} more lines
+                  </summary>
+                  <ul class="mt-1 space-y-0.5">
+                    {logRest.map((line) => (
+                      <li class="font-mono text-2xs leading-relaxed text-dim">{line.trim()}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </Well>
+          </div>
+        )}
       </Card>
 
+      <!-- rebuilds -->
       <Card icon="🔨" label="rebuilds" subtitle={`${pending.length} pending change${pending.length === 1 ? '' : 's'}`}>
-        <KvRow
-          label="last rebuild"
-          value={lastRebuild ? `${rel(lastRebuild.at)} · ${lastRebuild.ok ? 'ok' : 'failed'}` : 'none yet'}
-        />
+        <KvRow label="last rebuild">
+          {lastRebuild ? (
+            <span>
+              <Badge variant={lastRebuild.ok ? 'up' : 'down'}>{lastRebuild.ok ? 'ok' : 'failed'}</Badge>
+              <span class="ml-1 text-dim">{stamp(lastRebuild.at)}</span>
+            </span>
+          ) : (
+            'none yet'
+          )}
+        </KvRow>
         <KvRow label="pending changes" value={String(pending.length)} />
         {pending.length > 0 && (
           <div class="mt-1">
@@ -174,7 +219,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
                 .reverse()
                 .map((p) => (
                   <li class="text-2xs text-dim">
-                    <span class="text-faint">{rel(p.at)}</span> · {p.label ?? p.kind ?? '—'}
+                    <span class="text-faint">{stamp(p.at)}</span> · {p.label ?? p.kind ?? '—'}
                   </li>
                 ))}
             </ul>
@@ -187,10 +232,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
             <Table head={['at', 'status', 'changes']} class="mt-1">
               {lastRebuilds.map((r) => (
                 <tr>
-                  <td class="td">
-                    {r.at ? fmtDayWUpper(r.at.slice(0, 10)) : '—'}
-                    <span class="text-faint"> · {rel(r.at)}</span>
-                  </td>
+                  <td class="td">{stamp(r.at)}</td>
                   <td class="td">
                     <Badge variant={r.ok ? 'up' : 'down'}>{r.ok ? 'ok' : 'fail'}</Badge>
                   </td>
@@ -202,6 +244,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
         )}
       </Card>
 
+      <!-- system -->
       <Card icon="💻" label="system">
         <KvRow label="container">
           <Badge variant={dockerUp ? 'up' : 'down'}>{dockerUp ? 'up' : 'down'}</Badge>
@@ -222,6 +265,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
         />
       </Card>
 
+      <!-- git -->
       <Card icon="🌿" label="git">
         <KvRow label="branch" value={git.branch ?? '—'} />
         <KvRow label="last commit" value={git.lastCommit ?? '—'} />
@@ -245,16 +289,14 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
         </KvRow>
       </Card>
 
+      <!-- live -->
       <Card icon="🟢" label="live">
         <KvRow label="trader">
           <Badge variant={live.live ? 'up' : 'muted'}>{live.live ? '● live' : '○ offline'}</Badge>
         </KvRow>
-        <KvRow label="last heartbeat" value={live.at ? `${rel(live.at)} · ${live.at}` : 'never'} />
+        <KvRow label="last heartbeat" value={stamp(live.at)} />
         {live.lastOnlineIso && (
-          <KvRow
-            label="last seen (durable)"
-            value={`${rel(live.lastOnlineIso)} · ${fmtDayWUpper(live.lastOnlineIso.slice(0, 10))}`}
-          />
+          <KvRow label="last seen (durable)" value={stamp(live.lastOnlineIso)} />
         )}
       </Card>
     </div>
