@@ -1,0 +1,139 @@
+---
+/**
+ * BarChart.astro — reusable server-rendered SVG bar chart.
+ * Supports vertical (X=labels, Y=values) and horizontal (Y=labels, X=values).
+ * Zero JS. Same pattern as EquityCurve.astro.
+ */
+interface Props {
+  data: { label: string; value: number; color?: string }[]
+  height?: number
+  width?: number
+  orientation?: 'vertical' | 'horizontal'
+  format?: (v: number) => string
+  title?: string
+  class?: string
+}
+
+const {
+  data,
+  height = 200,
+  width = 900,
+  orientation = 'vertical',
+  format = (v: number) => v.toFixed(2),
+  title,
+  class: cls = '',
+} = Astro.props
+
+if (data.length === 0) return null
+
+const W = width
+const H = height
+const padX = 8
+const padY = 18
+const barGap = 2
+
+const maxVal = Math.max(...data.map((d) => d.value), 0.001)
+
+// Vertical layout: X = labels, Y = values
+const barW = Math.max(2, (W - padX * 2) / data.length - barGap)
+const vBarH = (v: number) => (v / maxVal) * (H - padY * 2)
+const barX = (i: number) => padX + i * (barW + barGap)
+const vBarY = (v: number) => H - padY - vBarH(v)
+
+// Horizontal layout: Y = labels, X = values
+const rowH = Math.max(20, (H - padY * 2) / data.length)
+const barMaxW = W - 160 // leave room for labels
+const hBarW = (v: number) => (v / maxVal) * barMaxW
+const hBarY = (i: number) => padY + i * rowH
+const chartH = data.length * rowH + padY * 2
+---
+
+{
+  orientation === 'vertical' ? (
+    <div class:list={['relative', cls]}>
+      {title && (
+        <div class="mb-1 text-2xs uppercase tracking-widest text-dim">{title}</div>
+      )}
+      <div class="overflow-x-auto" tabindex="0">
+        <svg viewBox={`0 0 ${W} ${H}`} class="w-full min-w-[400px]" role="img" aria-label={title ?? 'bar chart'}>
+          {title && <title>{title}</title>}
+          {data.map((d, i) => (
+            <g>
+              <rect
+                x={barX(i)}
+                y={vBarY(d.value)}
+                width={barW}
+                height={vBarH(d.value)}
+                fill={d.color ?? 'var(--color-accent)'}
+                fill-opacity="0.7"
+                rx="2"
+              />
+              <text
+                x={barX(i) + barW / 2}
+                y={H - 2}
+                text-anchor="middle"
+                fill="var(--color-faint)"
+                font-size="9"
+                font-family="inherit"
+              >
+                {d.label}
+              </text>
+              <text
+                x={barX(i) + barW / 2}
+                y={vBarY(d.value) - 4}
+                text-anchor="middle"
+                fill="var(--color-dim)"
+                font-size="9"
+                font-family="inherit"
+              >
+                {format(d.value)}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </div>
+  ) : (
+    <div class:list={['relative', cls]}>
+      {title && (
+        <div class="mb-1 text-2xs uppercase tracking-widest text-dim">{title}</div>
+      )}
+      <div class="overflow-x-auto" tabindex="0">
+        <svg viewBox={`0 0 ${W} ${chartH}`} class="w-full min-w-[400px]" role="img" aria-label={title ?? 'bar chart'}>
+          {title && <title>{title}</title>}
+          {data.map((d, i) => (
+            <g>
+              <text
+                x={4}
+                y={hBarY(i) + rowH * 0.65}
+                fill="var(--color-soft)"
+                font-size="10"
+                font-family="inherit"
+              >
+                {d.label.length > 20 ? d.label.slice(0, 20) + '…' : d.label}
+              </text>
+              <rect
+                x={140}
+                y={hBarY(i) + 2}
+                width={Math.max(2, hBarW(d.value))}
+                height={rowH - 6}
+                fill={d.color ?? 'var(--color-accent)'}
+                fill-opacity="0.7"
+                rx="2"
+              />
+              <text
+                x={144 + Math.max(2, hBarW(d.value))}
+                y={hBarY(i) + rowH * 0.65}
+                fill="var(--color-dim)"
+                font-size="10"
+                font-family="inherit"
+              >
+                {format(d.value)}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </div>
+  )
+}

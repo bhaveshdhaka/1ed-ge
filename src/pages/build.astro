@@ -1,0 +1,1389 @@
+---
+import fs from 'node:fs'
+import path from 'node:path'
+import { execSync } from 'node:child_process'
+import { createRequire } from 'node:module'
+import { join } from 'node:path'
+import Base from '../layouts/Base.astro'
+import Card from '../components/ui/Card.astro'
+import KvRow from '../components/ui/KvRow.astro'
+import Table from '../components/ui/Table.astro'
+import Badge from '../components/ui/Badge.astro'
+import StatCard from '../components/ui/StatCard.astro'
+import Well from '../components/ui/Well.astro'
+import Tag from '../components/ui/Tag.astro'
+import EmptyState from '../components/ui/EmptyState.astro'
+import Separator from '../components/ui/Separator.astro'
+import Icon from '../components/ui/Icon.astro'
+import SegControl from '../components/ui/SegControl.astro'
+import Capsule from '../components/ui/Capsule.astro'
+import Button from '../components/ui/Button.astro'
+import SectionNav from '../components/ui/SectionNav.astro'
+import BarChart from '../components/ui/BarChart.astro'
+import DayFacts from '../components/stream/DayFacts.astro'
+import ThoughtCard from '../components/stream/ThoughtCard.astro'
+import type { FactCell, ResolvedThought } from '../lib/stream'
+import { fmtDayWUpper } from '../lib/dates'
+
+// ── build version (data/build.json, written at deploy) ─────────────────────
+const require = createRequire(join(process.cwd(), 'package.json'))
+let buildData: { version?: string; at?: string; commit?: string } | null = null
+try {
+  buildData = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'build.json'), 'utf8'))
+} catch {}
+const VERSION = buildData?.version ?? new Date().toISOString().slice(0, 10)
+const VERSION_DATE = VERSION
+const today = new Date().toISOString().slice(0, 10)
+const buildDrift = buildData?.version !== today
+const buildStamp = (() => {
+  if (!buildData?.at) return '—'
+  const d = new Date(buildData.at)
+  return isNaN(d.getTime()) ? buildData.at : d.toISOString().slice(0, 16).replace('T', ' ')
+})()
+
+// ── tokenomics (data/tokenomics.json) ───────────────────────────────────────
+interface Tokenomics {
+  at?: string
+  totals?: {
+    cost?: number; sessions?: number; tokensInput?: number; tokensOutput?: number
+    tokensReasoning?: number; tokensCacheRead?: number; cacheHitRate?: number
+    avgSessionDuration?: number; commits?: number; costPerCommit?: number
+  }
+  byDay?: { date: string; sessions: number; cost: number; tokensInput: number; tokensOutput: number; cacheRead: number }[]
+  byModel?: { model: string; provider: string; sessions: number; cost: number; tokensInput: number; tokensOutput: number }[]
+  byAgent?: { agent: string; sessions: number; cost: number; tokensInput: number; tokensOutput: number }[]
+  recentSessions?: { title: string; model: string; agent: string; cost: number; date: string; tokensInput: number; tokensOutput: number }[]
+}
+let tokenomics: Tokenomics | null = null
+try {
+  tokenomics = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'tokenomics.json'), 'utf8'))
+} catch {}
+
+// ── changelog (changelog/YYYY-MM-DD.md) ─────────────────────────────────────
+let changelogEntry: string | null = null
+try {
+  changelogEntry = fs.readFileSync(path.join(process.cwd(), 'changelog', `${today}.md`), 'utf8')
+} catch {}
+
+// ── stack / tools / principles / traceability (from /dev) ───────────────────
+const stack = [
+  { layer: 'Framework', tech: 'Astro 5 (static-first) + @astrojs/node (SSR)', note: 'zero JS on public pages' },
+  { layer: 'Styling', tech: 'Tailwind CSS v4', note: '3-layer token architecture' },
+  { layer: 'Language', tech: 'TypeScript', note: 'strict mode' },
+  { layer: 'Admin', tech: 'React (islands)', note: 'client-side, admin area only' },
+  { layer: 'AI', tech: 'OpenRouter — DeepSeek + Qwen2.5-VL', note: 'day structuring, coach, screenshot reading' },
+  { layer: 'Images', tech: 'sharp (webp)', note: 'auto-conversion on upload' },
+  { layer: 'Content', tech: 'Markdown + gray-matter', note: 'files are the database' },
+  { layer: 'Hosting', tech: 'VPS + Docker + nginx', note: 'preprod + prod worktrees' },
+]
+
+const tools = [
+  { name: 'OpenCode', what: 'AI coding assistant', role: 'orchestrates all agent work' },
+  { name: 'mimo-v2.5-pro', what: 'Orchestrator model', role: 'primary reasoning, planning, coordination' },
+  { name: 'deepseek-v4-flash', what: 'Fast agent model', role: 'explorer, fixer, librarian, observer' },
+  { name: 'qwen3.7-plus', what: 'Oracle + designer model', role: 'architecture review, UI/UX design' },
+  { name: 'TypeScript LSP', what: 'Language server', role: 'type checking, diagnostics' },
+  { name: 'AST grep', what: 'Structural search', role: 'codebase-wide pattern matching' },
+  { name: 'Playwright', what: 'Browser automation', role: 'visual verification, testing' },
+]
+
+const traceability = [
+  {
+    category: 'Public Pages',
+    items: [
+      { file: 'pages/index.astro', feature: 'Homepage', what: 'Today card, market widget, stream feed' },
+      { file: 'pages/stream.astro', feature: 'Stream', what: 'Rolling feed of published thoughts' },
+      { file: 'pages/journal/index.astro', feature: 'Journal', what: 'Daily entries with search, month grouping' },
+      { file: 'pages/calendar.astro', feature: 'Calendar', what: '8-day market calendar with session windows' },
+      { file: 'pages/performance.astro', feature: 'Performance', what: 'R dashboard: equity, histogram, heatmap, correlations' },
+      { file: 'pages/models.astro', feature: 'Models', what: 'Trading models with rules and stats' },
+      { file: 'pages/accounts.astro', feature: 'Accounts', what: 'Prop-firm lifecycle and drawdown tracking' },
+      { file: 'pages/coach.astro', feature: 'Coach', what: 'AI f-R-iend conversations' },
+      { file: 'pages/about.astro', feature: 'About', what: 'Manifesto, rules, roadmap' },
+      { file: 'pages/day/[date].astro', feature: 'Day Archive', what: 'Per-day page with all sections' },
+      { file: 'pages/[periodType]/[...anchor].astro', feature: 'The Tape', what: 'Period reviews (week/month/quarter/half/year)' },
+      { file: 'pages/build.astro', feature: '/build', what: 'This page — overview, design, features, changelog, tokenomics' },
+      { file: 'pages/rss.xml.ts', feature: 'RSS', what: 'RSS feed of journal entries' },
+    ],
+  },
+  {
+    category: 'Market Data',
+    items: [
+      { file: 'components/MarketWidget.astro', feature: 'Market Widget', what: 'Chronograph rail, session rows, live clock' },
+      { file: 'components/MarketFooter.astro', feature: 'Market Footer', what: 'Collapsible per-page market status' },
+      { file: 'components/MarketLive.astro', feature: 'Live Ticker', what: 'CME narrative for all live markers' },
+      { file: 'components/MarketDay.astro', feature: 'Today Panel', what: 'Homepage today card with news' },
+      { file: 'components/NewsEventsCard.astro', feature: 'News Card', what: 'Reusable news panel with dot severity' },
+      { file: 'components/NewsBlock.astro', feature: 'News Rows', what: 'Icon + past-state news rows' },
+      { file: 'lib/market.ts', feature: 'Market Calendar', what: 'NYSE/CME calendars, holidays, DST' },
+      { file: 'lib/sessions.ts', feature: 'Sessions', what: 'CME trading day, market events, session windows' },
+      { file: 'lib/strip.ts', feature: 'Narrative Strip', what: 'Countdown segments for market widget' },
+      { file: 'lib/ticker.ts', feature: 'Ticker', what: 'Shared 1s interval runtime' },
+      { file: 'lib/market-news.ts', feature: 'News Model', what: 'News file I/O, emoji rules, grouping' },
+      { file: 'lib/brief.ts', feature: 'Pre-Market Brief', what: 'AI-generated daily snapshot' },
+      { file: 'scripts/market-news-fetch.mjs', feature: 'News Fetcher', what: 'TradingView + Faireconomy fetch' },
+      { file: 'public/ticker.js', feature: 'Ticker Runtime', what: 'Browser-side shared interval' },
+    ],
+  },
+  {
+    category: 'Content Model',
+    items: [
+      { file: 'lib/content.ts', feature: 'File I/O', what: 'fs + gray-matter helpers' },
+      { file: 'lib/stats.ts', feature: 'Stats Engine', what: 'R/P&L/equity/drawdown computation' },
+      { file: 'lib/stream.ts', feature: 'Stream Model', what: 'Thoughts, day facts, R math' },
+      { file: 'lib/periods.ts', feature: 'Period Engine', what: 'Week/month/quarter/half/year ranges' },
+      { file: 'lib/period-stats.ts', feature: 'Period Aggregation', what: 'Period stats, deltas, trends' },
+      { file: 'lib/models.ts', feature: 'Model Stats', what: 'Per-model aggregation' },
+      { file: 'lib/habits.ts', feature: 'Habit Stats', what: 'Streaks, heatmaps, percentages' },
+      { file: 'lib/account-rules.ts', feature: 'Account Rules', what: 'Prop-firm rule engine' },
+      { file: 'lib/accountability.ts', feature: 'Accountability', what: 'Pending reflections with grace' },
+      { file: 'lib/copy.ts', feature: 'Copy', what: 'Single source of public message strings' },
+      { file: 'lib/dates.ts', feature: 'Date Formatting', what: 'fmtDay, fmtDayWUpper, parseDay' },
+      { file: 'lib/constants.ts', feature: 'Constants', what: 'DEFAULT_HABIT_COLOR and shared values' },
+    ],
+  },
+  {
+    category: 'Admin',
+    items: [
+      { file: 'components/admin/AdminApp.tsx', feature: 'Admin Shell', what: 'Tab router, keyboard shortcuts, paste sink' },
+      { file: 'components/admin/api.ts', feature: 'API Client', what: 'Fetch wrapper, event bus, timezone helpers' },
+      { file: 'components/admin/ui.tsx', feature: 'Admin UI Kit', what: 'Field, TextInput, Card, Stat, Button' },
+      { file: 'components/admin/tabs/OverviewTab.tsx', feature: 'Overview', what: 'Today status, build, accounts, brief, system' },
+      { file: 'components/admin/tabs/DayWorkspace.tsx', feature: 'Day Workspace', what: 'Trades → moments → reflection' },
+      { file: 'components/admin/tabs/AccountsTab.tsx', feature: 'Accounts', what: 'Statement reader, account CRUD, payouts' },
+      { file: 'components/admin/tabs/CoachTab.tsx', feature: 'Coach', what: 'AI conversation with data context' },
+      { file: 'components/admin/tabs/LibraryTab.tsx', feature: 'Library', what: 'Habits/models/rules/quotes CRUD' },
+      { file: 'components/admin/tabs/ReviewTab.tsx', feature: 'Reviews', what: 'Period review notes + AI comparison' },
+      { file: 'components/admin/tabs/MediaTab.tsx', feature: 'Media', what: 'Image/document management' },
+      { file: 'components/admin/MarkdownEditor.tsx', feature: 'Markdown Editor', what: 'Write/preview with ghost text' },
+      { file: 'components/admin/TradeCard.tsx', feature: 'Trade Editor', what: 'Editable trade with model chips' },
+      { file: 'components/admin/WriteZone.tsx', feature: 'Moments Composer', what: 'Publish thoughts, draft reflection' },
+      { file: 'components/admin/SheetFrame.tsx', feature: 'Sheet Frame', what: 'Shared slide-over modal' },
+      { file: 'components/admin/CommandPalette.tsx', feature: 'Command Palette', what: '⌘K quick actions' },
+      { file: 'components/admin/NotificationDrawer.tsx', feature: 'Notifications', what: 'Pending reflections, rebuild status' },
+    ],
+  },
+  {
+    category: 'Admin APIs',
+    items: [
+      { file: 'api/admin/days.ts', feature: 'Day CRUD', what: 'GET/POST/DELETE day records' },
+      { file: 'api/admin/journal.ts', feature: 'Journal API', what: 'Journal entry CRUD' },
+      { file: 'api/admin/ai.ts', feature: 'AI Actions', what: 'Structure, vision, coach, assist, brief' },
+      { file: 'api/admin/media.ts', feature: 'Media API', what: 'Upload, list, delete media' },
+      { file: 'api/admin/ingest.ts', feature: 'Trade Ingest', what: 'CSV/PDF statement parsing' },
+      { file: 'api/admin/accounts.ts', feature: 'Accounts API', what: 'Account + payout CRUD' },
+      { file: 'api/admin/coach.ts', feature: 'Coach API', what: 'Coach sessions + AI replies' },
+      { file: 'api/admin/library.ts', feature: 'Library API', what: 'Habits/models/rules CRUD + reorder' },
+      { file: 'api/admin/reviews.ts', feature: 'Reviews API', what: 'Period review notes + AI comparison' },
+      { file: 'api/admin/rebuild.ts', feature: 'Rebuild API', what: 'Trigger build, status, history' },
+      { file: 'api/admin/status.ts', feature: 'System Status', what: 'Env flags, content counts, build state' },
+      { file: 'api/admin/accountability.ts', feature: 'Accountability', what: 'Pending reflections computation' },
+    ],
+  },
+  {
+    category: 'Design System',
+    items: [
+      { file: 'styles/app.css', feature: 'Design Tokens', what: '3-layer architecture, all CSS classes' },
+      { file: 'components/ui/Card.astro', feature: 'Card', what: 'One panel primitive, 4 variants' },
+      { file: 'components/ui/StatCard.astro', feature: 'Stat Card', what: 'Card stat wrapper' },
+      { file: 'components/ui/Badge.astro', feature: 'Badge', what: 'Status chip, 7 variants' },
+      { file: 'components/ui/Tag.astro', feature: 'Tag', what: 'Neutral metadata label' },
+      { file: 'components/ui/Table.astro', feature: 'Table', what: 'Data table in flat Card' },
+      { file: 'components/ui/EmptyState.astro', feature: 'Empty State', what: 'Consistent nothing-here block' },
+      { file: 'components/ui/Icon.astro', feature: 'Icon', what: 'Zero-JS Lucide SVG icons' },
+      { file: 'components/ui/Separator.astro', feature: 'Separator', what: 'Hairline divider' },
+      { file: 'components/Lightbox.astro', feature: 'Lightbox', what: 'Bottom-sheet image viewer' },
+      { file: 'components/Nav.astro', feature: 'Navigation', what: 'Terminal-styled nav' },
+      { file: 'components/ThemeBackground.astro', feature: 'Background', what: 'Stars + mountain ambient' },
+      { file: 'layouts/Base.astro', feature: 'Public Layout', what: 'Full HTML shell for public pages' },
+      { file: 'layouts/Bare.astro', feature: 'Admin Layout', what: 'Minimal shell for admin' },
+    ],
+  },
+  {
+    category: 'Infrastructure',
+    items: [
+      { file: 'scripts/ship.sh', feature: 'Ship', what: 'Single deploy command (preprod↔main)' },
+      { file: 'scripts/deploy-test.sh', feature: 'Deploy Test', what: 'Build + restart preprod' },
+      { file: 'scripts/deploy-prod.sh', feature: 'Deploy Prod', what: 'Docker compose + nginx + crons' },
+      { file: 'scripts/verify-env.sh', feature: 'Verify', what: 'HTTP 200 + noindex checks' },
+      { file: 'scripts/where-am-i.sh', feature: 'Env Snapshot', what: 'Print env/branch/worktree state' },
+      { file: 'scripts/seed.mjs', feature: 'Test Seed', what: 'Idempotent test data' },
+      { file: 'scripts/migrate.mjs', feature: 'Migration', what: 'Legacy data merge' },
+      { file: 'lib/env.ts', feature: 'Env Access', what: '.env accessors' },
+      { file: 'lib/changes.ts', feature: 'Pending Changes', what: 'Rebuild queue + history' },
+      { file: 'lib/live.ts', feature: 'Heartbeat', what: 'Admin live window' },
+      { file: 'lib/auth.ts', feature: 'Auth Guard', what: 'Session validation' },
+      { file: 'lib/webauthn.ts', feature: 'WebAuthn', what: 'Passkey registration + login' },
+    ],
+  },
+  {
+    category: 'AI Integration',
+    items: [
+      { file: 'lib/ai.ts', feature: 'OpenRouter Client', what: 'All AI calls: structure, vision, coach, assist' },
+      { file: 'lib/ingest.ts', feature: 'Ingest Pipeline', what: 'CSV/PDF/image parse, CT→HKT, dedup' },
+      { file: 'lib/review-compare.ts', feature: 'Review Comparison', what: 'AI factual comparison of periods' },
+      { file: 'lib/media-alt.ts', feature: 'Alt Text', what: 'Cheap-model SEO alt text for uploads' },
+    ],
+  },
+]
+
+const principles = [
+  { rule: 'Everything public', detail: 'I open every position, show every ticket, log every trade, every result, every move. Nothing hidden.' },
+  { rule: 'Kaizen', detail: 'Trading is continuous daily improvement. Keep what works, drop what doesn\'t, tweak the exact same things every single day.' },
+  { rule: 'Files are the database', detail: 'All data lives in markdown files on disk. Day records, journal entries, habits, accounts — each is a file with structured data at the top. No database server, no queries, no migrations.' },
+  { rule: 'Minimal JS on public pages', detail: 'All charts are server-rendered SVG. ~15KB inline JS total (lightbox, timezone, market ticker). No external JS dependencies.' },
+  { rule: 'CME is the master clock', detail: 'Day status comes from the CME equity-index-futures calendar. NYSE/TSE/LSE are secondary.' },
+  { rule: 'R is the only metric', detail: 'R = points risked vs points made. Performance math is risk-based.' },
+  { rule: 'Security by obscurity', detail: 'The admin is at a secret URL. API keys are in .env (gitignored). The route stays obscure.' },
+  { rule: 'The rules are dead simple', detail: 'Trade every day. Never risk more than you can afford. Focus on the move, not the number. Stay small, nimble, consistent. Have fun. Surpass the S&P.' },
+]
+
+// ── design data (from /design) ───────────────────────────────────────────────
+const palette = [
+  { token: '--hue-bg', value: '#07080c', purpose: 'base page background' },
+  { token: '--hue-panel', value: '#0d0f16', purpose: 'solid panel' },
+  { token: '--hue-raise', value: '#12141d', purpose: 'raised surface' },
+  { token: '--hue-line', value: '#1c2030', purpose: 'hairline border' },
+  { token: '--hue-line2', value: '#2a2f42', purpose: 'stronger border' },
+  { token: '--hue-ink', value: '#e6ebf5', purpose: 'primary text' },
+  { token: '--hue-soft', value: '#aab2c6', purpose: 'secondary text' },
+  { token: '--hue-dim', value: '#8b93a6', purpose: 'tertiary text' },
+  { token: '--hue-faint', value: '#7d859a', purpose: 'faintest text' },
+  { token: '--hue-accent', value: '#0af', purpose: 'electric blue accent' },
+  { token: '--hue-up', value: '#6ea88a', purpose: 'up/green (muted sage)' },
+  { token: '--hue-down', value: '#c2725e', purpose: 'down/red (muted clay)' },
+  { token: '--hue-warn', value: '#d9a441', purpose: 'warn/amber' },
+]
+
+const typeScale = [
+  { token: 'text-4xs', px: '9px', rem: '0.5625rem', usage: 'Micro labels (fact labels, stat labels)' },
+  { token: 'text-3xs', px: '10px', rem: '0.625rem', usage: 'Pills, timers, card subtitles, meta' },
+  { token: 'text-2xs', px: '11px', rem: '0.6875rem', usage: 'Card labels, nav tabs, table headers' },
+  { token: 'text-xs', px: '12px', rem: '0.75rem', usage: 'Body secondary, table cells, details' },
+  { token: 'text-sm', px: '13px', rem: '0.8125rem', usage: 'Body default, thoughts, prose' },
+  { token: 'text-base', px: '15px', rem: '0.9375rem', usage: 'Trade names, key values' },
+  { token: 'text-lg', px: '18px', rem: '1.125rem', usage: 'Stat values, section headings' },
+  { token: 'text-xl', px: '20px', rem: '1.25rem', usage: 'Admin page headers' },
+  { token: 'text-2xl', px: '24px', rem: '1.5rem', usage: 'Public page headers' },
+  { token: 'text-3xl', px: '32px', rem: '2rem', usage: 'Homepage hero' },
+  { token: 'text-4xl', px: '40px', rem: '2.5rem', usage: 'Homepage hero (desktop)' },
+]
+
+const materialTokens = [
+  { token: '--radius', value: '14px', usage: 'Panel border-radius' },
+  { token: '--radius-sm', value: '10px', usage: 'Button/input/well radius' },
+  { token: '--shadow-card', value: 'inset glow + drop shadow', usage: 'Panel shadow' },
+  { token: '--blur-card', value: '18px', usage: 'Glass blur (8px on mobile)' },
+  { token: '--ease-out', value: 'cubic-bezier(0.25, 0.1, 0.25, 1)', usage: 'Standard easing' },
+  { token: '--ease-spring', value: 'cubic-bezier(0.34, 1.2, 0.64, 1)', usage: 'Spring easing' },
+  { token: '--motion-fast', value: '0.15s', usage: 'Button/seg/capsule transitions' },
+  { token: '--motion-normal', value: '0.3s', usage: 'Panel-hero hover' },
+  { token: '--motion-slow', value: '0.5s', usage: 'Deliberate animations' },
+]
+
+const cardVariants = [
+  { variant: 'default', class: 'panel', description: 'Glass panel with backdrop blur. The standard card.' },
+  { variant: 'hero', class: 'panel panel-hero', description: 'Accent border, gradient bg, glow top-line. Featured cards.' },
+  { variant: 'static', class: 'panel-static', description: 'Same as default but no entrance animation. Stat grids.' },
+  { variant: 'flat', class: 'panel-flat', description: 'Background + border only. Nested cards, tables.' },
+]
+
+const typographyRules = [
+  { element: 'Card header label', token: 'text-2xs', weight: '700', case: 'UPPERCASE', tracking: '0.6px', color: 'soft' },
+  { element: 'Card subtitle', token: 'text-3xs', weight: '500', case: '—', tracking: '—', color: 'faint' },
+  { element: 'Card icon', token: '14px', weight: '—', case: '—', tracking: '—', color: '—' },
+  { element: 'Timer pill', token: 'text-3xs', weight: '600', case: '—', tracking: '0.2px', color: 'accent' },
+  { element: 'Stat label', token: 'text-4xs', weight: '700', case: 'UPPERCASE', tracking: '0.6px', color: 'faint' },
+  { element: 'Stat value', token: 'text-lg', weight: '600', case: '—', tracking: '—', color: 'ink' },
+  { element: 'Fact cell label', token: 'text-4xs', weight: '700', case: 'UPPERCASE', tracking: '0.6px', color: 'faint' },
+  { element: 'Fact cell value', token: 'text-sm', weight: '600', case: '—', tracking: '—', color: 'ink' },
+  { element: 'Table header', token: 'text-2xs', weight: '400', case: 'UPPERCASE', tracking: '0.14em', color: 'dim' },
+  { element: 'Table cell', token: 'text-xs', weight: '400', case: '—', tracking: '—', color: 'inherit' },
+  { element: 'Thought body', token: 'text-sm', weight: '400', case: '—', tracking: '—', color: 'soft' },
+  { element: 'Button', token: 'text-sm', weight: '—', case: '—', tracking: '—', color: 'soft' },
+  { element: 'Segment', token: 'text-2xs', weight: '600', case: '—', tracking: '—', color: 'dim' },
+  { element: 'Capsule', token: 'text-3xs', weight: '600', case: '—', tracking: '—', color: 'dim' },
+  { element: 'Page h1', token: 'text-2xl', weight: '600', case: '—', tracking: '—', color: 'ink' },
+  { element: 'Section h2', token: 'text-lg', weight: '600', case: '—', tracking: '—', color: 'ink' },
+]
+
+const roadmap = [
+  { item: 'SheetFrame keyframes → app.css', priority: 'low', detail: 'The shared SheetFrame.tsx injects @keyframes via inline <style>. Move to app.css for dedup.' },
+  { item: 'MarketFooter/Widget DOM-update dedup', priority: 'low', detail: 'Both components duplicate the same countdown-update logic. Extract shared updater.' },
+  { item: 'Chart SVG font-size tokens', priority: 'low', detail: 'Chart axes use inline font-size="9". Could use text-4xs token.' },
+  { item: 'Dark/light theme support', priority: 'future', detail: 'data-theme="summit" is inert. Could wire up for theme swapping.' },
+  { item: 'Component storybook', priority: 'future', detail: 'Interactive preview of all components with props. Would replace this static page.' },
+]
+
+// ── composite fixtures (from /design) ────────────────────────────────────────
+const sampleFactCells: FactCell[] = [
+  { key: 'mood', label: 'MOOD', value: '😐 okay', ok: true, up: undefined },
+  { key: 'sleep', label: 'SLEEP', value: '6.5h · 3/5', ok: true, up: undefined },
+  { key: 'r', label: 'R', value: '+2.50R', ok: true, up: true },
+  { key: 'trades', label: 'TRADES', value: '4 · 75% win', ok: true, up: undefined },
+  { key: 'screen', label: 'SCREEN', value: '5.2h', ok: true, up: undefined },
+  { key: 'habits', label: 'HABITS', value: '5/6', ok: true, up: undefined },
+]
+
+const sampleThoughts: ResolvedThought[] = [
+  {
+    iso: '2026-08-11', at: '09:15', type: 'trade',
+    text: undefined, images: [], author: undefined,
+    trade: { R: 2.5, direction: 'long' as const, market: 'MNQ', model: 'orb-drive', setup: 'ORB', session: 'ny-am', points: 25, entry: 20800.5, exit: 20825.5, stop: 20790.5, note: 'Clean break above ORB, held to +2.5R.', screenshots: [] },
+  },
+  {
+    iso: '2026-08-11', at: '08:30', type: 'note',
+    text: 'Pre-market: CPI at 20:30 HKT. Flat 15 min before. No chasing.', images: [], author: undefined,
+    trade: null,
+  },
+  {
+    iso: '2026-08-11', at: '07:00', type: 'quote',
+    text: 'The goal is not to be right. The goal is to make money when right and lose less when wrong.', images: [], author: undefined,
+    trade: null,
+  },
+]
+
+// ── source code stats (from /dev) ────────────────────────────────────────────
+const countLines = (ext: string) => {
+  try {
+    return parseInt(execSync(`find src/ -name '*${ext}' -exec wc -l {} + 2>/dev/null | tail -1 | awk '{print $1}'`).toString().trim()) || 0
+  } catch { return 0 }
+}
+const linesAstro = countLines('.astro')
+const linesTs = countLines('.ts')
+const linesTsx = countLines('.tsx')
+const linesCss = countLines('.css')
+const totalLines = linesAstro + linesTs + linesTsx + linesCss
+
+const countFiles = (ext: string) => {
+  try {
+    return parseInt(execSync(`find src/ -name '*${ext}' | wc -l`).toString().trim()) || 0
+  } catch { return 0 }
+}
+const filesAstro = countFiles('.astro')
+const filesTs = countFiles('.ts')
+const filesTsx = countFiles('.tsx')
+const filesCss = countFiles('.css')
+
+// ── content counts (from /dev) ───────────────────────────────────────────────
+const countDir = (dir: string) => {
+  try { return fs.readdirSync(dir).filter(f => f.endsWith('.md') || f.endsWith('.mdx')).length } catch { return 0 }
+}
+const days = countDir('src/content/days')
+const journals = countDir('src/content/journal')
+const accounts = countDir('src/content/accounts')
+const habits = countDir('src/content/habits')
+const reviews = countDir('src/content/reviews')
+const marketNews = countDir('src/content/market-news')
+
+let mediaCount = 0
+try { mediaCount = parseInt(execSync('find public/media/ -type f 2>/dev/null | wc -l').toString().trim()) || 0 } catch {}
+
+// ── stack versions (from /dev) ───────────────────────────────────────────────
+const pkg = require('./package.json')
+const nodeVersion = process.version
+const astroVersion = pkg.dependencies?.astro || pkg.devDependencies?.astro || 'unknown'
+const tailwindVersion = pkg.dependencies?.tailwindcss || pkg.devDependencies?.tailwindcss || 'unknown'
+const osInfo = `${process.platform} ${process.arch}`
+---
+
+<Base title="build — 1ed.ge" description="The build log: how this site was built, the design system, features, changelog, and what the builds cost. Everything public.">
+  <section class="shell pt-12 pb-20">
+    <div class="flex flex-wrap items-baseline gap-3">
+      <h1 class="text-2xl text-ink">/ build</h1>
+      <span class="text-xs text-faint">{VERSION} · {VERSION_DATE}</span>
+    </div>
+    <SectionNav sections={[
+      ['overview', 'overview-section'],
+      ['design', 'design-section'],
+      ['features', 'features-section'],
+      ['changelog', 'changelog-section'],
+      ['tokenomics', 'tokenomics-section'],
+      ['meta', 'meta-section'],
+    ]} />
+    <p class="mt-2 max-w-2xl text-sm text-dim">
+      How this site was built. The stack, the design system, the features, what changed today, and what the builds cost. Everything public.
+    </p>
+
+    <!-- ══ Overview ══ -->
+    <div id="overview-section" class="mt-10 scroll-mt-28">
+      <div id="build" class="scroll-mt-28">
+        <Card icon="🏗️" label="build" subtitle="deployed build snapshot">
+          <div class="grid gap-4 md:grid-cols-2">
+            <div>
+              <KvRow label="version">
+                <span class="inline-flex items-center gap-2 text-xs text-dim">
+                  <span class="text-ink">{VERSION}</span>
+                  {buildDrift && <Badge variant="warn">version drift</Badge>}
+                </span>
+              </KvRow>
+              <KvRow label="last commit" value={buildData?.commit ?? '—'} />
+              <KvRow label="build timestamp" value={buildStamp} />
+            </div>
+            <div>
+              <KvRow label="today" value={fmtDayWUpper(today)} />
+              <KvRow label="build date" value={VERSION_DATE} />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div id="stack" class="mt-6 scroll-mt-28">
+        <Card icon="🛠" label="stack" subtitle="what we use">
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="th">layer</th>
+                  <th class="th">technology</th>
+                  <th class="th">note</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stack.map((s) => (
+                  <tr>
+                    <td class="td text-dim">{s.layer}</td>
+                    <td class="td text-ink">{s.tech}</td>
+                    <td class="td text-faint">{s.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
+      <div id="tools" class="mt-6 scroll-mt-28">
+        <Card icon="🤖" label="build tools" subtitle="AI-assisted development">
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="th">tool</th>
+                  <th class="th">what</th>
+                  <th class="th">role</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tools.map((t) => (
+                  <tr>
+                    <td class="td text-ink">{t.name}</td>
+                    <td class="td text-dim">{t.what}</td>
+                    <td class="td text-faint">{t.role}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
+      <div id="principles" class="mt-6 scroll-mt-28">
+        <Card icon="🧭" label="principles" subtitle="the rules we build by">
+          <div class="flex flex-col gap-3">
+            {principles.map((p) => (
+              <div class="flex flex-col gap-0.5">
+                <span class="text-sm text-ink">{p.rule}</span>
+                <span class="text-xs text-dim">{p.detail}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <!-- ══ Design ══ -->
+    <div id="design-section" class="mt-10 scroll-mt-28">
+      <div class="mb-4 flex flex-wrap items-baseline gap-3">
+        <h2 class="text-lg font-semibold text-ink">design system</h2>
+        <span class="text-xs text-faint">{VERSION} · the card system</span>
+      </div>
+      <p class="mb-6 max-w-2xl text-sm text-dim">
+        Every surface on 1ed.ge uses the same design system. One Card component, one type scale, one token architecture. This documents every element, its rules, and how to use it.
+      </p>
+
+      <!-- Token Architecture -->
+      <div id="architecture" class="scroll-mt-28">
+        <Card icon="🎨" label="token architecture" subtitle="3-layer system">
+          <p class="mb-4 text-sm text-soft">
+            The design system uses a 3-layer token architecture. To re-theme, only Layer 1 changes. Layer 2 and Layer 3 are stable.
+          </p>
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="well p-3">
+              <div class="text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Layer 1 · Palette</div>
+              <p class="mt-1 text-xs text-dim">Raw hue values. Swap these to re-theme.</p>
+              <p class="mt-1 text-2xs text-faint">--hue-bg, --hue-ink, --hue-accent, --hue-up, --hue-down…</p>
+            </div>
+            <div class="well p-3">
+              <div class="text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Layer 2 · Semantic</div>
+              <p class="mt-1 text-xs text-dim">Component roles. Never change.</p>
+              <p class="mt-1 text-2xs text-faint">--color-bg, --color-ink, --color-accent, --color-up, --color-down…</p>
+            </div>
+            <div class="well p-3">
+              <div class="text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Layer 3 · Material</div>
+              <p class="mt-1 text-xs text-dim">Radii, shadows, blur, motion.</p>
+              <p class="mt-1 text-2xs text-faint">--radius, --shadow-card, --blur-card, --motion-fast…</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Palette -->
+      <div id="palette" class="mt-6 scroll-mt-28">
+        <Card icon="🎨" label="palette" subtitle="Layer 1">
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="th">token</th>
+                  <th class="th">value</th>
+                  <th class="th">purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                {palette.map((p) => (
+                  <tr>
+                    <td class="td font-mono text-2xs text-accent">{p.token}</td>
+                    <td class="td">
+                      <span class="inline-flex items-center gap-2">
+                        <span class="inline-block h-3 w-3 rounded-sm border border-line" style={`background:${p.value}`}></span>
+                        <span class="font-mono text-2xs">{p.value}</span>
+                      </span>
+                    </td>
+                    <td class="td text-dim">{p.purpose}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Type Scale -->
+      <div id="type" class="mt-6 scroll-mt-28">
+        <Card icon="🔤" label="type scale" subtitle="mono-only · JetBrains Mono Variable">
+          <p class="mb-3 text-xs text-dim">Syne Variable is reserved for the wordmark only.</p>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="th">token</th>
+                  <th class="th">px</th>
+                  <th class="th">rem</th>
+                  <th class="th">usage</th>
+                </tr>
+              </thead>
+              <tbody>
+                {typeScale.map((t) => (
+                  <tr>
+                    <td class="td font-mono text-2xs text-accent">{t.token}</td>
+                    <td class="td font-mono text-2xs">{t.px}</td>
+                    <td class="td font-mono text-2xs text-dim">{t.rem}</td>
+                    <td class="td text-dim">{t.usage}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Material Tokens -->
+      <div id="material" class="mt-6 scroll-mt-28">
+        <Card icon="⚙️" label="material tokens" subtitle="Layer 3">
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="th">token</th>
+                  <th class="th">value</th>
+                  <th class="th">usage</th>
+                </tr>
+              </thead>
+              <tbody>
+                {materialTokens.map((t) => (
+                  <tr>
+                    <td class="td font-mono text-2xs text-accent">{t.token}</td>
+                    <td class="td font-mono text-2xs">{t.value}</td>
+                    <td class="td text-dim">{t.usage}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Card System -->
+      <div id="cards" class="mt-10 scroll-mt-28">
+        <Card icon="🃏" label="card system" subtitle="the one panel primitive">
+          <p class="mb-4 text-sm text-soft">
+            Every surface on 1ed.ge uses the <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">Card</code> component. Never hand-build <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">.panel</code> + <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">.card-hd</code> markup. This is non-negotiable.
+          </p>
+
+          <div class="mb-4 text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Variants</div>
+          <div class="grid gap-3 md:grid-cols-2">
+            {cardVariants.map((v) => (
+              <div class="well p-3">
+                <div class="flex items-baseline gap-2">
+                  <span class="font-mono text-xs text-accent">{v.variant}</span>
+                  <span class="font-mono text-2xs text-faint">.{v.class}</span>
+                </div>
+                <p class="mt-1 text-xs text-dim">{v.description}</p>
+              </div>
+            ))}
+          </div>
+
+          <Separator class="my-4" />
+
+          <div class="mb-3 text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Props</div>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="th">prop</th>
+                  <th class="th">type</th>
+                  <th class="th">default</th>
+                  <th class="th">description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td class="td font-mono text-2xs text-accent">icon</td><td class="td text-dim">string</td><td class="td text-dim">—</td><td class="td text-dim">Emoji for card-ico</td></tr>
+                <tr><td class="td font-mono text-2xs text-accent">label</td><td class="td text-dim">string</td><td class="td text-dim">—</td><td class="td text-dim">Text for card-lbl (UPPERCASE)</td></tr>
+                <tr><td class="td font-mono text-2xs text-accent">subtitle</td><td class="td text-dim">string</td><td class="td text-dim">—</td><td class="td text-dim">Text for card-sub</td></tr>
+                <tr><td class="td font-mono text-2xs text-accent">variant</td><td class="td text-dim">'default' | 'hero' | 'static' | 'flat'</td><td class="td text-dim">'default'</td><td class="td text-dim">Panel variant</td></tr>
+                <tr><td class="td font-mono text-2xs text-accent">pad</td><td class="td text-dim">'none' | 'sm' | 'md'</td><td class="td text-dim">'md'</td><td class="td text-dim">Body padding</td></tr>
+                <tr><td class="td font-mono text-2xs text-accent">stat</td><td class="td text-dim">{`{ value, delta?, tone? }`}</td><td class="td text-dim">—</td><td class="td text-dim">Stat display mode (no card-hd)</td></tr>
+                <tr><td class="td font-mono text-2xs text-accent">class</td><td class="td text-dim">string</td><td class="td text-dim">''</td><td class="td text-dim">Additional classes</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <Separator class="my-4" />
+
+          <div class="mb-3 text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Named Slots</div>
+          <div class="flex gap-4">
+            <div class="well p-3 flex-1">
+              <span class="font-mono text-xs text-accent">actions</span>
+              <p class="mt-1 text-xs text-dim">Rendered ml-auto in the card-hd row</p>
+            </div>
+            <div class="well p-3 flex-1">
+              <span class="font-mono text-xs text-accent">default</span>
+              <p class="mt-1 text-xs text-dim">Card body content</p>
+            </div>
+            <div class="well p-3 flex-1">
+              <span class="font-mono text-xs text-accent">subtitle</span>
+              <p class="mt-1 text-xs text-dim">Rich HTML subtitle (slot override)</p>
+            </div>
+          </div>
+
+          <Separator class="my-4" />
+
+          <div class="mb-3 text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Rendered Examples</div>
+          <div class="grid gap-4 md:grid-cols-2">
+            <Card icon="📈" label="default" subtitle="glass panel">
+              <p class="text-xs text-dim">The standard card with backdrop blur and entrance animation.</p>
+              <p class="mt-2 text-2xs text-faint">Used everywhere — stream, journal, about, this page.</p>
+            </Card>
+            <Card icon="⚡" label="hero" subtitle="accent glow" variant="hero">
+              <p class="text-xs text-dim">Featured card with accent border and gradient background.</p>
+              <p class="mt-2 text-2xs text-faint">Used for today's card on the homepage, calendar current day.</p>
+            </Card>
+            <Card icon="📊" label="static" subtitle="no animation" variant="static">
+              <StatCard label="SAMPLE STAT" value="+2.50R" tone="up" />
+              <p class="mt-2 text-2xs text-faint">Same glass panel, no entrance animation. For stat grids.</p>
+            </Card>
+            <Card icon="📋" label="flat" subtitle="nested" variant="flat">
+              <p class="text-xs text-dim">Background + border only. No blur, no shadow, no animation.</p>
+              <p class="mt-2 text-2xs text-faint">For nested cards, tables, inline details.</p>
+            </Card>
+          </div>
+          <div class="mt-4">
+            <Card label="stat mode" stat={{ value: '+3.20', delta: 'vs last week +0.75', tone: 'up' }}>
+              <p class="text-2xs text-faint">Stat display mode — no card-hd header. Compact number display.</p>
+            </Card>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Typography Rules -->
+      <div id="typography" class="mt-6 scroll-mt-28">
+        <Card icon="📐" label="typography rules" subtitle="every element, one spec">
+          <p class="mb-4 text-sm text-soft">
+            Every text element in every card follows this spec. No exceptions.
+          </p>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="th">element</th>
+                  <th class="th">token</th>
+                  <th class="th">weight</th>
+                  <th class="th">case</th>
+                  <th class="th">tracking</th>
+                  <th class="th">color</th>
+                </tr>
+              </thead>
+              <tbody>
+                {typographyRules.map((r) => (
+                  <tr>
+                    <td class="td text-ink">{r.element}</td>
+                    <td class="td font-mono text-2xs text-accent">{r.token}</td>
+                    <td class="td text-dim">{r.weight}</td>
+                    <td class="td text-dim">{r.case}</td>
+                    <td class="td text-dim">{r.tracking}</td>
+                    <td class="td text-dim">{r.color}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
+      <!-- UI Primitives -->
+      <div id="primitives" class="mt-10 scroll-mt-28">
+        <Card icon="🧩" label="UI primitives" subtitle="14 primitives + CSS tokens">
+          <p class="mb-4 text-sm text-soft">
+            The <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">src/components/ui/</code> directory contains 14 components. Every other component builds on these. Below, each primitive is rendered live — what you see is exactly what you get.
+          </p>
+
+          <div class="flex flex-col gap-6">
+
+            <!-- Card -->
+            <Card icon="🃏" label="Card" subtitle="the one panel primitive" variant="flat">
+              <p class="mb-3 text-xs text-dim">4 variants + stat mode. Every surface uses Card.</p>
+              <div class="grid gap-3 md:grid-cols-2">
+                <Card variant="default" pad="sm">
+                  <p class="text-2xs text-faint">default — glass panel, backdrop blur</p>
+                </Card>
+                <Card variant="hero" pad="sm">
+                  <p class="text-2xs text-faint">hero — accent border, gradient glow</p>
+                </Card>
+                <Card variant="static" pad="sm">
+                  <p class="text-2xs text-faint">static — no entrance animation</p>
+                </Card>
+                <Card variant="flat" pad="sm">
+                  <p class="text-2xs text-faint">flat — bg + border only, nested</p>
+                </Card>
+              </div>
+              <div class="mt-3">
+                <Card label="stat mode" stat={{ value: '+3.20', delta: 'vs last week +0.75', tone: 'up' }} />
+              </div>
+            </Card>
+
+            <!-- StatCard -->
+            <Card icon="📊" label="StatCard" subtitle="headline numbers" variant="flat">
+              <div class="flex gap-4">
+                <StatCard label="WIN RATE" value="55%" tone="up" />
+                <StatCard label="TOTAL R" value="-1.20" tone="down" />
+                <StatCard label="TRADES" value="147" />
+              </div>
+            </Card>
+
+            <!-- Badge -->
+            <Card icon="🏷" label="Badge" subtitle="status chips" variant="flat">
+              <div class="flex flex-wrap gap-2">
+                <Badge variant="up">funded</Badge>
+                <Badge variant="down">failed</Badge>
+                <Badge variant="warn">eval</Badge>
+                <Badge variant="accent">live</Badge>
+                <Badge variant="muted">paused</Badge>
+                <Badge variant="default">buffer</Badge>
+                <Badge variant="outline">payout</Badge>
+              </div>
+            </Card>
+
+            <!-- Tag -->
+            <Card icon="🏷" label="Tag" subtitle="neutral labels" variant="flat">
+              <div class="flex flex-wrap gap-2">
+                <Tag>MNQ</Tag>
+                <Tag>ORB</Tag>
+                <Tag href="#">#kaizen</Tag>
+              </div>
+            </Card>
+
+            <!-- Table -->
+            <Card icon="📋" label="Table" subtitle="data tables" variant="flat">
+              <Table head={['day', 'R', 'points', 'setup']}>
+                <tr><td class="td">mon 11-aug-2026</td><td class="td text-up tabular-nums">+2.50</td><td class="td tabular-nums">+25.0</td><td class="td">ORB</td></tr>
+                <tr><td class="td">fri 08-aug-2026</td><td class="td text-down tabular-nums">-1.00</td><td class="td tabular-nums">-10.0</td><td class="td">Drive</td></tr>
+                <tr><td class="td">thu 07-aug-2026</td><td class="td text-up tabular-nums">+3.20</td><td class="td tabular-nums">+32.0</td><td class="td">ORB</td></tr>
+              </Table>
+            </Card>
+
+            <!-- EmptyState -->
+            <Card icon="📭" label="EmptyState" subtitle="nothing here" variant="flat">
+              <EmptyState text="no trades yet." />
+            </Card>
+
+            <!-- Icon -->
+            <Card icon="🎯" label="Icon" subtitle="Lucide SVGs" variant="flat">
+              <div class="flex gap-4 text-faint">
+                <Icon name="search" size={16} />
+                <Icon name="chevron-right" size={16} />
+                <Icon name="x" size={16} />
+                <Icon name="plus" size={16} />
+                <Icon name="calendar" size={16} />
+                <Icon name="clock" size={16} />
+              </div>
+            </Card>
+
+            <!-- Separator -->
+            <Card icon="➖" label="Separator" subtitle="hairline divider" variant="flat">
+              <p class="text-xs text-dim">Above the line</p>
+              <Separator class="my-2" />
+              <p class="text-xs text-dim">Below the line</p>
+            </Card>
+
+            <!-- KvRow -->
+            <Card icon="📋" label="KvRow" subtitle="key-value rows" variant="flat">
+              <KvRow label="win rate" value="55%" />
+              <KvRow label="total trades" value="147" />
+              <KvRow label="best setup">ORB — <span class="text-up">+12.50R</span></KvRow>
+            </Card>
+
+            <!-- SegControl -->
+            <Card icon="🎛" label="SegControl" subtitle="segmented filters" variant="flat">
+              <SegControl segments={[
+                { label: 'ALL', href: '#', count: 42, active: true },
+                { label: 'TRADES', href: '#', count: 28, active: false },
+                { label: 'NOTES', href: '#', count: 10, active: false },
+                { label: 'QUOTES', href: '#', count: 4, active: false },
+              ]} />
+            </Card>
+
+            <!-- Capsule -->
+            <Card icon="💊" label="Capsule" subtitle="accent pills" variant="flat">
+              <div class="flex flex-wrap gap-2">
+                <Capsule>● live</Capsule>
+                <Capsule>08:30 trade</Capsule>
+                <Capsule>+2.50R</Capsule>
+              </div>
+            </Card>
+
+            <!-- Well -->
+            <Card icon="⬛" label="Well" subtitle="inset surface" variant="flat">
+              <Well class="p-3">
+                <KvRow label="entry" value="20800.5" />
+                <KvRow label="stop" value="20795.0" />
+                <KvRow label="exit" value="20812.5" />
+              </Well>
+            </Card>
+
+            <!-- Button -->
+            <Card icon="🔘" label="Button" subtitle="actions" variant="flat">
+              <div class="flex flex-wrap items-center gap-2">
+                <Button>default</Button>
+                <Button variant="primary">primary</Button>
+                <Button variant="danger">danger</Button>
+                <Button size="sm">small</Button>
+                <Button disabled>disabled</Button>
+                <Button href="#">link</Button>
+              </div>
+            </Card>
+
+            <!-- Rail Tokens -->
+            <Card icon="🎨" label="Rail Tokens" subtitle="left-rail identity" variant="flat">
+              <div class="grid gap-3 md:grid-cols-4">
+                <Well class="rail-up p-3">
+                  <span class="text-2xs text-up">.rail-up</span>
+                  <p class="mt-1 text-3xs text-faint">long trades</p>
+                </Well>
+                <Well class="rail-down p-3">
+                  <span class="text-2xs text-down">.rail-down</span>
+                  <p class="mt-1 text-3xs text-faint">short trades</p>
+                </Well>
+                <Well class="rail-accent p-3">
+                  <span class="text-2xs text-accent">.rail-accent</span>
+                  <p class="mt-1 text-3xs text-faint">quotes</p>
+                </Well>
+                <Well class="rail-quiet p-3">
+                  <span class="text-2xs text-dim">.rail-quiet</span>
+                  <p class="mt-1 text-3xs text-faint">notes</p>
+                </Well>
+              </div>
+            </Card>
+
+          </div>
+        </Card>
+      </div>
+
+      <!-- Composite Components -->
+      <div id="composites" class="mt-6 scroll-mt-28">
+        <Card icon="📦" label="composite components" subtitle="built on primitives · rendered live">
+          <p class="mb-4 text-sm text-soft">
+            These components are built entirely from the primitives above. Each is rendered live with real trading-shaped data — what you see is exactly what ships.
+          </p>
+
+          <div class="flex flex-col gap-6">
+            <!-- DayFacts -->
+            <Card icon="📊" label="DayFacts" subtitle="facts strip" variant="flat">
+              <p class="mb-3 text-xs text-dim">Mood/sleep/screen/habits/trades/R in a flex-wrap row of Well cells. Only R carries color.</p>
+              <DayFacts cells={sampleFactCells} />
+            </Card>
+
+            <!-- ThoughtCard — trade -->
+            <Card icon="📈" label="ThoughtCard · trade" subtitle="long trade +2.50R" variant="flat">
+              <p class="mb-3 text-xs text-dim">Published stream moment. Rail identity: trade = up/down matched to direction. Uses Card with pad="none".</p>
+              <ThoughtCard thought={sampleThoughts[0]} />
+            </Card>
+
+            <!-- ThoughtCard — note -->
+            <Card icon="💭" label="ThoughtCard · note" subtitle="pre-market note" variant="flat">
+              <p class="mb-3 text-xs text-dim">Note = quiet rail. No color, muted framing.</p>
+              <ThoughtCard thought={sampleThoughts[1]} />
+            </Card>
+
+            <!-- ThoughtCard — quote -->
+            <Card icon="💬" label="ThoughtCard · quote" subtitle="trading wisdom" variant="flat">
+              <p class="mb-3 text-xs text-dim">Quote = accent left rail. Distinct from notes and trades.</p>
+              <ThoughtCard thought={sampleThoughts[2]} />
+            </Card>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Design Rules -->
+      <div id="rules" class="mt-10 scroll-mt-28">
+        <Card icon="📏" label="design rules" subtitle="non-negotiable">
+          <div class="flex flex-col gap-3">
+            <div class="kv">
+              <span class="text-sm text-ink">Card is the one panel primitive</span>
+              <span class="text-xs text-dim">Never hand-build .panel + .card-hd markup</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Same card type = same look everywhere</span>
+              <span class="text-xs text-dim">One component, used consistently</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">No "red" or "orange" words in UI</span>
+              <span class="text-xs text-dim">Use dot severity (🔴 bg-down / 🟠 bg-warn)</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Uppercase dates everywhere</span>
+              <span class="text-xs text-dim">fmtDayWUpper() from src/lib/dates.ts</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">"CME" not "CME Globex"</span>
+              <span class="text-xs text-dim">Everywhere: widget, footer, brief, strip</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">"news events" not "the day"</span>
+              <span class="text-xs text-dim">The news card label</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Stream icon is 📡, not 💭</span>
+              <span class="text-xs text-dim">💭 is for thoughts</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Mono font stays</span>
+              <span class="text-xs text-dim">JetBrains Mono Variable. Syne is wordmark only.</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Public pages minimal JS</span>
+              <span class="text-xs text-dim">~15KB inline (lightbox, timezone, ticker). All charts are SSR SVG.</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">3-layer token architecture</span>
+              <span class="text-xs text-dim">Palette → Semantic → Material. To re-theme, only Layer 1 changes.</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Responsive density</span>
+              <span class="text-xs text-dim">Mobile: 12px radius, 8px blur, tighter cards. Desktop: 14px radius, 18px blur.</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Touch targets ≥ 44px</span>
+              <span class="text-xs text-dim">coarse-pointer media query. Active: scale(0.97).</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Reduced motion: global kill</span>
+              <span class="text-xs text-dim">animation-duration: 0.01ms on everything</span>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <!-- CSS Classes Reference -->
+      <div id="classes" class="mt-6 scroll-mt-28">
+        <Card icon="📝" label="CSS classes" subtitle="the vocabulary">
+          <div class="grid gap-3 md:grid-cols-2">
+            <div class="well p-3">
+              <code class="text-xs text-accent">.shell</code>
+              <p class="mt-1 text-xs text-dim">Page wrapper. max-w-6xl, px-5 md:px-8.</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.panel</code> / <code class="text-xs text-accent">.panel-hero</code> / <code class="text-xs text-accent">.panel-static</code> / <code class="text-xs text-accent">.panel-flat</code>
+              <p class="mt-1 text-xs text-dim">Card variants. Use via Card component.</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.card-hd</code> / <code class="text-xs text-accent">.card-ico</code> / <code class="text-xs text-accent">.card-lbl</code> / <code class="text-xs text-accent">.card-sub</code> / <code class="text-xs text-accent">.tmr</code>
+              <p class="mt-1 text-xs text-dim">Card header system. Use via Card props.</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.well</code>
+              <p class="mt-1 text-xs text-dim">Inset recessed surface. background: var(--color-inset).</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.capsule</code>
+              <p class="mt-1 text-xs text-dim">Accent-tinted pill. Rounded-full, 10px, 600 weight.</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.seg</code> / <code class="text-xs text-accent">.seg-on</code>
+              <p class="mt-1 text-xs text-dim">Segmented control. Shell + active segment.</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.btn</code> / <code class="text-xs text-accent">.btn-primary</code> / <code class="text-xs text-accent">.btn-danger</code> / <code class="text-xs text-accent">.btn-sm</code>
+              <p class="mt-1 text-xs text-dim">Button system. Transitions at --motion-fast.</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.kv</code>
+              <p class="mt-1 text-xs text-dim">Key-value row. flex justify-between, border-b.</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.th</code> / <code class="text-xs text-accent">.td</code>
+              <p class="mt-1 text-xs text-dim">Table header (11px/UPPERCASE/dim) and cell (12px).</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.input</code> / <code class="text-xs text-accent">.label</code>
+              <p class="mt-1 text-xs text-dim">Form input (13px, radius-sm) and label (11px/UPPERCASE).</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.prose</code>
+              <p class="mt-1 text-xs text-dim">Journal prose. 13px, 1.8 line-height, soft color.</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.rail-up</code> / <code class="text-xs text-accent">.rail-down</code> / <code class="text-xs text-accent">.rail-accent</code> / <code class="text-xs text-accent">.rail-quiet</code>
+              <p class="mt-1 text-xs text-dim">Left-rail identity bars. 2px solid border-left. Used on ThoughtCard.</p>
+            </div>
+            <div class="well p-3">
+              <code class="text-xs text-accent">.lb*</code>
+              <p class="mt-1 text-xs text-dim">Lightbox system. .lb, .lb-sheet, .lb-handle, .lb-header, .lb-body, .lb-nav.</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Design Skill -->
+      <div id="skill" class="mt-10 scroll-mt-28">
+        <Card icon="🧠" label="design skill" subtitle="how the AI maintains consistency">
+          <p class="mb-3 text-sm text-soft">
+            The design system is enforced by a <strong>design skill</strong> — a set of instructions loaded into every AI agent session. It ensures every new surface uses the Card component, follows the typography spec, and respects the design rules.
+          </p>
+          <div class="flex flex-col gap-3">
+            <div class="kv">
+              <span class="text-sm text-ink">Every new page uses Card</span>
+              <span class="text-xs text-dim">Non-negotiable. Never hand-build panel + card-hd.</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Every new surface goes through the designer agent</span>
+              <span class="text-xs text-dim">Or uses existing Card patterns. No exceptions.</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Typography spec is the single source of truth</span>
+              <span class="text-xs text-dim">Every element maps to a token. No arbitrary values.</span>
+            </div>
+            <div class="kv">
+              <span class="text-sm text-ink">Design changes are verified against the reference</span>
+              <span class="text-xs text-dim">WhatsApp Logger v2 aesthetic + 1ed.ge evolved language.</span>
+            </div>
+          </div>
+          <p class="mt-3 text-xs text-faint">
+            The design skill is defined in <code class="text-accent">.opencode/skills/design-system/SKILL.md</code> and loaded automatically by the orchestrator agent. It includes the full token spec, component inventory, typography rules, and design rules. When the orchestrator encounters a UI task, it loads the skill and follows it exactly.
+          </p>
+        </Card>
+      </div>
+
+      <!-- Backlog / Roadmap -->
+      <div id="backlog" class="mt-6 scroll-mt-28">
+        <Card icon="🗺" label="backlog" subtitle="remaining improvements">
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="th">item</th>
+                  <th class="th">priority</th>
+                  <th class="th">detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                {roadmap.map((r) => (
+                  <tr>
+                    <td class="td text-ink">{r.item}</td>
+                    <td class="td">
+                      <Badge variant={r.priority === 'medium' ? 'warn' : r.priority === 'low' ? 'muted' : 'accent'}>{r.priority}</Badge>
+                    </td>
+                    <td class="td text-dim">{r.detail}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Design Changelog -->
+      <div id="changelog" class="mt-6 scroll-mt-28">
+        <Card icon="📋" label="changelog" subtitle="design system versions">
+          <div>
+            <div class="mb-4">
+              <div class="mb-2 flex items-baseline gap-2">
+                <span class="text-sm font-semibold text-ink">v0.3-alpha</span>
+                <span class="text-2xs text-faint">2026-08-11</span>
+              </div>
+              <ul class="flex flex-col gap-1">
+                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Host status snapshot sidecar — functional /status in Docker (data/status.json)</span></li>
+                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Design skill truth-up — accent #0af, radius 14/10, real admin kit, composites map</span></li>
+                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>/design live composites — DayFacts + 3 ThoughtCards rendered with fixture data</span></li>
+                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Exceptions table — Lightbox + status documented in SKILL.md</span></li>
+              </ul>
+            </div>
+            <div class="mb-4">
+              <div class="mb-2 flex items-baseline gap-2">
+                <span class="text-sm font-semibold text-ink">v0.2</span>
+                <span class="text-2xs text-faint">2026-08-11</span>
+              </div>
+              <ul class="flex flex-col gap-1">
+                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>6 new primitives — KvRow, SegControl, Capsule, Well, Button, Rail tokens</span></li>
+                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Tag extended with href support for navigation links</span></li>
+                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>8 public page violations fixed — all surfaces now use Card and other primitives</span></li>
+                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>/design page — live rendered primitive examples replace ASCII art and text descriptions</span></li>
+                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>SKILL.md updated — ghost components removed, new primitives added, gate rule enforced</span></li>
+                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>14 total primitives (8 original + 6 new) — strict system applied uniformly</span></li>
+              </ul>
+            </div>
+            <div class="mb-2 flex items-baseline gap-2">
+              <span class="text-sm font-semibold text-ink">v0.1</span>
+              <span class="text-2xs text-faint">2026-08-10</span>
+            </div>
+            <ul class="flex flex-col gap-1">
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Initial design system — 3-layer token architecture, Card primitive, 8 UI components</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>WhatsApp Logger v2 aesthetic applied across all surfaces</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Unified Card system — 4 variants (default/hero/static/flat) + stat mode</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Motion token system — --motion-fast/normal/slow, transitions on interactive elements</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Typography consistency pass — all arbitrary values tokenized, unified weights/tracking</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Lightbox → bottom sheet — slide-up, swipe-to-close, keyboard nav</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Mobile blur reduction — 8px on iPhone for smoother scrolling</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Responsive density — tighter cards on mobile, 44px touch targets</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Reduced motion global kill — 0.01ms on everything</span></li>
+            </ul>
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <!-- ══ Features ══ -->
+    <div id="features-section" class="mt-10 scroll-mt-28">
+      <Card icon="🔍" label="features" subtitle="every file → its feature">
+        <p class="mb-4 text-xs text-dim">
+          Every file in the codebase is mapped to a feature. If a file exists and isn't listed here, it's dead code.
+          This mapping is maintained as features are added or removed.
+        </p>
+        <div class="space-y-6">
+          {traceability.map((cat) => (
+            <div>
+              <div class="mb-2 text-2xs uppercase tracking-widest text-dim">{cat.category} ({cat.items.length} files)</div>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                  <thead>
+                    <tr>
+                      <th class="th">file</th>
+                      <th class="th">feature</th>
+                      <th class="th">what it does</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cat.items.map((item) => (
+                      <tr>
+                        <td class="td text-ink font-mono text-2xs">{item.file}</td>
+                        <td class="td text-dim">{item.feature}</td>
+                        <td class="td text-faint">{item.what}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+
+    <!-- ══ Changelog ══ -->
+    <div id="changelog-section" class="mt-10 scroll-mt-28">
+      <div id="changelog-today" class="scroll-mt-28">
+        <Card icon="📋" label="changelog" subtitle={`today · ${fmtDayWUpper(today)}`}>
+          {changelogEntry ? (
+            <Well class="p-4">
+              <pre class="whitespace-pre-wrap font-mono text-xs leading-relaxed text-soft">{changelogEntry}</pre>
+            </Well>
+          ) : (
+            <EmptyState text="no entry yet — generated on deploy" />
+          )}
+        </Card>
+      </div>
+
+      <div id="changelog-archive" class="mt-6 scroll-mt-28">
+        <Card icon="🗂" label="archive" subtitle="changelog history">
+          <p class="text-xs text-dim">Full history lives as per-day markdown files in the repo.</p>
+          <a href="/changelog/" class="mt-2 inline-block text-xs text-accent transition-colors hover:text-ink">
+            changelog/ directory →
+          </a>
+        </Card>
+      </div>
+    </div>
+
+    <!-- ══ Tokenomics ══ -->
+    <div id="tokenomics-section" class="mt-10 scroll-mt-28">
+      <div id="tokenomics-summary" class="scroll-mt-28">
+        <Card icon="💰" label="tokenomics" subtitle="what the builds cost">
+          <div class="grid grid-cols-2 gap-2 md:grid-cols-5">
+            <StatCard label="TOTAL COST" value={tokenomics ? `$${(tokenomics.totals?.cost ?? 0).toFixed(2)}` : '—'} />
+            <StatCard label="SESSIONS" value={tokenomics ? String(tokenomics.totals?.sessions ?? 0) : '—'} />
+            <StatCard label="CACHE RATE" value={tokenomics ? `${((tokenomics.totals?.cacheHitRate ?? 0) * 100).toFixed(1)}%` : '—'} />
+            <StatCard label="COST/COMMIT" value={tokenomics ? `$${(tokenomics.totals?.costPerCommit ?? 0).toFixed(4)}` : '—'} />
+            <StatCard label="AVG SESSION" value={tokenomics ? `${Math.round((tokenomics.totals?.avgSessionDuration ?? 0) / 60)}m` : '—'} />
+          </div>
+          {!tokenomics && <EmptyState text="no tokenomics data yet" class="mt-3" />}
+        </Card>
+      </div>
+
+      <div id="tokenomics-daily" class="mt-6 scroll-mt-28">
+        <Card icon="📊" label="daily cost" subtitle="per-day spend">
+          {tokenomics?.byDay && tokenomics.byDay.length > 0 ? (
+            <BarChart
+              data={tokenomics.byDay.map(d => ({ label: d.date.slice(5), value: d.cost, color: d.cost > 10 ? 'var(--color-warn)' : 'var(--color-accent)' }))}
+              title="daily cost"
+              format={(v) => `$${v.toFixed(2)}`}
+              orientation="vertical"
+            />
+          ) : (
+            <EmptyState text="no daily data yet" />
+          )}
+        </Card>
+      </div>
+
+      <div id="tokenomics-models" class="mt-6 scroll-mt-28">
+        <Card icon="🤖" label="cost by model" subtitle="top 10 by spend">
+          {tokenomics?.byModel && tokenomics.byModel.length > 0 ? (
+            <BarChart
+              data={tokenomics.byModel.slice(0, 10).map(m => ({ label: m.model, value: m.cost }))}
+              title="cost by model"
+              format={(v) => `$${v.toFixed(2)}`}
+              orientation="horizontal"
+            />
+          ) : (
+            <EmptyState text="no model data yet" />
+          )}
+        </Card>
+      </div>
+
+      <div id="tokenomics-agents" class="mt-6 scroll-mt-28">
+        <Card icon="🕵️" label="cost by agent" subtitle="per-agent spend">
+          {tokenomics?.byAgent && tokenomics.byAgent.length > 0 ? (
+            <BarChart
+              data={tokenomics.byAgent.map(a => ({ label: a.agent, value: a.cost }))}
+              title="cost by agent"
+              format={(v) => `$${v.toFixed(2)}`}
+              orientation="horizontal"
+            />
+          ) : (
+            <EmptyState text="no agent data yet" />
+          )}
+        </Card>
+      </div>
+
+      <div id="tokenomics-sessions" class="mt-6 scroll-mt-28">
+        <Card icon="📝" label="recent sessions" subtitle={tokenomics?.recentSessions ? `${tokenomics.recentSessions.length} sessions` : '—'}>
+          {tokenomics?.recentSessions && tokenomics.recentSessions.length > 0 ? (
+            <>
+              <Table head={['date', 'title', 'model', 'agent', 'cost']} class="mt-1">
+                {tokenomics.recentSessions.slice(0, 4).map((s) => (
+                  <tr>
+                    <td class="td">{s.date}</td>
+                    <td class="td text-ink">{s.title}</td>
+                    <td class="td">{s.model.split('/').pop()}</td>
+                    <td class="td">{s.agent}</td>
+                    <td class="td tabular-nums">${s.cost.toFixed(3)}</td>
+                  </tr>
+                ))}
+              </Table>
+              {tokenomics.recentSessions.length > 4 && (
+                <details class="mt-2">
+                  <summary class="cursor-pointer text-2xs text-faint select-none hover:text-dim">
+                    +{tokenomics.recentSessions.length - 4} more
+                  </summary>
+                  <Table head={['date', 'title', 'model', 'agent', 'cost']} class="mt-1">
+                    {tokenomics.recentSessions.slice(4).map((s) => (
+                      <tr>
+                        <td class="td">{s.date}</td>
+                        <td class="td text-ink">{s.title}</td>
+                        <td class="td">{s.model.split('/').pop()}</td>
+                        <td class="td">{s.agent}</td>
+                        <td class="td tabular-nums">${s.cost.toFixed(3)}</td>
+                      </tr>
+                    ))}
+                  </Table>
+                </details>
+              )}
+            </>
+          ) : (
+            <EmptyState text="no session data yet" />
+          )}
+        </Card>
+      </div>
+    </div>
+
+    <!-- ══ Meta ══ -->
+    <div id="meta-section" class="mt-10 scroll-mt-28">
+      <div id="source" class="scroll-mt-28">
+        <Card icon="📊" label="source code" subtitle="lines of code">
+          <div class="grid gap-4 md:grid-cols-2">
+            <div>
+              <KvRow label="total lines" value={totalLines.toLocaleString()} />
+              <KvRow label=".astro files" value={String(filesAstro)} />
+              <KvRow label=".ts files" value={String(filesTs)} />
+              <KvRow label=".tsx files" value={String(filesTsx)} />
+              <KvRow label=".css files" value={String(filesCss)} />
+            </div>
+            <div>
+              <KvRow label="astro lines" value={linesAstro.toLocaleString()} />
+              <KvRow label="ts lines" value={linesTs.toLocaleString()} />
+              <KvRow label="tsx lines" value={linesTsx.toLocaleString()} />
+              <KvRow label="css lines" value={linesCss.toLocaleString()} />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div id="content" class="mt-6 scroll-mt-28">
+        <Card icon="📁" label="content" subtitle="live counts">
+          <div class="grid gap-4 md:grid-cols-2">
+            <KvRow label="days recorded" value={String(days)} />
+            <KvRow label="journal entries" value={String(journals)} />
+            <KvRow label="accounts" value={String(accounts)} />
+            <KvRow label="habits" value={String(habits)} />
+            <KvRow label="reviews" value={String(reviews)} />
+            <KvRow label="market news days" value={String(marketNews)} />
+            <KvRow label="media files" value={String(mediaCount)} />
+          </div>
+        </Card>
+      </div>
+
+      <div id="versions" class="mt-6 scroll-mt-28">
+        <Card icon="⚙️" label="stack" subtitle="versions">
+          <KvRow label="node.js" value={nodeVersion} />
+          <KvRow label="astro" value={astroVersion} />
+          <KvRow label="tailwind" value={tailwindVersion} />
+          <KvRow label="os" value={osInfo} />
+        </Card>
+      </div>
+    </div>
+
+    <!-- Footer note -->
+    <p class="mt-10 text-2xs text-faint">
+      this page is maintained by AI. every code change is accounted for here.
+      the version increments when meaningful features ship. tokenomics are measured from real sessions.
+    </p>
+  </section>
+</Base>

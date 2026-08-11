@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro'
 import Card from '../components/ui/Card.astro'
 import KvRow from '../components/ui/KvRow.astro'
+import SectionNav from '../components/ui/SectionNav.astro'
 import { getCollection } from 'astro:content'
 
 const accounts = await getCollection('accounts')
@@ -33,7 +34,16 @@ const timeline = [
       <span class="text-xs text-faint">why this exists</span>
     </div>
 
-    <Card icon="📖" label="about" class="mt-8">
+    <SectionNav sections={[
+      ['story', 'story'],
+      ['accounts', 'accounts'],
+      ['rules', 'rules'],
+      ['roadmap', 'roadmap'],
+      ['build info', 'build-info'],
+    ]} />
+
+    <div id="story" class="scroll-mt-28">
+      <Card icon="📖" label="about" class="mt-8">
         <p class="text-sm leading-relaxed text-soft">
           i want to run a hedge fund. but before anyone — including me — should trust me with money,
           i need to prove i can trade. properly. consistently. without hiding the bad days.
@@ -44,64 +54,94 @@ const timeline = [
           risked vs points made — is the centerpiece. it is the one metric that survives changing
           account sizes, changing firms, and changing bankrolls.
         </p>
-    </Card>
+      </Card>
+    </div>
 
-    <Card icon="📏" label="the rules" class="mt-6">
-      <ul class="flex flex-col gap-0">
-        {rules.map((r, i) => (
-          <li class="flex gap-3 border-b border-line/60 py-2 text-sm last:border-0">
-            <span class="w-6 shrink-0 text-faint">{String(i + 1).padStart(2, '0')}</span>
-            <span class="text-soft">{r}</span>
-          </li>
-        ))}
-      </ul>
-    </Card>
-
-    <Card icon="💰" label="the accounts" subtitle={`${accounts.length} live`} class="mt-6">
-      <p class="mb-3 text-xs text-dim">
-        trading mnq (micro e-mini nasdaq-100) through prop firms. the live P&amp;L of every account is on
-        <a href="/performance" class="text-accent underline underline-offset-4">/performance</a>.
-      </p>
-      <div class="overflow-x-auto" tabindex="0">
-      <table class="w-full min-w-[540px] border-collapse">
-        <thead>
-          <tr>
-            <th class="th">firm</th>
-            <th class="th">size</th>
-            <th class="th text-right">drawdown</th>
-            <th class="th">status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {accounts.map((a) => (
-            <tr>
-              <td class="td">{a.data.firm}</td>
-              <td class="td text-dim">{a.data.sizeLabel}</td>
-              <td class="td text-right text-dim">${a.data.drawdownLimit.toLocaleString()}</td>
-              <td class="td"><span class={a.data.stage === 'failed' ? 'text-down' : a.data.stage === 'paused' ? 'text-dim' : 'text-up'}>{a.data.stage}</span></td>
-            </tr>
+    <div id="rules" class="scroll-mt-28">
+      <Card icon="📏" label="the rules" class="mt-6">
+        <ul class="flex flex-col gap-0">
+          {rules.map((r, i) => (
+            <li class="flex gap-3 border-b border-line/60 py-2 text-sm last:border-0">
+              <span class="w-6 shrink-0 text-faint">{String(i + 1).padStart(2, '0')}</span>
+              <span class="text-soft">{r}</span>
+            </li>
           ))}
-        </tbody>
-      </table>
-      </div>
-    </Card>
+        </ul>
+      </Card>
+    </div>
 
-    <Card icon="🗺" label="the plan" class="mt-6">
-      {timeline.map((t) => (
-        <KvRow label={t.d} class="[&>span]:text-accent">
-          <span class="text-sm text-soft">{t.t}</span>
-        </KvRow>
-      ))}
-    </Card>
+    <div id="accounts" class="scroll-mt-28">
+      <Card icon="💰" label="the accounts" subtitle={`${accounts.length} live`} class="mt-6">
+        <p class="mb-3 text-xs text-dim">
+          trading mnq (micro e-mini nasdaq-100) through prop firms. the live P&amp;L of every account is on
+          <a href="/performance" class="text-accent underline underline-offset-4">/performance</a>.
+        </p>
+        <div class="overflow-x-auto" tabindex="0">
+        <table class="w-full min-w-[540px] border-collapse">
+          <thead>
+            <tr>
+              <th class="th">firm</th>
+              <th class="th">size</th>
+              <th class="th text-right">drawdown</th>
+              <th class="th">status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {accounts.map((a) => (
+              <tr>
+                <td class="td">{a.data.firm}</td>
+                <td class="td text-dim">{a.data.sizeLabel}</td>
+                <td class="td text-right text-dim">${a.data.drawdownLimit.toLocaleString()}</td>
+                <td class="td"><span class={a.data.stage === 'failed' ? 'text-down' : a.data.stage === 'paused' ? 'text-dim' : 'text-up'}>{a.data.stage}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        </div>
+      </Card>
+    </div>
+
+    <div id="roadmap" class="scroll-mt-28">
+      <Card icon="🗺" label="the plan" class="mt-6">
+        {timeline.map((t) => (
+          <KvRow label={t.d} class="[&>span]:text-accent">
+            <span class="text-sm text-soft">{t.t}</span>
+          </KvRow>
+        ))}
+      </Card>
+    </div>
 
     <Card icon="🛠" label="how this was built" subtitle="100% OpenCode" class="mt-6">
       <p class="text-sm leading-relaxed text-soft">
         this site was built entirely using <span class="text-accent">OpenCode</span> — an AI coding assistant
         that orchestrates multiple specialized agents (explorer, fixer, oracle, designer, librarian)
         to plan, implement, and ship features. the full stack, features, changelog, token costs,
-        and a file-by-file traceability map are at <a href="/dev" class="text-accent underline underline-offset-4">/dev</a>.
+        and a file-by-file traceability map are at <a href="/build" class="text-accent underline underline-offset-4">/build</a>.
       </p>
     </Card>
+
+    <div id="build-info" class="mt-6 scroll-mt-28">
+      <Card icon="📦" label="build info" subtitle="understanding /build and /status">
+        <div class="flex flex-col gap-4">
+          <div>
+            <p class="text-sm text-ink font-medium">/ build</p>
+            <p class="mt-1 text-xs text-dim">
+              The complete specification of 1ed.ge — design system, features, changelog, tokenomics, and tech stack.
+              Updated automatically on every deploy. Shows what was built, how it works, and what it cost.
+            </p>
+            <a href="/build" class="mt-2 inline-block text-xs text-accent underline underline-offset-4 hover:text-ink">visit /build →</a>
+          </div>
+          <div>
+            <p class="text-sm text-ink font-medium">/ status</p>
+            <p class="mt-1 text-xs text-dim">
+              Operational health dashboard — cron jobs, rebuilds, system resources, git state, and live heartbeat.
+              Data refreshed every 60 seconds from the host server.
+            </p>
+            <a href="/status" class="mt-2 inline-block text-xs text-accent underline underline-offset-4 hover:text-ink">visit /status →</a>
+          </div>
+        </div>
+      </Card>
+    </div>
 
     <Card class="mt-6">
       <p class="text-sm leading-relaxed text-dim">
