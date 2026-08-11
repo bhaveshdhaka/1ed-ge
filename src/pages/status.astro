@@ -15,6 +15,7 @@ import Table from '../components/ui/Table.astro'
 import { fmtDayWUpper } from '../lib/dates'
 import SectionNav from '../components/ui/SectionNav.astro'
 import LogList from '../components/ui/LogList.astro'
+import SideNav from '../components/ui/SideNav.astro'
 
 export const prerender = false
 
@@ -138,11 +139,18 @@ try {
   review = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'design-review.json'), 'utf8')) as Snapshot['review']
 } catch {}
 
+// ── page navigation (SideNav groups) ─────────────────────────────────────────
+const navGroups = [
+  { label: 'ops', items: [['market', 'market'], ['rebuilds', 'rebuilds']] as [string, string][] },
+  { label: 'system', items: [['system', 'system'], ['git', 'git'], ['live', 'live']] as [string, string][] },
+  { label: 'design', items: [['review', 'design-review']] as [string, string][] },
+]
+
 Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
 ---
 
 <Base title="status — 1ed.ge" description="Operational health dashboard — cron, rebuilds, system, git, live state.">
-  <section class="shell pt-12 pb-20">
+  <section class="shell pt-12 pb-20 md:mr-48">
     <header class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl text-ink">/ status</h1>
       <span class="text-xs text-faint">operational health</span>
@@ -156,11 +164,9 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
       )}
     </header>
 
-    <SectionNav groups={[
-      { label: 'ops', items: [['market', 'market'], ['rebuilds', 'rebuilds']] },
-      { label: 'system', items: [['system', 'system'], ['git', 'git'], ['live', 'live']] },
-      { label: 'design', items: [['review', 'design-review']] },
-    ]} />
+    <SideNav groups={navGroups}>
+      <SectionNav groups={navGroups} slot="mobile-nav" />
+    </SideNav>
 
     {!snap && (
       <p class="mt-4 max-w-2xl text-sm text-dim">

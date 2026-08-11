@@ -19,6 +19,7 @@ import DayFacts from '../components/stream/DayFacts.astro'
 import ThoughtCard from '../components/stream/ThoughtCard.astro'
 import type { FactCell, ResolvedThought } from '../lib/stream'
 import { fmtDayWUpper } from '../lib/dates'
+import SideNav from '../components/ui/SideNav.astro'
 
 // ── build version (data/build.json, written at deploy) ─────────────────────
 const require = createRequire(join(process.cwd(), 'package.json'))
@@ -264,22 +265,27 @@ const nodeVersion = process.version
 const astroVersion = pkg.dependencies?.astro || pkg.devDependencies?.astro || 'unknown'
 const tailwindVersion = pkg.dependencies?.tailwindcss || pkg.devDependencies?.tailwindcss || 'unknown'
 const osInfo = `${process.platform} ${process.arch}`
+
+// ── page navigation (SideNav groups) ─────────────────────────────────────────
+const navGroups = [
+  { label: 'overview', items: [['build', 'build'], ['principles', 'principles'], ['stack', 'stack'], ['tools', 'tools']] as [string, string][] },
+  { label: 'design', items: [['architecture', 'architecture'], ['palette', 'palette'], ['type', 'type'], ['material', 'material'], ['cards', 'cards'], ['typography', 'typography'], ['primitives', 'primitives'], ['composites', 'composites'], ['CSS', 'classes'], ['backlog', 'backlog']] as [string, string][] },
+  { label: 'features', items: [['features', 'features-section']] as [string, string][] },
+  { label: 'changelog', items: [['today', 'changelog-section']] as [string, string][] },
+  { label: 'tokenomics', items: [['summary', 'tokenomics-summary'], ['daily', 'tokenomics-daily'], ['models', 'tokenomics-models'], ['agents', 'tokenomics-agents'], ['sessions', 'tokenomics-sessions']] as [string, string][] },
+  { label: 'meta', items: [['source', 'source'], ['content', 'content'], ['versions', 'versions']] as [string, string][] },
+]
 ---
 
 <Base title="build — 1ed.ge" description="The build log: how this site was built, the design system, features, changelog, and what the builds cost. Everything public.">
-  <section class="shell pt-12 pb-20">
+  <section class="shell pt-12 pb-20 md:mr-48">
     <div class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl text-ink">/ build</h1>
       <span class="text-xs text-faint">{VERSION} · {VERSION_DATE}</span>
     </div>
-    <SectionNav groups={[
-      { label: 'overview', items: [['build', 'build'], ['principles', 'principles'], ['stack', 'stack'], ['tools', 'tools']] },
-      { label: 'design', items: [['architecture', 'architecture'], ['palette', 'palette'], ['type', 'type'], ['material', 'material'], ['cards', 'cards'], ['typography', 'typography'], ['primitives', 'primitives'], ['composites', 'composites'], ['CSS', 'classes'], ['backlog', 'backlog']] },
-      { label: 'features', items: [['features', 'features-section']] },
-      { label: 'changelog', items: [['today', 'changelog-section']] },
-      { label: 'tokenomics', items: [['summary', 'tokenomics-summary'], ['daily', 'tokenomics-daily'], ['models', 'tokenomics-models'], ['agents', 'tokenomics-agents'], ['sessions', 'tokenomics-sessions']] },
-      { label: 'meta', items: [['source', 'source'], ['content', 'content'], ['versions', 'versions']] },
-    ]} />
+    <SideNav groups={navGroups}>
+      <SectionNav groups={navGroups} slot="mobile-nav" />
+    </SideNav>
     <p class="mt-2 max-w-2xl text-sm text-dim">
       How this site was built. The stack, the design system, the features, what changed today, and what the builds cost. Everything public.
     </p>
