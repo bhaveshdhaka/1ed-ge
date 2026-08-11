@@ -351,8 +351,30 @@ const roadmap = [
 
         <div class="flex flex-col gap-6">
 
+          <!-- Card -->
+          <Card icon="🃏" label="Card" subtitle="the one panel primitive" variant="flat">
+            <p class="mb-3 text-xs text-dim">4 variants + stat mode. Every surface uses Card.</p>
+            <div class="grid gap-3 md:grid-cols-2">
+              <Card variant="default" pad="sm">
+                <p class="text-2xs text-faint">default — glass panel, backdrop blur</p>
+              </Card>
+              <Card variant="hero" pad="sm">
+                <p class="text-2xs text-faint">hero — accent border, gradient glow</p>
+              </Card>
+              <Card variant="static" pad="sm">
+                <p class="text-2xs text-faint">static — no entrance animation</p>
+              </Card>
+              <Card variant="flat" pad="sm">
+                <p class="text-2xs text-faint">flat — bg + border only, nested</p>
+              </Card>
+            </div>
+            <div class="mt-3">
+              <Card label="stat mode" stat={{ value: '+3.20', delta: 'vs last week +0.75', tone: 'up' }} />
+            </div>
+          </Card>
+
           <!-- StatCard -->
-          <Card icon="📊" label="StatCard" variant="flat">
+          <Card icon="📊" label="StatCard" subtitle="headline numbers" variant="flat">
             <div class="flex gap-4">
               <StatCard label="WIN RATE" value="55%" tone="up" />
               <StatCard label="TOTAL R" value="-1.20" tone="down" />
@@ -361,7 +383,7 @@ const roadmap = [
           </Card>
 
           <!-- Badge -->
-          <Card icon="🏷" label="Badge" variant="flat">
+          <Card icon="🏷" label="Badge" subtitle="status chips" variant="flat">
             <div class="flex flex-wrap gap-2">
               <Badge variant="up">funded</Badge>
               <Badge variant="down">failed</Badge>
@@ -374,17 +396,16 @@ const roadmap = [
           </Card>
 
           <!-- Tag -->
-          <Card icon="🏷" label="Tag" variant="flat">
+          <Card icon="🏷" label="Tag" subtitle="neutral labels" variant="flat">
             <div class="flex flex-wrap gap-2">
               <Tag>MNQ</Tag>
               <Tag>ORB</Tag>
               <Tag href="#">#kaizen</Tag>
             </div>
-            <p class="mt-2 text-2xs text-faint">Set <code class="text-accent">href</code> to render as a navigation link.</p>
           </Card>
 
           <!-- Table -->
-          <Card icon="📋" label="Table" variant="flat">
+          <Card icon="📋" label="Table" subtitle="data tables" variant="flat">
             <Table head={['day', 'R', 'points', 'setup']}>
               <tr><td class="td">mon 11-aug-2026</td><td class="td text-up tabular-nums">+2.50</td><td class="td tabular-nums">+25.0</td><td class="td">ORB</td></tr>
               <tr><td class="td">fri 08-aug-2026</td><td class="td text-down tabular-nums">-1.00</td><td class="td tabular-nums">-10.0</td><td class="td">Drive</td></tr>
@@ -393,39 +414,38 @@ const roadmap = [
           </Card>
 
           <!-- EmptyState -->
-          <Card icon="📭" label="EmptyState" variant="flat">
-            <EmptyState text="nothing here yet." />
+          <Card icon="📭" label="EmptyState" subtitle="nothing here" variant="flat">
+            <EmptyState text="no trades yet." />
           </Card>
 
           <!-- Icon -->
-          <Card icon="🎯" label="Icon" variant="flat">
-            <div class="flex gap-3 text-faint">
-              <Icon name="search" size={14} />
-              <Icon name="chevron-right" size={14} />
-              <Icon name="x" size={14} />
-              <Icon name="plus" size={14} />
-              <Icon name="calendar" size={14} />
-              <Icon name="clock" size={14} />
+          <Card icon="🎯" label="Icon" subtitle="Lucide SVGs" variant="flat">
+            <div class="flex gap-4 text-faint">
+              <Icon name="search" size={16} />
+              <Icon name="chevron-right" size={16} />
+              <Icon name="x" size={16} />
+              <Icon name="plus" size={16} />
+              <Icon name="calendar" size={16} />
+              <Icon name="clock" size={16} />
             </div>
-            <p class="mt-2 text-2xs text-faint">40 Lucide SVGs. Zero JS. Card headers use emoji, not Icon.</p>
           </Card>
 
           <!-- Separator -->
-          <Card icon="➖" label="Separator" variant="flat">
-            <p class="mb-3 text-xs text-dim">Before:</p>
-            <Separator />
-            <p class="mt-3 text-xs text-dim">After.</p>
+          <Card icon="➖" label="Separator" subtitle="hairline divider" variant="flat">
+            <p class="text-xs text-dim">Above the line</p>
+            <Separator class="my-2" />
+            <p class="text-xs text-dim">Below the line</p>
           </Card>
 
           <!-- KvRow -->
-          <Card icon="📋" label="KvRow" subtitle="new in v0.2" variant="flat">
+          <Card icon="📋" label="KvRow" subtitle="key-value rows" variant="flat">
             <KvRow label="win rate" value="55%" />
             <KvRow label="total trades" value="147" />
-            <KvRow label="best setup" value="ORB" />
+            <KvRow label="best setup">ORB — <span class="text-up">+12.50R</span></KvRow>
           </Card>
 
           <!-- SegControl -->
-          <Card icon="🎛" label="SegControl" subtitle="new in v0.2" variant="flat">
+          <Card icon="🎛" label="SegControl" subtitle="segmented filters" variant="flat">
             <SegControl segments={[
               { label: 'ALL', href: '#', count: 42, active: true },
               { label: 'TRADES', href: '#', count: 28, active: false },
@@ -435,7 +455,7 @@ const roadmap = [
           </Card>
 
           <!-- Capsule -->
-          <Card icon="💊" label="Capsule" subtitle="new in v0.2" variant="flat">
+          <Card icon="💊" label="Capsule" subtitle="accent pills" variant="flat">
             <div class="flex flex-wrap gap-2">
               <Capsule>● live</Capsule>
               <Capsule>08:30 trade</Capsule>
@@ -444,14 +464,16 @@ const roadmap = [
           </Card>
 
           <!-- Well -->
-          <Card icon="⬛" label="Well" subtitle="new in v0.2" variant="flat">
+          <Card icon="⬛" label="Well" subtitle="inset surface" variant="flat">
             <Well class="p-3">
-              <span class="text-xs text-dim">inset recessed surface — content goes here</span>
+              <KvRow label="entry" value="20800.5" />
+              <KvRow label="stop" value="20795.0" />
+              <KvRow label="exit" value="20812.5" />
             </Well>
           </Card>
 
           <!-- Button -->
-          <Card icon="🔘" label="Button" subtitle="new in v0.2" variant="flat">
+          <Card icon="🔘" label="Button" subtitle="actions" variant="flat">
             <div class="flex flex-wrap items-center gap-2">
               <Button>default</Button>
               <Button variant="primary">primary</Button>
@@ -462,8 +484,8 @@ const roadmap = [
             </div>
           </Card>
 
-          <!-- Rail tokens -->
-          <Card icon="🎨" label="Rail Tokens" subtitle="CSS only — new in v0.2" variant="flat">
+          <!-- Rail Tokens -->
+          <Card icon="🎨" label="Rail Tokens" subtitle="left-rail identity" variant="flat">
             <div class="grid gap-3 md:grid-cols-4">
               <Well class="rail-up p-3">
                 <span class="text-2xs text-up">.rail-up</span>
