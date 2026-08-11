@@ -1,3 +1,4 @@
+import path from 'node:path'
 import type { APIRoute } from 'astro'
 import fs from 'node:fs'
 import { spawn } from 'node:child_process'
@@ -8,7 +9,7 @@ import { cmeToday } from '../../../lib/sessions'
 
 export const prerender = false
 
-const STATUS_FILE = '/tmp/1edge-market.json'
+const STATUS_FILE = path.join(process.cwd(), 'data', 'market.json')
 
 function setStatus(s: unknown) {
   try {

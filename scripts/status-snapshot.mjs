@@ -166,11 +166,18 @@ const liveNow =
     ? Date.now() - Date.parse(liveAt) < LIVE_WINDOW_MS
     : false
 
+// ── build version ───────────────────────────────────────────────────────────
+let buildInfo = null
+try {
+  buildInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'build.json'), 'utf8'))
+} catch { /* keep null */ }
+
 const snapshot = {
   at: new Date().toISOString(),
   market,
   rebuilds,
   pending,
+  build: buildInfo ? { version: buildInfo.version, commit: buildInfo.commit } : null,
   system: {
     container: { up: dockerUp, status: dockerStatus },
     disk,

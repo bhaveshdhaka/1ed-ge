@@ -35,6 +35,10 @@ interface Snapshot {
   }
   rebuilds?: Array<{ at?: string; ok?: boolean; applied?: string[] }>
   pending?: Array<{ at?: string; kind?: string; label?: string }>
+  build?: {
+    version?: string
+    commit?: string
+  } | null
   system?: {
     container?: { up?: boolean; status?: string | null }
     disk?: { total?: string; used?: string; pct?: string } | null
@@ -133,6 +137,9 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
         <Badge variant="warn">stale{snap?.at ? ` · ${rel(snap.at)}` : ' · no snapshot'}</Badge>
       ) : (
         <Badge variant="up">fresh · {rel(snap!.at)}</Badge>
+      )}
+      {snap?.build?.version && (
+        <span class="text-xs text-faint">build {snap.build.version}</span>
       )}
     </header>
 

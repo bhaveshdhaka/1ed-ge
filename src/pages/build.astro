@@ -421,8 +421,7 @@ const osInfo = `${process.platform} ${process.arch}`
               <KvRow label="build timestamp" value={buildStamp} />
             </div>
             <div>
-              <KvRow label="today" value={fmtDayWUpper(today)} />
-              <KvRow label="build date" value={VERSION_DATE} />
+              <KvRow label="version" value={fmtDayWUpper(VERSION_DATE)} />
             </div>
           </div>
         </Card>
@@ -1121,55 +1120,6 @@ const osInfo = `${process.platform} ${process.arch}`
           </div>
         </Card>
       </div>
-
-      <!-- Design Changelog -->
-      <div id="changelog" class="mt-6 scroll-mt-28">
-        <Card icon="📋" label="changelog" subtitle="design system versions">
-          <div>
-            <div class="mb-4">
-              <div class="mb-2 flex items-baseline gap-2">
-                <span class="text-sm font-semibold text-ink">v0.3-alpha</span>
-                <span class="text-2xs text-faint">2026-08-11</span>
-              </div>
-              <ul class="flex flex-col gap-1">
-                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Host status snapshot sidecar — functional /status in Docker (data/status.json)</span></li>
-                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Design skill truth-up — accent #0af, radius 14/10, real admin kit, composites map</span></li>
-                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>/design live composites — DayFacts + 3 ThoughtCards rendered with fixture data</span></li>
-                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Exceptions table — Lightbox + status documented in SKILL.md</span></li>
-              </ul>
-            </div>
-            <div class="mb-4">
-              <div class="mb-2 flex items-baseline gap-2">
-                <span class="text-sm font-semibold text-ink">v0.2</span>
-                <span class="text-2xs text-faint">2026-08-11</span>
-              </div>
-              <ul class="flex flex-col gap-1">
-                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>6 new primitives — KvRow, SegControl, Capsule, Well, Button, Rail tokens</span></li>
-                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Tag extended with href support for navigation links</span></li>
-                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>8 public page violations fixed — all surfaces now use Card and other primitives</span></li>
-                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>/design page — live rendered primitive examples replace ASCII art and text descriptions</span></li>
-                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>SKILL.md updated — ghost components removed, new primitives added, gate rule enforced</span></li>
-                <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>14 total primitives (8 original + 6 new) — strict system applied uniformly</span></li>
-              </ul>
-            </div>
-            <div class="mb-2 flex items-baseline gap-2">
-              <span class="text-sm font-semibold text-ink">v0.1</span>
-              <span class="text-2xs text-faint">2026-08-10</span>
-            </div>
-            <ul class="flex flex-col gap-1">
-              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Initial design system — 3-layer token architecture, Card primitive, 8 UI components</span></li>
-              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>WhatsApp Logger v2 aesthetic applied across all surfaces</span></li>
-              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Unified Card system — 4 variants (default/hero/static/flat) + stat mode</span></li>
-              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Motion token system — --motion-fast/normal/slow, transitions on interactive elements</span></li>
-              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Typography consistency pass — all arbitrary values tokenized, unified weights/tracking</span></li>
-              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Lightbox → bottom sheet — slide-up, swipe-to-close, keyboard nav</span></li>
-              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Mobile blur reduction — 8px on iPhone for smoother scrolling</span></li>
-              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Responsive density — tighter cards on mobile, 44px touch targets</span></li>
-              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Reduced motion global kill — 0.01ms on everything</span></li>
-            </ul>
-          </div>
-        </Card>
-      </div>
     </div>
 
     <!-- ══ Features ══ -->
@@ -1220,15 +1170,6 @@ const osInfo = `${process.platform} ${process.arch}`
           ) : (
             <EmptyState text="no entry yet — generated on deploy" />
           )}
-        </Card>
-      </div>
-
-      <div id="changelog-archive" class="mt-6 scroll-mt-28">
-        <Card icon="🗂" label="archive" subtitle="changelog history">
-          <p class="text-xs text-dim">Full history lives as per-day markdown files in the repo.</p>
-          <a href="/changelog/" class="mt-2 inline-block text-xs text-accent transition-colors hover:text-ink">
-            changelog/ directory →
-          </a>
         </Card>
       </div>
     </div>
