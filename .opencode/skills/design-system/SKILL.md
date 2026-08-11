@@ -33,7 +33,7 @@ forbidden in new code. Use the tokens:
 | `--color-soft` | `#aab2c6` | body prose |
 | `--color-dim` | `#8b93a6` | secondary text |
 | `--color-faint` | `#7d859a` | hints, captions |
-| `--color-accent` | `#8ab4ff` | links, focus, brand accent |
+| `--color-accent` | `#0af` | links, focus, brand accent |
 | `--color-up` | `#6ea88a` | **green = up / profit / positive** |
 | `--color-down` | `#c2725e` | **red = down / loss / negative** |
 | `--color-warn` | `#d9a441` | warnings, early-close |
@@ -71,7 +71,7 @@ are fine (`border-line/60`, `bg-up/10`).
   micro-headers (the terminal caption look).
 
 ### Material
-- Radius: `rounded` = 2px (panels), `rounded-sm` = 1px (buttons/inputs).
+- Radius: `rounded` = 14px (panels, `var(--radius)`), `rounded-sm` = 10px (buttons/inputs, `var(--radius-sm)`).
   `.panel` carries the shadow + border; never hand-roll a card.
 
 ---
@@ -105,22 +105,11 @@ are fine (`border-line/60`, `bg-up/10`).
 `<div class="kv">` — use `<KvRow>`. Never inline `style={{color:…}}`
 when a token exists.
 
-### Admin (React) — `src/components/ui/react/*.tsx`
-| primitive | use for |
-|---|---|
-| `Button` (cva) | admin buttons; variants default/primary/danger/ghost/accent |
-| `Dialog` + `DialogTrigger` + `DialogContent` + `DialogTitle` + `DialogDescription` | modals — focus trap + Esc for free; never a hand-rolled overlay |
-| `Tooltip` + `TooltipTrigger` + `TooltipContent` (wrap in `TooltipProvider`) | hover hints |
-| `ToastProvider` + `Toast` + `ToastViewport` | notifications — `ok={false}` for failures, `aria-live` built in |
-| `Select` + `SelectTrigger` + `SelectValue` + `SelectContent` + `SelectItem` | selects with labels |
-| `Tabs` + `TabsList` + `TabsTrigger` + `TabsContent` | tab groups |
-| `Checkbox` | boolean inputs |
-| `cn` (from `src/lib/utils.ts`) | class merging — every component uses it |
+### Admin (React)
 
-Legacy `src/components/admin/ui.tsx` (`Field`, `TextInput`, `NumInput`,
-`TextArea`, `Select`, `Button`, `Card`, `Stat`) is deprecated for *new* work;
-reuse the Radix primitives instead. Do not delete it until the admin is fully
-migrated.
+The admin area (`/zen`) uses React islands (`client:only="react"`). Current admin kit lives in `src/components/admin/ui.tsx` (legacy `Field`, `TextInput`, `NumInput`, `TextArea`, `Select`, `Button`, `Card`, `Stat`) plus Radix-based primitives where available. The `src/components/ui/react/` directory is **not yet built** — when the admin is fully migrated, new primitives go there.
+
+**Admin rule:** if a Radix primitive exists for a pattern (Dialog, Toast, Tooltip, Select, Tabs, Checkbox), use it. Legacy `admin/ui.tsx` is deprecated for new work but stays until migration is complete.
 
 ---
 
@@ -152,9 +141,27 @@ migrated.
 - No `data-theme` / theme switching — summit is the only skin.
 - No `client:` on public pages.
 
+## Exceptions
+
+| Surface | Allowed JS | Reason |
+|---|---|---|
+| Lightbox (`Lightbox.astro`) | One inline `<script>` for `<dialog>` open/close | Zero-JS exception: native `<dialog>` + backdrop, no framework |
+| `/status` page | None | SSR only; host snapshot provides all data |
+
 ## Gate rule
 
 **New features must have design rules before implementation.** If a pattern
 doesn't have a corresponding primitive or CSS token, create the primitive
 first — then implement the feature using it. Never hand-build markup for a
 pattern that will be reused.
+
+## Composites
+
+Built on primitives, not standalone components:
+
+| Composite | Primitives used | Purpose |
+|---|---|---|
+| `DayFacts.astro` | `Card` + `Well` cells | Facts strip (mood/sleep/screen/habits/trades/R). Only R carries color. |
+| `ThoughtCard.astro` | `Card` (pad="none") + rails | Published stream moment. Rail: trade=up/down, quote=accent, note=quiet. |
+| `NewsBlock.astro` | dot severity + `KvRow` | News rows with past-state dimming, same-time collapse. |
+| `MarketWidget.astro` | `Well` + day-rail | Chronograph rail + session rows + live clock. |

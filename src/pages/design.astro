@@ -13,8 +13,11 @@ import SegControl from '../components/ui/SegControl.astro'
 import Capsule from '../components/ui/Capsule.astro'
 import Well from '../components/ui/Well.astro'
 import Button from '../components/ui/Button.astro'
+import DayFacts from '../components/stream/DayFacts.astro'
+import ThoughtCard from '../components/stream/ThoughtCard.astro'
+import type { FactCell, ResolvedThought } from '../lib/stream'
 
-const DESIGN_VERSION = 'v0.2'
+const DESIGN_VERSION = 'v0.3-alpha'
 
 const palette = [
   { token: '--hue-bg', value: '#07080c', purpose: 'base page background' },
@@ -90,6 +93,34 @@ const roadmap = [
   { item: 'Chart SVG font-size tokens', priority: 'low', detail: 'Chart axes use inline font-size="9". Could use text-4xs token.' },
   { item: 'Dark/light theme support', priority: 'future', detail: 'data-theme="summit" is inert. Could wire up for theme swapping.' },
   { item: 'Component storybook', priority: 'future', detail: 'Interactive preview of all components with props. Would replace this static page.' },
+]
+
+// ── composite fixtures ──────────────────────────────────────────────────────
+const sampleFactCells: FactCell[] = [
+  { key: 'mood', label: 'MOOD', value: '😐 okay', ok: true, up: undefined },
+  { key: 'sleep', label: 'SLEEP', value: '6.5h · 3/5', ok: true, up: undefined },
+  { key: 'r', label: 'R', value: '+2.50R', ok: true, up: true },
+  { key: 'trades', label: 'TRADES', value: '4 · 75% win', ok: true, up: undefined },
+  { key: 'screen', label: 'SCREEN', value: '5.2h', ok: true, up: undefined },
+  { key: 'habits', label: 'HABITS', value: '5/6', ok: true, up: undefined },
+]
+
+const sampleThoughts: ResolvedThought[] = [
+  {
+    iso: '2026-08-11', at: '09:15', type: 'trade',
+    text: undefined, images: [], author: undefined,
+    trade: { R: 2.5, direction: 'long' as const, market: 'MNQ', model: 'orb-drive', setup: 'ORB', session: 'ny-am', points: 25, entry: 20800.5, exit: 20825.5, stop: 20790.5, note: 'Clean break above ORB, held to +2.5R.', screenshots: [] },
+  },
+  {
+    iso: '2026-08-11', at: '08:30', type: 'note',
+    text: 'Pre-market: CPI at 20:30 HKT. Flat 15 min before. No chasing.', images: [], author: undefined,
+    trade: null,
+  },
+  {
+    iso: '2026-08-11', at: '07:00', type: 'quote',
+    text: 'The goal is not to be right. The goal is to make money when right and lose less when wrong.', images: [], author: undefined,
+    trade: null,
+  },
 ]
 ---
 
@@ -512,32 +543,35 @@ const roadmap = [
 
     <!-- Composite Components -->
     <div class="mt-6">
-      <Card icon="📦" label="composite components" subtitle="built on primitives">
-        <div class="grid gap-4 md:grid-cols-2">
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">ThoughtCard.astro</div>
-            <p class="mt-1 text-xs text-dim">One published stream moment. Left-rail identity: trade = up/down, quote = accent, note = quiet. Uses Card with pad="none".</p>
-          </div>
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">DayFacts.astro</div>
-            <p class="mt-1 text-xs text-dim">Facts strip (mood/sleep/screen/habits/trades/R). Well cells in flex-wrap row. Only R carries color.</p>
-          </div>
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">NewsEventsCard.astro</div>
-            <p class="mt-1 text-xs text-dim">Reusable news panel. Dot severity empty state. hideDate prop for nested cards.</p>
-          </div>
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">NewsBlock.astro</div>
-            <p class="mt-1 text-xs text-dim">News rows with dot severity, past-state dimming, same-time collapse (+N more).</p>
-          </div>
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">Lightbox.astro</div>
-            <p class="mt-1 text-xs text-dim">Bottom-sheet image viewer. The ONE JS exception. Slide-up, swipe-to-close, keyboard nav, image preload.</p>
-          </div>
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">MarketWidget.astro</div>
-            <p class="mt-1 text-xs text-dim">Chronograph rail + session rows + live clock. Uses shared ticker.js for 1s interval.</p>
-          </div>
+      <Card icon="📦" label="composite components" subtitle="built on primitives · rendered live">
+        <p class="mb-4 text-sm text-soft">
+          These components are built entirely from the primitives above. Each is rendered live with real trading-shaped data — what you see is exactly what ships.
+        </p>
+
+        <div class="flex flex-col gap-6">
+          <!-- DayFacts -->
+          <Card icon="📊" label="DayFacts" subtitle="facts strip" variant="flat">
+            <p class="mb-3 text-xs text-dim">Mood/sleep/screen/habits/trades/R in a flex-wrap row of Well cells. Only R carries color.</p>
+            <DayFacts cells={sampleFactCells} />
+          </Card>
+
+          <!-- ThoughtCard — trade -->
+          <Card icon="📈" label="ThoughtCard · trade" subtitle="long trade +2.50R" variant="flat">
+            <p class="mb-3 text-xs text-dim">Published stream moment. Rail identity: trade = up/down matched to direction. Uses Card with pad="none".</p>
+            <ThoughtCard thought={sampleThoughts[0]} />
+          </Card>
+
+          <!-- ThoughtCard — note -->
+          <Card icon="💭" label="ThoughtCard · note" subtitle="pre-market note" variant="flat">
+            <p class="mb-3 text-xs text-dim">Note = quiet rail. No color, muted framing.</p>
+            <ThoughtCard thought={sampleThoughts[1]} />
+          </Card>
+
+          <!-- ThoughtCard — quote -->
+          <Card icon="💬" label="ThoughtCard · quote" subtitle="trading wisdom" variant="flat">
+            <p class="mb-3 text-xs text-dim">Quote = accent left rail. Distinct from notes and trades.</p>
+            <ThoughtCard thought={sampleThoughts[2]} />
+          </Card>
         </div>
       </Card>
     </div>
@@ -724,6 +758,18 @@ const roadmap = [
     <div class="mt-6">
       <Card icon="📋" label="changelog" subtitle="design system versions">
         <div>
+          <div class="mb-4">
+            <div class="mb-2 flex items-baseline gap-2">
+              <span class="text-sm font-semibold text-ink">v0.3-alpha</span>
+              <span class="text-2xs text-faint">2026-08-11</span>
+            </div>
+            <ul class="flex flex-col gap-1">
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Host status snapshot sidecar — functional /status in Docker (data/status.json)</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Design skill truth-up — accent #0af, radius 14/10, real admin kit, composites map</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>/design live composites — DayFacts + 3 ThoughtCards rendered with fixture data</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Exceptions table — Lightbox + status documented in SKILL.md</span></li>
+            </ul>
+          </div>
           <div class="mb-4">
             <div class="mb-2 flex items-baseline gap-2">
               <span class="text-sm font-semibold text-ink">v0.2</span>

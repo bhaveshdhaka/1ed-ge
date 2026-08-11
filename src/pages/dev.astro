@@ -8,8 +8,8 @@ import { join } from 'node:path'
 import { createRequire } from 'node:module'
 const require = createRequire(join(process.cwd(), 'package.json'))
 
-const VERSION = 'v0.2-alpha'
-const VERSION_DATE = '2026-08-10'
+const VERSION = 'v0.3-alpha'
+const VERSION_DATE = '2026-08-11'
 
 const stack = [
   { layer: 'Framework', tech: 'Astro 5 (static-first) + @astrojs/node (SSR)', note: 'zero JS on public pages' },
@@ -266,6 +266,25 @@ const principles = [
 
 const changelog = [
   {
+    version: 'v0.3-alpha',
+    date: '2026-08-11',
+    features: [
+      'Host status snapshot sidecar — functional /status in Docker via data/status.json',
+      'Design skill truth-up — tokens match live CSS (#0af, 14/10 radius), real admin kit, composites map',
+      '/design live composites — DayFacts + ThoughtCard (note/trade/quote) rendered with fixture data',
+      'Exceptions table — Lightbox + /status documented in SKILL.md',
+      'Design system v0.3-alpha published on /design and /dev',
+    ],
+    removed: [],
+    fixes: [
+      '/status page — all fields populated from host snapshot (docker, git, disk, memory, market)',
+      'SKILL.md accent color #8ab4ff → #0af (matches app.css)',
+      'SKILL.md radius 2px/1px → 14px/10px (matches --radius/--radius-sm)',
+      'SKILL.md admin React dir claims → real admin/ui.tsx inventory',
+    ],
+    rationale: 'Make /status actually work. Truth-up the design skill. Publish the full design catalog.',
+  },
+  {
     version: 'v0.2-alpha',
     date: '2026-08-10',
     features: [
@@ -334,11 +353,12 @@ const changelog = [
 ]
 
 const costs = [
+  { version: 'v0.3-alpha', date: '2026-08-11', what: 'Host status sidecar, design skill truth-up, /design live composites, v0.3-alpha publish', estimate: '$2' },
   { version: 'v0.0', date: 'pre-2026-08-10', what: 'Initial build — all core features, admin, design system foundation', estimate: '$50' },
   { version: 'v0.1-alpha', date: '2026-08-10', what: 'Design system audit, CME trading day, display timezone, lightbox, Card unification, motion tokens, polish', estimate: '$4' },
 ]
 
-const totalCost = '$54'
+const totalCost = '$56'
 
 // Source code stats — lines of code by type
 const countLines = (ext: string) => {
