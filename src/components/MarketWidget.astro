@@ -182,7 +182,7 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
     try { PAYLOAD = JSON.parse(el.textContent || 'null') } catch {}
     if (!PAYLOAD) return
     const HKT_MS = PAYLOAD.hktOffsetMs || 8 * 3600 * 1000
-    const { onTick, segAt, nextAt, fmtHuman, color, clsName } = window.__ticker
+    const { onTick, segAt, nextAt, nextLines, fmtHuman, color, clsName } = window.__ticker
 
     const nowMarker = document.querySelector('[data-now-marker]')
     if (nowMarker) {

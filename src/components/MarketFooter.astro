@@ -104,7 +104,7 @@ const clsClass = (cls: string) =>
     let PAYLOAD = null
     try { PAYLOAD = JSON.parse(el.textContent || 'null') } catch {}
     if (!PAYLOAD) return
-    const { onTick, segAt, nextAt, fmtHuman, color, clsName } = window.__ticker
+    const { onTick, segAt, nextAt, nextLines, fmtHuman, color, clsName } = window.__ticker
 
     const main = document.querySelector('[data-f-market]')
     const cashRows = ['nyse', 'tse', 'lse']
