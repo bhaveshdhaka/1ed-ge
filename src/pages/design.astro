@@ -385,12 +385,10 @@ const roadmap = [
 
           <!-- Table -->
           <Card icon="📋" label="Table" variant="flat">
-            <Table head={['day', 'R', 'points']}>
-              <Fragment slot="body">
-                <tr><td class="td">mon 11-aug</td><td class="td text-up">+2.50</td><td class="td">+25.0</td></tr>
-                <tr><td class="td">fri 08-aug</td><td class="td text-down">-1.00</td><td class="td">-10.0</td></tr>
-                <tr><td class="td">thu 07-aug</td><td class="td text-up">+3.20</td><td class="td">+32.0</td></tr>
-              </Fragment>
+            <Table head={['day', 'R', 'points', 'setup']}>
+              <tr><td class="td">mon 11-aug-2026</td><td class="td text-up tabular-nums">+2.50</td><td class="td tabular-nums">+25.0</td><td class="td">ORB</td></tr>
+              <tr><td class="td">fri 08-aug-2026</td><td class="td text-down tabular-nums">-1.00</td><td class="td tabular-nums">-10.0</td><td class="td">Drive</td></tr>
+              <tr><td class="td">thu 07-aug-2026</td><td class="td text-up tabular-nums">+3.20</td><td class="td tabular-nums">+32.0</td><td class="td">ORB</td></tr>
             </Table>
           </Card>
 

@@ -1,6 +1,12 @@
 ---
 import Base from '../layouts/Base.astro'
 import Card from '../components/ui/Card.astro'
+import KvRow from '../components/ui/KvRow.astro'
+import { execSync } from 'node:child_process'
+import fs from 'node:fs'
+import { join } from 'node:path'
+import { createRequire } from 'node:module'
+const require = createRequire(join(process.cwd(), 'package.json'))
 
 const VERSION = 'v0.2-alpha'
 const VERSION_DATE = '2026-08-10'
@@ -333,6 +339,51 @@ const costs = [
 ]
 
 const totalCost = '$54'
+
+// Source code stats — lines of code by type
+const countLines = (ext: string) => {
+  try {
+    return parseInt(execSync(`find src/ -name '*${ext}' -exec wc -l {} + 2>/dev/null | tail -1 | awk '{print $1}'`).toString().trim()) || 0
+  } catch { return 0 }
+}
+const linesAstro = countLines('.astro')
+const linesTs = countLines('.ts')
+const linesTsx = countLines('.tsx')
+const linesCss = countLines('.css')
+const totalLines = linesAstro + linesTs + linesTsx + linesCss
+
+// Source code stats — file counts
+const countFiles = (ext: string) => {
+  try {
+    return parseInt(execSync(`find src/ -name '*${ext}' | wc -l`).toString().trim()) || 0
+  } catch { return 0 }
+}
+const filesAstro = countFiles('.astro')
+const filesTs = countFiles('.ts')
+const filesTsx = countFiles('.tsx')
+const filesCss = countFiles('.css')
+
+// Content counts — files in each content collection
+const countDir = (dir: string) => {
+  try { return fs.readdirSync(dir).filter(f => f.endsWith('.md') || f.endsWith('.mdx')).length } catch { return 0 }
+}
+const days = countDir('src/content/days')
+const journals = countDir('src/content/journal')
+const accounts = countDir('src/content/accounts')
+const habits = countDir('src/content/habits')
+const reviews = countDir('src/content/reviews')
+const marketNews = countDir('src/content/market-news')
+
+// Media files
+let mediaCount = 0
+try { mediaCount = parseInt(execSync('find public/media/ -type f 2>/dev/null | wc -l').toString().trim()) || 0 } catch {}
+
+// Stack versions
+const pkg = require('./package.json')
+const nodeVersion = process.version
+const astroVersion = pkg.dependencies?.astro || pkg.devDependencies?.astro || 'unknown'
+const tailwindVersion = pkg.dependencies?.tailwindcss || pkg.devDependencies?.tailwindcss || 'unknown'
+const osInfo = `${process.platform} ${process.arch}`
 ---
 
 <Base title="/dev — 1ed.ge" description="The build log: tech stack, features, principles, changelog, and token costs. Everything public.">
@@ -506,6 +557,52 @@ const totalCost = '$54'
             </div>
           ))}
         </div>
+      </Card>
+    </div>
+
+    <!-- Source Code Stats -->
+    <div class="mt-6">
+      <Card icon="📊" label="source code" subtitle="lines of code">
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <KvRow label="total lines" value={totalLines.toLocaleString()} />
+            <KvRow label=".astro files" value={String(filesAstro)} />
+            <KvRow label=".ts files" value={String(filesTs)} />
+            <KvRow label=".tsx files" value={String(filesTsx)} />
+            <KvRow label=".css files" value={String(filesCss)} />
+          </div>
+          <div>
+            <KvRow label="astro lines" value={linesAstro.toLocaleString()} />
+            <KvRow label="ts lines" value={linesTs.toLocaleString()} />
+            <KvRow label="tsx lines" value={linesTsx.toLocaleString()} />
+            <KvRow label="css lines" value={linesCss.toLocaleString()} />
+          </div>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Content Counts -->
+    <div class="mt-6">
+      <Card icon="📁" label="content" subtitle="live counts">
+        <div class="grid gap-4 md:grid-cols-2">
+          <KvRow label="days recorded" value={String(days)} />
+          <KvRow label="journal entries" value={String(journals)} />
+          <KvRow label="accounts" value={String(accounts)} />
+          <KvRow label="habits" value={String(habits)} />
+          <KvRow label="reviews" value={String(reviews)} />
+          <KvRow label="market news days" value={String(marketNews)} />
+          <KvRow label="media files" value={String(mediaCount)} />
+        </div>
+      </Card>
+    </div>
+
+    <!-- Stack Versions -->
+    <div class="mt-6">
+      <Card icon="⚙️" label="stack" subtitle="versions">
+        <KvRow label="node.js" value={nodeVersion} />
+        <KvRow label="astro" value={astroVersion} />
+        <KvRow label="tailwind" value={tailwindVersion} />
+        <KvRow label="os" value={osInfo} />
       </Card>
     </div>
 
