@@ -8,6 +8,7 @@ import Tag from '../../components/ui/Tag.astro'
 import EmptyState from '../../components/ui/EmptyState.astro'
 import Icon from '../../components/ui/Icon.astro'
 import Separator from '../../components/ui/Separator.astro'
+import Button from '../../components/ui/Button.astro'
 
 const journal = (await getCollection('journal')).sort((a, b) => b.data.date.localeCompare(a.data.date))
 const days = await getCollection('days')
@@ -73,7 +74,7 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
             autocomplete="off"
           />
         </div>
-        <button type="button" id="search-clear" class="btn shrink-0 hidden">clear</button>
+        <Button id="search-clear" class="shrink-0 hidden">clear</Button>
       </form>
       <label class="flex items-center gap-2 text-2xs text-dim">
         <span class="text-faint">jump to day:</span>

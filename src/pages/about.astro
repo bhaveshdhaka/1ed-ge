@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro'
 import Card from '../components/ui/Card.astro'
+import KvRow from '../components/ui/KvRow.astro'
 import { getCollection } from 'astro:content'
 
 const accounts = await getCollection('accounts')
@@ -87,10 +88,9 @@ const timeline = [
 
     <Card icon="🗺" label="the plan" class="mt-6">
       {timeline.map((t) => (
-        <div class="kv">
-          <span class="w-12 shrink-0 text-sm text-accent">{t.d}</span>
+        <KvRow label={t.d} class="[&>span]:text-accent">
           <span class="text-sm text-soft">{t.t}</span>
-        </div>
+        </KvRow>
       ))}
     </Card>
 
