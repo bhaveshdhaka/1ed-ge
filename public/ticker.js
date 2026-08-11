@@ -48,6 +48,21 @@
     return best
   }
 
+  // Soonest upcoming red and soonest upcoming orange, independently.
+  function nextLines(list, now) {
+    var up = []
+    for (var i = 0; i < list.length; i++) if (list[i].at > now) up.push(list[i])
+    var soonest = function (kind) {
+      var best = null
+      for (var j = 0; j < up.length; j++) {
+        if (up[j].kind !== kind) continue
+        if (best === null || up[j].at < best.at) best = up[j]
+      }
+      return best
+    }
+    return { red: soonest('red'), orange: soonest('orange') }
+  }
+
   function color(cls) {
     return cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
   }
@@ -63,6 +78,7 @@
     fmtHuman: fmtHuman,
     segAt: segAt,
     nextAt: nextAt,
+    nextLines: nextLines,
     color: color,
     clsName: clsName,
     glyph: glyph,
