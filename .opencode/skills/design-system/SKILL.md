@@ -81,23 +81,29 @@ are fine (`border-line/60`, `bg-up/10`).
 ### Public (zero-JS) — `src/components/ui/*.astro`
 | primitive | use for |
 |---|---|
-| `Card` | any panel/card; optional title + `actions` slot |
-| `Button` | links/buttons; variants `default/primary/danger/ghost`, sizes `sm/md` |
-| `Badge` | compact status chip; variants `default/up/down/warn/accent/muted/outline` |
-| `Tag` | neutral inline label |
-| `Table` | data tables (`head` prop + `.td` rows) |
-| `StatCard` | one headline number |
-| `Dot` | status dots (up/down/warn/accent/clay) |
-| `Quote` | **owner-authored** quotes — terminal style |
+| `Card` | any panel/card; 4 variants (default/hero/static/flat) + stat mode; icon, label, subtitle, actions slot |
+| `StatCard` | one headline number with label and optional delta |
+| `Badge` | compact status chip; variants `up/down/warn/accent/muted/neutral/info` |
+| `Tag` | neutral inline label; set `href` to render as a navigation link |
+| `Table` | data tables (`head` prop + `.td` rows) inside a flat Card |
 | `Separator` | hairline divider |
-| `Field` / `Input` / `Textarea` | labeled forms |
 | `EmptyState` | the one "nothing here" block |
 | `Icon` | Lucide inline SVG (never emoji except flags) |
-| `Flag` | 🇺🇸🇬🇧🇯🇵📈 session flags (emoji is correct here — Lucide has no flags) |
+| `KvRow` | key-value row (`label` + `value` or slot) — use for any key-value pair list |
+| `SegControl` | segmented filter/toggle bar (`segments` array with label/href/count/active) |
+| `Capsule` | accent-tinted pill chip — use for live indicators, timestamp chips, counts |
+| `Well` | inset recessed surface — use for cells inside cards |
+| `Button` | button or link; variants `default/primary/danger`, sizes `default/sm`, optional `href` |
+
+**CSS-only tokens (no component):**
+| token | use for |
+|---|---|
+| `.rail-up` / `.rail-down` / `.rail-accent` / `.rail-quiet` | left-rail identity bars on cards — trade direction, quote accent, quiet notes |
 
 **Public rule:** if a primitive exists for it, use it. Never write a raw
-`<button class="btn…">` in a public page — use `<Button>`. Never inline
-`style={{color:…}}` when a token exists.
+`<button class="btn…">` in a public page — use `<Button>`. Never write
+`<div class="kv">` — use `<KvRow>`. Never inline `style={{color:…}}`
+when a token exists.
 
 ### Admin (React) — `src/components/ui/react/*.tsx`
 | primitive | use for |
@@ -134,10 +140,21 @@ migrated.
   moments. Drafts must never render on public routes.
 
 ## Never list
-- No arbitrary `text-[..px]` / `text-[..rem]` — use the scale.
+
+- No arbitrary `text-[..px]` / `text-[..rem]` — use the type scale.
 - No hardcoded hex colors — use tokens.
+- No hand-built `.panel` + `.card-hd` — use `<Card>`.
+- No hand-built `.kv` / `.seg` / `.capsule` / `.well` / `.btn` / `.tag` — use the component.
+- No arbitrary `border-left` for card rails — use `.rail-up` / `.rail-down` / `.rail-accent` / `.rail-quiet`.
 - No raw `<button>`/modal/toast in admin when a primitive exists.
 - No emoji in UI copy/icons (flags excepted — use `Flag`).
 - No italic (the terminal has no italic voice).
 - No `data-theme` / theme switching — summit is the only skin.
 - No `client:` on public pages.
+
+## Gate rule
+
+**New features must have design rules before implementation.** If a pattern
+doesn't have a corresponding primitive or CSS token, create the primitive
+first — then implement the feature using it. Never hand-build markup for a
+pattern that will be reused.
