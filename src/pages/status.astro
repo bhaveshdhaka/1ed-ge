@@ -156,13 +156,10 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
       )}
     </header>
 
-    <SectionNav sections={[
-      ['market', 'market'],
-      ['rebuilds', 'rebuilds'],
-      ['system', 'system'],
-      ['git', 'git'],
-      ['live', 'live'],
-      ['design review', 'design-review'],
+    <SectionNav groups={[
+      { label: 'ops', items: [['market', 'market'], ['rebuilds', 'rebuilds']] },
+      { label: 'system', items: [['system', 'system'], ['git', 'git'], ['live', 'live']] },
+      { label: 'design', items: [['review', 'design-review']] },
     ]} />
 
     {!snap && (
@@ -173,6 +170,9 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
     )}
 
     <div class="mt-6 flex max-w-2xl flex-col gap-4">
+      <!-- operations -->
+      <div class="mt-6 mb-2 text-2xs uppercase tracking-widest text-faint">operations</div>
+
       <!-- market news fetch -->
       <div id="market" class="scroll-mt-28">
       <Card
@@ -265,6 +265,9 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
       </div>
 
       <!-- system -->
+      <div class="mt-8 mb-2 text-2xs uppercase tracking-widest text-faint">system</div>
+
+      <!-- system -->
       <div id="system" class="scroll-mt-28">
       <Card icon="💻" label="system">
         <KvRow label="container">
@@ -322,6 +325,9 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
         <KvRow label="last heartbeat" value={stamp(live.at)} />
       </Card>
       </div>
+
+      <!-- design -->
+      <div class="mt-8 mb-2 text-2xs uppercase tracking-widest text-faint">design</div>
 
       <!-- design review -->
       <div id="design-review" class="scroll-mt-28">
