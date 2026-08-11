@@ -28,20 +28,20 @@ const groups = groupNewsHeadlines(red, orange)
     const past = isPast(g.time)
     return (
       <div>
-        <div class="flex items-baseline gap-2">
-          <span
-            class:list={['inline-block h-1.5 w-1.5 shrink-0 self-center rounded-full', g.kind === 'red' ? 'bg-down' : 'bg-warn', past && 'opacity-40']}
-            title={g.kind}
-          />
-          <span class:list={['w-16 shrink-0 text-right text-xs tabular-nums', past ? 'text-faint' : g.kind === 'red' ? 'text-down' : 'text-warn opacity-70']}>
-            {emoji && newsEmoji(g.title)} <time datetime={`${dayIso}T${g.time}:00+08:00`} class="local-time">{g.time}</time>
-          </span>
-          <span class="min-w-0 flex-1 text-sm leading-snug">
-            <span class:list={[past ? 'text-faint line-through decoration-line/60' : g.kind === 'red' ? 'text-down' : 'text-warn']}>{g.title}</span>
-            {g.source && <span class="ml-1.5 text-3xs text-faint">[{g.source}]</span>}
-            {g.verified && <span class="ml-1 text-2xs text-accent">✦</span>}
-          </span>
-        </div>
+      <div class:list={['flex items-baseline gap-2', past && 'opacity-60']}>
+        <span
+          class:list={['inline-block h-1.5 w-1.5 shrink-0 self-center rounded-full', past ? 'bg-line2' : g.kind === 'red' ? 'bg-down' : 'bg-warn']}
+          title={g.kind}
+        />
+        <span class:list={['w-16 shrink-0 text-right text-xs tabular-nums', past ? 'text-faint' : g.kind === 'red' ? 'text-down' : 'text-warn opacity-70']}>
+          {emoji && newsEmoji(g.title)} <time datetime={`${dayIso}T${g.time}:00+08:00`} class="local-time">{g.time}</time>
+        </span>
+        <span class="min-w-0 flex-1 text-sm leading-snug">
+          <span class:list={[past ? 'text-faint line-through' : g.kind === 'red' ? 'text-down' : 'text-warn']}>{g.title}</span>
+          {g.source && <span class="ml-1.5 text-3xs text-faint">[{g.source}]</span>}
+          {g.verified && <span class="ml-1 text-2xs text-accent">✦</span>}
+        </span>
+      </div>
         {g.rest.length > 0 && (
           <details class="group">
             <summary class="flex cursor-pointer list-none items-baseline gap-1.5 py-0.5 pl-24 text-xs text-faint">
@@ -52,16 +52,16 @@ const groups = groupNewsHeadlines(red, orange)
               {g.rest.map((n) => {
                 const rpast = isPast(n.time)
                 return (
-                  <div class="flex items-baseline gap-2">
+                  <div class:list={['flex items-baseline gap-2', rpast && 'opacity-60']}>
                     <span
-                      class:list={['inline-block h-1.5 w-1.5 shrink-0 self-center rounded-full', n.kind === 'red' ? 'bg-down' : 'bg-warn', rpast && 'opacity-40']}
+                      class:list={['inline-block h-1.5 w-1.5 shrink-0 self-center rounded-full', rpast ? 'bg-line2' : n.kind === 'red' ? 'bg-down' : 'bg-warn']}
                       title={n.kind}
                     />
                     <span class:list={['w-16 shrink-0 text-right text-xs tabular-nums', rpast ? 'text-faint' : n.kind === 'red' ? 'text-down' : 'text-warn opacity-70']}>
                       {emoji && newsEmoji(n.title)} <time datetime={`${dayIso}T${n.time}:00+08:00`} class="local-time">{n.time}</time>
                     </span>
                     <span class="min-w-0 flex-1 text-sm leading-snug">
-                      <span class:list={[rpast ? 'text-faint line-through decoration-line/60' : n.kind === 'red' ? 'text-down' : 'text-warn']}>{n.title}</span>
+                      <span class:list={[rpast ? 'text-faint line-through' : n.kind === 'red' ? 'text-down' : 'text-warn']}>{n.title}</span>
                       {n.source && <span class="ml-1.5 text-3xs text-faint">[{n.source}]</span>}
                       {n.verified && <span class="ml-1 text-2xs text-accent">✦</span>}
                     </span>
