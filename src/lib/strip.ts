@@ -261,13 +261,15 @@ export function segmentAt(segs: StripSegment[], now: number): StripSegment | nul
   return null
 }
 
-/** The next red (else orange) news line at `now`. */
-export function nextNewsAt(news: NewsSegment[], now: number): NewsSegment | null {
+/** The next upcoming red and orange news lines at `now`, independently. */
+export function nextNewsLines(news: NewsSegment[], now: number): { red: NewsSegment | null; orange: NewsSegment | null } {
   const upcoming = news.filter((n) => n.at > now)
-  if (!upcoming.length) return null
-  const red = upcoming.find((n) => n.kind === 'red')
-  if (red) return red
-  return upcoming.reduce((a, b) => (b.at < a.at ? b : a))
+  const soonest = (kind: 'red' | 'orange') =>
+    upcoming.filter((n) => n.kind === kind).reduce<NewsSegment | null>(
+      (a, b) => (a === null || b.at < a.at ? b : a),
+      null,
+    )
+  return { red: soonest('red'), orange: soonest('orange') }
 }
 
 /** The next speaker line at `now`. */

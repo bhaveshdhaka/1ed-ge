@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content'
 import { cmeToday, daySessionWindows, HKT_OFFSET_MS } from '../lib/sessions'
 import { fmtDayWUpper } from '../lib/dates'
-import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
+import { buildStrip, segmentAt, nextNewsLines, nextSpeakerAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
 import type { MarketKey } from '../lib/sessions'
 import { marketMarker } from '../lib/market'
@@ -37,9 +37,8 @@ const markets: { key: MarketKey; flag: string; name: string; window: string }[] 
 ]
 
 const segOf = (key: MarketKey) => segmentAt(payload.segments[key], now)
-const nextRed = nextNewsAt(payload.news, now)
+const { red: nextRed, orange: nextOrange } = nextNewsLines(payload.news, now)
 const speaker = nextSpeakerAt(payload.speaker, now)
-const redKind = nextRed?.kind === 'red'
 
 const clsColor = (cls: string) =>
   cls === 'up' ? 'var(--color-up)' : cls === 'warn' ? 'var(--color-warn)' : cls === 'down' ? 'var(--color-down)' : 'var(--color-dim)'
@@ -132,11 +131,18 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
 
   {showNews && (payload.news.length > 0 || speaker) && (
     <div class="mt-2 flex flex-col gap-1 border-t border-line/60 pt-2 text-sm" data-news-lines>
-      <div class="flex items-baseline gap-2" data-news-row style={nextRed ? '' : 'display:none'}>
-        <span data-news-dot class:list={['inline-block h-1.5 w-1.5 shrink-0 rounded-full', redKind ? 'bg-down' : 'bg-warn']}></span>
-        <span data-news-text class:list={['min-w-0 flex-1', redKind ? 'text-down' : 'text-warn']}>{nextRed?.text ?? ''}</span>
-        <span data-news-cd class="shrink-0 text-xs tabular-nums" style={nextRed ? `color:${redKind ? 'var(--color-down)' : 'var(--color-warn)'}` : ''}>
+      <div class="flex items-baseline gap-2" data-news-red-row style={nextRed ? '' : 'display:none'}>
+        <span data-news-red-dot class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-down"></span>
+        <span data-news-red-text class:list={['min-w-0 flex-1 text-down']}>{nextRed?.text ?? ''}</span>
+        <span data-news-red-cd class="shrink-0 text-xs tabular-nums" style={nextRed ? 'color:var(--color-down)' : ''}>
           {nextRed ? fmtHuman((nextRed.at - now) / 1000) : ''}
+        </span>
+      </div>
+      <div class="flex items-baseline gap-2" data-news-orange-row style={nextOrange ? '' : 'display:none'}>
+        <span data-news-orange-dot class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-warn"></span>
+        <span data-news-orange-text class:list={['min-w-0 flex-1 text-warn']}>{nextOrange?.text ?? ''}</span>
+        <span data-news-orange-cd class="shrink-0 text-xs tabular-nums" style={nextOrange ? 'color:var(--color-warn)' : ''}>
+          {nextOrange ? fmtHuman((nextOrange.at - now) / 1000) : ''}
         </span>
       </div>
       {speaker && (
@@ -214,24 +220,21 @@ const evDots = groupNewsHeadlines(red, orange).map((g) => {
       order.sort((a, b) => a.sec - b.sec)
       for (const o of order) container.appendChild(o.row)
 
-      const newsRow = document.querySelector('[data-news-row]')
-      const news = nextAt(PAYLOAD.news, now)
-      if (newsRow) {
-        if (news) {
-          newsRow.style.display = ''
-          newsRow.querySelector('[data-news-text]').textContent = news.text
-          newsRow.querySelector('[data-news-cd]').textContent = fmtHuman((news.at - now) / 1000)
-          const red = news.kind === 'red'
-          const dot = newsRow.querySelector('[data-news-dot]')
-          dot.className = 'inline-block h-1.5 w-1.5 shrink-0 rounded-full ' + (red ? 'bg-down' : 'bg-warn')
-          const t = newsRow.querySelector('[data-news-text]')
-          t.className = 'min-w-0 flex-1 ' + (red ? 'text-down' : 'text-warn')
-          const cd = newsRow.querySelector('[data-news-cd]')
-          cd.style.color = red ? 'var(--color-down)' : 'var(--color-warn)'
+      const updNews = (rowSel, txtSel, cdSel, item, colorVar) => {
+        const row = document.querySelector(rowSel)
+        if (!row) return
+        if (item) {
+          row.style.display = ''
+          row.querySelector(txtSel).textContent = item.text
+          row.querySelector(cdSel).textContent = fmtHuman((item.at - now) / 1000)
+          row.querySelector(cdSel).style.color = colorVar
         } else {
-          newsRow.style.display = 'none'
+          row.style.display = 'none'
         }
       }
+      const lines = nextLines(PAYLOAD.news, now)
+      updNews('[data-news-red-row]', '[data-news-red-text]', '[data-news-red-cd]', lines.red, 'var(--color-down)')
+      updNews('[data-news-orange-row]', '[data-news-orange-text]', '[data-news-orange-cd]', lines.orange, 'var(--color-warn)')
 
       const spRow = document.querySelector('[data-speaker-row]')
       const sp = nextAt(PAYLOAD.speaker, now)

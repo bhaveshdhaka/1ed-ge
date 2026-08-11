@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content'
 import { cmeToday } from '../lib/sessions'
 import { fmtDayWUpper } from '../lib/dates'
-import { buildStrip, segmentAt, nextNewsAt, nextSpeakerAt, fmtHuman } from '../lib/strip'
+import { buildStrip, segmentAt, nextNewsLines, nextSpeakerAt, fmtHuman } from '../lib/strip'
 import type { StripPayload } from '../lib/strip'
 import type { MarketKey } from '../lib/sessions'
 import NewsBlock from './NewsBlock.astro'
@@ -21,9 +21,8 @@ const cash = (['nyse', 'tse', 'lse'] as MarketKey[]).map((k) => ({
   flag: k === 'nyse' ? '🇺🇸' : k === 'tse' ? '🇯🇵' : '🇬🇧',
   seg: segmentAt(payload.segments[k], now),
 }))
-const nextRed = nextNewsAt(payload.news, now)
+const { red: nextRed, orange: nextOrange } = nextNewsLines(payload.news, now)
 const speaker = nextSpeakerAt(payload.speaker, now)
-const redKind = nextRed?.kind === 'red'
 
 const prettyDate = fmtDayWUpper(today)
 
@@ -66,11 +65,18 @@ const clsClass = (cls: string) =>
           </span>
         </div>
       ))}
-      <div class="flex items-baseline gap-2 text-xs" data-f-news style={nextRed ? '' : 'display:none'}>
-        <span data-f-news-dot class:list={['inline-block h-1.5 w-1.5 rounded-full', redKind ? 'bg-down' : 'bg-warn']}></span>
-        <span data-f-news-text class:list={[redKind ? 'text-down' : 'text-warn']}>{nextRed?.text ?? ''}</span>
-        <span data-f-news-cd class="ml-auto tabular-nums" style={nextRed ? `color:${redKind ? 'var(--color-down)' : 'var(--color-warn)'}` : ''}>
+      <div class="flex items-baseline gap-2 text-xs" data-f-news-red style={nextRed ? '' : 'display:none'}>
+        <span data-f-news-red-dot class="inline-block h-1.5 w-1.5 rounded-full bg-down"></span>
+        <span data-f-news-red-text class="text-down">{nextRed?.text ?? ''}</span>
+        <span data-f-news-red-cd class="ml-auto tabular-nums" style={nextRed ? 'color:var(--color-down)' : ''}>
           {nextRed ? fmtHuman((nextRed.at - now) / 1000) : ''}
+        </span>
+      </div>
+      <div class="flex items-baseline gap-2 text-xs" data-f-news-orange style={nextOrange ? '' : 'display:none'}>
+        <span data-f-news-orange-dot class="inline-block h-1.5 w-1.5 rounded-full bg-warn"></span>
+        <span data-f-news-orange-text class="text-warn">{nextOrange?.text ?? ''}</span>
+        <span data-f-news-orange-cd class="ml-auto tabular-nums" style={nextOrange ? 'color:var(--color-warn)' : ''}>
+          {nextOrange ? fmtHuman((nextOrange.at - now) / 1000) : ''}
         </span>
       </div>
       <div class="flex items-baseline gap-2 text-xs" data-f-speaker style={speaker ? '' : 'display:none'}>
@@ -128,24 +134,21 @@ const clsClass = (cls: string) =>
         cd.textContent = fmtHuman((seg.until - now) / 1000)
         cd.style.color = color(seg.cls)
       }
-      const newsEl = document.querySelector('[data-f-news]')
-      const news = nextAt(PAYLOAD.news, now)
-      if (newsEl) {
-        if (news) {
-          newsEl.style.display = ''
-          newsEl.querySelector('[data-f-news-text]').textContent = news.text
-          newsEl.querySelector('[data-f-news-cd]').textContent = fmtHuman((news.at - now) / 1000)
-          const red = news.kind === 'red'
-          const dot = newsEl.querySelector('[data-f-news-dot]')
-          dot.className = 'inline-block h-1.5 w-1.5 rounded-full ' + (red ? 'bg-down' : 'bg-warn')
-          const t = newsEl.querySelector('[data-f-news-text]')
-          t.className = red ? 'text-down' : 'text-warn'
-          const cd = newsEl.querySelector('[data-f-news-cd]')
-          cd.style.color = red ? 'var(--color-down)' : 'var(--color-warn)'
+      const updNews = (rowSel, txtSel, cdSel, item, colorVar) => {
+        const row = document.querySelector(rowSel)
+        if (!row) return
+        if (item) {
+          row.style.display = ''
+          row.querySelector(txtSel).textContent = item.text
+          row.querySelector(cdSel).textContent = fmtHuman((item.at - now) / 1000)
+          row.querySelector(cdSel).style.color = colorVar
         } else {
-          newsEl.style.display = 'none'
+          row.style.display = 'none'
         }
       }
+      const lines = nextLines(PAYLOAD.news, now)
+      updNews('[data-f-news-red]', '[data-f-news-red-text]', '[data-f-news-red-cd]', lines.red, 'var(--color-down)')
+      updNews('[data-f-news-orange]', '[data-f-news-orange-text]', '[data-f-news-orange-cd]', lines.orange, 'var(--color-warn)')
       const spEl = document.querySelector('[data-f-speaker]')
       const sp = nextAt(PAYLOAD.speaker, now)
       if (spEl) {
