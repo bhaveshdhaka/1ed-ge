@@ -104,27 +104,6 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
       ) : (<span class="text-faint">newer →</span>)}
     </nav>
 
-<<<<<<< HEAD
-    <nav class="sticky top-0 z-10 mt-6 -mx-1 border-b border-line bg-bg/95 px-1 py-1 backdrop-blur">
-      <div class="flex gap-1 overflow-x-auto text-xs" tabindex="0">
-        {[
-          ['facts', 'facts'],
-          ['trades', 'trades'],
-          ['news', 'news'],
-          ['brief', 'brief'],
-          ['reflection', 'reflection'],
-          ['thoughts', 'thoughts'],
-          ['habits', 'habits'],
-          ['screen-time', 'screen-time'],
-          ['coach', 'coach'],
-        ].map(([label, id]) => (
-          <a href={`#${id}`} class="flex h-8 items-center whitespace-nowrap px-2 text-dim transition-colors hover:text-ink">
-            {label}
-          </a>
-        ))}
-      </div>
-    </nav>
-=======
     <SectionNav sections={[
       ['facts', 'facts'],
       ['trades', 'trades'],
@@ -136,7 +115,6 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
       ['screen-time', 'screen-time'],
       ['coach', 'coach'],
     ]} />
->>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
 
     <section id="facts" class="mt-6 scroll-mt-28">
       <DayFacts cells={facts} />
@@ -202,19 +180,9 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
     </section>
 
     {newsFor && (dayRed.length > 0 || dayOrange.length > 0) && (
-<<<<<<< HEAD
-      <details id="news" class="group mt-10 scroll-mt-28 panel" open>
-        <summary class="card-hd cursor-pointer list-none select-none">
-          <span class="card-ico">📰</span>
-          <span class="card-lbl">news events</span>
-          <span class="ml-auto text-dim transition-transform group-open:rotate-180">▾</span>
-        </summary>
-        <div class="p-3 md:p-4">
-=======
       <Card id="news" icon="📰" label="news events" class="mt-10 scroll-mt-28">
         <span slot="actions" class="text-dim transition-transform rotate-180">▾</span>
         <details open>
->>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
           <NewsBlock red={dayRed} orange={dayOrange} dayIso={iso} now={Date.now()} />
         </details>
       </Card>
@@ -259,15 +227,9 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
               const val = (d.habits ?? {})[h.id]
               const done = val === true || (typeof val === 'number' && val > 0)
               return (
-<<<<<<< HEAD
-                <span class="capsule" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
-                  {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
-                </span>
-=======
                 <Capsule style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
                   {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
                 </Capsule>
->>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
               )
             })}
           </div>
