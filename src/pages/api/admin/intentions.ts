@@ -3,6 +3,7 @@ import { requireSession, json, error } from '../../../lib/auth'
 import fs from 'node:fs'
 import path from 'node:path'
 import { listMds, readEntry } from '../../../lib/content'
+import { todayHkt, nowHkt } from '../../../lib/sessions'
 
 export const prerender = false
 
@@ -10,7 +11,7 @@ const DIR = path.join(process.cwd(), 'src/content/intentions')
 
 /** Generate next filename for today's intention */
 function nextFilename(): string {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayHkt()
   if (!fs.existsSync(DIR)) return `${today}.md`
   const existing = fs.readdirSync(DIR).filter(f => f.startsWith(today) && f.endsWith('.md'))
   if (existing.length === 0) return `${today}.md`
@@ -49,9 +50,9 @@ export const POST: APIRoute = async ({ request }) => {
     const text = (body.text ?? '').trim()
     if (!text) return error('text is required', 400)
 
-    const now = new Date()
-    const date = now.toISOString().slice(0, 10)
-    const time = now.toISOString().slice(11, 16)
+    const now = nowHkt()
+    const date = now.slice(0, 10)
+    const time = now.slice(11, 16)
     const filename = nextFilename()
 
     // Ensure directory exists
