@@ -1,0 +1,8 @@
+---
+/** Well.astro — inset recessed surface. */
+interface Props {
+  class?: string
+}
+const { class: cls = '' } = Astro.props
+---
+<div class={`well ${cls}`}><slot /></div>

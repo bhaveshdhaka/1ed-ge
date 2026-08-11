@@ -346,6 +346,12 @@
                 box-shadow var(--motion-fast);
   }
 
+  /* Rail tokens — left-rail identity bars for cards (ThoughtCard, etc.) */
+  .rail-up     { border-left: 2px solid var(--color-up); }
+  .rail-down   { border-left: 2px solid var(--color-down); }
+  .rail-accent { border-left: 2px solid var(--color-accent); }
+  .rail-quiet  { border-left: 2px solid var(--color-line); }
+
   /* .card-hd / .card-lbl / .card-sub — card header row, label, sub */
   .card-hd {
     display: flex;

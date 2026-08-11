@@ -1,0 +1,28 @@
+---
+/** Button.astro — public button/link component. */
+interface Props {
+  variant?: 'default' | 'primary' | 'danger'
+  size?: 'default' | 'sm'
+  type?: 'button' | 'submit'
+  disabled?: boolean
+  class?: string
+  href?: string
+}
+const {
+  variant = 'default',
+  size = 'default',
+  type = 'button',
+  disabled = false,
+  class: cls = '',
+  href,
+} = Astro.props
+
+const variantCls = { default: 'btn', primary: 'btn btn-primary', danger: 'btn btn-danger' }[variant]
+const sizeCls = size === 'sm' ? 'btn-sm' : ''
+const tagCls = `${variantCls} ${sizeCls} ${cls}`.trim()
+---
+{href ? (
+  <a href={href} class={tagCls}><slot /></a>
+) : (
+  <button type={type} disabled={disabled} class={tagCls}><slot /></button>
+)}

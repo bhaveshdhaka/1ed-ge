@@ -1,0 +1,17 @@
+---
+/** KvRow.astro — key-value row. label on left, value (or slot) on right. */
+interface Props {
+  label: string
+  value?: string
+  class?: string
+}
+const { label, value, class: cls = '' } = Astro.props
+---
+<div class={`kv ${cls}`}>
+  <span class="text-sm text-ink">{label}</span>
+  {value !== undefined ? (
+    <span class="text-xs text-dim">{value}</span>
+  ) : (
+    <span class="text-xs text-dim"><slot /></span>
+  )}
+</div>

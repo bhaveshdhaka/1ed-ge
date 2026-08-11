@@ -1,10 +1,15 @@
 ---
-/** Tag.astro — small inline label (a lighter sibling of Badge, no color states). */
+/** Tag.astro — small inline label (a lighter sibling of Badge, no color states).
+ *  Set href to render as a navigation link (<a>) instead of a <span>. */
 interface Props {
+  href?: string
   class?: string
 }
 
-const { class: cls = '' } = Astro.props
+const { href, class: cls = '' } = Astro.props
 ---
-
-<span class={`tag ${cls}`}><slot /></span>
+{href ? (
+  <a href={href} class={`tag ${cls}`}><slot /></a>
+) : (
+  <span class={`tag ${cls}`}><slot /></span>
+)}

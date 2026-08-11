@@ -1,0 +1,28 @@
+---
+/** SegControl.astro — segmented filter/toggle bar. */
+interface Segment {
+  label: string
+  href: string
+  count?: number
+  active: boolean
+}
+interface Props {
+  segments: Segment[]
+  class?: string
+}
+const { segments, class: cls = '' } = Astro.props
+---
+<nav class={`seg flex-wrap ${cls}`}>
+  {segments.map((s) => (
+    <a
+      href={s.href}
+      aria-current={s.active ? 'page' : undefined}
+      class:list={[
+        'rounded-lg px-2.5 py-1 text-2xs transition-colors',
+        s.active ? 'seg-on' : 'text-dim hover:text-accent',
+      ]}
+    >
+      {s.label}{s.count !== undefined && <span class="text-faint"> {s.count}</span>}
+    </a>
+  ))}
+</nav>
