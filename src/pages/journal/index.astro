@@ -84,21 +84,15 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
     <div id="month-strip" class="sticky top-0 z-10 mt-6 -mx-1 overflow-x-auto border-b border-line bg-bg/95 px-1 py-2 backdrop-blur">
       <div class="flex gap-1.5">
         {groups.map((g) => (
-          <a href={`#m-${g.month}`} class="tag shrink-0 transition-colors hover:border-accent hover:text-accent">
+          <Tag href={`#m-${g.month}`} class="shrink-0 transition-colors hover:border-accent hover:text-accent">
             {monthLabel(g.month)}
-          </a>
+          </Tag>
         ))}
       </div>
     </div>
 
-    <div id="journal-list" class="mt-10 max-w-2xl panel">
-      <div class="card-hd">
-        <span class="card-ico">📝</span>
-        <span class="card-lbl">journal</span>
-        <span class="card-sub">{journal.length} posts</span>
-      </div>
-      <div class="p-3 md:p-4">
-        {groups.map((g, gi) => (
+    <Card id="journal-list" icon="📝" label="journal" subtitle={`${journal.length} posts`} class="mt-10 max-w-2xl">
+      {groups.map((g, gi) => (
           <div id={`m-${g.month}`} class="scroll-mt-16">
             {gi > 0 && <Separator class="my-8" />}
             <div class="mb-3 flex items-baseline gap-2 text-2xs uppercase tracking-widest text-dim">
@@ -132,8 +126,7 @@ const numById = new Map(ordered.map((j, i) => [j.id, i]))
           </div>
         ))}
         {journal.length === 0 && <EmptyState text="no entries yet — the journal starts when the trading does." />}
-      </div>
-    </div>
+    </Card>
 
     <div id="search-results" class="mt-10 max-w-2xl hidden"></div>
 

@@ -13,6 +13,7 @@ import DayFacts from '../stream/DayFacts.astro'
 import NewsBlock from '../NewsBlock.astro'
 import Badge from '../ui/Badge.astro'
 import Card from '../ui/Card.astro'
+import Capsule from '../ui/Capsule.astro'
 import EmptyState from '../ui/EmptyState.astro'
 import Separator from '../ui/Separator.astro'
 
@@ -186,16 +187,12 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
     </section>
 
     {newsFor && (dayRed.length > 0 || dayOrange.length > 0) && (
-      <details id="news" class="group mt-10 scroll-mt-28 panel" open>
-        <summary class="card-hd cursor-pointer list-none select-none">
-          <span class="card-ico">📰</span>
-          <span class="card-lbl">news events</span>
-          <span class="ml-auto text-dim transition-transform group-open:rotate-180">▾</span>
-        </summary>
-        <div class="p-3 md:p-4">
+      <Card id="news" icon="📰" label="news events" class="mt-10 scroll-mt-28">
+        <span slot="actions" class="text-dim transition-transform rotate-180">▾</span>
+        <details open>
           <NewsBlock red={dayRed} orange={dayOrange} dayIso={iso} now={Date.now()} />
-        </div>
-      </details>
+        </details>
+      </Card>
     )}
 
     {briefFor && Brief && (
@@ -237,9 +234,9 @@ if (briefFor) Brief = await renderMarkdown(briefFor.content)
               const val = (d.habits ?? {})[h.id]
               const done = val === true || (typeof val === 'number' && val > 0)
               return (
-                <span class="capsule" style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
+                <Capsule style={done ? `border-color:${h.data.color};color:${h.data.color}` : 'border-color:var(--color-line);color:var(--color-dim)'}>
                   {h.data.emoji ?? '·'} {h.data.name} {done ? '✓' : '×'}
-                </span>
+                </Capsule>
               )
             })}
           </div>

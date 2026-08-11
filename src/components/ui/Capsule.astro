@@ -2,7 +2,8 @@
 /** Capsule.astro — accent-tinted pill chip. */
 interface Props {
   class?: string
+  style?: string
 }
-const { class: cls = '' } = Astro.props
+const { class: cls = '', style } = Astro.props
 ---
-<span class={`capsule ${cls}`}><slot /></span>
+<span class={`capsule ${cls}`} style={style}><slot /></span>
