@@ -4,10 +4,10 @@ import { writeFileSync } from 'node:fs'
 const SECRET = process.env.ADMIN_SECRET ?? ''
 const TEST_DATE = '2099-12-31'
 
-// The pending-changes queue is ephemeral (/tmp) and accumulates across sessions;
+// The pending-changes queue is ephemeral (data/) and accumulates across sessions;
 // count-based assertions ("1 draft change") need a clean slate per test.
 test.beforeEach(async () => {
-  writeFileSync('/tmp/1edge-pending.json', JSON.stringify([]))
+  writeFileSync('data/pending.json', JSON.stringify([]))
 })
 
 // Admin is a React island that hydrates after SSR — wait for the tab bar (React-rendered)

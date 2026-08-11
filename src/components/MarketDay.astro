@@ -4,6 +4,10 @@ import { cmeToday } from '../lib/sessions'
 import { fmtDayWUpper } from '../lib/dates'
 import { marketMarker } from '../lib/market'
 import NewsEventsCard from './NewsEventsCard.astro'
+<<<<<<< HEAD
+=======
+import Card from './ui/Card.astro'
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
 
 const today = cmeToday()
 const mk = marketMarker(today)
@@ -13,6 +17,7 @@ const red = day?.data.red ?? []
 const orange = day?.data.orange ?? []
 ---
 
+<<<<<<< HEAD
 <section class="panel">
   <div class="card-hd">
     <span class="card-ico">📅</span>
@@ -26,3 +31,13 @@ const orange = day?.data.orange ?? []
     <NewsEventsCard red={red} orange={orange} dayIso={today} isToday={true} hideDate={true} />
   </div>
 </section>
+=======
+<Card icon="📅" label="today" subtitle={fmtDayWUpper(today)}>
+  <Fragment slot="actions">
+    <span class:list={['tmr', mk.status === 'open' ? 'text-up' : mk.status === 'early' ? 'text-warn' : 'text-down']}>
+      {mk.glyph} {mk.text}{mk.status === 'open' ? ' · full day' : ''}
+    </span>
+  </Fragment>
+  <NewsEventsCard red={red} orange={orange} dayIso={today} isToday={true} hideDate={true} />
+</Card>
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7

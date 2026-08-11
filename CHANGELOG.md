@@ -1,5 +1,6 @@
 # Changelog
 
+<<<<<<< HEAD
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -760,3 +761,7 @@ Images can still be added to individual moments if needed.
 - Seeded defaults: 4 prop accounts (TakeProfitTrader / Lucid, 25k/50k,
   $1k/$2k drawdown), 6 habits, day-zero journal post.
 - Domain live at `https://1ed.ge` behind Cloudflare (proxied DNS, Flexible SSL).
+=======
+Auto-generated from conventional commits on each deploy.
+See [changelog/](changelog/) directory.
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7

@@ -24,6 +24,7 @@ const R = thought.trade?.R ?? 0
 const imgs: string[] = isTrade ? (thought.trade?.screenshots ?? []) : (thought.images ?? [])
 const lbGroup = `${thought.iso}-${thought.at}`
 // Frame identity: note (thought) = quiet hairline, quote = accent left rail,
+<<<<<<< HEAD
 // trade = up/down left rail matched to the ▲/▼ glyph. Card.astro doesn't
 // forward inline style, so the rail is expressed as a Tailwind arbitrary
 // property class (same value the inline style carried).
@@ -34,6 +35,13 @@ const frameCls = isTrade
   : isQuote
     ? '[border-left:2px_solid_var(--color-accent)]'
     : ''
+=======
+// trade = up/down left rail matched to the ▲/▼ glyph. The rail is expressed
+// with design-system rail tokens (.rail-up/.rail-down/.rail-accent).
+const frameCls = isTrade
+  ? thought.trade?.direction === 'long' ? 'rail-up' : 'rail-down'
+  : isQuote ? 'rail-accent' : ''
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
 ---
 
 <Card icon={isQuote ? '💬' : isTrade ? '📈' : '💭'} label={meta.label} pad="none" class={[cls, frameCls].filter(Boolean).join(' ')}>

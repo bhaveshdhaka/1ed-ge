@@ -1,8 +1,16 @@
 import fs from 'node:fs'
+import path from 'node:path'
 
+<<<<<<< HEAD
 const PENDING_FILE = '/tmp/1edge-pending.json'
 const REBUILDS_FILE = '/tmp/1edge-rebuilds.json'
 const BUILD_LOCK_FILE = '/tmp/1edge-build.lock'
+=======
+const DATA_DIR = path.join(process.cwd(), 'data')
+const PENDING_FILE = path.join(DATA_DIR, 'pending.json')
+const REBUILDS_FILE = path.join(DATA_DIR, 'rebuilds.json')
+const BUILD_LOCK_FILE = path.join(DATA_DIR, 'build.lock')
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
 
 export interface PendingChange {
   at: string
@@ -30,6 +38,7 @@ export function addChange(kind: string, label: string, detail?: string) {
   const list = getPending()
   list.push({ at: new Date().toISOString(), kind, label, detail })
   try {
+    fs.mkdirSync(DATA_DIR, { recursive: true })
     fs.writeFileSync(PENDING_FILE, JSON.stringify(list.slice(-200)))
   } catch {}
 }
@@ -51,6 +60,7 @@ export function getRebuilds(): RebuildRecord[] {
 export function pushRebuild(r: RebuildRecord) {
   const list = [r, ...getRebuilds()].slice(0, 10)
   try {
+    fs.mkdirSync(DATA_DIR, { recursive: true })
     fs.writeFileSync(REBUILDS_FILE, JSON.stringify(list))
   } catch {}
 }

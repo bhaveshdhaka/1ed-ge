@@ -20,19 +20,25 @@ node scripts/market-news-fetch.mjs --no-build || echo "  warn: market fetch fail
 echo "→ building + starting container"
 docker compose up -d --build
 
+echo "→ post-deploy bookkeeping (changelog, build.json, tokenomics, pending clear)"
+node scripts/post-deploy.mjs || echo "  warn: post-deploy failed"
+
 echo "→ installing prod nginx vhost"
 sudo cp nginx/1ed.ge.conf /etc/nginx/sites-enabled/1ed.ge
 sudo nginx -t && sudo systemctl reload nginx
-
-echo "→ installing git autocommit cron (every 30 min) — prod only"
-CRON_LINE="*/30 * * * * root cd ${ROOT} && git add -A && git commit -m \"chore(content): autosave \$(date +\%F-\%R)\" -q 2>/dev/null || true"
-printf '%s\n' "$CRON_LINE" | sudo tee /etc/cron.d/1edge-backup > /dev/null
-sudo chmod 644 /etc/cron.d/1edge-backup
 
 echo "→ installing market-news fetch cron (every 8h) — prod only"
 MARKET_CRON="0 */8 * * * root docker exec 1edge-site sh -c 'cd /app && node scripts/market-news-fetch.mjs' >> /tmp/1edge-market.log 2>&1 || true"
 printf '%s\n' "$MARKET_CRON" | sudo tee /etc/cron.d/1edge-market > /dev/null
 sudo chmod 644 /etc/cron.d/1edge-market
+
+echo "→ installing status snapshot cron (every 60s) — host collector for /status"
+STATUS_CRON="* * * * * root cd ${ROOT} && /usr/bin/node scripts/status-snapshot.mjs >/dev/null 2>&1 || true"
+printf '%s\n' "$STATUS_CRON" | sudo tee /etc/cron.d/1edge-status > /dev/null
+sudo chmod 644 /etc/cron.d/1edge-status
+
+echo "→ writing status snapshot once"
+node scripts/status-snapshot.mjs || echo "  warn: status snapshot failed — /status may show stale"
 
 sudo systemctl restart cron 2>/dev/null || true
 

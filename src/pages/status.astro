@@ -1,0 +1,334 @@
+---
+/**
+ * /status — operational health from host snapshot (data/status.json).
+ * Host collector: scripts/status-snapshot.mjs (cron every 60s).
+ * Zero client JS. No execSync inside the container.
+ */
+import fs from 'node:fs'
+import path from 'node:path'
+import Base from '../layouts/Base.astro'
+import Card from '../components/ui/Card.astro'
+import KvRow from '../components/ui/KvRow.astro'
+import Well from '../components/ui/Well.astro'
+import Badge from '../components/ui/Badge.astro'
+import Table from '../components/ui/Table.astro'
+import { fmtDayWUpper } from '../lib/dates'
+import SectionNav from '../components/ui/SectionNav.astro'
+import LogList from '../components/ui/LogList.astro'
+
+export const prerender = false
+
+interface Snapshot {
+  at?: string
+  market?: {
+    lastDay?: string | null
+    lastFetched?: string | null
+    nextFetch?: string | null
+    tv?: number | null
+    ff?: number | null
+    events?: number | null
+    red?: number | null
+    verified?: number | null
+    unverifiedCount?: number | null
+    unverified?: string[]
+    logTail?: string[]
+  }
+  rebuilds?: Array<{ at?: string; ok?: boolean; applied?: string[] }>
+  pending?: Array<{ at?: string; kind?: string; label?: string }>
+  build?: {
+    version?: string
+    commit?: string
+  } | null
+  system?: {
+    container?: { up?: boolean; status?: string | null }
+    disk?: { total?: string; used?: string; pct?: string } | null
+    memory?: { total?: string; used?: string } | null
+    uptime?: string | null
+    nodeProcesses?: number | null
+  }
+  git?: {
+    branch?: string | null
+    lastCommit?: string | null
+    ahead?: number | null
+    behind?: number | null
+  }
+  live?: {
+    live?: boolean
+    at?: string | null
+  }
+}
+
+function readSnapshot(): Snapshot | null {
+  const candidates = [
+    path.join(process.cwd(), 'data', 'status.json'),
+    path.join(process.cwd(), '..', 'data', 'status.json'),
+  ]
+  for (const p of candidates) {
+    try {
+      return JSON.parse(fs.readFileSync(p, 'utf8')) as Snapshot
+    } catch {
+      /* try next */
+    }
+  }
+  return null
+}
+
+/** Relative time: "3m ago", "2h 15m ago", "5d ago" */
+function rel(iso: string | null | undefined): string {
+  if (!iso) return 'never'
+  const ms = Date.now() - Date.parse(iso)
+  if (isNaN(ms)) return 'unknown'
+  const s = Math.max(0, Math.floor(ms / 1000))
+  if (s < 60) return `${s}s ago`
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ${m % 60}m ago`
+  const d = Math.floor(h / 24)
+  return `${d}d ago`
+}
+
+/** Uniform timestamp: "11-AUG-2026 04:30 · 2h 15m ago" */
+function stamp(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+  const mon = months[d.getUTCMonth()]
+  const yr = d.getUTCFullYear()
+  const hh = String(d.getUTCHours()).padStart(2, '0')
+  const mm = String(d.getUTCMinutes()).padStart(2, '0')
+  return `${day}-${mon}-${yr} ${hh}:${mm} · ${rel(iso)}`
+}
+
+function num(v: number | null | undefined): string {
+  return v === null || v === undefined ? '—' : String(v)
+}
+
+const snap = readSnapshot()
+const STALE_MS = 5 * 60 * 1000
+const ageMs = snap?.at ? Date.now() - Date.parse(snap.at) : null
+const stale = !snap || ageMs == null || isNaN(ageMs) || ageMs > STALE_MS
+
+const mkt = snap?.market ?? {}
+const rebuilds = Array.isArray(snap?.rebuilds) ? snap!.rebuilds! : []
+const pending = Array.isArray(snap?.pending) ? snap!.pending! : []
+const lastRebuild = rebuilds.length ? rebuilds[rebuilds.length - 1] : null
+const lastRebuilds = rebuilds.slice(-4).reverse()
+const sys = snap?.system ?? {}
+const git = snap?.git ?? {}
+const live = snap?.live ?? {}
+const logTail: string[] = Array.isArray(mkt.logTail) ? mkt.logTail : []
+const unverified: string[] = Array.isArray(mkt.unverified) ? mkt.unverified : []
+
+const dockerUp = !!sys.container?.up
+const hasUpstream = git.ahead != null && git.behind != null
+
+Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
+---
+
+<Base title="status — 1ed.ge" description="Operational health dashboard — cron, rebuilds, system, git, live state.">
+  <section class="shell pt-12 pb-20">
+    <header class="flex flex-wrap items-baseline gap-3">
+      <h1 class="text-2xl text-ink">/ status</h1>
+      <span class="text-xs text-faint">operational health</span>
+      {stale ? (
+        <Badge variant="warn">stale{snap?.at ? ` · ${rel(snap.at)}` : ' · no snapshot'}</Badge>
+      ) : (
+        <Badge variant="up">fresh · {rel(snap!.at)}</Badge>
+      )}
+      {snap?.build?.version && (
+        <span class="text-xs text-faint">build {snap.build.version}</span>
+      )}
+    </header>
+
+    <SectionNav sections={[
+      ['market', 'market'],
+      ['rebuilds', 'rebuilds'],
+      ['system', 'system'],
+      ['git', 'git'],
+      ['live', 'live'],
+    ]} />
+
+    {!snap && (
+      <p class="mt-4 max-w-2xl text-sm text-dim">
+        no snapshot yet. host collector writes <code class="text-accent">data/status.json</code> every minute
+        (<code class="text-faint">scripts/status-snapshot.mjs</code>).
+      </p>
+    )}
+
+    <div class="mt-6 flex max-w-2xl flex-col gap-4">
+      <!-- market news fetch -->
+      <div id="market" class="scroll-mt-28">
+      <Card
+        icon="📡"
+        label="market news fetch"
+        subtitle={mkt.lastDay ? `last day ${fmtDayWUpper(mkt.lastDay)}` : 'no market-news files'}
+      >
+        <KvRow label="last fetched" value={stamp(mkt.lastFetched)} />
+        <KvRow label="next fetch">
+          {mkt.nextFetch ? (
+            <span data-next-fetch={mkt.nextFetch} class="tabular-nums text-accent"></span>
+          ) : (
+            '—'
+          )}
+        </KvRow>
+        <KvRow label="tv sources" value={num(mkt.tv)} />
+        <KvRow label="ff sources" value={num(mkt.ff)} />
+        <KvRow label="events" value={num(mkt.events)} />
+        <KvRow label="red" value={num(mkt.red)} />
+        <KvRow label="verified" value={num(mkt.verified)} />
+        <KvRow label="unverified" value={num(mkt.unverifiedCount)} />
+
+        {unverified.length > 0 && (
+          <div class="mt-3">
+            <div class="text-2xs uppercase tracking-widest text-dim">unverified (single source)</div>
+            <Well class="mt-1 p-3">
+              <LogList items={unverified} show={3} />
+            </Well>
+          </div>
+        )}
+
+        {logTail.length > 0 && (
+          <div class="mt-3">
+            <div class="text-2xs uppercase tracking-widest text-dim">log</div>
+            <Well class="mt-1 p-3">
+              <LogList items={logTail} show={4} />
+            </Well>
+          </div>
+        )}
+      </Card>
+      </div>
+
+      <!-- rebuilds -->
+      <div id="rebuilds" class="scroll-mt-28">
+      <Card icon="🔨" label="rebuilds" subtitle={`${pending.length} pending change${pending.length === 1 ? '' : 's'}`}>
+        <KvRow label="last rebuild">
+          {lastRebuild ? (
+            <span>
+              <Badge variant={lastRebuild.ok ? 'up' : 'down'}>{lastRebuild.ok ? 'ok' : 'failed'}</Badge>
+              <span class="ml-1 text-dim">{stamp(lastRebuild.at)}</span>
+            </span>
+          ) : (
+            'none yet'
+          )}
+        </KvRow>
+        <KvRow label="pending changes" value={String(pending.length)} />
+        {pending.length > 0 && (
+          <div class="mt-1">
+            <div class="text-2xs uppercase tracking-widest text-dim">queued</div>
+            <ul class="mt-1 space-y-0.5">
+              {pending
+                .slice(-5)
+                .reverse()
+                .map((p) => (
+                  <li class="text-2xs text-dim">
+                    <span class="text-faint">{stamp(p.at)}</span> · {p.label ?? p.kind ?? '—'}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
+
+        {rebuilds.length > 0 && (
+          <div class="mt-3">
+            <div class="text-2xs uppercase tracking-widest text-dim">recent rebuilds</div>
+            <Table head={['at', 'status', 'changes']} class="mt-1">
+              {lastRebuilds.map((r) => (
+                <tr>
+                  <td class="td">{stamp(r.at)}</td>
+                  <td class="td">
+                    <Badge variant={r.ok ? 'up' : 'down'}>{r.ok ? 'ok' : 'fail'}</Badge>
+                  </td>
+                  <td class="td">{(r.applied ?? []).join(', ') || '—'}</td>
+                </tr>
+              ))}
+            </Table>
+          </div>
+        )}
+      </Card>
+      </div>
+
+      <!-- system -->
+      <div id="system" class="scroll-mt-28">
+      <Card icon="💻" label="system">
+        <KvRow label="container">
+          <Badge variant={dockerUp ? 'up' : 'down'}>{dockerUp ? 'up' : 'down'}</Badge>
+          <span class="ml-1 text-dim">{sys.container?.status ?? '—'}</span>
+        </KvRow>
+        <KvRow
+          label="disk"
+          value={sys.disk ? `${sys.disk.used} / ${sys.disk.total} (${sys.disk.pct})` : '—'}
+        />
+        <KvRow
+          label="memory"
+          value={sys.memory ? `${sys.memory.used} / ${sys.memory.total}` : '—'}
+        />
+        <KvRow label="uptime" value={sys.uptime ?? '—'} />
+        <KvRow
+          label="node processes"
+          value={sys.nodeProcesses != null ? String(sys.nodeProcesses) : '—'}
+        />
+      </Card>
+      </div>
+
+      <!-- git -->
+      <div id="git" class="scroll-mt-28">
+      <Card icon="🌿" label="git">
+        <KvRow label="branch" value={git.branch ?? '—'} />
+        <KvRow label="last commit" value={git.lastCommit ?? '—'} />
+        <KvRow label="sync">
+          {hasUpstream ? (
+            <span>
+              {Number(git.ahead) > 0 || Number(git.behind) > 0 ? (
+                <Badge variant={Number(git.behind) > 0 ? 'down' : 'warn'}>
+                  {Number(git.behind) > 0 ? 'behind' : 'ahead'}
+                </Badge>
+              ) : (
+                <Badge variant="up">synced</Badge>
+              )}
+              <span class="ml-1">
+                {git.ahead} ahead · {git.behind} behind
+              </span>
+            </span>
+          ) : (
+            '— (no upstream)'
+          )}
+        </KvRow>
+      </Card>
+      </div>
+
+      <!-- live -->
+      <div id="live" class="scroll-mt-28">
+      <Card icon="🟢" label="live">
+        <KvRow label="trader">
+          <Badge variant={live.live ? 'up' : 'muted'}>{live.live ? '● live' : '○ offline'}</Badge>
+        </KvRow>
+        <KvRow label="last heartbeat" value={stamp(live.at)} />
+      </Card>
+      </div>
+    </div>
+  </section>
+  <script>
+    (function() {
+      const el = document.querySelector('[data-next-fetch]')
+      if (!el) return
+      const node = el
+      const target = new Date(el.getAttribute('data-next-fetch')!).getTime()
+      function fmt(sec: number): string {
+        sec = Math.max(0, Math.round(sec))
+        const h = Math.floor(sec / 3600)
+        const m = Math.floor((sec % 3600) / 60)
+        const s = Math.floor(sec % 60)
+        return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')
+      }
+      function tick() {
+        const left = (target - Date.now()) / 1000
+        node.textContent = left > 0 ? fmt(left) : 'fetching...'
+      }
+      tick()
+      setInterval(tick, 1000)
+    })()
+  </script>
+</Base>

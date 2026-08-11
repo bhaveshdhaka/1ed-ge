@@ -1,0 +1,23 @@
+---
+/**
+ * SectionNav.astro — sticky section jump bar for long pages.
+ * Usage: <SectionNav sections={[['label', 'id'], ...]} />
+ * Target sections need id="..." and class="scroll-mt-28".
+ */
+interface Props {
+  sections: [string, string][]
+  class?: string
+}
+
+const { sections, class: cls = '' } = Astro.props
+---
+
+<div class:list={['sticky top-0 z-10 mt-6 -mx-1 border-b border-line bg-bg/95 px-1 py-1 backdrop-blur', cls]}>
+  <div class="flex gap-1 overflow-x-auto text-xs" tabindex="0">
+    {sections.map(([label, id]) => (
+      <a href={`#${id}`} class="flex h-8 items-center whitespace-nowrap px-2 text-dim transition-colors hover:text-ink">
+        {label}
+      </a>
+    ))}
+  </div>
+</div>

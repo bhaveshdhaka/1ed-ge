@@ -1,3 +1,4 @@
+import path from 'node:path'
 import type { APIRoute } from 'astro'
 import { requireSession, json, error } from '../../../lib/auth'
 import { env } from '../../../lib/env'
@@ -22,7 +23,7 @@ export const GET: APIRoute = async ({ request }) => {
   let build = null
   try {
     const fs = await import('node:fs')
-    build = JSON.parse(fs.readFileSync('/tmp/1edge-build.json', 'utf8'))
+    build = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'build.json'), 'utf8'))
   } catch {}
 
   const tradesToday = Array.isArray(todayDay?.trades) ? (todayDay!.trades as unknown[]).length : 0

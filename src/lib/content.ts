@@ -18,6 +18,7 @@ export type Kind =
   | 'rules'
   | 'quotes'
   | 'reviews'
+  | 'intentions'
 
 const DIRS: Record<Kind, string> = {
   days: 'days',
@@ -31,6 +32,7 @@ const DIRS: Record<Kind, string> = {
   rules: 'rules',
   quotes: 'quotes',
   reviews: 'reviews',
+  intentions: 'intentions',
 }
 
 export const dirOf = (kind: Kind) => path.join(CONTENT, DIRS[kind])

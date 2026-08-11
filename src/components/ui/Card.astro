@@ -28,6 +28,7 @@ interface Props {
   pad?: 'none' | 'sm' | 'md'
   stat?: { value: string; delta?: string; tone?: 'up' | 'down' | 'default' }
   class?: string
+  id?: string
 }
 
 const {
@@ -36,6 +37,10 @@ const {
   pad = 'md',
   stat,
   class: cls = '',
+<<<<<<< HEAD
+=======
+  id,
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
 } = Astro.props
 
 const pads: Record<string, string> = { none: '', sm: 'p-2', md: 'p-4' }
@@ -52,13 +57,21 @@ const toneCls = stat ? ({ up: 'text-up', down: 'text-down', default: 'text-ink' 
 ---
 
 {hasStat ? (
+<<<<<<< HEAD
   <div class={`${variantCls[variant]} ${pads[pad]} ${cls}`}>
+=======
+  <div id={id} class={`${variantCls[variant]} ${pads[pad]} ${cls}`}>
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
     <div class="text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">{label}</div>
     <div class={`mt-1 text-lg font-semibold tabular-nums ${toneCls}`}>{stat!.value}</div>
     {stat!.delta !== undefined && <div class="mt-0.5 text-2xs text-faint">{stat!.delta}</div>}
   </div>
 ) : (
+<<<<<<< HEAD
   <section class={`${variantCls[variant]} ${hasHeader ? '' : pads[pad]} ${cls}`}>
+=======
+  <section id={id} class={`${variantCls[variant]} ${hasHeader ? '' : pads[pad]} ${cls}`}>
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
     {hasHeader && (
       <div class="card-hd">
         {icon && <span class="card-ico">{icon}</span>}

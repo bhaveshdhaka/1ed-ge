@@ -20,3 +20,6 @@ test-results/
 
 # brainstorm scratch (visual companion mockups)
 .superpowers/
+
+# auto-generated per-deploy changelog (scripts/post-deploy.mjs)
+changelog/

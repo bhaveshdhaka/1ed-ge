@@ -1,3 +1,4 @@
+import path from 'node:path'
 import type { APIRoute } from 'astro'
 import fs from 'node:fs'
 import { spawn } from 'node:child_process'
@@ -7,7 +8,7 @@ import { getPending, clearPending, getRebuilds, pushRebuild, acquireBuildLock, r
 
 export const prerender = false
 
-const STATUS_FILE = '/tmp/1edge-build.json'
+const STATUS_FILE = path.join(process.cwd(), 'data', 'build.json')
 // A build that started more than this long ago but still claims `running` is
 // stuck (crashed build, container restart mid-build) — clear it and proceed.
 const STALE_MS = 10 * 60 * 1000

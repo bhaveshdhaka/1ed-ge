@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro'
 import Card from '../components/ui/Card.astro'
+import StatCard from '../components/ui/StatCard.astro'
 import { getCollection } from 'astro:content'
 import { buildStats, fmtPnl, fmtPts } from '../lib/stats'
 import { buildHabitStats } from '../lib/habits'
@@ -10,6 +11,7 @@ import EquityCurve from '../components/EquityCurve.astro'
 import RHistogram from '../components/RHistogram.astro'
 import Heatmap from '../components/Heatmap.astro'
 import CorrTable from '../components/CorrTable.astro'
+import SectionNav from '../components/ui/SectionNav.astro'
 
 const [accounts, days, payouts, habits] = await Promise.all([
   getCollection('accounts'),
@@ -49,31 +51,20 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       <span class="text-xs text-faint">R = points risked vs points made</span>
     </div>
 
-    <div class="sticky top-0 z-10 mt-6 -mx-1 border-b border-line bg-bg/95 px-1 py-1 backdrop-blur">
-      <div class="flex gap-1 overflow-x-auto text-xs" tabindex="0">
-        {[
-          ['summary', 'stats'],
-          ['charts', 'charts'],
-          ['accounts', 'accounts'],
-          ['recent trades', 'recent'],
-          ['habits', 'habits'],
-          ['trends', 'trends'],
-        ].map(([label, id]) => (
-          <a href={`#${id}`} class="flex h-8 items-center whitespace-nowrap px-2 text-dim transition-colors hover:text-ink">
-            {label}
-          </a>
-        ))}
-      </div>
-    </div>
+    <SectionNav sections={[
+      ['summary', 'stats'],
+      ['charts', 'charts'],
+      ['accounts', 'accounts'],
+      ['recent trades', 'recent'],
+      ['habits', 'habits'],
+      ['trends', 'trends'],
+    ]} />
 
     <div id="stats" class="mt-8 scroll-mt-28">
       <Card icon="📊" label="R performance" subtitle={`${s.totalTrades || 0} trades`}>
         <div class="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-6">
           {cards.map((c) => (
-            <div class="well p-4">
-              <div class="text-4xs uppercase tracking-widest text-dim">{c.label}</div>
-              <div class:list={['mt-1.5 text-lg font-semibold', c.dim ? 'text-dim' : c.up === undefined ? 'text-ink' : c.up ? 'text-up' : 'text-down']}>{c.value}</div>
-            </div>
+            <StatCard label={c.label} value={c.value} tone={c.up === true ? 'up' : c.up === false ? 'down' : 'default'} />
           ))}
         </div>
       </Card>

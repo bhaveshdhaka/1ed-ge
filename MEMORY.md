@@ -30,7 +30,45 @@ verify live → curl-verify the changed bits. Kill test servers when finished.
 | `92af7bc` | Removed "red/orange" words from news empty state, `hideDate` prop on `NewsEventsCard` to fix double date on homepage |
 | `b3e73b8` | Consistency pass: CME Globex → CME everywhere, uppercase dates (`fmtDayWUpper`), calendar hero card, `NewsEventsCard` reusable component, MARKET removed from footer |
 
+<<<<<<< HEAD
 ### Design system — current state
+=======
+## Session log (recent)
+
+- 2026-08-08 — **Passkey auth for zen — LIVE on prod + test.** The secret URL is gone; zen is
+  at the stable **`/zen`** (WebAuthn passkey, Face ID / Touch ID / iCloud Keychain), the old
+  `/zen/<secret>` and `/admin/<secret>` routes 404. Setup/recovery page: **`/zen/setup?key=<ADMIN_SECRET>`**
+  (one-time first registration + recovery). The admin API rides a 30-day sliding httpOnly
+  session cookie instead of the `x-admin-secret` header; the old header is deleted everywhere.
+  `@simplewebauthn/server@13.3.2` + a gitignored `data/` dir (passkeys.json + sessions.json,
+  docker volume `./data:/app/data`). Owner tested on test.1ed.ge first, approved, synced to
+  prod via `ship.sh preprod-to-main`. **The zen PWA needs re-install** (Add to Home Screen
+  again — the manifest moved to `/zen/`). Pipeline bug fixed on the way: `sync-to-prod.sh`
+  must run from the **prod** worktree (main) — its mechanism commits to the current branch,
+  and the allowlist now covers package.json/package-lock.json/docker-compose.yml (test
+  vhost `nginx/test.1ed.ge.conf` is explicitly preprod-only and never syncs).
+
+### THE BUG BACKLOG (QA 2026-08-08 — awaiting owner sign-off; fix on PRE-PROD first, owner
+approves on test, then sync to prod)
+> **STATUS 2026-08-08 (late): ALL 6 + ~20 more fixed on preprod (`af1eff4`), verified live on
+> test.1ed.ge (155/155 tests). Future periods now 307-redirect to today's period; journal
+> "Day N" counters removed. Owner reviews on test → then sync preprod→main + deploy.
+1. **Day-page order** → day facts → trades → news events → reflection → moments → habits
+   (currently facts → moments → trades → habits → screen-time → reflection → coach). Open call:
+   coach + screen-time placement (the owner's spec ends at habits).
+2. **"day {N} of {total}"** on `/day` (`src/pages/day/[date].astro:72`) — the day-count framing;
+   drop the "of {total}".
+3. **"USD news" → "News events"** (`DayArchive.astro:178` + the home-widget "USD news · all
+   today" + calendar copy).
+4. **Live market footer on past days** — the global MarketLive "opens in/closes in"/next-event
+   countdown renders on past-day pages as if live; suppress on non-today pages (the day's news
+   card timeslot collapse already works: "+N more at HH:MM").
+5. **/journal month "· N"** — unlabeled post counts; label ("· N posts") or drop.
+6. **Homepage nudge wall** — the filler's missing reflections render "404 days' pending · ~100
+   week entries"; cap/aggregate the pending line.
+Open calls: coach/screen-time on the day page; whether "News events" naming extends to the
+widget/calendar; the nudge cap format.
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
 
 **3-layer token architecture** in `src/styles/app.css`:
 - **Layer 1 (Palette):** `--hue-*` tokens. Accent = `#0af` (electric blue).

@@ -222,4 +222,19 @@ const quotes = defineCollection({
   }),
 })
 
-export const collections = { accounts, days, payouts, coach, journal, habits, models, brief, 'market-news': marketNews, rules, quotes, reviews }
+const intentions = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/intentions' }),
+  schema: z.object({
+    date: z.string(),
+    time: z.string().optional(),
+  }),
+})
+
+const meditationQuotes = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/meditation-quotes' }),
+  schema: z.object({
+    author: z.string().optional(),
+  }),
+})
+
+export const collections = { accounts, days, payouts, coach, journal, habits, models, brief, 'market-news': marketNews, rules, quotes, reviews, intentions, meditationQuotes }
