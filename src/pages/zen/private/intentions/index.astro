@@ -1,11 +1,12 @@
 ---
 /**
  * Chamber of Intentions — write, validate, save.
- * SSR page with client-side 5Ps validation. Dark terminal aesthetic.
+ * SSR page with client-side 5 Ps validation. Dark terminal aesthetic.
  */
 import Bare from '../../../../layouts/Bare.astro'
 import PrivateNav from '../../../../components/private/PrivateNav.astro'
 import IntentionOverlay from '../../../../components/private/IntentionOverlay.astro'
+import Icon from '../../../../components/ui/Icon.astro'
 import { listMds, readEntry } from '../../../../lib/content'
 import { sessionOk } from '../../../../lib/auth'
 
@@ -39,7 +40,7 @@ try {
       <div class="text-2xs uppercase tracking-widest text-accent">step two</div>
       <h1 class="mt-2 text-2xl font-semibold text-ink">Chamber of Intentions</h1>
       <p class="mt-2 text-sm text-dim">
-        The 5 Ps: Personal · Positive · Powerful · Past · Private.
+        The 5 Ps: Personal · Positive · Powerful · Present · Private.
       </p>
     </div>
 
@@ -62,7 +63,7 @@ try {
         </div>
         <div>
           <div class="text-sm font-semibold text-ink">Personal</div>
-          <div class="text-xs text-dim">Begin with "I am" or "I have".</div>
+          <div class="text-xs text-dim">Begin with "I" — a declaration of self.</div>
         </div>
       </div>
 
@@ -88,13 +89,13 @@ try {
         </div>
       </div>
 
-      <!-- P4 Past/Present -->
+      <!-- P4 Present -->
       <div class="flex items-start gap-3 rounded-lg border border-line bg-raise/50 p-3" data-p="4">
         <div class="mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 border-line flex items-center justify-center transition-colors" data-p-indicator="4">
           <div class="h-2.5 w-2.5 rounded-full bg-accent opacity-0 transition-opacity" data-p-fill="4"></div>
         </div>
         <div>
-          <div class="text-sm font-semibold text-ink">Past / Present</div>
+          <div class="text-sm font-semibold text-ink">Present</div>
           <div class="text-xs text-dim">Written as if it has already come to pass.</div>
         </div>
       </div>
@@ -102,7 +103,7 @@ try {
       <!-- P5 Private (locked) -->
       <div class="flex items-start gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3" data-p="5">
         <div class="mt-0.5 h-5 w-5 shrink-0 flex items-center justify-center text-accent">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <Icon name="lock" size={16} />
         </div>
         <div>
           <div class="text-sm font-semibold text-ink">Private</div>
@@ -118,7 +119,7 @@ try {
         class="flex w-full items-center justify-center gap-2 rounded-full bg-line px-6 py-3.5 text-sm font-medium text-dim transition-colors cursor-not-allowed min-h-[48px]"
         disabled
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <Icon name="lock" size={16} />
         <span class="uppercase tracking-widest text-2xs">Save with Serenity</span>
       </button>
 
@@ -126,7 +127,7 @@ try {
         id="read-intentions-btn"
         class="flex w-full items-center justify-center gap-2 rounded-full border border-line bg-transparent px-6 py-3.5 text-sm font-medium text-ink transition-colors hover:border-accent/50 min-h-[48px]"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <Icon name="book-open" size={16} />
         <span class="uppercase tracking-widest text-2xs">Read My Intentions</span>
       </button>
     </div>
@@ -137,24 +138,27 @@ try {
 </Bare>
 
 <script>
-  // ── 5 Ps Auto-Validation (hybrid: stemming + fuzzy + contractions) ────────
+  // ── 5 Ps Auto-Validation (stemming + fuzzy + contractions) ──────────────────
   const textarea = document.getElementById('intention-text') as HTMLTextAreaElement
   const saveBtn = document.getElementById('save-intention-btn') as HTMLButtonElement
   const fills: Record<number, HTMLElement> = {}
   const indicators: Record<number, HTMLElement> = {}
-  for (let i = 1; i <= 5; i++) {
-    fills[i] = document.querySelector<HTMLElement>(`[data-p-fill="${i}"]`)!
-    indicators[i] = document.querySelector<HTMLElement>(`[data-p-indicator="${i}"]`)!
+  for (let i = 1; i <= 4; i++) {
+    const fill = document.querySelector<HTMLElement>(`[data-p-fill="${i}"]`)
+    const indicator = document.querySelector<HTMLElement>(`[data-p-indicator="${i}"]`)
+    if (fill) fills[i] = fill
+    if (indicator) indicators[i] = indicator
   }
 
-  // Stemmer: strip common suffixes
+  // ── Stemmer (conservative — only strip listed suffixes from words ≥5 chars) ─
+  const STEM_SUFFIX = /(?:tion|ment|ness|ful|less|able|ous|ive|ize|ly|ing|ed)$/
   function stem(word: string): string {
-    return word.toLowerCase()
-      .replace(/(?:ation|ments?|ment|ness|ity|ence|ance|ious|eous|ful|less|able|ible|ally|ically|ing|ed|er|est|ly|ous|ive|ize|ise|s|es)$/, '')
-      || word.toLowerCase()
+    const w = word.toLowerCase()
+    if (w.length < 5) return w // never stem words ≤4 chars
+    return w.replace(STEM_SUFFIX, '') || w
   }
 
-  // Levenshtein distance
+  // ── Levenshtein distance ──────────────────────────────────────────────────
   function lev(a: string, b: string): number {
     if (a === b) return 0
     if (!a.length) return b.length
@@ -171,75 +175,133 @@ try {
     return matrix[b.length][a.length]
   }
 
-  // Root word sets
-  const P1_ROOTS = new Set(['i','am','have','live','get','create','attract','manifest','choose','welcome','embrace','carry','hold','embody','exist','breathe','feel','know','see'])
-  const P2_NEGATIONS = new Set(['not','never','no','hardly','barely','scarcely'])
-  const P3_POWER = new Set(['master','lord','universe','desire','trust','abundant','powerful','magnificent','extraordinary','create','manifest','attract','prosper','thrive','flourish','radiate','limitless','boundless','supreme','divine','blessed','grateful','joyful','peaceful','serene','confident','unstoppable','luminous','vibrant','awe','inspire','grace','harmoni','courage','strength','wisdom','clarity','focus','determin','resilient','fearless'])
+  // ── Word sets — targets pre-stemmed so input stems match exactly ───────────
+  // P1: verbs showing personal agency (am/be/is are NOT agency verbs)
+  const P1_VERBS = new Set([
+    'have', 'live', 'get', 'create', 'attract', 'manifest', 'choose', 'welcome',
+    'embrace', 'carry', 'hold', 'embody', 'exist', 'breathe', 'feel', 'know', 'see',
+    'walk', 'run', 'speak', 'write', 'build', 'grow', 'rise', 'shine', 'stand', 'believe',
+    'receive', 'give', 'share', 'move', 'act', 'decide', 'commit', 'dedicate', 'devote',
+  ].map(stem))
 
-  // Contraction expansion
-  const CONTRACTIONS: Record<string, string> = {
-    "i'm": "i am", "ive": "i have", "i've": "i have", "i'll": "i will",
-    "don't": "do not", "can't": "can not", "won't": "will not",
-    "isn't": "is not", "aren't": "are not", "wasn't": "was not", "weren't": "were not",
-    "i'd": "i would", "im": "i am",
-  }
+  // P2: negation words — checked EXACT on raw tokens (no stemming, no fuzzy)
+  const NEGATIONS = new Set([
+    'not', 'never', 'no', 'hardly', 'barely', 'scarcely', 'nobody', 'nothing', 'nowhere',
+    'neither', 'nor', 'cannot', 'cant', 'dont', 'wont',
+  ])
 
-  function expandContractions(text: string): string {
-    let result = text.toLowerCase()
-    for (const [contraction, expansion] of Object.entries(CONTRACTIONS)) {
-      result = result.replace(new RegExp(`\\b${contraction}\\b`, 'gi'), expansion)
-    }
-    return result
-  }
+  // P3: power/awe words — must be PRESENT in the text
+  const P3_POWER = new Set([
+    'master', 'universe', 'desire', 'abundant', 'powerful', 'magnificent',
+    'extraordinary', 'thrive', 'flourish', 'radiate', 'limitless', 'boundless',
+    'supreme', 'divine', 'blessed', 'grateful', 'joyful', 'peaceful', 'serene',
+    'confident', 'unstoppable', 'luminous', 'vibrant', 'inspire', 'grace', 'courage',
+    'strength', 'wisdom', 'clarity', 'resilient', 'fearless', 'glorious', 'triumphant',
+    'sovereign', 'majestic', 'transcend', 'illuminate', 'phenomenal', 'invincible',
+  ].map(stem))
+
+  // P4: present-tense self-declaration verbs
+  const P4_DECLARATIONS = new Set([
+    'am', 'have', 'live', 'exist', 'breathe', 'feel', 'know', 'see',
+    'walk', 'stand', 'rise', 'shine', 'carry', 'hold', 'embody', 'believe',
+    'receive', 'create', 'attract', 'manifest', 'choose', 'embrace',
+  ].map(stem))
+
+  // Stop words — "substantive" = anything beyond these
+  const STOP_WORDS = new Set([
+    'i', 'am', 'a', 'the', 'my', 'me', 'is', 'be', 'and', 'or', 'but',
+    'in', 'on', 'at', 'to', 'for', 'of', 'with', 'it',
+  ])
+
+  // ── Contraction expansion ─────────────────────────────────────────────────
+  // Apostrophe-optional only where the typo cannot collide with a real word
+  // ("ill" = sick, "id" = Freud — those keep the apostrophe requirement).
+  const EXPANSIONS: [RegExp, string][] = [
+    [/\bi['\u2019]?m\b/g, 'i am'],
+    [/\bi['\u2019]?ve\b/g, 'i have'],
+    [/\bi['\u2019]ll\b/g, 'i will'],
+    [/\bi['\u2019]d\b/g, 'i would'],
+    [/\bdon['\u2019]?t\b/g, 'do not'],
+    [/\bcan['\u2019]?t\b/g, 'can not'],
+    [/\bwon['\u2019]?t\b/g, 'will not'],
+    [/\bis['\u2019]?nt\b/g, 'is not'],
+    [/\baren['\u2019]?t\b/g, 'are not'],
+    [/\bwas['\u2019]?nt\b/g, 'was not'],
+    [/\bweren['\u2019]?t\b/g, 'were not'],
+    [/\bshould['\u2019]?nt\b/g, 'should not'],
+    [/\bwould['\u2019]?nt\b/g, 'would not'],
+    [/\bcould['\u2019]?nt\b/g, 'could not'],
+    [/\bdid['\u2019]?nt\b/g, 'did not'],
+    [/\bdoes['\u2019]?nt\b/g, 'does not'],
+    [/\bhave['\u2019]?nt\b/g, 'have not'],
+    [/\bhas['\u2019]?nt\b/g, 'has not'],
+    [/\bhad['\u2019]?nt\b/g, 'had not'],
+  ]
 
   function tokenize(text: string): string[] {
-    const expanded = expandContractions(text)
-    return expanded.replace(/[^a-z\s]/g, '').split(/\s+/).filter(w => w.length > 0)
+    let s = text.toLowerCase()
+    for (const [re, rep] of EXPANSIONS) s = s.replace(re, rep)
+    return s.replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(w => w.length > 0)
   }
 
-  function fuzzyMatch(word: string, targets: Set<string>, maxDist = 2): boolean {
-    const stemmed = stem(word)
-    if (targets.has(stemmed)) return true
+  // ── Fuzzy match — adaptive distance by word length ────────────────────────
+  // ≤4 chars: exact match only (no fuzzy). 5-6 chars: distance ≤1. 7+: ≤2.
+  // Words ≤3 chars are never fuzzy-matched (exact matching still allowed).
+  function fuzzyMatch(word: string, targets: Set<string>): boolean {
+    const w = stem(word)
+    if (targets.has(w)) return true
+    if (w.length <= 4) return false
+    const maxDist = w.length <= 6 ? 1 : 2
     for (const target of targets) {
-      if (lev(stemmed, target) <= maxDist) return true
+      if (lev(w, target) <= maxDist) return true
     }
     return false
   }
 
+  // ── Validation checks ─────────────────────────────────────────────────────
+  function substantiveTokens(tokens: string[]): string[] {
+    return tokens.filter(t => !STOP_WORDS.has(t))
+  }
+
   function checkP1(tokens: string[]): boolean {
-    if (tokens.length < 2) return false
-    // Must start with "i" (or "i am/i have" after expansion)
+    // Must start with "I" + ≥2 substantive words + an agency verb
     if (tokens[0] !== 'i') return false
-    // Must contain at least one P1 root word (stemmed or fuzzy)
-    return tokens.some(t => fuzzyMatch(t, P1_ROOTS, 2))
+    const substantive = substantiveTokens(tokens)
+    if (substantive.length < 2) return false
+    return substantive.some(t => fuzzyMatch(t, P1_VERBS))
   }
 
   function checkP2(tokens: string[]): boolean {
-    // No negation words found (stemmed, word-boundary safe)
-    return !tokens.some(t => {
-      const stemmed = stem(t)
-      return P2_NEGATIONS.has(stemmed) || fuzzyMatch(t, P2_NEGATIONS, 1)
-    })
+    // Must actually declare something, and contain no negation words
+    if (substantiveTokens(tokens).length < 1) return false
+    return !tokens.some(t => NEGATIONS.has(t))
   }
 
   function checkP3(tokens: string[]): boolean {
-    // Contains at least one power word (stemmed or fuzzy)
-    return tokens.some(t => fuzzyMatch(t, P3_POWER, 2))
+    // Must contain at least one power word
+    return tokens.some(t => fuzzyMatch(t, P3_POWER))
   }
 
   function checkP4(tokens: string[]): boolean {
-    // Contains am/have/live/exist (present tense markers)
-    const presentMarkers = new Set(['am','have','live','exist','breathe','feel','know','see'])
-    return tokens.some(t => {
-      const stemmed = stem(t)
-      return presentMarkers.has(stemmed) || fuzzyMatch(t, presentMarkers, 1)
-    })
+    // Must declare something, and contain a self-declaration verb
+    if (substantiveTokens(tokens).length < 1) return false
+    return tokens.some(t => fuzzyMatch(t, P4_DECLARATIONS))
+  }
+
+  // ── Button rendering ──────────────────────────────────────────────────────
+  const BTN_CLASS = 'flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-medium min-h-[48px] transition-colors'
+  const BTN_ENABLED = `${BTN_CLASS} bg-accent text-bg cursor-pointer`
+  const BTN_DISABLED = `${BTN_CLASS} bg-line text-dim cursor-not-allowed`
+
+  function renderSaveButton(enabled: boolean) {
+    saveBtn.disabled = !enabled
+    saveBtn.className = enabled ? BTN_ENABLED : BTN_DISABLED
   }
 
   function validate() {
     const text = textarea.value.trim()
     const tokens = tokenize(text)
-    const results = {
+    const results: Record<number, boolean> = {
       1: text.length > 0 && checkP1(tokens),
       2: text.length > 0 && checkP2(tokens),
       3: text.length > 0 && checkP3(tokens),
@@ -247,24 +309,22 @@ try {
       5: true, // always satisfied
     }
 
-    // Update indicators
-    for (let i = 1; i <= 5; i++) {
-      const satisfied = results[i as keyof typeof results]
-      fills[i].style.opacity = satisfied ? '1' : '0'
-      indicators[i].style.borderColor = satisfied ? 'var(--color-accent)' : 'var(--color-line)'
+    // Update indicators (P5 is a static lock — nothing to light up)
+    for (let i = 1; i <= 4; i++) {
+      const ok = results[i]
+      if (fills[i]) fills[i].style.opacity = ok ? '1' : '0'
+      if (indicators[i]) indicators[i].style.borderColor = ok ? 'var(--color-accent)' : 'var(--color-line)'
     }
 
-    // Update save button
-    const allSatisfied = Object.values(results).every(Boolean) && text.length > 10
-    saveBtn.disabled = !allSatisfied
-    saveBtn.className = allSatisfied
-      ? 'flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-medium text-bg transition-colors cursor-pointer min-h-[48px]'
-      : 'flex w-full items-center justify-center gap-2 rounded-full bg-line px-6 py-3.5 text-sm font-medium text-dim transition-colors cursor-not-allowed min-h-[48px]'
+    // Enable only when all 5 Ps hold AND the intention has real length
+    const allSatisfied = Object.values(results).every(Boolean) && text.length > 20
+    renderSaveButton(allSatisfied)
   }
 
   textarea.addEventListener('input', validate)
+  validate()
 
-  // Save intention
+  // ── Save intention ────────────────────────────────────────────────────────
   saveBtn.addEventListener('click', async () => {
     const text = textarea.value.trim()
     if (!text || saveBtn.disabled) return
@@ -278,22 +338,26 @@ try {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       })
-      const data = await resp.json()
-      if (data.ok) {
+      const data = await resp.json().catch(() => null)
+      if (data && data.ok) {
         textarea.value = ''
         validate()
-        saveBtn.innerHTML = '<span class="uppercase tracking-widest text-2xs">✓ Saved</span>'
+        saveBtn.className = BTN_ENABLED
+        saveBtn.innerHTML = '<span class="uppercase tracking-widest text-2xs">\u2713 Saved</span>'
         setTimeout(() => {
-          saveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span class="uppercase tracking-widest text-2xs">Save with Serenity</span>`
+          saveBtn.textContent = 'Save with Serenity'
           validate()
         }, 2000)
       } else {
-        saveBtn.textContent = 'Error — try again'
-        setTimeout(() => { validate() }, 2000)
+        flashSaveError()
       }
     } catch {
-      saveBtn.textContent = 'Error — try again'
-      setTimeout(() => { validate() }, 2000)
+      flashSaveError()
     }
   })
+
+  function flashSaveError() {
+    saveBtn.textContent = 'Error — try again'
+    setTimeout(() => validate(), 2000)
+  }
 </script>
