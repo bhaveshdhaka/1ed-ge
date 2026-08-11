@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro'
 import Card from '../components/ui/Card.astro'
+import StatCard from '../components/ui/StatCard.astro'
 import { getCollection } from 'astro:content'
 import { buildStats, fmtPnl, fmtPts } from '../lib/stats'
 import { buildHabitStats } from '../lib/habits'
@@ -70,10 +71,7 @@ const accountLabel = new Map(accounts.map((a) => [a.data.id, `${a.data.firm} ${a
       <Card icon="📊" label="R performance" subtitle={`${s.totalTrades || 0} trades`}>
         <div class="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-6">
           {cards.map((c) => (
-            <div class="well p-4">
-              <div class="text-4xs uppercase tracking-widest text-dim">{c.label}</div>
-              <div class:list={['mt-1.5 text-lg font-semibold', c.dim ? 'text-dim' : c.up === undefined ? 'text-ink' : c.up ? 'text-up' : 'text-down']}>{c.value}</div>
-            </div>
+            <StatCard label={c.label} value={c.value} tone={c.up === true ? 'up' : c.up === false ? 'down' : 'default'} />
           ))}
         </div>
       </Card>

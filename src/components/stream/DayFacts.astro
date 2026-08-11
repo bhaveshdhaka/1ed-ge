@@ -4,6 +4,7 @@
  * Zero-JS. Value cells, tokenized; up/down color only for R.
  */
 import type { FactCell } from '../../lib/stream'
+import Card from '../ui/Card.astro'
 
 interface Props {
   cells: FactCell[]
@@ -23,11 +24,7 @@ const valueCls = (c: FactCell) => {
 }
 ---
 
-<div class={`panel ${cls}`}>
-  <div class="card-hd">
-    <span class="card-ico">📊</span>
-    <span class="card-lbl">day facts</span>
-  </div>
+<Card icon="📊" label="day facts" class={cls}>
   {cells.length > 0 && (
     <div class="flex flex-wrap gap-1 p-2">
       {cells.map((c) => (
@@ -40,4 +37,4 @@ const valueCls = (c: FactCell) => {
       ))}
     </div>
   )}
-</div>
+</Card>
