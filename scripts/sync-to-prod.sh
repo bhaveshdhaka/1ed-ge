@@ -46,11 +46,13 @@ fi
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
-ALLOWLIST_REGEX='^(src/[^c]|src/c[^o]|src/co[^n]|src/con[^t]|src/cont[^e]|src/conte[^n]|src/conten[^t]|src/content/($|.n(ext|ot-used))|tests/|\.gitignore|nginx/1ed\.ge\.conf|package\.json|package-lock\.json|docker-compose\.yml)'
+ALLOWLIST_REGEX='^(src/[^c]|src/c[^o]|src/co[^n]|src/con[^t]|src/cont[^e]|src/conte[^n]|src/conten[^t]|src/content/($|.n(ext|ot-used))|tests/|\.gitignore|nginx/1ed\.ge\.conf|package\.json|package-lock\.json|docker-compose\.yml|public/(ticker\.js|sw\.js|manifest\.webmanifest))'
 # ^ allows src/* EXCEPT src/content/*, plus tests/, .gitignore,
 # nginx/1ed.ge.conf (the PROD vhost only — test.1ed.ge.conf is preprod-only
 # and must NEVER sync to main), package.json, package-lock.json,
-# docker-compose.yml (dependency pins + volumes for the passkey feature).
+# docker-compose.yml (dependency pins + volumes for the passkey feature),
+# and the public code files (ticker.js, sw.js, manifest.webmanifest) — media/
+# stays out (uploads live there; per-file content guards apply).
 # The content/ exclusion is the guard. The src/content/( ... .n(ext|ot-used))
 # branch is a safety hatch for "I really do want to sync one specific content
 # file" — but in normal use, nothing under src/content/ should sync.
