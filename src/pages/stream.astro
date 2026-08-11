@@ -29,9 +29,9 @@ const feed = validType === 'all' ? all : all.filter((m) => m.type === validType)
 
 const live = readLiveState()
 
-// Calendar-day difference in HKT between the durable last-online stamp and now.
-const lastSeenDays = live.lastOnlineIso
-  ? Math.max(0, hktDayNumber(`${nowHkt()}:00+08:00`) - hktDayNumber(live.lastOnlineIso))
+// Calendar-day difference in HKT between the last heartbeat and now.
+const lastSeenDays = live.at
+  ? Math.max(0, hktDayNumber(`${nowHkt()}:00+08:00`) - hktDayNumber(live.at))
   : null
 
 const iso = cmeToday()

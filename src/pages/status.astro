@@ -51,7 +51,6 @@ interface Snapshot {
   live?: {
     live?: boolean
     at?: string | null
-    lastOnlineIso?: string | null
   }
 }
 
@@ -300,9 +299,6 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
           <Badge variant={live.live ? 'up' : 'muted'}>{live.live ? '● live' : '○ offline'}</Badge>
         </KvRow>
         <KvRow label="last heartbeat" value={stamp(live.at)} />
-        {live.lastOnlineIso && (
-          <KvRow label="last seen (durable)" value={stamp(live.lastOnlineIso)} />
-        )}
       </Card>
       </div>
     </div>

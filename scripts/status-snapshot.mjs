@@ -154,7 +154,8 @@ if (syncRaw) {
 }
 
 // ── live ────────────────────────────────────────────────────────────────────
-const liveFile = readJson('/tmp/1edge-live.json')
+const LIVE_FILE = path.join(ROOT, 'data', 'live.json')
+const liveFile = readJson(LIVE_FILE)
 const liveAt =
   liveFile && typeof liveFile === 'object' && typeof liveFile.at === 'string'
     ? liveFile.at
@@ -164,14 +165,6 @@ const liveNow =
   liveAt != null && !Number.isNaN(Date.parse(liveAt))
     ? Date.now() - Date.parse(liveAt) < LIVE_WINDOW_MS
     : false
-
-let lastOnlineIso = null
-try {
-  const raw = fs.readFileSync(path.join(ROOT, 'public/media/.last-online'), 'utf8').trim()
-  lastOnlineIso = raw || null
-} catch {
-  /* keep null */
-}
 
 const snapshot = {
   at: new Date().toISOString(),
@@ -194,7 +187,6 @@ const snapshot = {
   live: {
     live: liveNow,
     at: liveAt,
-    lastOnlineIso,
   },
 }
 
