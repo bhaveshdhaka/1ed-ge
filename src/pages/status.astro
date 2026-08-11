@@ -56,6 +56,14 @@ interface Snapshot {
     live?: boolean
     at?: string | null
   }
+  review?: {
+    at?: string | null
+    total?: number
+    pending?: number
+    approved?: number
+    rejected?: number
+    recentViolations?: Array<{ file: string; line: number; value: string; at: string }>
+  } | null
 }
 
 function readSnapshot(): Snapshot | null {
@@ -125,6 +133,11 @@ const unverified: string[] = Array.isArray(mkt.unverified) ? mkt.unverified : []
 const dockerUp = !!sys.container?.up
 const hasUpstream = git.ahead != null && git.behind != null
 
+let review: Snapshot['review'] = null
+try {
+  review = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'design-review.json'), 'utf8')) as Snapshot['review']
+} catch {}
+
 Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
 ---
 
@@ -149,6 +162,7 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
       ['system', 'system'],
       ['git', 'git'],
       ['live', 'live'],
+      ['design review', 'design-review'],
     ]} />
 
     {!snap && (
@@ -307,6 +321,26 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
         </KvRow>
         <KvRow label="last heartbeat" value={stamp(live.at)} />
       </Card>
+      </div>
+
+      <!-- design review -->
+      <div id="design-review" class="scroll-mt-28">
+        <Card icon="🎨" label="design review" subtitle={`${review?.pending ?? 0} pending violation${(review?.pending ?? 0) === 1 ? '' : 's'}`}>
+          <KvRow label="pending violations" value={String(review?.pending ?? 0)} />
+          <KvRow label="total tracked" value={String(review?.total ?? 0)} />
+          <KvRow label="approved" value={String(review?.approved ?? 0)} />
+          <KvRow label="last review" value={review?.at ? stamp(review.at) : 'never'} />
+          <KvRow label="next review" value="Monday 02:00 HKT" />
+
+          {(review?.recentViolations?.length ?? 0) > 0 && (
+            <div class="mt-3">
+              <div class="text-2xs uppercase tracking-widest text-dim">violations</div>
+              <Well class="mt-1 p-3">
+                <LogList items={(review?.recentViolations ?? []).map(v => `${v.file}:${v.line} — ${v.value}`)} show={4} />
+              </Well>
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   </section>
