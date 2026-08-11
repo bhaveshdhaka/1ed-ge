@@ -24,11 +24,6 @@ echo "→ installing prod nginx vhost"
 sudo cp nginx/1ed.ge.conf /etc/nginx/sites-enabled/1ed.ge
 sudo nginx -t && sudo systemctl reload nginx
 
-echo "→ installing git autocommit cron (every 30 min) — prod only"
-CRON_LINE="*/30 * * * * root cd ${ROOT} && git add -A && git commit -m \"chore(content): autosave \$(date +\%F-\%R)\" -q 2>/dev/null || true"
-printf '%s\n' "$CRON_LINE" | sudo tee /etc/cron.d/1edge-backup > /dev/null
-sudo chmod 644 /etc/cron.d/1edge-backup
-
 echo "→ installing market-news fetch cron (every 8h) — prod only"
 MARKET_CRON="0 */8 * * * root docker exec 1edge-site sh -c 'cd /app && node scripts/market-news-fetch.mjs' >> /tmp/1edge-market.log 2>&1 || true"
 printf '%s\n' "$MARKET_CRON" | sudo tee /etc/cron.d/1edge-market > /dev/null

@@ -15,6 +15,7 @@ import MarketWidget from '../components/MarketWidget.astro'
 import { getCollection } from 'astro:content'
 import { marketMarker } from '../lib/market'
 import NewsEventsCard from '../components/NewsEventsCard.astro'
+import Card from '../components/ui/Card.astro'
 
 export const prerender = false
 
@@ -110,45 +111,37 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
   </section>
 
   <section class="shell pb-6">
-    <div class="panel panel-hero">
-      <div class="card-hd">
-        <span class="card-ico">📅</span>
-        <span class="card-lbl">today</span>
-        <span class="card-sub">{fmtDayWUpper(iso)}</span>
+    <Card icon="📅" label="today" subtitle={fmtDayWUpper(iso)} variant="hero">
+      <Fragment slot="actions">
         <span class:list={['tmr', mk.status === 'open' ? 'text-up' : mk.status === 'early' ? 'text-warn' : 'text-down']}>
           {mk.glyph} {mk.text}{mk.status === 'open' ? ' · full day' : ''}
         </span>
         {latestIso && latestIso !== iso && (
-          <a href={`/day/${fmtDay(latestIso)}`} class="ml-auto text-2xs text-dim transition-colors hover:text-accent">
+          <a href={`/day/${fmtDay(latestIso)}`} class="text-2xs text-dim transition-colors hover:text-accent">
             last logged day {fmtDayWUpper(latestIso)} →
           </a>
         )}
+      </Fragment>
+      <NewsEventsCard red={red} orange={orange} dayIso={iso} isToday={true} hideDate={true} />
+      <div class="mt-3">
+        {dayHasContent ? (
+          <DayFacts cells={cells} />
+        ) : (
+          <EmptyState text="no day logged yet." />
+        )}
       </div>
-      <div class="p-3 md:p-4">
-        <NewsEventsCard red={red} orange={orange} dayIso={iso} isToday={true} hideDate={true} />
-        <div class="mt-3">
-          {dayHasContent ? (
-            <DayFacts cells={cells} />
-          ) : (
-            <EmptyState text="no day logged yet." />
-          )}
-        </div>
-      </div>
-    </div>
+    </Card>
   </section>
 
   <section class="shell pb-20">
-    <div class="panel">
-      <div class="card-hd">
-        <span class="card-ico">📡</span>
-        <span class="card-lbl">stream</span>
-        <span class:list={['ml-auto flex items-center gap-2 text-xs', live.live ? 'text-up' : 'text-faint']}>
+    <Card icon="📡" label="stream">
+      <Fragment slot="actions">
+        <span class:list={['flex items-center gap-2 text-xs', live.live ? 'text-up' : 'text-faint']}>
           <span class:list={['inline-block h-1.5 w-1.5 rounded-full', live.live ? 'bg-up' : 'bg-line2']}></span>
           {moniker}
         </span>
         <a href="/stream" class="text-2xs text-dim transition-colors hover:text-accent">all streams →</a>
-      </div>
-      <div class="p-3 md:p-4">
+      </Fragment>
         {thoughts.length > 0 ? (
           <div class="flex max-w-2xl flex-col gap-3">
             {thoughts.map((t) => <ThoughtCard thought={t} />)}
@@ -166,7 +159,6 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
             )}
           </div>
         )}
-      </div>
-    </div>
+    </Card>
   </section>
 </Base>
