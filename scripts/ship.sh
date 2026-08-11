@@ -39,7 +39,11 @@ case "$cmd" in
     # sync-to-prod.sh must run from the PROD worktree (main checked out) —
     # its mechanism (git checkout FETCH_HEAD -- files && git commit) commits
     # to the current branch. So cd to the prod worktree first.
+    # load_env above read the PREPROD .env and exported SITE_ENV=test; clear
+    # it so the prod scripts reload the prod .env (env.sh skips loading when
+    # SITE_ENV is already set).
     echo "═══ shipping preprod → main ═══"
+    unset SITE_ENV SITE_URL SITE_PORT SITE_NOINDEX
     cd /root/1ed.ge
     bash scripts/sync-to-prod.sh -y
     echo
