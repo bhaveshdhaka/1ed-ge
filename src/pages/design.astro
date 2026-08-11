@@ -5,10 +5,16 @@ import Badge from '../components/ui/Badge.astro'
 import Tag from '../components/ui/Tag.astro'
 import EmptyState from '../components/ui/EmptyState.astro'
 import Separator from '../components/ui/Separator.astro'
+import Icon from '../components/ui/Icon.astro'
 import StatCard from '../components/ui/StatCard.astro'
 import Table from '../components/ui/Table.astro'
+import KvRow from '../components/ui/KvRow.astro'
+import SegControl from '../components/ui/SegControl.astro'
+import Capsule from '../components/ui/Capsule.astro'
+import Well from '../components/ui/Well.astro'
+import Button from '../components/ui/Button.astro'
 
-const DESIGN_VERSION = 'v0.1'
+const DESIGN_VERSION = 'v0.2'
 
 const palette = [
   { token: '--hue-bg', value: '#07080c', purpose: 'base page background' },
@@ -81,11 +87,7 @@ const typographyRules = [
 const roadmap = [
   { item: 'SheetFrame keyframes → app.css', priority: 'low', detail: 'The shared SheetFrame.tsx injects @keyframes via inline <style>. Move to app.css for dedup.' },
   { item: 'MarketFooter/Widget DOM-update dedup', priority: 'low', detail: 'Both components duplicate the same countdown-update logic. Extract shared updater.' },
-  { item: 'Panel stagger fragility', priority: 'low', detail: 'nth-of-type delays break with non-panel siblings. Consider CSS custom properties.' },
-  { item: 'PeriodReview seg/seg-on', priority: 'low', detail: 'Period switcher uses plain buttons instead of .seg/.seg-on.' },
-  { item: '404 page hex colors', priority: 'low', detail: 'Inline 404 in [periodType]/[...anchor].astro has hardcoded hex colors.' },
   { item: 'Chart SVG font-size tokens', priority: 'low', detail: 'Chart axes use inline font-size="9". Could use text-4xs token.' },
-  { item: 'Prose heading scale', priority: 'medium', detail: 'Prose h1/h2/h3 use raw rem values (1.35/1.15/1.02rem). Could align to type scale.' },
   { item: 'Dark/light theme support', priority: 'future', detail: 'data-theme="summit" is inert. Could wire up for theme swapping.' },
   { item: 'Component storybook', priority: 'future', detail: 'Interactive preview of all components with props. Would replace this static page.' },
 ]
@@ -278,16 +280,29 @@ const roadmap = [
 
         <Separator class="my-4" />
 
-        <div class="mb-3 text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Card Header Anatomy</div>
-        <div class="well p-3">
-          <pre class="text-xs text-soft leading-relaxed"><code>{`┌─────────────────────────────────────────────┐
-│ 📈  TRADES                    3 · +50.75R   │  ← card-hd
-│ ico  lbl                    sub      actions │
-├─────────────────────────────────────────────┤
-│                                             │
-│  (body content — p-3 md:p-4)                │  ← slot
-│                                             │
-└─────────────────────────────────────────────┘`}</code></pre>
+        <div class="mb-3 text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Rendered Examples</div>
+        <div class="grid gap-4 md:grid-cols-2">
+          <Card icon="📈" label="default" subtitle="glass panel">
+            <p class="text-xs text-dim">The standard card with backdrop blur and entrance animation.</p>
+            <p class="mt-2 text-2xs text-faint">Used everywhere — stream, journal, about, this page.</p>
+          </Card>
+          <Card icon="⚡" label="hero" subtitle="accent glow" variant="hero">
+            <p class="text-xs text-dim">Featured card with accent border and gradient background.</p>
+            <p class="mt-2 text-2xs text-faint">Used for today's card on the homepage, calendar current day.</p>
+          </Card>
+          <Card icon="📊" label="static" subtitle="no animation" variant="static">
+            <StatCard label="SAMPLE STAT" value="+2.50R" tone="up" />
+            <p class="mt-2 text-2xs text-faint">Same glass panel, no entrance animation. For stat grids.</p>
+          </Card>
+          <Card icon="📋" label="flat" subtitle="nested" variant="flat">
+            <p class="text-xs text-dim">Background + border only. No blur, no shadow, no animation.</p>
+            <p class="mt-2 text-2xs text-faint">For nested cards, tables, inline details.</p>
+          </Card>
+        </div>
+        <div class="mt-4">
+          <Card label="stat mode" stat={{ value: '+3.20', delta: 'vs last week +0.75', tone: 'up' }}>
+            <p class="text-2xs text-faint">Stat display mode — no card-hd header. Compact number display.</p>
+          </Card>
         </div>
       </Card>
     </div>
@@ -329,77 +344,148 @@ const roadmap = [
 
     <!-- UI Primitives -->
     <div class="mt-10">
-      <Card icon="🧩" label="UI primitives" subtitle="8 components">
+      <Card icon="🧩" label="UI primitives" subtitle="14 primitives + CSS tokens">
         <p class="mb-4 text-sm text-soft">
-          The <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">src/components/ui/</code> directory contains exactly 8 components. Every other component builds on these.
+          The <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">src/components/ui/</code> directory contains 14 components. Every other component builds on these. Below, each primitive is rendered live — what you see is exactly what you get.
         </p>
 
-        <div class="grid gap-4 md:grid-cols-2">
-          <!-- Card -->
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">Card.astro</div>
-            <p class="mt-1 text-xs text-dim">The one panel primitive. 4 variants, stat mode, card-hd header system.</p>
-            <code class="mt-2 block text-2xs text-faint">&lt;Card icon="📈" label="trades" subtitle="3"&gt;...&lt;/Card&gt;</code>
-          </div>
+        <div class="flex flex-col gap-6">
 
           <!-- StatCard -->
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">StatCard.astro</div>
-            <p class="mt-1 text-xs text-dim">Thin wrapper around Card with stat variant. Used in grids.</p>
-            <code class="mt-2 block text-2xs text-faint">&lt;StatCard label="R" value="+2.50" tone="up" /&gt;</code>
-          </div>
-
-          <!-- Table -->
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">Table.astro</div>
-            <p class="mt-1 text-xs text-dim">Data table inside a flat Card. Responsive overflow.</p>
-            <code class="mt-2 block text-2xs text-faint">&lt;Table head={['day', 'R', 'points']}&gt;...&lt;/Table&gt;</code>
-          </div>
+          <Card icon="📊" label="StatCard" variant="flat">
+            <div class="flex gap-4">
+              <StatCard label="WIN RATE" value="55%" tone="up" />
+              <StatCard label="TOTAL R" value="-1.20" tone="down" />
+              <StatCard label="TRADES" value="147" />
+            </div>
+          </Card>
 
           <!-- Badge -->
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">Badge.astro</div>
-            <p class="mt-1 text-xs text-dim">Status chip. 7 color variants mapped to tokens.</p>
-            <div class="mt-2 flex gap-2">
+          <Card icon="🏷" label="Badge" variant="flat">
+            <div class="flex flex-wrap gap-2">
               <Badge variant="up">funded</Badge>
               <Badge variant="down">failed</Badge>
               <Badge variant="warn">eval</Badge>
               <Badge variant="accent">live</Badge>
               <Badge variant="muted">paused</Badge>
+              <Badge variant="default">buffer</Badge>
+              <Badge variant="outline">payout</Badge>
             </div>
-          </div>
+          </Card>
 
           <!-- Tag -->
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">Tag.astro</div>
-            <p class="mt-1 text-xs text-dim">Neutral metadata label. No color states.</p>
-            <div class="mt-2 flex gap-2">
+          <Card icon="🏷" label="Tag" variant="flat">
+            <div class="flex flex-wrap gap-2">
               <Tag>MNQ</Tag>
               <Tag>ORB</Tag>
-              <Tag>#kaizen</Tag>
+              <Tag href="#">#kaizen</Tag>
             </div>
-          </div>
+            <p class="mt-2 text-2xs text-faint">Set <code class="text-accent">href</code> to render as a navigation link.</p>
+          </Card>
+
+          <!-- Table -->
+          <Card icon="📋" label="Table" variant="flat">
+            <Table head={['day', 'R', 'points']}>
+              <Fragment slot="body">
+                <tr><td class="td">mon 11-aug</td><td class="td text-up">+2.50</td><td class="td">+25.0</td></tr>
+                <tr><td class="td">fri 08-aug</td><td class="td text-down">-1.00</td><td class="td">-10.0</td></tr>
+                <tr><td class="td">thu 07-aug</td><td class="td text-up">+3.20</td><td class="td">+32.0</td></tr>
+              </Fragment>
+            </Table>
+          </Card>
 
           <!-- EmptyState -->
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">EmptyState.astro</div>
-            <p class="mt-1 text-xs text-dim">Consistent "nothing here" block. Dashed border.</p>
-            <div class="mt-2"><EmptyState text="no trades yet." /></div>
-          </div>
+          <Card icon="📭" label="EmptyState" variant="flat">
+            <EmptyState text="nothing here yet." />
+          </Card>
 
           <!-- Icon -->
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">Icon.astro</div>
-            <p class="mt-1 text-xs text-dim">Zero-JS inline SVG (Lucide, MIT). 40 icons. For UI action buttons only — card headers use emoji.</p>
-            <code class="mt-2 block text-2xs text-faint">&lt;Icon name="search" size={14} /&gt;</code>
-          </div>
+          <Card icon="🎯" label="Icon" variant="flat">
+            <div class="flex gap-3 text-faint">
+              <Icon name="search" size={14} />
+              <Icon name="chevron-right" size={14} />
+              <Icon name="x" size={14} />
+              <Icon name="plus" size={14} />
+              <Icon name="calendar" size={14} />
+              <Icon name="clock" size={14} />
+            </div>
+            <p class="mt-2 text-2xs text-faint">40 Lucide SVGs. Zero JS. Card headers use emoji, not Icon.</p>
+          </Card>
 
           <!-- Separator -->
-          <div class="well p-3">
-            <div class="text-xs font-semibold text-ink">Separator.astro</div>
-            <p class="mt-1 text-xs text-dim">Hairline divider. Border-top only.</p>
-            <div class="mt-2"><Separator /></div>
-          </div>
+          <Card icon="➖" label="Separator" variant="flat">
+            <p class="mb-3 text-xs text-dim">Before:</p>
+            <Separator />
+            <p class="mt-3 text-xs text-dim">After.</p>
+          </Card>
+
+          <!-- KvRow -->
+          <Card icon="📋" label="KvRow" subtitle="new in v0.2" variant="flat">
+            <KvRow label="win rate" value="55%" />
+            <KvRow label="total trades" value="147" />
+            <KvRow label="best setup" value="ORB" />
+          </Card>
+
+          <!-- SegControl -->
+          <Card icon="🎛" label="SegControl" subtitle="new in v0.2" variant="flat">
+            <SegControl segments={[
+              { label: 'ALL', href: '#', count: 42, active: true },
+              { label: 'TRADES', href: '#', count: 28, active: false },
+              { label: 'NOTES', href: '#', count: 10, active: false },
+              { label: 'QUOTES', href: '#', count: 4, active: false },
+            ]} />
+          </Card>
+
+          <!-- Capsule -->
+          <Card icon="💊" label="Capsule" subtitle="new in v0.2" variant="flat">
+            <div class="flex flex-wrap gap-2">
+              <Capsule>● live</Capsule>
+              <Capsule>08:30 trade</Capsule>
+              <Capsule>+2.50R</Capsule>
+            </div>
+          </Card>
+
+          <!-- Well -->
+          <Card icon="⬛" label="Well" subtitle="new in v0.2" variant="flat">
+            <Well class="p-3">
+              <span class="text-xs text-dim">inset recessed surface — content goes here</span>
+            </Well>
+          </Card>
+
+          <!-- Button -->
+          <Card icon="🔘" label="Button" subtitle="new in v0.2" variant="flat">
+            <div class="flex flex-wrap items-center gap-2">
+              <Button>default</Button>
+              <Button variant="primary">primary</Button>
+              <Button variant="danger">danger</Button>
+              <Button size="sm">small</Button>
+              <Button disabled>disabled</Button>
+              <Button href="#">link</Button>
+            </div>
+          </Card>
+
+          <!-- Rail tokens -->
+          <Card icon="🎨" label="Rail Tokens" subtitle="CSS only — new in v0.2" variant="flat">
+            <div class="grid gap-3 md:grid-cols-4">
+              <Well class="rail-up p-3">
+                <span class="text-2xs text-up">.rail-up</span>
+                <p class="mt-1 text-3xs text-faint">long trades</p>
+              </Well>
+              <Well class="rail-down p-3">
+                <span class="text-2xs text-down">.rail-down</span>
+                <p class="mt-1 text-3xs text-faint">short trades</p>
+              </Well>
+              <Well class="rail-accent p-3">
+                <span class="text-2xs text-accent">.rail-accent</span>
+                <p class="mt-1 text-3xs text-faint">quotes</p>
+              </Well>
+              <Well class="rail-quiet p-3">
+                <span class="text-2xs text-dim">.rail-quiet</span>
+                <p class="mt-1 text-3xs text-faint">notes</p>
+              </Well>
+            </div>
+          </Card>
+
         </div>
       </Card>
     </div>
@@ -545,6 +631,10 @@ const roadmap = [
             <p class="mt-1 text-xs text-dim">Journal prose. 13px, 1.8 line-height, soft color.</p>
           </div>
           <div class="well p-3">
+            <code class="text-xs text-accent">.rail-up</code> / <code class="text-xs text-accent">.rail-down</code> / <code class="text-xs text-accent">.rail-accent</code> / <code class="text-xs text-accent">.rail-quiet</code>
+            <p class="mt-1 text-xs text-dim">Left-rail identity bars. 2px solid border-left. Used on ThoughtCard.</p>
+          </div>
+          <div class="well p-3">
             <code class="text-xs text-accent">.lb*</code>
             <p class="mt-1 text-xs text-dim">Lightbox system. .lb, .lb-sheet, .lb-handle, .lb-header, .lb-body, .lb-nav.</p>
           </div>
@@ -584,7 +674,7 @@ const roadmap = [
 
     <!-- Backlog / Roadmap -->
     <div class="mt-6">
-      <Card icon="🗺" label="backlog" subtitle="future improvements">
+      <Card icon="🗺" label="backlog" subtitle="remaining improvements">
         <div class="overflow-x-auto">
           <table class="w-full border-collapse">
             <thead>
@@ -614,6 +704,20 @@ const roadmap = [
     <div class="mt-6">
       <Card icon="📋" label="changelog" subtitle="design system versions">
         <div>
+          <div class="mb-4">
+            <div class="mb-2 flex items-baseline gap-2">
+              <span class="text-sm font-semibold text-ink">v0.2</span>
+              <span class="text-2xs text-faint">2026-08-11</span>
+            </div>
+            <ul class="flex flex-col gap-1">
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>6 new primitives — KvRow, SegControl, Capsule, Well, Button, Rail tokens</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>Tag extended with href support for navigation links</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>8 public page violations fixed — all surfaces now use Card and other primitives</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>/design page — live rendered primitive examples replace ASCII art and text descriptions</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>SKILL.md updated — ghost components removed, new primitives added, gate rule enforced</span></li>
+              <li class="flex items-start gap-2 text-xs text-soft"><span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-up"></span><span>14 total primitives (8 original + 6 new) — strict system applied uniformly</span></li>
+            </ul>
+          </div>
           <div class="mb-2 flex items-baseline gap-2">
             <span class="text-sm font-semibold text-ink">v0.1</span>
             <span class="text-2xs text-faint">2026-08-10</span>
