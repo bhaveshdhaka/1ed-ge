@@ -12,14 +12,8 @@ import Badge from '../components/ui/Badge.astro'
 import StatCard from '../components/ui/StatCard.astro'
 import Well from '../components/ui/Well.astro'
 import EmptyState from '../components/ui/EmptyState.astro'
-import Separator from '../components/ui/Separator.astro'
 import SectionNav from '../components/ui/SectionNav.astro'
 import BarChart from '../components/ui/BarChart.astro'
-import Button from '../components/ui/Button.astro'
-import Tag from '../components/ui/Tag.astro'
-import DayFacts from '../components/stream/DayFacts.astro'
-import ThoughtCard from '../components/stream/ThoughtCard.astro'
-import type { FactCell, ResolvedThought } from '../lib/stream'
 import { fmtDayWUpper } from '../lib/dates'
 import SideNav from '../components/ui/SideNav.astro'
 import { CONTENT, MEDIA, DATA_DIR, ROOT } from '../lib/paths'
@@ -79,6 +73,29 @@ let changelogEntry: string | null = null
 try {
   changelogEntry = fs.readFileSync(path.join(ROOT, 'changelog', `${today}.md`), 'utf8')
 } catch {}
+
+// ── release history (git-cliff → changelog/YYYY-MM-DD.md) ───────────────────
+// git-cliff generates a per-day changelog on deploy (changelog/<date>.md),
+// each carrying a `<!-- last:<sha> -->` marker. Release history = newest-first
+// list of those generated logs, showing the commit range each covers.
+interface Release { date: string; sha: string | null; size: number }
+const releases: Release[] = (() => {
+  try {
+    return fs
+      .readdirSync(path.join(ROOT, 'changelog'))
+      .filter((f) => /^\d{4}-\d{2}-\d{2}\.md$/.test(f))
+      .sort()
+      .reverse()
+      .map((f) => {
+        const content = fs.readFileSync(path.join(ROOT, 'changelog', f), 'utf8')
+        const sha = content.match(/^<!-- last:([a-f0-9]+)\s-->[\s\S]*?$/) ||
+                    content.match(/<!-- last:([a-f0-9]+) -->/)
+        return { date: f.slice(0, 10), sha: sha?.[1] ?? null, size: content.split('\n').length }
+      })
+  } catch {
+    return []
+  }
+})()
 
 // ── stack / tools / principles (curated, from /dev) ─────────────────────────
 const stack = [
@@ -148,115 +165,8 @@ const principles = [
   { rule: 'The rules are dead simple', detail: 'Trade every day. Never risk more than you can afford. Focus on the move, not the number. Stay small, nimble, consistent. Have fun. Surpass the S&P.' },
 ]
 
-// ── design tokens — auto-generated from src/styles/app.css ───────────────────
-const css = fs.readFileSync(path.join(ROOT, 'src/styles/app.css'), 'utf8')
-const hueTokens = [...css.matchAll(/--hue-([\w-]+):\s*([^;]+);/g)].map(m => ({
-  token: `--hue-${m[1]}`, value: m[2].trim()
-}))
-const colorTokens = [...css.matchAll(/--color-([\w-]+):\s*([^;]+);/g)].map(m => ({
-  token: `--color-${m[1]}`, value: m[2].trim()
-}))
-const textTokens = [...css.matchAll(/--text-([\w-]+):\s*([^;]+);/g)].map(m => ({
-  token: `--text-${m[1]}`, value: m[2].trim()
-}))
-const materialTokens = [...css.matchAll(/--(radius[\w-]*|shadow[\w-]*|blur[\w-]*|motion[\w-]*|ease[\w-]*):\s*([^;]+);/g)].map(m => ({
-  token: `--${m[1]}`, value: m[2].trim()
-}))
-
-// ── UI primitives — auto-generated from src/components/ui/*.astro ───────────
-// Extracts the leading doc comment AND zero-or-more JSDoc @example blocks.
-// The @example source is shown as code; live previews render via the map below.
-const uiDir = path.join(ROOT, 'src/components/ui')
-const primitiveFiles = fs.readdirSync(uiDir).filter(f => f.endsWith('.astro'))
-const primitives = primitiveFiles.map(f => {
-  const name = f.replace('.astro', '')
-  const content = fs.readFileSync(path.join(uiDir, f), 'utf8')
-  const descMatch = content.match(/\/\*\*\s*(?:\n\s*\*\s*)?(.+?)(?:\s*\*\/|\n)/)
-  // JSDoc @example blocks: `* @example\n * <Component .../>` (one or more)
-  const examples = [...content.matchAll(/@example\n\s*\*\s*([\s\S]*?)(?=\n\s*\*\s*(?:@\w+|\*\/))/g)]
-    .map(m => m[1].trim().replace(/^\s*\*\s?/gm, ''))
-    .filter(Boolean)
-  return { name, description: descMatch?.[1]?.trim() ?? name, examples }
-})
-
-// Curated live previews — map of primitive name → { label }. The actual
-// preview markup renders in the template via per-primitive conditionals
-// (Astro frontmatter is TS, so JSX render fns don't belong there). Keep the
-// set of "live" primitives here in sync with the template branches below.
-const liveCards: Record<string, { label: string }> = {
-  Badge: { label: 'status chips' },
-  Button: { label: 'button + link' },
-  Card: { label: 'panel + header' },
-  Well: { label: 'inset surface' },
-  StatCard: { label: 'stat display' },
-  KvRow: { label: 'key/value row' },
-  Separator: { label: 'divider' },
-  Table: { label: 'table' },
-  Tag: { label: 'tag' },
-  EmptyState: { label: 'empty state' },
-}
-
-const cardVariants = [
-  { variant: 'default', class: 'panel', description: 'Glass panel with backdrop blur. The standard card.' },
-  { variant: 'hero', class: 'panel panel-hero', description: 'Accent border, gradient bg, glow top-line. Featured cards.' },
-  { variant: 'static', class: 'panel-static', description: 'Same as default but no entrance animation. Stat grids.' },
-  { variant: 'flat', class: 'panel-flat', description: 'Background + border only. Nested cards, tables.' },
-]
-
-const typographyRules = [
-  { element: 'Card header label', token: 'text-2xs', weight: '700', case: 'UPPERCASE', tracking: '0.6px', color: 'soft' },
-  { element: 'Card subtitle', token: 'text-3xs', weight: '500', case: '—', tracking: '—', color: 'faint' },
-  { element: 'Card icon', token: '14px', weight: '—', case: '—', tracking: '—', color: '—' },
-  { element: 'Timer pill', token: 'text-3xs', weight: '600', case: '—', tracking: '0.2px', color: 'accent' },
-  { element: 'Stat label', token: 'text-4xs', weight: '700', case: 'UPPERCASE', tracking: '0.6px', color: 'faint' },
-  { element: 'Stat value', token: 'text-lg', weight: '600', case: '—', tracking: '—', color: 'ink' },
-  { element: 'Fact cell label', token: 'text-4xs', weight: '700', case: 'UPPERCASE', tracking: '0.6px', color: 'faint' },
-  { element: 'Fact cell value', token: 'text-sm', weight: '600', case: '—', tracking: '—', color: 'ink' },
-  { element: 'Table header', token: 'text-2xs', weight: '400', case: 'UPPERCASE', tracking: '0.14em', color: 'dim' },
-  { element: 'Table cell', token: 'text-xs', weight: '400', case: '—', tracking: '—', color: 'inherit' },
-  { element: 'Thought body', token: 'text-sm', weight: '400', case: '—', tracking: '—', color: 'soft' },
-  { element: 'Button', token: 'text-sm', weight: '—', case: '—', tracking: '—', color: 'soft' },
-  { element: 'Segment', token: 'text-2xs', weight: '600', case: '—', tracking: '—', color: 'dim' },
-  { element: 'Capsule', token: 'text-3xs', weight: '600', case: '—', tracking: '—', color: 'dim' },
-  { element: 'Page h1', token: 'text-2xl', weight: '600', case: '—', tracking: '—', color: 'ink' },
-  { element: 'Section h2', token: 'text-lg', weight: '600', case: '—', tracking: '—', color: 'ink' },
-]
-
-const roadmap = [
-  { item: 'SheetFrame keyframes → app.css', priority: 'low', detail: 'The shared SheetFrame.tsx injects @keyframes via inline <style>. Move to app.css for dedup.' },
-  { item: 'MarketFooter/Widget DOM-update dedup', priority: 'low', detail: 'Both components duplicate the same countdown-update logic. Extract shared updater.' },
-  { item: 'Chart SVG font-size tokens', priority: 'low', detail: 'Chart axes use inline font-size="9". Could use text-4xs token.' },
-  { item: 'Dark/light theme support', priority: 'future', detail: 'data-theme="summit" is inert. Could wire up for theme swapping.' },
-  { item: 'Component storybook', priority: 'future', detail: 'Interactive preview of all components with props. Would replace this static page.' },
-]
-
-// ── composite fixtures (from /design) ────────────────────────────────────────
-const sampleFactCells: FactCell[] = [
-  { key: 'mood', label: 'MOOD', value: '😐 okay', ok: true, up: undefined },
-  { key: 'sleep', label: 'SLEEP', value: '6.5h · 3/5', ok: true, up: undefined },
-  { key: 'r', label: 'R', value: '+2.50R', ok: true, up: true },
-  { key: 'trades', label: 'TRADES', value: '4 · 75% win', ok: true, up: undefined },
-  { key: 'screen', label: 'SCREEN', value: '5.2h', ok: true, up: undefined },
-  { key: 'habits', label: 'HABITS', value: '5/6', ok: true, up: undefined },
-]
-
-const sampleThoughts: ResolvedThought[] = [
-  {
-    iso: '2026-08-11', at: '09:15', type: 'trade',
-    text: undefined, images: [], author: undefined,
-    trade: { R: 2.5, direction: 'long' as const, market: 'MNQ', model: 'orb-drive', setup: 'ORB', session: 'ny-am', points: 25, entry: 20800.5, exit: 20825.5, stop: 20790.5, note: 'Clean break above ORB, held to +2.5R.', screenshots: [] },
-  },
-  {
-    iso: '2026-08-11', at: '08:30', type: 'note',
-    text: 'Pre-market: CPI at 20:30 HKT. Flat 15 min before. No chasing.', images: [], author: undefined,
-    trade: null,
-  },
-  {
-    iso: '2026-08-11', at: '07:00', type: 'quote',
-    text: 'The goal is not to be right. The goal is to make money when right and lose less when wrong.', images: [], author: undefined,
-    trade: null,
-  },
-]
+// ── design tokens + primitives now live on /design ─────────────────────────
+// (moved to src/pages/design.astro on the design/restructure)
 
 // ── source code stats (from /dev) ────────────────────────────────────────────
 const countLines = (ext: string) => {
@@ -304,15 +214,15 @@ const osInfo = `${process.platform} ${process.arch}`
 // ── page navigation (SideNav groups) ─────────────────────────────────────────
 const navGroups = [
   { label: 'overview', items: [['build', 'build'], ['principles', 'principles'], ['stack', 'stack'], ['tools', 'tools']] as [string, string][] },
-  { label: 'design', items: [['architecture', 'architecture'], ['palette', 'palette'], ['type', 'type'], ['material', 'material'], ['cards', 'cards'], ['typography', 'typography'], ['primitives', 'primitives'], ['composites', 'composites'], ['CSS', 'classes'], ['backlog', 'backlog']] as [string, string][] },
+  { label: 'releases', items: [['release', 'release'], ['changelog', 'changelog-section']] as [string, string][] },
   { label: 'features', items: [['features', 'features-section']] as [string, string][] },
-  { label: 'changelog', items: [['today', 'changelog-section']] as [string, string][] },
   { label: 'tokenomics', items: [['summary', 'tokenomics-summary'], ['daily', 'tokenomics-daily'], ['models', 'tokenomics-models'], ['agents', 'tokenomics-agents'], ['sessions', 'tokenomics-sessions']] as [string, string][] },
   { label: 'meta', items: [['source', 'source'], ['content', 'content'], ['versions', 'versions']] as [string, string][] },
+  { label: 'design', items: [['design system', '/design']] as [string, string][] },
 ]
 ---
 
-<Base title="build — 1ed.ge" description="The build log: how this site was built, the design system, features, changelog, and what the builds cost. Everything public.">
+<Base title="build — 1ed.ge" description="The build log: code release history, AI compute costs, features, and what the builds cost. Everything public. Design system lives on /design.">
   <section class="shell pt-12 pb-20 md:mr-48">
     <div class="flex flex-wrap items-baseline gap-3">
       <h1 class="text-2xl text-ink">/ build</h1>
@@ -412,459 +322,40 @@ const navGroups = [
 
     </div>
 
-    <!-- ══ Design ══ -->
-    <div id="design-section" class="mt-10 scroll-mt-28">
-      <div class="mb-4 flex flex-wrap items-baseline gap-3">
-        <h2 class="text-lg font-semibold text-ink">design system</h2>
-        <span class="text-xs text-faint">{VERSION} · the card system</span>
-      </div>
-      <p class="mb-6 max-w-2xl text-sm text-dim">
-        Every surface on 1ed.ge uses the same design system. One Card component, one type scale, one token architecture. This documents every element, its rules, and how to use it.
-      </p>
-
-      <!-- Token Architecture -->
-      <div id="architecture" class="scroll-mt-28">
-        <Card icon="🎨" label="token architecture" subtitle="3-layer system">
-          <p class="mb-4 text-sm text-soft">
-            The design system uses a 3-layer token architecture. To re-theme, only Layer 1 changes. Layer 2 and Layer 3 are stable.
-          </p>
-          <div class="grid gap-4 md:grid-cols-3">
-            <div class="well p-3">
-              <div class="text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Layer 1 · Palette</div>
-              <p class="mt-1 text-xs text-dim">Raw hue values. Swap these to re-theme.</p>
-              <p class="mt-1 text-2xs text-faint">--hue-bg, --hue-ink, --hue-accent, --hue-up, --hue-down…</p>
-            </div>
-            <div class="well p-3">
-              <div class="text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Layer 2 · Semantic</div>
-              <p class="mt-1 text-xs text-dim">Component roles. Never change.</p>
-              <p class="mt-1 text-2xs text-faint">--color-bg, --color-ink, --color-accent, --color-up, --color-down…</p>
-            </div>
-            <div class="well p-3">
-              <div class="text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Layer 3 · Material</div>
-              <p class="mt-1 text-xs text-dim">Radii, shadows, blur, motion.</p>
-              <p class="mt-1 text-2xs text-faint">--radius, --shadow-card, --blur-card, --motion-fast…</p>
-            </div>
+    <!-- ══ Release History ══ -->
+    <div id="release" class="mt-10 scroll-mt-28">
+      <Card icon="🏷️" label="release history" subtitle={`${releases.length} generated changelogs · via build.json + git-cliff`}>
+        <p class="mb-4 text-sm text-soft">
+          Each deploy runs <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">post-deploy.mjs</code>
+          → <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">git-cliff</code> to write a
+          per-day changelog. The current build stamp (from <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">data/build.json</code>)
+          anchors the latest release.
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <KvRow label="current version" value={VERSION} />
+            <KvRow label="build commit" value={buildData?.commit ?? '—'} />
+            <KvRow label="latest release" value={releases[0]?.date ?? '—'} />
           </div>
-        </Card>
-      </div>
-
-      <!-- Palette -->
-      <div id="palette" class="mt-6 scroll-mt-28">
-        <Card icon="🎨" label="palette" subtitle={`Layer 1 · auto-generated · updated ${rel(buildAt)}`}>
-          <div class="overflow-x-auto">
-            <Table head={['token', 'value', 'purpose']} class="mt-1">
-              {hueTokens.map((t) => (
+          <div>
+            <KvRow label="releases tracked" value={String(releases.length)} />
+            <KvRow label="changelog entries" value={String(changelogEntry ? 1 : 0)} />
+          </div>
+        </div>
+        {releases.length > 0 && (
+          <div class="mt-4 overflow-x-auto">
+            <Table head={['date', 'commit', 'lines']} class="mt-1">
+              {releases.slice(0, 20).map((r) => (
                 <tr>
-                  <td class="td font-mono text-2xs text-accent">{t.token}</td>
-                  <td class="td">
-                    <span class="inline-flex items-center gap-2">
-                      <span class="inline-block h-3 w-3 rounded-sm border border-line" style={`background:${t.value}`}></span>
-                      <span class="font-mono text-2xs">{t.value}</span>
-                    </span>
-                  </td>
-                  <td class="td text-dim">—</td>
+                  <td class="td font-mono text-2xs text-accent">{r.date}</td>
+                  <td class="td font-mono text-2xs text-dim">{r.sha ?? '—'}</td>
+                  <td class="td text-dim">{r.size}</td>
                 </tr>
               ))}
             </Table>
           </div>
-        </Card>
-      </div>
-
-      <!-- Type Scale -->
-      <div id="type" class="mt-6 scroll-mt-28">
-        <Card icon="🔤" label="type scale" subtitle={`auto-generated · updated ${rel(buildAt)}`}>
-          <p class="mb-3 text-xs text-dim">Syne Variable is reserved for the wordmark only. Auto-generated from app.css.</p>
-          <div class="overflow-x-auto">
-            <Table head={['token', 'value', 'usage']} class="mt-1">
-              {textTokens.map((t) => (
-                <tr>
-                  <td class="td font-mono text-2xs text-accent">{t.token}</td>
-                  <td class="td font-mono text-2xs">{t.value}</td>
-                  <td class="td text-dim">—</td>
-                </tr>
-              ))}
-            </Table>
-          </div>
-        </Card>
-      </div>
-
-      <!-- Material Tokens -->
-      <div id="material" class="mt-6 scroll-mt-28">
-        <Card icon="⚙️" label="material tokens" subtitle={`Layer 3 · auto-generated · updated ${rel(buildAt)}`}>
-          <div class="overflow-x-auto">
-            <Table head={['token', 'value', 'usage']} class="mt-1">
-              {materialTokens.map((t) => (
-                <tr>
-                  <td class="td font-mono text-2xs text-accent">{t.token}</td>
-                  <td class="td font-mono text-2xs">{t.value}</td>
-                  <td class="td text-dim">—</td>
-                </tr>
-              ))}
-            </Table>
-          </div>
-        </Card>
-      </div>
-
-      <!-- Card System -->
-      <div id="cards" class="mt-10 scroll-mt-28">
-        <Card icon="🃏" label="card system" subtitle="the one panel primitive">
-          <p class="mb-4 text-sm text-soft">
-            Every surface on 1ed.ge uses the <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">Card</code> component. Never hand-build <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">.panel</code> + <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">.card-hd</code> markup. This is non-negotiable.
-          </p>
-
-          <div class="mb-4 text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Variants</div>
-          <div class="grid gap-3 md:grid-cols-2">
-            {cardVariants.map((v) => (
-              <div class="well p-3">
-                <div class="flex items-baseline gap-2">
-                  <span class="font-mono text-xs text-accent">{v.variant}</span>
-                  <span class="font-mono text-2xs text-faint">.{v.class}</span>
-                </div>
-                <p class="mt-1 text-xs text-dim">{v.description}</p>
-              </div>
-            ))}
-          </div>
-
-          <Separator class="my-4" />
-
-          <div class="mb-3 text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Props</div>
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th class="th">prop</th>
-                  <th class="th">type</th>
-                  <th class="th">default</th>
-                  <th class="th">description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td class="td font-mono text-2xs text-accent">icon</td><td class="td text-dim">string</td><td class="td text-dim">—</td><td class="td text-dim">Emoji for card-ico</td></tr>
-                <tr><td class="td font-mono text-2xs text-accent">label</td><td class="td text-dim">string</td><td class="td text-dim">—</td><td class="td text-dim">Text for card-lbl (UPPERCASE)</td></tr>
-                <tr><td class="td font-mono text-2xs text-accent">subtitle</td><td class="td text-dim">string</td><td class="td text-dim">—</td><td class="td text-dim">Text for card-sub</td></tr>
-                <tr><td class="td font-mono text-2xs text-accent">variant</td><td class="td text-dim">'default' | 'hero' | 'static' | 'flat'</td><td class="td text-dim">'default'</td><td class="td text-dim">Panel variant</td></tr>
-                <tr><td class="td font-mono text-2xs text-accent">pad</td><td class="td text-dim">'none' | 'sm' | 'md'</td><td class="td text-dim">'md'</td><td class="td text-dim">Body padding</td></tr>
-                <tr><td class="td font-mono text-2xs text-accent">stat</td><td class="td text-dim">{`{ value, delta?, tone? }`}</td><td class="td text-dim">—</td><td class="td text-dim">Stat display mode (no card-hd)</td></tr>
-                <tr><td class="td font-mono text-2xs text-accent">class</td><td class="td text-dim">string</td><td class="td text-dim">''</td><td class="td text-dim">Additional classes</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <Separator class="my-4" />
-
-          <div class="mb-3 text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Named Slots</div>
-          <div class="flex gap-4">
-            <div class="well p-3 flex-1">
-              <span class="font-mono text-xs text-accent">actions</span>
-              <p class="mt-1 text-xs text-dim">Rendered ml-auto in the card-hd row</p>
-            </div>
-            <div class="well p-3 flex-1">
-              <span class="font-mono text-xs text-accent">default</span>
-              <p class="mt-1 text-xs text-dim">Card body content</p>
-            </div>
-            <div class="well p-3 flex-1">
-              <span class="font-mono text-xs text-accent">subtitle</span>
-              <p class="mt-1 text-xs text-dim">Rich HTML subtitle (slot override)</p>
-            </div>
-          </div>
-
-          <Separator class="my-4" />
-
-          <div class="mb-3 text-4xs font-bold uppercase text-faint" style="letter-spacing:0.6px">Rendered Examples</div>
-          <div class="grid gap-4 md:grid-cols-2">
-            <Card icon="📈" label="default" subtitle="glass panel">
-              <p class="text-xs text-dim">The standard card with backdrop blur and entrance animation.</p>
-              <p class="mt-2 text-2xs text-faint">Used everywhere — stream, journal, about, this page.</p>
-            </Card>
-            <Card icon="⚡" label="hero" subtitle="accent glow" variant="hero">
-              <p class="text-xs text-dim">Featured card with accent border and gradient background.</p>
-              <p class="mt-2 text-2xs text-faint">Used for today's card on the homepage, calendar current day.</p>
-            </Card>
-            <Card icon="📊" label="static" subtitle="no animation" variant="static">
-              <StatCard label="SAMPLE STAT" value="+2.50R" tone="up" />
-              <p class="mt-2 text-2xs text-faint">Same glass panel, no entrance animation. For stat grids.</p>
-            </Card>
-            <Card icon="📋" label="flat" subtitle="nested" variant="flat">
-              <p class="text-xs text-dim">Background + border only. No blur, no shadow, no animation.</p>
-              <p class="mt-2 text-2xs text-faint">For nested cards, tables, inline details.</p>
-            </Card>
-          </div>
-          <div class="mt-4">
-            <Card label="stat mode" stat={{ value: '+3.20', delta: 'vs last week +0.75', tone: 'up' }}>
-              <p class="text-2xs text-faint">Stat display mode — no card-hd header. Compact number display.</p>
-            </Card>
-          </div>
-        </Card>
-      </div>
-
-      <!-- Typography Rules -->
-      <div id="typography" class="mt-6 scroll-mt-28">
-        <Card icon="📐" label="typography rules" subtitle="every element, one spec">
-          <p class="mb-4 text-sm text-soft">
-            Every text element in every card follows this spec. No exceptions.
-          </p>
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th class="th">element</th>
-                  <th class="th">token</th>
-                  <th class="th">weight</th>
-                  <th class="th">case</th>
-                  <th class="th">tracking</th>
-                  <th class="th">color</th>
-                </tr>
-              </thead>
-              <tbody>
-                {typographyRules.map((r) => (
-                  <tr>
-                    <td class="td text-ink">{r.element}</td>
-                    <td class="td font-mono text-2xs text-accent">{r.token}</td>
-                    <td class="td text-dim">{r.weight}</td>
-                    <td class="td text-dim">{r.case}</td>
-                    <td class="td text-dim">{r.tracking}</td>
-                    <td class="td text-dim">{r.color}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
-
-      <!-- UI Primitives -->
-      <div id="primitives" class="mt-10 scroll-mt-28">
-        <Card icon="🧩" label="UI primitives" subtitle={`${primitives.length} primitives · auto-generated · updated ${rel(buildAt)}`} variant="flat">
-          <p class="mb-3 text-xs text-dim">
-            Auto-generated from src/components/ui/*.astro on each deploy. Each
-            card shows the <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">@example</code>
-            snippet from the primitive's JSDoc, plus a <em>live rendered</em> preview.
-          </p>
-          <div class="grid gap-3 md:grid-cols-2">
-            {primitives.map((p) => {
-              const lc = liveCards[p.name]
-              return (
-              <Card variant="flat" pad="sm">
-                <div class="flex items-center justify-between gap-2">
-                  <div class="text-xs font-semibold text-ink">{p.name}</div>
-                  <span class="text-2xs text-faint">{lc ? '⚡ live' : '—'}</span>
-                </div>
-                <p class="mt-1 text-2xs text-dim">{p.description}</p>
-
-                {lc ? (
-                  <div class="mt-3 rounded-sm border border-line bg-raise/40 p-3">
-                    <div class="mb-2 text-3xs uppercase tracking-widest text-faint">{lc.label}</div>
-                    {p.name === 'Badge' && (
-                      <div class="flex flex-wrap gap-2">
-                        <Badge variant="up">+2.5R</Badge>
-                        <Badge variant="down">-1.0R</Badge>
-                        <Badge variant="warn">pending</Badge>
-                        <Badge variant="accent">feature</Badge>
-                        <Badge variant="muted">log only</Badge>
-                      </div>
-                    )}
-                    {p.name === 'Button' && (
-                      <div class="flex flex-wrap items-center gap-2">
-                        <Button variant="primary">Save</Button>
-                        <Button>Cancel</Button>
-                        <Button variant="danger">Delete</Button>
-                        <Button href="/about" size="sm">About</Button>
-                      </div>
-                    )}
-                    {p.name === 'Card' && (
-                      <div class="grid gap-3 md:grid-cols-2">
-                        <Card icon="📈" label="default" subtitle="glass panel">
-                          <p class="text-xs text-dim">The standard card.</p>
-                        </Card>
-                        <Card icon="⚡" label="hero" subtitle="accent glow" variant="hero">
-                          <p class="text-xs text-dim">Featured card.</p>
-                        </Card>
-                      </div>
-                    )}
-                    {p.name === 'Well' && (
-                      <Well class="p-3"><p class="text-xs text-dim">Recessed inset panel content.</p></Well>
-                    )}
-                    {p.name === 'StatCard' && (
-                      <div class="grid grid-cols-2 gap-2 md:grid-cols-4">
-                        <StatCard label="TOTAL R" value="+12.40" tone="up" />
-                        <StatCard label="SESSIONS" value="42" />
-                        <StatCard label="WIN RATE" value="58%" />
-                        <StatCard label="DRAWDOWN" value="-3.2" tone="down" />
-                      </div>
-                    )}
-                    {p.name === 'KvRow' && (
-                      <div class="flex flex-col gap-1">
-                        <KvRow label="account" value="lucid-50k-a" />
-                        <KvRow label="stage" value="funded" />
-                      </div>
-                    )}
-                    {p.name === 'Separator' && (
-                      <div class="flex flex-col gap-2">
-                        <span class="text-2xs text-faint">above</span>
-                        <Separator />
-                        <span class="text-2xs text-faint">below</span>
-                      </div>
-                    )}
-                    {p.name === 'Table' && (
-                      <Table head={['col', 'value']} class="mt-1">
-                        <tr><td class="td text-dim">a</td><td class="td">1</td></tr>
-                        <tr><td class="td text-dim">b</td><td class="td">2</td></tr>
-                      </Table>
-                    )}
-                    {p.name === 'Tag' && (
-                      <div class="flex flex-wrap gap-2">
-                        <Tag>orb</Tag>
-                        <Tag>ny-am</Tag>
-                      </div>
-                    )}
-                    {p.name === 'EmptyState' && <EmptyState text="no data yet" />}
-                  </div>
-                ) : (
-                  p.examples.length > 0 && (
-                    <div class="mt-3 rounded-sm border border-line bg-raise/40 p-3">
-                      <div class="mb-2 text-3xs uppercase tracking-widest text-faint">@example</div>
-                      <pre class="overflow-x-auto whitespace-pre-wrap font-mono text-2xs leading-relaxed text-soft">{p.examples[0]}</pre>
-                    </div>
-                  )
-                )}
-
-                {p.examples.length > 0 && (
-                  <details class="mt-2">
-                    <summary class="cursor-pointer text-2xs text-faint select-none hover:text-dim">
-                      @example source
-                    </summary>
-                    <pre class="mt-1 overflow-x-auto whitespace-pre-wrap rounded-sm border border-line bg-raise/40 p-2 font-mono text-2xs leading-relaxed text-soft">{p.examples.join('\n\n')}</pre>
-                  </details>
-                )}
-              </Card>
-              )
-            })}
-          </div>
-        </Card>
-      </div>
-
-      <!-- Composite Components -->
-      <div id="composites" class="mt-6 scroll-mt-28">
-        <Card icon="📦" label="composite components" subtitle="built on primitives · rendered live">
-          <p class="mb-4 text-sm text-soft">
-            These components are built entirely from the primitives above. Each is rendered live with real trading-shaped data — what you see is exactly what ships.
-          </p>
-
-          <div class="flex flex-col gap-6">
-            <!-- DayFacts -->
-            <Card icon="📊" label="DayFacts" subtitle="facts strip" variant="flat">
-              <p class="mb-3 text-xs text-dim">Mood/sleep/screen/habits/trades/R in a flex-wrap row of Well cells. Only R carries color.</p>
-              <DayFacts cells={sampleFactCells} />
-            </Card>
-
-            <!-- ThoughtCard — trade -->
-            <Card icon="📈" label="ThoughtCard · trade" subtitle="long trade +2.50R" variant="flat">
-              <p class="mb-3 text-xs text-dim">Published stream moment. Rail identity: trade = up/down matched to direction. Uses Card with pad="none".</p>
-              <ThoughtCard thought={sampleThoughts[0]} />
-            </Card>
-
-            <!-- ThoughtCard — note -->
-            <Card icon="💭" label="ThoughtCard · note" subtitle="pre-market note" variant="flat">
-              <p class="mb-3 text-xs text-dim">Note = quiet rail. No color, muted framing.</p>
-              <ThoughtCard thought={sampleThoughts[1]} />
-            </Card>
-
-            <!-- ThoughtCard — quote -->
-            <Card icon="💬" label="ThoughtCard · quote" subtitle="trading wisdom" variant="flat">
-              <p class="mb-3 text-xs text-dim">Quote = accent left rail. Distinct from notes and trades.</p>
-              <ThoughtCard thought={sampleThoughts[2]} />
-            </Card>
-          </div>
-        </Card>
-      </div>
-
-      <!-- CSS Classes Reference -->
-      <div id="classes" class="mt-6 scroll-mt-28">
-        <Card icon="📝" label="CSS classes" subtitle="the vocabulary">
-          <div class="grid gap-3 md:grid-cols-2">
-            <div class="well p-3">
-              <code class="text-xs text-accent">.shell</code>
-              <p class="mt-1 text-xs text-dim">Page wrapper. max-w-6xl, px-5 md:px-8.</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.panel</code> / <code class="text-xs text-accent">.panel-hero</code> / <code class="text-xs text-accent">.panel-static</code> / <code class="text-xs text-accent">.panel-flat</code>
-              <p class="mt-1 text-xs text-dim">Card variants. Use via Card component.</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.card-hd</code> / <code class="text-xs text-accent">.card-ico</code> / <code class="text-xs text-accent">.card-lbl</code> / <code class="text-xs text-accent">.card-sub</code> / <code class="text-xs text-accent">.tmr</code>
-              <p class="mt-1 text-xs text-dim">Card header system. Use via Card props.</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.well</code>
-              <p class="mt-1 text-xs text-dim">Inset recessed surface. background: var(--color-inset).</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.capsule</code>
-              <p class="mt-1 text-xs text-dim">Accent-tinted pill. Rounded-full, 10px, 600 weight.</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.seg</code> / <code class="text-xs text-accent">.seg-on</code>
-              <p class="mt-1 text-xs text-dim">Segmented control. Shell + active segment.</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.btn</code> / <code class="text-xs text-accent">.btn-primary</code> / <code class="text-xs text-accent">.btn-danger</code> / <code class="text-xs text-accent">.btn-sm</code>
-              <p class="mt-1 text-xs text-dim">Button system. Transitions at --motion-fast.</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.kv</code>
-              <p class="mt-1 text-xs text-dim">Key-value row. flex justify-between, border-b.</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.th</code> / <code class="text-xs text-accent">.td</code>
-              <p class="mt-1 text-xs text-dim">Table header (11px/UPPERCASE/dim) and cell (12px).</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.input</code> / <code class="text-xs text-accent">.label</code>
-              <p class="mt-1 text-xs text-dim">Form input (13px, radius-sm) and label (11px/UPPERCASE).</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.prose</code>
-              <p class="mt-1 text-xs text-dim">Journal prose. 13px, 1.8 line-height, soft color.</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.rail-up</code> / <code class="text-xs text-accent">.rail-down</code> / <code class="text-xs text-accent">.rail-accent</code> / <code class="text-xs text-accent">.rail-quiet</code>
-              <p class="mt-1 text-xs text-dim">Left-rail identity bars. 2px solid border-left. Used on ThoughtCard.</p>
-            </div>
-            <div class="well p-3">
-              <code class="text-xs text-accent">.lb*</code>
-              <p class="mt-1 text-xs text-dim">Lightbox system. .lb, .lb-sheet, .lb-handle, .lb-header, .lb-body, .lb-nav.</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      <!-- Backlog / Roadmap -->
-      <div id="backlog" class="mt-6 scroll-mt-28">
-        <Card icon="🗺" label="backlog" subtitle="remaining improvements">
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th class="th">item</th>
-                  <th class="th">priority</th>
-                  <th class="th">detail</th>
-                </tr>
-              </thead>
-              <tbody>
-                {roadmap.map((r) => (
-                  <tr>
-                    <td class="td text-ink">{r.item}</td>
-                    <td class="td">
-                      <Badge variant={r.priority === 'medium' ? 'warn' : r.priority === 'low' ? 'muted' : 'accent'}>{r.priority}</Badge>
-                    </td>
-                    <td class="td text-dim">{r.detail}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
+        )}
+      </Card>
     </div>
 
     <!-- ══ Features ══ -->
