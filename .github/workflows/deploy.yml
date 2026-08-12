@@ -34,7 +34,9 @@ jobs:
 
       - name: Sync code to /srv/1edge
         run: |
-          rsync -av --delete --exclude='data/' --exclude='.env*' --exclude='content/' --exclude='media/' ./ /srv/1edge/
+          # rsync isn't installed on the runner; use tar (universally available).
+          # Copy the fresh checkout into /srv/1edge, excluding runtime/env dirs.
+          tar -C . -cf - --exclude='./data' --exclude='./.env' --exclude='./.env.production' --exclude='./.env.test' --exclude='./content' --exclude='./media' --exclude='./node_modules' . | tar -C /srv/1edge -xf -
           cd /srv/1edge && docker compose -f /srv/1edge/docker-compose.yml up -d --build
 
       - name: Verify live
