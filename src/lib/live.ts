@@ -1,8 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { DATA_DIR } from './paths'
 
 // Heartbeat lives in data/ (bind-mounted, persists across container restarts).
-const DATA_DIR = path.join(process.cwd(), 'data')
 const LIVE_FILE = path.join(DATA_DIR, 'live.json')
 
 export interface LiveState {

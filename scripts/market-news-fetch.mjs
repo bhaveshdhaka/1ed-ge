@@ -16,7 +16,8 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.join(__dirname, '..')
-const OUT = path.join(ROOT, 'src/content', 'market-news')
+const CONTENT = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH) : path.join(ROOT, 'src/content')
+const OUT = path.join(CONTENT, 'market-news')
 
 const HKT_OFFSET = 8 * 3600 * 1000
 const DAY = 86400000

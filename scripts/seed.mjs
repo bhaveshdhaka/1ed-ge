@@ -13,7 +13,8 @@ if (process.env.SITE_ENV !== 'test') {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.join(__dirname, '..')
-const C = (rel) => path.join(ROOT, 'src/content', rel)
+const CONTENT = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH) : path.join(ROOT, 'src/content')
+const C = (rel) => path.join(CONTENT, rel)
 
 const today = () => new Date().toISOString().slice(0, 10)
 

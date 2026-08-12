@@ -280,13 +280,4 @@ try { writeBuildStamp() } catch (e) { console.error('  build stamp failed:', e.m
 try { fetchTokenomics() } catch (e) { console.error('  tokenomics failed:', e.message) }
 try { clearPending() } catch (e) { console.error('  clear pending failed:', e.message) }
 
-try {
-  const lintOut = sh('bash scripts/design-lint.sh')
-  if (lintOut) console.log(`  ${lintOut}`)
-} catch (e) { console.error('  design-lint failed:', e.message) }
-
-try {
-  const reviewOut = sh('node scripts/design-review.mjs')
-  if (reviewOut) console.log(`  ${reviewOut}`)
-} catch (e) { console.error('  design-review failed:', e.message) }
 console.log('post-deploy: done')

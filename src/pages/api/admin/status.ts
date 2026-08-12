@@ -3,6 +3,7 @@ import type { APIRoute } from 'astro'
 import { requireSession, json, error } from '../../../lib/auth'
 import { env } from '../../../lib/env'
 import { listMds, listMedia } from '../../../lib/content'
+import { DATA_DIR } from '../../../lib/paths'
 import { cmeToday } from '../../../lib/sessions'
 import { getPending, getRebuilds } from '../../../lib/changes'
 
@@ -23,7 +24,7 @@ export const GET: APIRoute = async ({ request }) => {
   let build = null
   try {
     const fs = await import('node:fs')
-    build = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'build.json'), 'utf8'))
+    build = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'build.json'), 'utf8'))
   } catch {}
 
   const tradesToday = Array.isArray(todayDay?.trades) ? (todayDay!.trades as unknown[]).length : 0

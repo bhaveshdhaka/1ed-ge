@@ -15,7 +15,8 @@ if (process.env.SITE_ENV !== 'test') {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
-const C = (rel) => path.join(ROOT, 'src/content', rel)
+const CONTENT = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH) : path.join(ROOT, 'src/content')
+const C = (rel) => path.join(CONTENT, rel)
 const out = (rel) => {
   const p = C(rel)
   fs.mkdirSync(path.dirname(p), { recursive: true })
@@ -110,8 +111,7 @@ function usMarketStatus(iso) {
 }
 
 // ---------------------------------------------------------------- dates
-const START = new Date('2026-08-05T00:00:00Z')
-// Filler-day count. Site logic must never hardcode a period length — pass --days=N explicitly.
+// Filler spans DAYS days ENDING today (HKT) — the tape shows the full arc up to the present.
 const DAYS_ARG = Number(process.argv.find((a) => a.startsWith('--days='))?.split('=')[1])
 if (!Number.isInteger(DAYS_ARG) || DAYS_ARG <= 0) {
   console.error('usage: node scripts/seed-review.mjs --days=N')
@@ -119,10 +119,11 @@ if (!Number.isInteger(DAYS_ARG) || DAYS_ARG <= 0) {
 }
 const DAYS = DAYS_ARG
 const dateStr = (d) => d.toISOString().slice(0, 10)
+const END = new Date(Date.now() + 8 * 3600 * 1000)
 const dates = []
 for (let i = 0; i < DAYS; i++) {
-  const d = new Date(START)
-  d.setUTCDate(START.getUTCDate() + i)
+  const d = new Date(END)
+  d.setUTCDate(END.getUTCDate() - (DAYS - 1 - i))
   dates.push(dateStr(d))
 }
 const dow = (s) => ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date(s + 'T00:00:00Z').getUTCDay()]

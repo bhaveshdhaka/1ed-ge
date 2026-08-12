@@ -3,11 +3,12 @@ import { requireSession, json, error } from '../../../lib/auth'
 import fs from 'node:fs'
 import path from 'node:path'
 import { listMds, readEntry } from '../../../lib/content'
+import { CONTENT } from '../../../lib/paths'
 import { todayHkt, nowHkt } from '../../../lib/sessions'
 
 export const prerender = false
 
-const DIR = path.join(process.cwd(), 'src/content/intentions')
+const DIR = path.join(CONTENT, 'intentions')
 
 /** Generate next filename for today's intention */
 function nextFilename(): string {

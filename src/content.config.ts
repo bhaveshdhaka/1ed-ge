@@ -1,10 +1,14 @@
+import path from 'node:path'
 import { defineCollection, z } from 'astro:content'
 import { glob } from 'astro/loaders'
+import { CONTENT } from './lib/paths'
+
+const c = (kind: string) => path.join(CONTENT, kind)
 
 const accountStages = z.enum(['eval', 'funded', 'buffer', 'payout', 'failed', 'paused'])
 
 const accounts = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/accounts' }),
+  loader: glob({ pattern: '**/*.md', base: c('accounts') }),
   schema: z.object({
     id: z.string(),
     firm: z.string(),
@@ -89,7 +93,7 @@ const device = z
   .optional()
 
 const days = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/days' }),
+  loader: glob({ pattern: '**/*.md', base: c('days') }),
   schema: z.object({
     date: z.string(),
     mood: z.number().int().min(1).max(5).optional(),
@@ -113,7 +117,7 @@ const days = defineCollection({
 })
 
 const payouts = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/payouts' }),
+  loader: glob({ pattern: '**/*.md', base: c('payouts') }),
   schema: z.object({
     date: z.string(),
     account: z.string(),
@@ -124,7 +128,7 @@ const payouts = defineCollection({
 })
 
 const coach = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/coach' }),
+  loader: glob({ pattern: '**/*.md', base: c('coach') }),
   schema: z.object({
     date: z.string(),
     summary: z.string().optional(),
@@ -132,14 +136,14 @@ const coach = defineCollection({
 })
 
 const brief = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/brief' }),
+  loader: glob({ pattern: '**/*.md', base: c('brief') }),
   schema: z.object({
     date: z.string(),
   }),
 })
 
 const journal = defineCollection({
-  loader: glob({ pattern: '**/*.mdx', base: './src/content/journal' }),
+  loader: glob({ pattern: '**/*.mdx', base: c('journal') }),
   schema: z.object({
     date: z.string(),
     day: z.string().optional(),
@@ -161,7 +165,7 @@ const newsEvent = z.object({
 const newsList = z.preprocess((v) => (v == null ? [] : v), z.array(newsEvent))
 
 const marketNews = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/market-news' }),
+  loader: glob({ pattern: '**/*.md', base: c('market-news') }),
   schema: z.object({
     date: z.string(),
     verified: z.boolean().default(false),
@@ -172,7 +176,7 @@ const marketNews = defineCollection({
 })
 
 const habits = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/habits' }),
+  loader: glob({ pattern: '**/*.md', base: c('habits') }),
   schema: z.object({
     name: z.string(),
     emoji: z.string().optional(),
@@ -187,7 +191,7 @@ const habits = defineCollection({
 })
 
 const models = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/models' }),
+  loader: glob({ pattern: '**/*.md', base: c('models') }),
   schema: z.object({
     name: z.string(),
     premise: z.string().optional(),
@@ -198,14 +202,14 @@ const models = defineCollection({
 })
 
 const rules = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/rules' }),
+  loader: glob({ pattern: '**/*.md', base: c('rules') }),
   schema: z.object({
     title: z.string(),
   }),
 })
 
 const reviews = defineCollection({
-  loader: glob({ pattern: ['**/*.md', '!**/*.cmp.md'], base: './src/content/reviews' }),
+  loader: glob({ pattern: ['**/*.md', '!**/*.cmp.md'], base: c('reviews') }),
   schema: z.object({
     type: z.enum(['week', 'month', 'quarter', 'half', 'year']),
     anchor: z.string(),
@@ -215,7 +219,7 @@ const reviews = defineCollection({
 })
 
 const quotes = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/quotes' }),
+  loader: glob({ pattern: '**/*.md', base: c('quotes') }),
   schema: z.object({
     text: z.string(),
     author: z.string().optional(),
@@ -223,7 +227,7 @@ const quotes = defineCollection({
 })
 
 const intentions = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/intentions' }),
+  loader: glob({ pattern: '**/*.md', base: c('intentions') }),
   schema: z.object({
     date: z.string(),
     time: z.string().optional(),
@@ -231,7 +235,7 @@ const intentions = defineCollection({
 })
 
 const meditationQuotes = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/meditation-quotes' }),
+  loader: glob({ pattern: '**/*.md', base: c('meditation-quotes') }),
   schema: z.object({
     author: z.string().optional(),
   }),

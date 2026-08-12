@@ -20,12 +20,13 @@ import ThoughtCard from '../components/stream/ThoughtCard.astro'
 import type { FactCell, ResolvedThought } from '../lib/stream'
 import { fmtDayWUpper } from '../lib/dates'
 import SideNav from '../components/ui/SideNav.astro'
+import { CONTENT, MEDIA, DATA_DIR, ROOT } from '../lib/paths'
 
 // ── build version (data/build.json, written at deploy) ─────────────────────
-const require = createRequire(join(process.cwd(), 'package.json'))
+const require = createRequire(join(ROOT, 'package.json'))
 let buildData: { version?: string; at?: string; commit?: string } | null = null
 try {
-  buildData = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'build.json'), 'utf8'))
+  buildData = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'build.json'), 'utf8'))
 } catch {}
 const VERSION = buildData?.version ?? new Date().toISOString().slice(0, 10)
 const VERSION_DATE = VERSION
@@ -68,13 +69,13 @@ interface Tokenomics {
 }
 let tokenomics: Tokenomics | null = null
 try {
-  tokenomics = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'tokenomics.json'), 'utf8'))
+  tokenomics = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'tokenomics.json'), 'utf8'))
 } catch {}
 
 // ── changelog (changelog/YYYY-MM-DD.md) ─────────────────────────────────────
 let changelogEntry: string | null = null
 try {
-  changelogEntry = fs.readFileSync(path.join(process.cwd(), 'changelog', `${today}.md`), 'utf8')
+  changelogEntry = fs.readFileSync(path.join(ROOT, 'changelog', `${today}.md`), 'utf8')
 } catch {}
 
 // ── stack / tools / principles (curated, from /dev) ─────────────────────────
@@ -99,30 +100,39 @@ const tools = [
   { name: 'Playwright', what: 'Browser automation', role: 'visual verification, testing' },
 ]
 
-// ── traceability — auto-generated from filesystem ───────────────────────────
-function scanDir(dir: string, prefix: string) {
-  try {
-    return fs.readdirSync(dir)
-      .filter(f => f.endsWith('.astro') || f.endsWith('.ts'))
-      .map(f => {
-        const fullPath = path.join(dir, f)
-        const content = fs.readFileSync(fullPath, 'utf8')
-        const descMatch = content.match(/\/\*\*\s*(?:\n\s*\*\s*)?(.+?)(?:\s*\*\/|\n)/)
-        return {
-          file: `${prefix}/${f}`,
-          feature: f.replace(/\.(astro|ts)$/, ''),
-          what: descMatch?.[1]?.trim() ?? '',
-        }
-      })
-  } catch { return [] }
+// ── traceability — auto-generated via import.meta.glob (recursive) ──────────
+// Build-time file discovery: every page/component/lib file under src/, with a
+// doc-comment reader for the "what" column. Replaces the non-recursive fs scan
+// (which missed nested routes like pages/day/[date].astro and pages/api/*).
+interface TraceItem { file: string; feature: string; what: string }
+function globTrace(entries: string[], base: string): TraceItem[] {
+  return entries
+    .map((p) => {
+      const rel = p.replace(/^\/src\//, '')
+      const feature = rel.replace(/\.(astro|ts)$/, '').split('/').pop() ?? rel
+      let what = ''
+      try {
+        const content = fs.readFileSync(path.join(ROOT, 'src', rel), 'utf8')
+        const m = content.match(/\/\*\*\s*(?:\n\s*\*\s*)?(.+?)(?:\s*\*\/|\n)/)
+        what = m?.[1]?.trim() ?? ''
+      } catch { /* file gone at build — skip what */ }
+      return { file: rel, feature, what }
+    })
+    .sort((a, b) => a.file.localeCompare(b.file))
 }
 
+const tracePages = globTrace(Object.keys(import.meta.glob('/src/pages/**/*.{astro,ts}')), 'src/pages')
+const traceComponents = globTrace(Object.keys(import.meta.glob('/src/components/**/*.astro')), 'src/components')
+const traceUi = globTrace(Object.keys(import.meta.glob('/src/components/ui/**/*.astro')), 'src/components/ui')
+const tracePrivate = globTrace(Object.keys(import.meta.glob('/src/components/private/**/*.astro')), 'src/components/private')
+const traceLib = globTrace(Object.keys(import.meta.glob('/src/lib/**/*.ts')), 'src/lib')
+
 const traceability = [
-  { category: 'Public Pages', items: scanDir('src/pages', 'pages') },
-  { category: 'Components', items: scanDir('src/components', 'components') },
-  { category: 'UI Primitives', items: scanDir('src/components/ui', 'components/ui') },
-  { category: 'Private', items: scanDir('src/components/private', 'components/private') },
-  { category: 'Libraries', items: scanDir('src/lib', 'lib') },
+  { category: 'Public Pages', items: tracePages },
+  { category: 'Components', items: traceComponents },
+  { category: 'UI Primitives', items: traceUi },
+  { category: 'Private', items: tracePrivate },
+  { category: 'Libraries', items: traceLib },
 ]
 
 const principles = [
@@ -137,7 +147,7 @@ const principles = [
 ]
 
 // ── design tokens — auto-generated from src/styles/app.css ───────────────────
-const css = fs.readFileSync('src/styles/app.css', 'utf8')
+const css = fs.readFileSync(path.join(ROOT, 'src/styles/app.css'), 'utf8')
 const hueTokens = [...css.matchAll(/--hue-([\w-]+):\s*([^;]+);/g)].map(m => ({
   token: `--hue-${m[1]}`, value: m[2].trim()
 }))
@@ -152,7 +162,7 @@ const materialTokens = [...css.matchAll(/--(radius[\w-]*|shadow[\w-]*|blur[\w-]*
 }))
 
 // ── UI primitives — auto-generated from src/components/ui/*.astro ───────────
-const uiDir = path.join(process.cwd(), 'src/components/ui')
+const uiDir = path.join(ROOT, 'src/components/ui')
 const primitiveFiles = fs.readdirSync(uiDir).filter(f => f.endsWith('.astro'))
 const primitives = primitiveFiles.map(f => {
   const name = f.replace('.astro', '')
@@ -249,15 +259,15 @@ const filesCss = countFiles('.css')
 const countDir = (dir: string) => {
   try { return fs.readdirSync(dir).filter(f => f.endsWith('.md') || f.endsWith('.mdx')).length } catch { return 0 }
 }
-const days = countDir('src/content/days')
-const journals = countDir('src/content/journal')
-const accounts = countDir('src/content/accounts')
-const habits = countDir('src/content/habits')
-const reviews = countDir('src/content/reviews')
-const marketNews = countDir('src/content/market-news')
+const days = countDir(path.join(CONTENT, 'days'))
+const journals = countDir(path.join(CONTENT, 'journal'))
+const accounts = countDir(path.join(CONTENT, 'accounts'))
+const habits = countDir(path.join(CONTENT, 'habits'))
+const reviews = countDir(path.join(CONTENT, 'reviews'))
+const marketNews = countDir(path.join(CONTENT, 'market-news'))
 
 let mediaCount = 0
-try { mediaCount = parseInt(execSync('find public/media/ -type f 2>/dev/null | wc -l').toString().trim()) || 0 } catch {}
+try { mediaCount = parseInt(execSync(`find ${MEDIA} -type f 2>/dev/null | wc -l`).toString().trim()) || 0 } catch {}
 
 // ── stack versions (from /dev) ───────────────────────────────────────────────
 const pkg = require('./package.json')

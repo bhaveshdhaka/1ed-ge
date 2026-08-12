@@ -8,7 +8,7 @@ single source of truth for how this project is built, run, and shipped.
 `1ed.ge` is a **public trading journal** — a two-year, everything-public
 experiment on the road to a hedge fund. Every trade, every account, every
 mood, every sleep hour, every screen-time screenshot, every miss is public.
-The only private thing is the **zen** area at `/zen/<secret>` (the old
+The only private thing is the **admin** area at `/zen/<secret>` (the old
 `/admin/<secret>` path redirects there).
 
 The centerpiece metric is **R** = points risked vs points made. All
@@ -28,6 +28,9 @@ deploy or sync. The pipeline guarantees:
 - Wrong-env actions fail loud (`require_env <expected>` in every script).
 - **Direct `git push` to main/preprod is refused** by the pre-push hook —
   the path is `bash scripts/ship.sh <direction>`, not `git push`.
+- **Admin auth is passkey-based** (`/zen`, WebAuthn). The setup/recovery URL is
+  `/zen/setup?key=<ADMIN_SECRET>` — the secret is no longer in the daily URL.
+  Admin API auth = session cookie, not the `x-admin-secret` header.
 
 The one-line env check: `bash scripts/where-am-i.sh`. The 10-second
 wired-up check: `bash scripts/audit-pipeline.sh`. The single ship command:
@@ -37,7 +40,7 @@ wired-up check: `bash scripts/audit-pipeline.sh`. The single ship command:
 
 - **Astro 5** (static-first) + **@astrojs/node** (standalone SSR for the few
   server routes) + **Tailwind CSS v4** + TypeScript.
-- React islands only on the admin page (client-side). Public pages ship zero JS.
+- React islands only on the admin page (client-side). Public pages ship minimal JS (~15KB inline: lightbox, timezone, market ticker).
 - **Markdown editor in the admin** — plain textarea + write/preview tabs
   (`src/components/admin/MarkdownEditor.tsx`, unified/remark/rehype, raw HTML
   escaped). Milkdown Crepe is gone. Images paste → upload to `/api/admin/media`
@@ -129,7 +132,7 @@ src/lib/periods.ts           period engine — week (Mon–Fri)/month/quarter/ha
 src/lib/period-stats.ts      period aggregation — R/P&L/per-account/per-model/life + periodDelta + trendSeries
 src/lib/review-compare.ts    AI factual comparison (deepseek v4 flash 0731, formatter-over-numbers) + fallback
 src/lib/accountability.ts    pending reflections — Mon–Fri every day (3h grace), completed periods only
-src/lib/copy.ts              SINGLE source of every public message string (trader/zen/reflection vocabulary)
+src/lib/copy.ts              SINGLE source of every public message string (trader/admin/reflection vocabulary)
 src/lib/ingest.ts            import pipeline — CSV/PDF/image parse (cheap model + poppler), CT→HKT,
                              fill-id attribution, fill→position grouping, per-account dedup (tested)
 src/lib/live.ts             admin-heartbeat read/write (/tmp/1edge-live.json, 5-min live window)
@@ -142,8 +145,9 @@ src/components/MarketLive.astro   CME-event JSON + inline live countdown script 
 src/components/MarketWidget.astro one-glance market box: chronograph rail (hour ticks + event dots +
                              live now-marker) + CME-framed status + session countdowns + news
 src/components/MarketDay.astro    homepage "the day" panel — facts + stream at a glance (SSR)
+src/components/NewsEventsCard.astro reusable news events panel (card header + dot severity empty state)
 src/components/Lightbox.astro     native <dialog> lightbox — the site's single zero-JS exception on public pages
-src/components/stream/      public stream components (MomentCard, DayFacts) — moments are trade|note|quote;
+src/components/stream/      public stream components (ThoughtCard, DayFacts) — moments are trade|note|quote;
                              thumbnails with altFor() open the shared lightbox (zero JS otherwise)
 src/components/archive/DayArchive.astro  posterized day archive (facts + moments + model-tagged trades);
                              trade screenshots open the lightbox via data-lb
@@ -151,10 +155,10 @@ src/pages/                  public pages: / /stream /journal /models /calendar /
                              /accounts /coach /about /day/[date] + the tape (/week /month /q1..q4 /h1/h2
                              /year + anchored forms via [periodType]/[...anchor], all SSR)
                              + rss + sitemap (/ + /stream + review routes are SSR)
-src/pages/zen/[secret]/    private zen (SSR), renders the React app; the old
+src/pages/zen/[secret]/    private admin (SSR), renders the React app; the old
                              /admin/[secret] is a thin redirect to /zen;
                              /zen/<secret>/manifest.webmanifest is a secret-guarded
-                             PWA manifest (start_url/scope = the zen mount) so zen
+                             PWA manifest (start_url/scope = the admin mount) so admin
                              installs standalone on iPhone/iPad/MacBook
 src/pages/api/admin/*.ts    admin API (SSR, auth via x-admin-secret header)
 src/pages/api/admin/market.ts    USD news GET + refresh (spawns market-news-fetch.mjs)
@@ -327,10 +331,30 @@ optional title/summary/tags/featuredImage.
   locally use `curl --resolve 1ed.ge:443:104.21.7.179 https://1ed.ge/`.
 - nginx `/media/` proxies to node (a filesystem `alias` fails because
   `/root` is mode 700).
+- **`/dev` page** — public build log with stack, features, principles, changelog, token costs, and version tracking. Updated whenever meaningful features ship.
 - Style: monospace, off-black (`#0a0a0c`), green `#4ade80` = up, red `#f87171`
   = down, low-contrast dim text, terminal aesthetic. Nav labels are plain
   (`[00] home`) — **no `~` in the menu**. Match Tailwind tokens in
-  `src/styles/global.css`.
+  `src/styles/app.css`.
+- **Design system (WhatsApp Logger v2 aesthetic):** 3-layer token architecture
+  in `src/styles/app.css` — palette (`--hue-*`), semantic (`--color-*`),
+  material (`--radius`, `--shadow-card`, `--blur-card`). Glass cards use
+  `.panel` (translucent `rgba(13,15,22,.78)` + `backdrop-filter: blur(18px)`).
+  Featured cards use `.panel-hero` (accent border, gradient bg, glow top-line).
+  Card headers use `.card-hd` / `.card-ico` / `.card-lbl` / `.card-sub` / `.tmr`.
+  Inset wells use `.well`. Pills use `.capsule`. Segmented controls use
+  `.seg` / `.seg-on`. Accent is `#0af` (electric blue). Body has ambient
+  radial gradients behind every translucent surface.
+- **Same card type = same look everywhere.** Never duplicate card markup.
+  One reusable component per card type. Consistency is non-negotiable.
+- **No words "red" or "orange" in UI.** Use dot severity indicators
+  (🔴 `bg-down` / 🟠 `bg-warn`) instead.
+- **Uppercase dates everywhere.** Use `fmtDayWUpper()` from `src/lib/dates.ts`.
+- **"CME" not "CME Globex".** Everywhere: MarketWidget, MarketFooter,
+  MarketLive, brief.ts, strip.ts.
+- **"news events" not "the day".** The news card label is "news events".
+- **Stream icon is 📡, not 💭.** 💭 is for thoughts. Stream is the feed.
+- **No `/zen` link on public pages.** Single-user site.
 
 ## Versioning
 

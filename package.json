@@ -11,6 +11,7 @@
     "seed": "node scripts/seed.mjs",
     "migrate": "node scripts/migrate.mjs",
     "typecheck": "astro check",
+    "lint": "eslint .",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test e2e/a11y.spec.ts",
     "test:lhci": "lhci autorun --config=lighthouserc.cjs",
@@ -58,7 +59,12 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "astro-eslint-parser": "^3.0.0",
+    "eslint": "^10.8.1",
+    "eslint-plugin-astro": "^3.1.0",
     "tsx": "^4.23.11",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.67.0"
   }
 }

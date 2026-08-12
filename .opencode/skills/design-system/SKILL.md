@@ -1,9 +1,13 @@
 # 1ed.ge Design System
 
 The single source of truth for how 1ed.ge is built visually. **Read this before
-touching any UI.** The design language is a shadcn/ui-style convention layer on
-Tailwind CSS v4 (CSS-first `@theme` tokens) with a bespoke summit/terminal
-aesthetic: mono-only type, off-black background, green = up, red = down.
+touching any UI.** The design language is a refined, precision-instrument aesthetic
+(reference: WALogger v2) — translucent cards, soft corners, fade-up motion, mono-only
+type, near-black background, blue accent for UI chrome, green/red for data only.
+
+**Design direction (owner 2026-08-10):** "Most similar to the [WALogger] screenshots.
+Just a bit more dense and tighter on the indentations and spacing." Information-dense,
+not generous whitespace.
 
 ## Versioning
 
@@ -40,7 +44,7 @@ Two hard rules govern everything:
 
 1. **Public pages ship zero JS.** Every public surface is server-rendered HTML.
    No `client:` directives, no React, no inline handlers on public routes.
-2. **React lives only inside `/admin`.** The admin is the sole React island
+2. **React lives only inside `/zen` (admin).** The admin is the sole React island
    (`client:only="react"`). Admin UI uses the React primitives in
    `src/components/ui/react/` — never hand-roll a modal, toast, tooltip, or
    select.
@@ -55,7 +59,29 @@ The page renders all `@theme` tokens live. If a token exists in `app.css`, it ap
 
 ---
 
-## Primitives
+## Primitive utilities (CSS classes — both Astro + React use these)
+
+These are the reference aesthetic building blocks. **Use these before inventing
+new patterns.**
+
+| utility | what it is | use for |
+|---|---|---|
+| `.panel` | translucent card: border + blur + radius + shadow + fade-up | any card/panel surface |
+| `.capsule` | pill: `rounded-full`, accent-tint bg, hairline border, 10px font, dim color, tabular-nums | mood chips, counts, status badges |
+| `.well` | inset row: `--color-inset` bg, `--color-sep` border, `--radius-sm` | nested content rows |
+| `.seg` / `.seg-on` | segmented control shell + active segment | type switchers, tab bars |
+| `.card-hd` | card header row: flex, 12px 14px padding, 48px min-height, sep border-bottom | section headers inside cards |
+| `.card-lbl` | card label: 11px, bold, soft color, uppercase, 0.6px letter-spacing | header labels |
+| `.card-sub` | card sub: 10px, faint color, 500 weight | header subtitles |
+| `.label` | micro-label: `text-2xs uppercase tracking-widest text-dim` | section labels (NOT accent — dim) |
+| `.th` / `.td` | table header / cell | data tables |
+| `.kv` | key-value row: flex, border-bottom, py-2 | stat rows |
+| `.num-up` / `.num-down` | data color: `text-up` / `text-down` | P&L, R, metrics |
+| `.tag` | inline label: border, px-1.5 py-0.5, text-2xs, text-dim | model tags, categories |
+
+---
+
+## Primitives (components)
 
 Current list: see [/build](https://1ed.ge/build/) — auto-generated from `src/components/ui/*.astro` on each deploy.
 
@@ -66,21 +92,25 @@ The page renders every primitive live. If a primitive exists in `src/components/
 ## Content & semantics
 
 - **Rules, quotes, and self-talk are the owner's own words.** AI never
-  generates wisdom/gyan — it may polish the owner's existing text, never
+  generates wisdom/gyaan — it may polish the owner's existing text, never
   author it. Never seed or fabricate quotes/rules in content.
-- **Green = up, red = down — including money, everywhere.** A negative P&L is
+- **Green = up, red = down — for DATA ONLY.** A negative P&L is
   `num-down`/`text-down`; a "failed" account stage is `text-down`. No
-  exceptions.
+  exceptions. UI chrome (labels, badges, buttons) uses blue accent or dim,
+  not green/red.
 - **Facts are shown once.** One source of truth per datum on the public side;
   don't duplicate a value in a rail *and* a section *and* a cell.
 - Empty states: one line, lowercase, ends with a period (see `EmptyState`).
 - Dates display as `dd-mon-yyyy` (`fmtDay`), never ISO.
-- Cockpit (admin) content is production; the public stream shows only approved
-  moments. Drafts must never render on public routes.
+- Drafts must never render on public routes.
 
 ## Never list
 
+<<<<<<< HEAD
+- No arbitrary `text-[..px]` / `text-[..rem]` — use the scale.
+=======
 - No arbitrary `text-[..px]` / `text-[..rem]` — use the type scale.
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
 - No hardcoded hex colors — use tokens.
 - No hand-built `.panel` + `.card-hd` — use `<Card>`.
 - No hand-built `.kv` / `.seg` / `.capsule` / `.well` / `.btn` / `.tag` — use the component.
@@ -90,6 +120,12 @@ The page renders every primitive live. If a primitive exists in `src/components/
 - No italic (the terminal has no italic voice).
 - No `data-theme` / theme switching — summit is the only skin.
 - No `client:` on public pages.
+<<<<<<< HEAD
+- No green/red for UI chrome — blue accent or dim only. Green/red = data (up/down).
+- No "note" or "moment" in display copy — use "thought".
+- No solid cards — translucent with backdrop-filter is the reference aesthetic.
+- No generous spacing — 1edge is information-dense, tighter than WALogger.
+=======
 
 ## Exceptions
 
@@ -115,3 +151,4 @@ Built on primitives, not standalone components:
 | `ThoughtCard.astro` | `Card` (pad="none") + rails | Published stream moment. Rail: trade=up/down, quote=accent, note=quiet. |
 | `NewsBlock.astro` | dot severity + `KvRow` | News rows with past-state dimming, same-time collapse. |
 | `MarketWidget.astro` | `Well` + day-rail | Chronograph rail + session rows + live clock. |
+>>>>>>> 7dc835ff480dd58645da6b3a27c9e7cce372f5f7
