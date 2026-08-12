@@ -115,14 +115,6 @@ const typographyRules = [
   { element: 'Section h2', token: 'text-lg', weight: '600', case: '—', tracking: '—', color: 'ink' },
 ]
 
-const roadmap = [
-  { item: 'SheetFrame keyframes → app.css', priority: 'low', detail: 'The shared SheetFrame.tsx injects @keyframes via inline <style>. Move to app.css for dedup.' },
-  { item: 'MarketFooter/Widget DOM-update dedup', priority: 'low', detail: 'Both components duplicate the same countdown-update logic. Extract shared updater.' },
-  { item: 'Chart SVG font-size tokens', priority: 'low', detail: 'Chart axes use inline font-size="9". Could use text-4xs token.' },
-  { item: 'Dark/light theme support', priority: 'future', detail: 'data-theme="summit" is inert. Could wire up for theme swapping.' },
-  { item: 'Component storybook', priority: 'future', detail: 'Interactive preview of all components with props. Would replace this static page.' },
-]
-
 // ── composite fixtures ───────────────────────────────────────────────────────
 const sampleFactCells: FactCell[] = [
   { key: 'mood', label: 'MOOD', value: '😐 okay', ok: true, up: undefined },
@@ -169,7 +161,7 @@ const driftTotal = audit?.totalDuplicates ?? 0
 const navGroups = [
   { label: 'tokens', items: [['architecture', 'architecture'], ['palette', 'palette'], ['type', 'type'], ['material', 'material']] as [string, string][] },
   { label: 'primitives', items: [['cards', 'cards'], ['typography', 'typography'], ['primitives', 'primitives'], ['composites', 'composites'], ['classes', 'classes']] as [string, string][] },
-  { label: 'governance', items: [['drift', 'drift'], ['backlog', 'backlog']] as [string, string][] },
+  { label: 'governance', items: [['drift', 'drift']] as [string, string][] },
 ]
 ---
 
@@ -418,7 +410,7 @@ const navGroups = [
                         <Button variant="primary">Save</Button>
                         <Button>Cancel</Button>
                         <Button variant="danger">Delete</Button>
-                        <Button href="/about" size="sm">About</Button>
+                        <Button href="/about">About</Button>
                       </div>
                     )}
                     {p.name === 'Card' && (
@@ -579,33 +571,6 @@ const navGroups = [
             </ul>
           </details>
         )}
-      </Card>
-    </div>
-
-    <div id="backlog" class="mt-6 scroll-mt-28">
-      <Card icon="🗺" label="roadmap" subtitle="remaining improvements">
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse">
-            <thead>
-              <tr>
-                <th class="th">item</th>
-                <th class="th">priority</th>
-                <th class="th">detail</th>
-              </tr>
-            </thead>
-            <tbody>
-              {roadmap.map((r) => (
-                <tr>
-                  <td class="td text-ink">{r.item}</td>
-                  <td class="td">
-                    <Badge variant={r.priority === 'medium' ? 'warn' : r.priority === 'low' ? 'muted' : 'accent'}>{r.priority}</Badge>
-                  </td>
-                  <td class="td text-dim">{r.detail}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </Card>
     </div>
 

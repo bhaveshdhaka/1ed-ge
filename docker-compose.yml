@@ -8,8 +8,11 @@ services:
       - "127.0.0.1:4321:4321"
     env_file: .env
     volumes:
-      # Env-driven content/data paths — DATA_PATH/MEDIA_PATH/DATA_DIR from .env
-      # (defaults to in-repo src/content, public/media, data).
-      - ${DATA_PATH:-./src/content}:/app/src/content
-      - ${MEDIA_PATH:-./public/media}:/app/public/media
-      - ${DATA_DIR:-./data}:/app/data
+      # Host mount paths are EXPLICIT (not ${DATA_*}): the container's .env uses
+      # CONTAINER paths (/app/...) for the SSR server, but docker-compose
+      # interpolates ${DATA_*} from that same .env on the HOST — which would
+      # mount /app/data:/app/data (wrong). Pin the host side here so the
+      # container sees the real host content/data volumes.
+      - /srv/1edge/content:/app/src/content
+      - /srv/1edge/media:/app/public/media
+      - /srv/1edge/data:/app/data
