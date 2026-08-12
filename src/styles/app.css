@@ -3,7 +3,7 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, 'Menlo', Consolas, monospace;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, 'Menlo', Consolas, 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', monospace;
 
   /* ═════════════════════════════════════════════════════════════════════════════
    * LAYER 1: PALETTE (the hue layer — swap these to re-theme)
