@@ -1,5 +1,11 @@
 ---
 /** Badge.astro — compact status/label chip. Variants map to token colors. */
+/**
+ * @example
+ * <Badge variant="up">+2.5R</Badge>
+ * @example
+ * <Badge variant="warn">pending</Badge>
+ */
 interface Props {
   variant?: 'default' | 'up' | 'down' | 'warn' | 'accent' | 'muted' | 'outline'
   class?: string

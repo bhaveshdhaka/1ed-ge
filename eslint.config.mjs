@@ -2,6 +2,7 @@ import astro from 'eslint-plugin-astro'
 import { parseForESLint, meta as astroParserMeta } from 'astro-eslint-parser'
 import tsParser from '@typescript-eslint/parser'
 import noArbitraryTailwind from './eslint/rules/no-arbitrary-tailwind.mjs'
+import useUiPrimitive from './eslint/rules/use-ui-primitive.mjs'
 
 // astro-eslint-parser exposes named exports (parseForESLint + meta), no default.
 // Build a parser object ESLint accepts via languageOptions.parser.
@@ -45,12 +46,24 @@ export default [
       custom: {
         rules: {
           'no-arbitrary-tailwind': noArbitraryTailwind,
+          'use-ui-primitive': useUiPrimitive,
         },
       },
     },
     rules: {
       // our design-system gate: flag arbitrary tailwind values (text-[, bg-[, border-[)
       'custom/no-arbitrary-tailwind': 'error',
+      // governance gate: flag hand-inlined markup where a ui primitive exists.
+      // warn (not error) so the audit is visible without blocking a green build.
+      'custom/use-ui-primitive': 'warn',
+    },
+  },
+  {
+    // The primitives themselves may (and do) use their own class tokens
+    // internally — never flag ui/* for using the vocabulary it defines.
+    files: ['src/components/ui/**'],
+    rules: {
+      'custom/use-ui-primitive': 'off',
     },
   },
 ]

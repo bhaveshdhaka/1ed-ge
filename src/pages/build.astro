@@ -15,6 +15,8 @@ import EmptyState from '../components/ui/EmptyState.astro'
 import Separator from '../components/ui/Separator.astro'
 import SectionNav from '../components/ui/SectionNav.astro'
 import BarChart from '../components/ui/BarChart.astro'
+import Button from '../components/ui/Button.astro'
+import Tag from '../components/ui/Tag.astro'
 import DayFacts from '../components/stream/DayFacts.astro'
 import ThoughtCard from '../components/stream/ThoughtCard.astro'
 import type { FactCell, ResolvedThought } from '../lib/stream'
@@ -162,14 +164,37 @@ const materialTokens = [...css.matchAll(/--(radius[\w-]*|shadow[\w-]*|blur[\w-]*
 }))
 
 // ── UI primitives — auto-generated from src/components/ui/*.astro ───────────
+// Extracts the leading doc comment AND zero-or-more JSDoc @example blocks.
+// The @example source is shown as code; live previews render via the map below.
 const uiDir = path.join(ROOT, 'src/components/ui')
 const primitiveFiles = fs.readdirSync(uiDir).filter(f => f.endsWith('.astro'))
 const primitives = primitiveFiles.map(f => {
   const name = f.replace('.astro', '')
   const content = fs.readFileSync(path.join(uiDir, f), 'utf8')
   const descMatch = content.match(/\/\*\*\s*(?:\n\s*\*\s*)?(.+?)(?:\s*\*\/|\n)/)
-  return { name, description: descMatch?.[1]?.trim() ?? name }
+  // JSDoc @example blocks: `* @example\n * <Component .../>` (one or more)
+  const examples = [...content.matchAll(/@example\n\s*\*\s*([\s\S]*?)(?=\n\s*\*\s*(?:@\w+|\*\/))/g)]
+    .map(m => m[1].trim().replace(/^\s*\*\s?/gm, ''))
+    .filter(Boolean)
+  return { name, description: descMatch?.[1]?.trim() ?? name, examples }
 })
+
+// Curated live previews — map of primitive name → { label }. The actual
+// preview markup renders in the template via per-primitive conditionals
+// (Astro frontmatter is TS, so JSX render fns don't belong there). Keep the
+// set of "live" primitives here in sync with the template branches below.
+const liveCards: Record<string, { label: string }> = {
+  Badge: { label: 'status chips' },
+  Button: { label: 'button + link' },
+  Card: { label: 'panel + header' },
+  Well: { label: 'inset surface' },
+  StatCard: { label: 'stat display' },
+  KvRow: { label: 'key/value row' },
+  Separator: { label: 'divider' },
+  Table: { label: 'table' },
+  Tag: { label: 'tag' },
+  EmptyState: { label: 'empty state' },
+}
 
 const cardVariants = [
   { variant: 'default', class: 'panel', description: 'Glass panel with backdrop blur. The standard card.' },
@@ -611,15 +636,109 @@ const navGroups = [
       <div id="primitives" class="mt-10 scroll-mt-28">
         <Card icon="🧩" label="UI primitives" subtitle={`${primitives.length} primitives · auto-generated · updated ${rel(buildAt)}`} variant="flat">
           <p class="mb-3 text-xs text-dim">
-            Auto-generated from src/components/ui/*.astro on each deploy.
+            Auto-generated from src/components/ui/*.astro on each deploy. Each
+            card shows the <code class="border border-line bg-raise px-1.5 py-0.5 text-2xs text-accent">@example</code>
+            snippet from the primitive's JSDoc, plus a <em>live rendered</em> preview.
           </p>
           <div class="grid gap-3 md:grid-cols-2">
-            {primitives.map((p) => (
+            {primitives.map((p) => {
+              const lc = liveCards[p.name]
+              return (
               <Card variant="flat" pad="sm">
-                <div class="text-xs font-semibold text-ink">{p.name}</div>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="text-xs font-semibold text-ink">{p.name}</div>
+                  <span class="text-2xs text-faint">{lc ? '⚡ live' : '—'}</span>
+                </div>
                 <p class="mt-1 text-2xs text-dim">{p.description}</p>
+
+                {lc ? (
+                  <div class="mt-3 rounded-sm border border-line bg-raise/40 p-3">
+                    <div class="mb-2 text-3xs uppercase tracking-widest text-faint">{lc.label}</div>
+                    {p.name === 'Badge' && (
+                      <div class="flex flex-wrap gap-2">
+                        <Badge variant="up">+2.5R</Badge>
+                        <Badge variant="down">-1.0R</Badge>
+                        <Badge variant="warn">pending</Badge>
+                        <Badge variant="accent">feature</Badge>
+                        <Badge variant="muted">log only</Badge>
+                      </div>
+                    )}
+                    {p.name === 'Button' && (
+                      <div class="flex flex-wrap items-center gap-2">
+                        <Button variant="primary">Save</Button>
+                        <Button>Cancel</Button>
+                        <Button variant="danger">Delete</Button>
+                        <Button href="/about" size="sm">About</Button>
+                      </div>
+                    )}
+                    {p.name === 'Card' && (
+                      <div class="grid gap-3 md:grid-cols-2">
+                        <Card icon="📈" label="default" subtitle="glass panel">
+                          <p class="text-xs text-dim">The standard card.</p>
+                        </Card>
+                        <Card icon="⚡" label="hero" subtitle="accent glow" variant="hero">
+                          <p class="text-xs text-dim">Featured card.</p>
+                        </Card>
+                      </div>
+                    )}
+                    {p.name === 'Well' && (
+                      <Well class="p-3"><p class="text-xs text-dim">Recessed inset panel content.</p></Well>
+                    )}
+                    {p.name === 'StatCard' && (
+                      <div class="grid grid-cols-2 gap-2 md:grid-cols-4">
+                        <StatCard label="TOTAL R" value="+12.40" tone="up" />
+                        <StatCard label="SESSIONS" value="42" />
+                        <StatCard label="WIN RATE" value="58%" />
+                        <StatCard label="DRAWDOWN" value="-3.2" tone="down" />
+                      </div>
+                    )}
+                    {p.name === 'KvRow' && (
+                      <div class="flex flex-col gap-1">
+                        <KvRow label="account" value="lucid-50k-a" />
+                        <KvRow label="stage" value="funded" />
+                      </div>
+                    )}
+                    {p.name === 'Separator' && (
+                      <div class="flex flex-col gap-2">
+                        <span class="text-2xs text-faint">above</span>
+                        <Separator />
+                        <span class="text-2xs text-faint">below</span>
+                      </div>
+                    )}
+                    {p.name === 'Table' && (
+                      <Table head={['col', 'value']} class="mt-1">
+                        <tr><td class="td text-dim">a</td><td class="td">1</td></tr>
+                        <tr><td class="td text-dim">b</td><td class="td">2</td></tr>
+                      </Table>
+                    )}
+                    {p.name === 'Tag' && (
+                      <div class="flex flex-wrap gap-2">
+                        <Tag>orb</Tag>
+                        <Tag>ny-am</Tag>
+                      </div>
+                    )}
+                    {p.name === 'EmptyState' && <EmptyState text="no data yet" />}
+                  </div>
+                ) : (
+                  p.examples.length > 0 && (
+                    <div class="mt-3 rounded-sm border border-line bg-raise/40 p-3">
+                      <div class="mb-2 text-3xs uppercase tracking-widest text-faint">@example</div>
+                      <pre class="overflow-x-auto whitespace-pre-wrap font-mono text-2xs leading-relaxed text-soft">{p.examples[0]}</pre>
+                    </div>
+                  )
+                )}
+
+                {p.examples.length > 0 && (
+                  <details class="mt-2">
+                    <summary class="cursor-pointer text-2xs text-faint select-none hover:text-dim">
+                      @example source
+                    </summary>
+                    <pre class="mt-1 overflow-x-auto whitespace-pre-wrap rounded-sm border border-line bg-raise/40 p-2 font-mono text-2xs leading-relaxed text-soft">{p.examples.join('\n\n')}</pre>
+                  </details>
+                )}
               </Card>
-            ))}
+              )
+            })}
           </div>
         </Card>
       </div>
