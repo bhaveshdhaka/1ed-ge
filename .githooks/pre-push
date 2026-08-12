@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# pre-push — hard local gate (B3).
+#
+# 1. Refuses direct pushes to main/preprod (branch-block preserved).
+# 2. Runs typecheck + test + lint (~4s fast-fail) on any allowed push.
+#
+# Reads the push spec from stdin: lines of "<local_ref> <local_sha> <remote_ref> <remote_sha>".
+# Exits 1 (refuses the push) if any remote_ref is main or preprod, or if the checks fail.
+#
+# The intent: catching the COMMON case (muscle-memory `git push` after committing on
+# the wrong branch) AND gating feature-branch pushes on a green tree.
+# Power users can bypass with --no-verify when they know better.
+
+set -euo pipefail
+
+PROTECTED_BRANCHES="^(main|preprod)$"
+
+violations=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ -z "$local_ref" ] && continue
+  branch="${remote_ref#refs/heads/}"
+  if [[ "$branch" =~ $PROTECTED_BRANCHES ]]; then
+    echo "✗ refusing: direct push to '$branch' is blocked by the pipeline." >&2
+    echo "  the path is a PR to '$branch', not 'git push'." >&2
+    echo "  if you really need to bypass (you probably don't), use:" >&2
+    echo "    git push --no-verify" >&2
+    violations=$((violations + 1))
+  fi
+done
+
+if [ "$violations" -gt 0 ]; then
+  exit 1
+fi
+
+# Test harness guard: when HOOK_TEST_MODE=1, skip the recursive check execution
+# (typecheck/test/lint) so unit tests can exercise the branch-block logic fast
+# without re-running the full suite (which would recurse into itself).
+if [ "${HOOK_TEST_MODE:-0}" = "1" ]; then
+  echo "→ pre-push: HOOK_TEST_MODE=1 — skipping typecheck/test/lint." >&2
+  exit 0
+fi
+
+echo "→ pre-push: running typecheck + test + lint…" >&2
+if ! npm run typecheck >/dev/null 2>&1; then
+  echo "✗ pre-push: typecheck failed — aborting push." >&2
+  exit 1
+fi
+if ! npm run test >/dev/null 2>&1; then
+  echo "✗ pre-push: tests failed — aborting push." >&2
+  exit 1
+fi
+if ! npm run lint >/dev/null 2>&1; then
+  echo "✗ pre-push: lint failed — aborting push." >&2
+  exit 1
+fi
+echo "✓ pre-push: typecheck + test + lint passed." >&2
+exit 0

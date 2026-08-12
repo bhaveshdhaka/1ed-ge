@@ -1,5 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "username": "1ed",
-  "instructions": ["AGENTS.md", "MEMORY.md"]
+  "instructions": ["AGENTS.md", "MEMORY.md"],
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "git push main": "deny",
+      "git push preprod": "deny"
+    }
+  }
 }
