@@ -55,7 +55,16 @@ jobs:
           SITE_URL: https://1ed.ge
           SITE_PORT: 4321
           SITE_RESOLVE: 1ed.ge:443:104.21.7.179
-        run: bash scripts/verify-env.sh prod
+        run: |
+          # The container was just force-recreated; nginx returns 502 until the
+          # app boots. Wait for a 200 before running the full verify.
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 --resolve "1ed.ge:443:104.21.7.179" https://1ed.ge/ || true)
+            echo "ready check $i: $code"
+            [ "$code" = "200" ] && break
+            sleep 3
+          done
+          bash scripts/verify-env.sh prod
 
       - name: Status snapshot
         env:
