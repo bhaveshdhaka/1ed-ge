@@ -1,0 +1,35 @@
+name: Deploy Prod
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, server-b]
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Post-deploy bookkeeping (changelog, build stamp, tokenomics)
+        run: node scripts/post-deploy.mjs
+
+      - name: Fetch market news
+        run: node scripts/market-news-fetch.mjs --no-build
+
+      - name: Build + deploy container
+        run: |
+          cd /srv/1edge
+          docker compose -f /srv/1edge/docker-compose.yml up -d --build
+
+      - name: Verify live
+        run: bash scripts/verify-env.sh prod
+
+      - name: Status snapshot
+        run: node scripts/status-snapshot.mjs
