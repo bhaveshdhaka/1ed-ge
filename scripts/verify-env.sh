@@ -41,8 +41,16 @@ else
   CURL_AUTH=()
 fi
 
+# Loopback DNS bypass: the runner/server may not resolve the site hostname
+# (Cloudflare-proxied). When SITE_RESOLVE="host:port:ip" is set, pin the
+# connection via --resolve so verification hits the real origin without DNS.
+CURL_RESOLVE=()
+if [ -n "${SITE_RESOLVE:-}" ]; then
+  CURL_RESOLVE=(--resolve "$SITE_RESOLVE")
+fi
+
 # 1. HTTP 200 on /
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${CURL_AUTH[@]}" "$url/" || echo 000)
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${CURL_AUTH[@]}" "${CURL_RESOLVE[@]}" "$url/" || echo 000)
 if [ "$HTTP_CODE" = "200" ]; then
   check "HTTP 200 on /" ok
 else
@@ -50,7 +58,7 @@ else
 fi
 
 # 2. /robots.txt — inspect the wildcard (User-agent: *) block, not per-bot rules
-ROBOTS=$(curl -s --max-time 10 "${CURL_AUTH[@]}" "$url/robots.txt" || echo "")
+ROBOTS=$(curl -s --max-time 10 "${CURL_AUTH[@]}" "${CURL_RESOLVE[@]}" "$url/robots.txt" || echo "")
 # Extract the first wildcard block: from "User-agent: *" to the next blank line or EOF
 WILDCARD_BLOCK=$(echo "$ROBOTS" | awk '/^User-agent: \*$/ {flag=1; next} flag && /^$/ {flag=0} flag' | head -20)
 if [ "$expected" = "test" ]; then
@@ -68,7 +76,7 @@ else
 fi
 
 # 3. X-Robots-Tag header on /
-HEADER=$(curl -sI --max-time 10 "${CURL_AUTH[@]}" "$url/" 2>/dev/null | grep -i "x-robots-tag" || true)
+HEADER=$(curl -sI --max-time 10 "${CURL_AUTH[@]}" "${CURL_RESOLVE[@]}" "$url/" 2>/dev/null | grep -i "x-robots-tag" || true)
 if [ "$expected" = "test" ]; then
   if echo "$HEADER" | grep -qi "noindex"; then
     check "X-Robots-Tag header has noindex" ok
@@ -84,7 +92,7 @@ else
 fi
 
 # 4. meta noindex in HTML
-HTML=$(curl -s --max-time 10 "${CURL_AUTH[@]}" "$url/" || echo "")
+HTML=$(curl -s --max-time 10 "${CURL_AUTH[@]}" "${CURL_RESOLVE[@]}" "$url/" || echo "")
 if [ "$expected" = "test" ]; then
   if echo "$HTML" | grep -qi 'name="robots" content="noindex'; then
     check "HTML meta robots has noindex" ok
