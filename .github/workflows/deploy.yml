@@ -35,8 +35,8 @@ jobs:
       - name: Build container (fresh checkout)
         run: |
           # Build from the runner's fresh checkout (this workspace), so the
-          # image ships the merged code. Avoids rsync --delete against the
-          # production /srv/1edge tree (which holds volumes + .env).
+          # image ships the merged code — no code sync into the production
+          # /srv/1edge tree (which holds volumes + .env).
           docker build -t 1edge-site .
 
       - name: Deploy container (existing /srv/1edge config)
