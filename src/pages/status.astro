@@ -41,6 +41,14 @@ interface Snapshot {
     version?: string
     commit?: string
   } | null
+  content?: {
+    days?: number | null
+    journal?: number | null
+    accounts?: number | null
+    habits?: number | null
+    reviews?: number | null
+    marketNews?: number | null
+  }
   system?: {
     container?: { up?: boolean; status?: string | null }
     disk?: { total?: string; used?: string; pct?: string } | null
@@ -121,14 +129,28 @@ const lastRebuilds = rebuilds.slice(-4).reverse()
 const sys = snap?.system ?? {}
 const git = snap?.git ?? {}
 const live = snap?.live ?? {}
+const content = snap?.content ?? {}
 const logTail: string[] = Array.isArray(mkt.logTail) ? mkt.logTail : []
 const unverified: string[] = Array.isArray(mkt.unverified) ? mkt.unverified : []
 
 const dockerUp = !!sys.container?.up
 const hasUpstream = git.ahead != null && git.behind != null
 
+// ── cron freshness ───────────────────────────────────────────────────────────
+// The snapshot itself is written by the status-snapshot cron (*/5 on B).
+// market.lastFetched is the market-news cron (0 */8). Both are "freshness"
+// signals; derive a human label + staleness badge for each.
+interface CronHealth { label: string; at: string | null; fresh: boolean; windowMs: number }
+const STATUS_CRON_MS = 5 * 60 * 1000
+const MARKET_CRON_MS = 8 * 60 * 60 * 1000
+const cronHealth: CronHealth[] = [
+  { label: 'status snapshot', at: snap?.at ?? null, fresh: !stale, windowMs: STATUS_CRON_MS },
+  { label: 'market news', at: mkt.lastFetched ?? null, fresh: mkt.lastFetched ? Date.now() - Date.parse(mkt.lastFetched) <= MARKET_CRON_MS : false, windowMs: MARKET_CRON_MS },
+]
+
 // ── page navigation (SideNav groups) ─────────────────────────────────────────
 const navGroups = [
+  { label: 'health', items: [['cron', 'cron'], ['content', 'content']] as [string, string][] },
   { label: 'ops', items: [['market', 'market'], ['rebuilds', 'rebuilds']] as [string, string][] },
   { label: 'system', items: [['system', 'system'], ['git', 'git'], ['live', 'live']] as [string, string][] },
 ]
@@ -163,6 +185,38 @@ Astro.response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate
     )}
 
     <div class="mt-6 flex max-w-2xl flex-col gap-4">
+      <!-- cron freshness -->
+      <div id="cron" class="scroll-mt-28">
+      <Card icon="⏱️" label="cron health" subtitle="automation freshness">
+        <Table head={['cron', 'last run', 'status']} class="mt-1">
+          {cronHealth.map((c) => (
+            <tr>
+              <td class="td text-ink">{c.label}</td>
+              <td class="td">{stamp(c.at)}</td>
+              <td class="td">
+                <Badge variant={c.fresh ? 'up' : 'down'}>{c.fresh ? 'fresh' : 'stale'}</Badge>
+              </td>
+            </tr>
+          ))}
+        </Table>
+      </Card>
+      </div>
+
+      <!-- content counts -->
+      <div id="content" class="scroll-mt-28">
+      <Card icon="📁" label="content" subtitle="live counts from status.json">
+        <div class="grid grid-cols-2 gap-2 md:grid-cols-3">
+          <KvRow label="days" value={content.days != null ? String(content.days) : '—'} />
+          <KvRow label="journal" value={content.journal != null ? String(content.journal) : '—'} />
+          <KvRow label="accounts" value={content.accounts != null ? String(content.accounts) : '—'} />
+          <KvRow label="habits" value={content.habits != null ? String(content.habits) : '—'} />
+          <KvRow label="reviews" value={content.reviews != null ? String(content.reviews) : '—'} />
+          <KvRow label="market news" value={content.marketNews != null ? String(content.marketNews) : '—'} />
+        </div>
+        {!snap?.content && <p class="mt-2 text-2xs text-faint">content counts require the updated status-snapshot.mjs (added this deploy)</p>}
+      </Card>
+      </div>
+
       <!-- operations -->
       <div class="mt-6 mb-2 text-2xs uppercase tracking-widest text-faint">operations</div>
 

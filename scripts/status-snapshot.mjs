@@ -174,12 +174,34 @@ try {
   buildInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'build.json'), 'utf8'))
 } catch { /* keep null */ }
 
+// ── content counts ──────────────────────────────────────────────────────────
+const CONTENT_DIR = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH) : path.join(ROOT, 'src/content')
+function countContent(kind) {
+  try {
+    return fs
+      .readdirSync(path.join(CONTENT_DIR, kind))
+      .filter((f) => f.endsWith('.md') || f.endsWith('.mdx'))
+      .length
+  } catch {
+    return null
+  }
+}
+const content = {
+  days: countContent('days'),
+  journal: countContent('journal'),
+  accounts: countContent('accounts'),
+  habits: countContent('habits'),
+  reviews: countContent('reviews'),
+  marketNews: countContent('market-news'),
+}
+
 const snapshot = {
   at: new Date().toISOString(),
   market,
   rebuilds,
   pending,
   build: buildInfo ? { version: buildInfo.version, commit: buildInfo.commit } : null,
+  content,
   system: {
     container: { up: dockerUp, status: dockerStatus },
     disk,
