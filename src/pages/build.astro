@@ -100,30 +100,39 @@ const tools = [
   { name: 'Playwright', what: 'Browser automation', role: 'visual verification, testing' },
 ]
 
-// ── traceability — auto-generated from filesystem ───────────────────────────
-function scanDir(dir: string, prefix: string) {
-  try {
-    return fs.readdirSync(dir)
-      .filter(f => f.endsWith('.astro') || f.endsWith('.ts'))
-      .map(f => {
-        const fullPath = path.join(dir, f)
-        const content = fs.readFileSync(fullPath, 'utf8')
-        const descMatch = content.match(/\/\*\*\s*(?:\n\s*\*\s*)?(.+?)(?:\s*\*\/|\n)/)
-        return {
-          file: `${prefix}/${f}`,
-          feature: f.replace(/\.(astro|ts)$/, ''),
-          what: descMatch?.[1]?.trim() ?? '',
-        }
-      })
-  } catch { return [] }
+// ── traceability — auto-generated via import.meta.glob (recursive) ──────────
+// Build-time file discovery: every page/component/lib file under src/, with a
+// doc-comment reader for the "what" column. Replaces the non-recursive fs scan
+// (which missed nested routes like pages/day/[date].astro and pages/api/*).
+interface TraceItem { file: string; feature: string; what: string }
+function globTrace(entries: string[], base: string): TraceItem[] {
+  return entries
+    .map((p) => {
+      const rel = p.replace(/^\/src\//, '')
+      const feature = rel.replace(/\.(astro|ts)$/, '').split('/').pop() ?? rel
+      let what = ''
+      try {
+        const content = fs.readFileSync(path.join(ROOT, 'src', rel), 'utf8')
+        const m = content.match(/\/\*\*\s*(?:\n\s*\*\s*)?(.+?)(?:\s*\*\/|\n)/)
+        what = m?.[1]?.trim() ?? ''
+      } catch { /* file gone at build — skip what */ }
+      return { file: rel, feature, what }
+    })
+    .sort((a, b) => a.file.localeCompare(b.file))
 }
 
+const tracePages = globTrace(Object.keys(import.meta.glob('/src/pages/**/*.{astro,ts}')), 'src/pages')
+const traceComponents = globTrace(Object.keys(import.meta.glob('/src/components/**/*.astro')), 'src/components')
+const traceUi = globTrace(Object.keys(import.meta.glob('/src/components/ui/**/*.astro')), 'src/components/ui')
+const tracePrivate = globTrace(Object.keys(import.meta.glob('/src/components/private/**/*.astro')), 'src/components/private')
+const traceLib = globTrace(Object.keys(import.meta.glob('/src/lib/**/*.ts')), 'src/lib')
+
 const traceability = [
-  { category: 'Public Pages', items: scanDir('src/pages', 'pages') },
-  { category: 'Components', items: scanDir('src/components', 'components') },
-  { category: 'UI Primitives', items: scanDir('src/components/ui', 'components/ui') },
-  { category: 'Private', items: scanDir('src/components/private', 'components/private') },
-  { category: 'Libraries', items: scanDir('src/lib', 'lib') },
+  { category: 'Public Pages', items: tracePages },
+  { category: 'Components', items: traceComponents },
+  { category: 'UI Primitives', items: traceUi },
+  { category: 'Private', items: tracePrivate },
+  { category: 'Libraries', items: traceLib },
 ]
 
 const principles = [
