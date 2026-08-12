@@ -174,12 +174,6 @@ try {
   buildInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'build.json'), 'utf8'))
 } catch { /* keep null */ }
 
-// ── design review ───────────────────────────────────────────────────────────
-let reviewInfo = null
-try {
-  reviewInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'design-review.json'), 'utf8'))
-} catch { /* keep null */ }
-
 const snapshot = {
   at: new Date().toISOString(),
   market,
@@ -203,14 +197,6 @@ const snapshot = {
     live: liveNow,
     at: liveAt,
   },
-  review: reviewInfo ? {
-    at: reviewInfo.at,
-    total: reviewInfo.total,
-    pending: reviewInfo.pending,
-    approved: reviewInfo.approved,
-    rejected: reviewInfo.rejected,
-    recentViolations: reviewInfo.recentViolations,
-  } : null,
 }
 
 try {
