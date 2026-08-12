@@ -32,10 +32,19 @@ jobs:
           DATA_PATH: /srv/1edge/content
         run: node scripts/market-news-fetch.mjs --no-build
 
-      - name: Sync code to /srv/1edge
+      - name: Build container (fresh checkout)
         run: |
-          rsync -av --delete --exclude='data/' --exclude='.env*' --exclude='content/' --exclude='media/' ./ /srv/1edge/
-          cd /srv/1edge && docker compose -f /srv/1edge/docker-compose.yml up -d --build
+          # Build from the runner's fresh checkout (this workspace), so the
+          # image ships the merged code. Avoids rsync --delete against the
+          # production /srv/1edge tree (which holds volumes + .env).
+          docker build -t 1edge-site .
+
+      - name: Deploy container (existing /srv/1edge config)
+        run: |
+          # Restart using /srv/1edge's compose file, which owns the .env and
+          # the content/media/data volumes. --no-build reuses the image built
+          # above; the compose build: . is ignored.
+          cd /srv/1edge && docker compose -f /srv/1edge/docker-compose.yml up -d --no-build
 
       - name: Verify live
         env:
