@@ -10,7 +10,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const OUT = path.join(ROOT, 'data', 'status.json')
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(ROOT, 'data')
+const OUT = path.join(DATA_DIR, 'status.json')
 const TMP = OUT + '.tmp'
 
 function sh(cmd, opts = {}) {
@@ -101,7 +102,8 @@ if (lastFetched) {
 }
 
 try {
-  const dir = path.join(ROOT, 'src/content/market-news')
+  const CONTENT = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH) : path.join(ROOT, 'src/content')
+  const dir = path.join(CONTENT, 'market-news')
   const files = fs
     .readdirSync(dir)
     .filter((f) => /^\d{4}-\d{2}-\d{2}\.md$/.test(f))

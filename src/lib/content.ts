@@ -1,10 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
-
-export const ROOT = process.cwd()
-export const CONTENT = path.join(ROOT, 'src/content')
-export const MEDIA = path.join(ROOT, 'public/media')
+import { CONTENT, MEDIA } from './paths'
 
 export type Kind =
   | 'days'

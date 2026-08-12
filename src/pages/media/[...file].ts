@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 import fs from 'node:fs'
 import path from 'node:path'
-import { MEDIA } from '../../lib/content'
+import { MEDIA } from '../../lib/paths'
 
 export const prerender = false
 

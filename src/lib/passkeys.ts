@@ -1,9 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-
-export const DATA_DIR = process.env.PASSKEY_DATA_DIR
-  ? path.resolve(process.env.PASSKEY_DATA_DIR)
-  : path.join(process.cwd(), 'data')
+import { DATA_DIR } from './paths'
 
 const CREDS = path.join(DATA_DIR, 'passkeys.json')
 const SESSIONS = path.join(DATA_DIR, 'sessions.json')

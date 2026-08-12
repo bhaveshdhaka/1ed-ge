@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
-import { CONTENT } from './content'
+import { CONTENT } from './paths'
 
 export interface NewsItem {
   time: string

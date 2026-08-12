@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { DATA_DIR } from './paths'
 
-const DATA_DIR = path.join(process.cwd(), 'data')
 const PENDING_FILE = path.join(DATA_DIR, 'pending.json')
 const REBUILDS_FILE = path.join(DATA_DIR, 'rebuilds.json')
 const BUILD_LOCK_FILE = path.join(DATA_DIR, 'build.lock')

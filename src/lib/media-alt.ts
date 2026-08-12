@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { MEDIA } from './content'
+import { MEDIA } from './paths'
 
 const ALTS_FILE = path.join(MEDIA, 'alts.json')
 let cache: Record<string, string> | null = null

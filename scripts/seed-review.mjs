@@ -15,7 +15,8 @@ if (process.env.SITE_ENV !== 'test') {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
-const C = (rel) => path.join(ROOT, 'src/content', rel)
+const CONTENT = process.env.DATA_PATH ? path.resolve(process.env.DATA_PATH) : path.join(ROOT, 'src/content')
+const C = (rel) => path.join(CONTENT, rel)
 const out = (rel) => {
   const p = C(rel)
   fs.mkdirSync(path.dirname(p), { recursive: true })

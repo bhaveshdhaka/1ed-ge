@@ -3,12 +3,12 @@ import type { APIRoute } from 'astro'
 import fs from 'node:fs'
 import { spawn } from 'node:child_process'
 import { requireSession, json, error } from '../../../lib/auth'
-import { ROOT } from '../../../lib/content'
+import { ROOT, DATA_DIR } from '../../../lib/paths'
 import { getPending, clearPending, getRebuilds, pushRebuild, acquireBuildLock, releaseBuildLock, setBuildLockPid } from '../../../lib/changes'
 
 export const prerender = false
 
-const STATUS_FILE = path.join(process.cwd(), 'data', 'build.json')
+const STATUS_FILE = path.join(DATA_DIR, 'build.json')
 // A build that started more than this long ago but still claims `running` is
 // stuck (crashed build, container restart mid-build) — clear it and proceed.
 const STALE_MS = 10 * 60 * 1000

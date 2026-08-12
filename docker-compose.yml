@@ -8,6 +8,8 @@ services:
       - "127.0.0.1:4321:4321"
     env_file: .env
     volumes:
-      - ./src/content:/app/src/content
-      - ./public/media:/app/public/media
-      - ./data:/app/data
+      # Env-driven content/data paths — DATA_PATH/MEDIA_PATH/DATA_DIR from .env
+      # (defaults to in-repo src/content, public/media, data).
+      - ${DATA_PATH:-./src/content}:/app/src/content
+      - ${MEDIA_PATH:-./public/media}:/app/public/media
+      - ${DATA_DIR:-./data}:/app/data

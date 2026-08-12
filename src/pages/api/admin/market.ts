@@ -3,13 +3,13 @@ import type { APIRoute } from 'astro'
 import fs from 'node:fs'
 import { spawn } from 'node:child_process'
 import { requireSession, json, error } from '../../../lib/auth'
-import { ROOT } from '../../../lib/content'
+import { ROOT, DATA_DIR } from '../../../lib/paths'
 import { newsForDate, listNewsDates } from '../../../lib/market-news'
 import { cmeToday } from '../../../lib/sessions'
 
 export const prerender = false
 
-const STATUS_FILE = path.join(process.cwd(), 'data', 'market.json')
+const STATUS_FILE = path.join(DATA_DIR, 'market.json')
 
 function setStatus(s: unknown) {
   try {

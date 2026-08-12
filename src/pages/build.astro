@@ -20,12 +20,13 @@ import ThoughtCard from '../components/stream/ThoughtCard.astro'
 import type { FactCell, ResolvedThought } from '../lib/stream'
 import { fmtDayWUpper } from '../lib/dates'
 import SideNav from '../components/ui/SideNav.astro'
+import { CONTENT, MEDIA, DATA_DIR, ROOT } from '../lib/paths'
 
 // ── build version (data/build.json, written at deploy) ─────────────────────
-const require = createRequire(join(process.cwd(), 'package.json'))
+const require = createRequire(join(ROOT, 'package.json'))
 let buildData: { version?: string; at?: string; commit?: string } | null = null
 try {
-  buildData = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'build.json'), 'utf8'))
+  buildData = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'build.json'), 'utf8'))
 } catch {}
 const VERSION = buildData?.version ?? new Date().toISOString().slice(0, 10)
 const VERSION_DATE = VERSION
@@ -68,13 +69,13 @@ interface Tokenomics {
 }
 let tokenomics: Tokenomics | null = null
 try {
-  tokenomics = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'tokenomics.json'), 'utf8'))
+  tokenomics = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'tokenomics.json'), 'utf8'))
 } catch {}
 
 // ── changelog (changelog/YYYY-MM-DD.md) ─────────────────────────────────────
 let changelogEntry: string | null = null
 try {
-  changelogEntry = fs.readFileSync(path.join(process.cwd(), 'changelog', `${today}.md`), 'utf8')
+  changelogEntry = fs.readFileSync(path.join(ROOT, 'changelog', `${today}.md`), 'utf8')
 } catch {}
 
 // ── stack / tools / principles (curated, from /dev) ─────────────────────────
@@ -137,7 +138,7 @@ const principles = [
 ]
 
 // ── design tokens — auto-generated from src/styles/app.css ───────────────────
-const css = fs.readFileSync('src/styles/app.css', 'utf8')
+const css = fs.readFileSync(path.join(ROOT, 'src/styles/app.css'), 'utf8')
 const hueTokens = [...css.matchAll(/--hue-([\w-]+):\s*([^;]+);/g)].map(m => ({
   token: `--hue-${m[1]}`, value: m[2].trim()
 }))
@@ -152,7 +153,7 @@ const materialTokens = [...css.matchAll(/--(radius[\w-]*|shadow[\w-]*|blur[\w-]*
 }))
 
 // ── UI primitives — auto-generated from src/components/ui/*.astro ───────────
-const uiDir = path.join(process.cwd(), 'src/components/ui')
+const uiDir = path.join(ROOT, 'src/components/ui')
 const primitiveFiles = fs.readdirSync(uiDir).filter(f => f.endsWith('.astro'))
 const primitives = primitiveFiles.map(f => {
   const name = f.replace('.astro', '')
@@ -249,15 +250,15 @@ const filesCss = countFiles('.css')
 const countDir = (dir: string) => {
   try { return fs.readdirSync(dir).filter(f => f.endsWith('.md') || f.endsWith('.mdx')).length } catch { return 0 }
 }
-const days = countDir('src/content/days')
-const journals = countDir('src/content/journal')
-const accounts = countDir('src/content/accounts')
-const habits = countDir('src/content/habits')
-const reviews = countDir('src/content/reviews')
-const marketNews = countDir('src/content/market-news')
+const days = countDir(path.join(CONTENT, 'days'))
+const journals = countDir(path.join(CONTENT, 'journal'))
+const accounts = countDir(path.join(CONTENT, 'accounts'))
+const habits = countDir(path.join(CONTENT, 'habits'))
+const reviews = countDir(path.join(CONTENT, 'reviews'))
+const marketNews = countDir(path.join(CONTENT, 'market-news'))
 
 let mediaCount = 0
-try { mediaCount = parseInt(execSync('find public/media/ -type f 2>/dev/null | wc -l').toString().trim()) || 0 } catch {}
+try { mediaCount = parseInt(execSync(`find ${MEDIA} -type f 2>/dev/null | wc -l`).toString().trim()) || 0 } catch {}
 
 // ── stack versions (from /dev) ───────────────────────────────────────────────
 const pkg = require('./package.json')
