@@ -11,6 +11,21 @@ servers do NOT count as "done". Workflow: typecheck → commit on a `feat/*` bra
 → push (pre-push hook gates) → open a PR → merge → CI deploys → curl-verify the
 changed bits live. Kill test servers when finished.
 
+## GOTCHA — prod container uses CONTAINER paths in .env.production (2026-08-12)
+
+Dev/prod `.env` uses **host** paths (`/srv/1edge/content`), but inside the Docker
+container the volumes mount at **container** paths. `DATA_PATH`/`MEDIA_PATH`/`DATA_DIR`
+in `/srv/1edge/.env.production` MUST be the container paths:
+- `DATA_PATH=/app/src/content` (NOT `/srv/1edge/content`)
+- `MEDIA_PATH=/app/public/media`
+- `DATA_DIR=/app/data`
+
+If set to host paths, the SSR server looks for a non-existent path inside the
+container → day pages render EMPTY ("0 trades") even though the data is present
+in `/srv/1edge/content`. Symptom: trades/journal missing on live but present in
+the volume. Fix: correct `.env.production` + `docker-compose up -d`. The deploy
+workflow does NOT overwrite `.env.production`, so this fix persists.
+
 ## HANDOFF — two-server migration COMPLETE (2026-08-12) (READ FIRST)
 
 **The migration is DONE and live.** Prod `1ed.ge` now runs on **Server B**
