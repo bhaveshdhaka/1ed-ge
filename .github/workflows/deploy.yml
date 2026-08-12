@@ -32,10 +32,10 @@ jobs:
           DATA_PATH: /srv/1edge/content
         run: node scripts/market-news-fetch.mjs --no-build
 
-      - name: Build + deploy container
+      - name: Sync code to /srv/1edge
         run: |
-          cd /srv/1edge
-          docker compose -f /srv/1edge/docker-compose.yml up -d --build
+          rsync -av --delete --exclude='data/' --exclude='.env*' --exclude='content/' --exclude='media/' ./ /srv/1edge/
+          cd /srv/1edge && docker compose -f /srv/1edge/docker-compose.yml up -d --build
 
       - name: Verify live
         env:
