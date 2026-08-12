@@ -18,14 +18,16 @@ fi
 
 NODE_BIN="$(command -v node || echo /usr/bin/node)"
 
-# status snapshot — refresh data/status.json every 5 min (feeds /status)
+# status snapshot — refresh data/status.json every 5 min (feeds /status).
+# DATA_PATH/DATA_DIR must be set: without them status-snapshot.mjs falls back to
+# /srv/1edge/src/content, but the content/data live at /srv/1edge/{content,data}.
 cat > /etc/cron.d/1edge-status <<'EOF'
-*/5 * * * * deploy cd /srv/1edge && /usr/bin/node /srv/1edge/scripts/status-snapshot.mjs >/dev/null 2>&1 || true
+*/5 * * * * deploy cd /srv/1edge && DATA_PATH=/srv/1edge/content DATA_DIR=/srv/1edge/data /usr/bin/node /srv/1edge/scripts/status-snapshot.mjs >/dev/null 2>&1 || true
 EOF
 
 # market news — refresh USD news every 8h into /srv/1edge/content/market-news
 cat > /etc/cron.d/1edge-market <<'EOF'
-0 */8 * * * deploy cd /srv/1edge && /usr/bin/node /srv/1edge/scripts/market-news-fetch.mjs --no-build >> /tmp/1edge-market.log 2>&1 || true
+0 */8 * * * deploy cd /srv/1edge && DATA_PATH=/srv/1edge/content DATA_DIR=/srv/1edge/data /usr/bin/node /srv/1edge/scripts/market-news-fetch.mjs --no-build >> /tmp/1edge-market.log 2>&1 || true
 EOF
 
 chmod 644 /etc/cron.d/1edge-status /etc/cron.d/1edge-market
