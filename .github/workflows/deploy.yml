@@ -18,9 +18,18 @@ jobs:
           fetch-depth: 0
 
       - name: Post-deploy bookkeeping (changelog, build stamp, tokenomics)
+        env:
+          DATA_DIR: /srv/1edge/data
+          DATA_PATH: /srv/1edge/content
+          MEDIA_PATH: /srv/1edge/media
+          SITE_ENV: prod
+          SITE_URL: https://1ed.ge
+          SITE_PORT: 4321
         run: node scripts/post-deploy.mjs
 
       - name: Fetch market news
+        env:
+          DATA_PATH: /srv/1edge/content
         run: node scripts/market-news-fetch.mjs --no-build
 
       - name: Build + deploy container
@@ -29,7 +38,14 @@ jobs:
           docker compose -f /srv/1edge/docker-compose.yml up -d --build
 
       - name: Verify live
+        env:
+          SITE_ENV: prod
+          SITE_URL: https://1ed.ge
+          SITE_PORT: 4321
+          SITE_RESOLVE: 1ed.ge:443:104.21.7.179
         run: bash scripts/verify-env.sh prod
 
       - name: Status snapshot
+        env:
+          DATA_DIR: /srv/1edge/data
         run: node scripts/status-snapshot.mjs

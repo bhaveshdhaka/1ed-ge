@@ -10,7 +10,9 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const DATA = path.join(ROOT, 'data')
+// DATA_DIR is env-driven (deploy.yml passes /srv/1edge/data) so bookkeeping
+// lands in the mounted production volume, not the runner checkout.
+const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(ROOT, 'data')
 const CHANGELOG_DIR = path.join(ROOT, 'changelog')
 
 function sh(cmd) {
