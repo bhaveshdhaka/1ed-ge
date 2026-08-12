@@ -43,8 +43,11 @@ jobs:
         run: |
           # Ship the repo's docker-compose.yml to /srv/1edge (host mounts + env),
           # then restart using it. --no-build reuses the fresh image built above.
+          # --remove-orphans + --force-recreate handle the container-name conflict
+          # when switching between compose definitions (old 1edge-site is seen as
+          # an orphan by the shipped compose file).
           cp ./docker-compose.yml /srv/1edge/docker-compose.yml
-          cd /srv/1edge && docker compose -f /srv/1edge/docker-compose.yml up -d --no-build
+          cd /srv/1edge && docker compose -f /srv/1edge/docker-compose.yml up -d --no-build --remove-orphans --force-recreate
 
       - name: Verify live
         env:
