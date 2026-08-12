@@ -97,28 +97,6 @@ const releases: Release[] = (() => {
   }
 })()
 
-// ── stack / tools / principles (curated, from /dev) ─────────────────────────
-const stack = [
-  { layer: 'Framework', tech: 'Astro 5 (static-first) + @astrojs/node (SSR)', note: 'zero JS on public pages' },
-  { layer: 'Styling', tech: 'Tailwind CSS v4', note: '3-layer token architecture' },
-  { layer: 'Language', tech: 'TypeScript', note: 'strict mode' },
-  { layer: 'Admin', tech: 'React (islands)', note: 'client-side, admin area only' },
-  { layer: 'AI', tech: 'OpenRouter — DeepSeek + Qwen2.5-VL', note: 'day structuring, coach, screenshot reading' },
-  { layer: 'Images', tech: 'sharp (webp)', note: 'auto-conversion on upload' },
-  { layer: 'Content', tech: 'Markdown + gray-matter', note: 'files are the database' },
-  { layer: 'Hosting', tech: 'VPS + Docker + nginx', note: 'preprod + prod worktrees' },
-]
-
-const tools = [
-  { name: 'OpenCode', what: 'AI coding assistant', role: 'orchestrates all agent work' },
-  { name: 'mimo-v2.5-pro', what: 'Orchestrator model', role: 'primary reasoning, planning, coordination' },
-  { name: 'deepseek-v4-flash', what: 'Fast agent model', role: 'explorer, fixer, librarian, observer' },
-  { name: 'qwen3.7-plus', what: 'Oracle + designer model', role: 'architecture review, UI/UX design' },
-  { name: 'TypeScript LSP', what: 'Language server', role: 'type checking, diagnostics' },
-  { name: 'AST grep', what: 'Structural search', role: 'codebase-wide pattern matching' },
-  { name: 'Playwright', what: 'Browser automation', role: 'visual verification, testing' },
-]
-
 // ── traceability — auto-generated via import.meta.glob (recursive) ──────────
 // Build-time file discovery: every page/component/lib file under src/, with a
 // doc-comment reader for the "what" column. Replaces the non-recursive fs scan
@@ -152,17 +130,6 @@ const traceability = [
   { category: 'UI Primitives', items: traceUi },
   { category: 'Private', items: tracePrivate },
   { category: 'Libraries', items: traceLib },
-]
-
-const principles = [
-  { rule: 'Everything public', detail: 'I open every position, show every ticket, log every trade, every result, every move. Nothing hidden.' },
-  { rule: 'Kaizen', detail: 'Trading is continuous daily improvement. Keep what works, drop what doesn\'t, tweak the exact same things every single day.' },
-  { rule: 'Files are the database', detail: 'All data lives in markdown files on disk. Day records, journal entries, habits, accounts — each is a file with structured data at the top. No database server, no queries, no migrations.' },
-  { rule: 'Minimal JS on public pages', detail: 'All charts are server-rendered SVG. ~15KB inline JS total (lightbox, timezone, market ticker). No external JS dependencies.' },
-  { rule: 'CME is the master clock', detail: 'Day status comes from the CME equity-index-futures calendar. NYSE/TSE/LSE are secondary.' },
-  { rule: 'R is the only metric', detail: 'R = points risked vs points made. Performance math is risk-based.' },
-  { rule: 'Security by obscurity', detail: 'The admin is at a secret URL. API keys are in .env (gitignored). The route stays obscure.' },
-  { rule: 'The rules are dead simple', detail: 'Trade every day. Never risk more than you can afford. Focus on the move, not the number. Stay small, nimble, consistent. Have fun. Surpass the S&P.' },
 ]
 
 // ── design tokens + primitives now live on /design ─────────────────────────
@@ -213,7 +180,7 @@ const osInfo = `${process.platform} ${process.arch}`
 
 // ── page navigation (SideNav groups) ─────────────────────────────────────────
 const navGroups = [
-  { label: 'overview', items: [['build', 'build'], ['principles', 'principles'], ['stack', 'stack'], ['tools', 'tools']] as [string, string][] },
+  { label: 'overview', items: [['build', 'build']] as [string, string][] },
   { label: 'releases', items: [['release', 'release'], ['changelog', 'changelog-section']] as [string, string][] },
   { label: 'features', items: [['features', 'features-section']] as [string, string][] },
   { label: 'tokenomics', items: [['summary', 'tokenomics-summary'], ['daily', 'tokenomics-daily'], ['models', 'tokenomics-models'], ['agents', 'tokenomics-agents'], ['sessions', 'tokenomics-sessions']] as [string, string][] },
@@ -232,7 +199,7 @@ const navGroups = [
       <SectionNav groups={navGroups} slot="mobile-nav" />
     </SideNav>
     <p class="mt-2 max-w-2xl text-sm text-dim">
-      How this site was built. The stack, the design system, the features, what changed today, and what the builds cost. Everything public.
+      Release history, AI compute costs, feature traceability, and source stats — all generated from data, nothing hand-curated. Everything public.
     </p>
 
     <!-- ══ Overview ══ -->
@@ -253,69 +220,6 @@ const navGroups = [
             <div>
               <KvRow label="version" value={fmtDayWUpper(VERSION_DATE)} />
             </div>
-          </div>
-        </Card>
-      </div>
-
-      <div id="principles" class="mt-6 scroll-mt-28">
-        <Card icon="🧭" label="principles" subtitle="the rules we build by">
-          <div class="flex flex-col gap-3">
-            {principles.map((p) => (
-              <div class="flex flex-col gap-0.5">
-                <span class="text-sm text-ink">{p.rule}</span>
-                <span class="text-xs text-dim">{p.detail}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      <div id="stack" class="mt-6 scroll-mt-28">
-        <Card icon="🛠" label="stack" subtitle="what we use">
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th class="th">layer</th>
-                  <th class="th">technology</th>
-                  <th class="th">note</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stack.map((s) => (
-                  <tr>
-                    <td class="td text-dim">{s.layer}</td>
-                    <td class="td text-ink">{s.tech}</td>
-                    <td class="td text-faint">{s.note}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
-
-      <div id="tools" class="mt-6 scroll-mt-28">
-        <Card icon="🤖" label="build tools" subtitle="AI-assisted development">
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th class="th">tool</th>
-                  <th class="th">what</th>
-                  <th class="th">role</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tools.map((t) => (
-                  <tr>
-                    <td class="td text-ink">{t.name}</td>
-                    <td class="td text-dim">{t.what}</td>
-                    <td class="td text-faint">{t.role}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </Card>
       </div>
