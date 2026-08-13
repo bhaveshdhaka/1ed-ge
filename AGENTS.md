@@ -31,6 +31,8 @@ path. There is no PR gate for the agent; direct pushes to `main` (prod) or
 **Verify live**: open `https://1ed.ge` (prod) / `https://test.1ed.ge` (test), or
 `curl` the app, and confirm your change is present. If Coolify didn't redeploy,
 check the deploy log in the Coolify dashboard or hit the trigger endpoint.
+**Standard protocol:** read **`docs/SHIP.md`** — the exact push commands, the Coolify webhook to watch, and the identical chat reply (with lead-time timing) every agent gives.
+
 
 **Key facts:**
 - Coolify API: `https://coolify.bhavesh.hk/api/v1` (public, via tunnel). Token:
