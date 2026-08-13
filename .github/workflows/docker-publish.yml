@@ -38,10 +38,14 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE }}
+          # latest=auto flavor adds a :latest tag only on the default branch,
+          # so Coolify's dockerimage apps (which default to tag=latest) pull
+          # the right image without needing to PATCH docker_registry_image_tag.
+          flavor: latest=auto
           tags: |
-            type=ref,event=branch            # main
-            type=sha,prefix=                     # abc1234
-            type=semver,pattern={{version}}      # if a tag is ever pushed
+            type=ref,event=branch
+            type=sha,prefix=
+            type=semver,pattern={{version}}
 
       - name: Build and push
         uses: docker/build-push-action@v6
