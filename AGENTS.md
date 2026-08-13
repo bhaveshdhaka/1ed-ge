@@ -15,38 +15,32 @@ The centerpiece metric is **R** = points risked vs points made. All
 performance math is risk-based. Everything is linked: mood, sleep, habits,
 screen time, and trades all live in the same daily record.
 
-## Pipeline (GitHub PR → Actions → deploy)
+## Ship & Deploy (push → GitHub → GHCR → Coolify)
 
-The repo lives at **`github.com/bhaveshdhaka/1ed-ge`** (public). `main` and
-`preprod` are **protected branches** — no direct pushes, no force pushes, PR
-required. The full env contract, scripts, and daily workflow are in
-**`docs/PIPELINE.md`** — read it before any deploy or sync. The pipeline
-guarantees:
+Develop in **oc-dev**, commit, and **push to GitHub** — that is the whole ship
+path. There is no PR gate for the agent; direct pushes to `main` (prod) or
+`preprod` (test) are allowed. Pushing is what triggers deployment, end-to-end:
 
-- **Agent ships via PR only.** Create a `feat/*` branch → typecheck/test/lint
-  → push (the pre-push hook gates it) → open a PR. Deploy happens on merge via
-  CI (GitHub Actions). The agent never ships directly, never touches Server B,
-  never holds prod secrets.
-- **Direct `git push` to main/preprod is refused** by the pre-push hook
-  (`.githooks/pre-push`) AND by remote branch protection (GH006). The path is
-  a PR, not `git push`.
-- **Pre-push hook** (`.githooks/pre-push`, wired via `core.hooksPath`) runs
-  `npm run typecheck && npm run test && npm run lint` (~4s fast-fail) on any
-  allowed push, and blocks main/preprod.
-- **OpenCode tool lockdown** (`.opencode/opencode.json`): `git push main` /
-  `git push preprod` denied; `docker*`/`sudo*`/`ssh*`/`systemctl*` denied.
-  The hardened map is backed up at `/etc/opencode/opencode.json`.
-- **Agent user** (non-root, uid 1000, docker group) runs OpenChamber
-  (`oc.1ed.ge`) and OpenCode sessions. Scoped sudoers allowlist
-  (`/etc/sudoers.d/agent`) covers only openchamber/nginx service management —
-  never root. Agent holds only the GitHub PAT
-  (`/home/agent/.config/opencode/github-agent-token`), never prod secrets.
-- **Admin auth is passkey-based** (`/zen`, WebAuthn). The setup/recovery URL is
-  `/zen/setup?key=<ADMIN_SECRET>` — the secret is no longer in the daily URL.
-  Admin API auth = session cookie, not the `x-admin-secret` header.
+1. **Push** to `main` or `preprod` on `github.com/bhaveshdhaka/1ed-ge`.
+2. GitHub Actions `docker-publish.yml` builds the image and pushes it to **GHCR**
+   (`ghcr.io/bhaveshdhaka/1ed-ge`, tagged `:main` / `:preprod` + git sha + `:latest`).
+3. The same workflow then POSTs to the **Coolify API** to pull the tag for that
+   branch and redeploy the matching app.
+4. Coolify (on this host) pulls the image and serves the live URL behind Cloudflare.
 
-The one-line env check: `bash scripts/where-am-i.sh`. The 10-second
-wired-up check: `bash scripts/audit-pipeline.sh`.
+**Verify live**: open `https://1ed.ge` (prod) / `https://test.1ed.ge` (test), or
+`curl` the app, and confirm your change is present. If Coolify didn't redeploy,
+check the deploy log in the Coolify dashboard or hit the trigger endpoint.
+
+**Key facts:**
+- Coolify API: `https://coolify.bhavesh.hk/api/v1` (public, via tunnel). Token:
+  `/srv/secrets/coolify-api`; also stored in GitHub Actions as `COOLIFY_TOKEN`.
+- Deploy trigger endpoint: `POST /api/v1/applications/<uuid>/start` (pulls the
+  image + recreates the container).
+- Branch → app → image tag:
+  - `main` → **1edge-prod** `oqz7u0yho3lulqdt0ymwdibx` → `1ed.ge` (pulls `:main`)
+  - `preprod` → **1edge-preprod** `fyn2fhxrsltey8dr6k6plxg8` → `test.1ed.ge` (pulls `:preprod`)
+- Public URLs sit behind Cloudflare (presently without the Access login wall).
 
 ## Stack
 
@@ -89,24 +83,19 @@ tree.** A change that is committed but not deployed, or deployed but not verifie
 does not exist to them. After ANY meaningful change:
 
 1. `npm run typecheck` (and `npm run build` if it touches the site).
-2. **Commit on a `feat/*` branch** — conventional prefix (`feat:` / `fix:` /
-   `chore:` / `docs:`), concise message. Never leave work uncommitted at the end
-   of a session.
-3. **Push the branch** — the pre-push hook (`.githooks/pre-push`) runs
-   `typecheck + test + lint` (~4s) before any push. Direct pushes to
-   `main`/`preprod` are refused by the hook AND by remote branch protection.
-4. **Open a PR** — `gh pr create` (or the GitHub web UI). Deploy happens on
-   merge via CI (GitHub Actions). The agent never ships directly, never touches
-   Server B, never holds prod secrets.
-5. **Verify LIVE after merge** — `bash scripts/verify-env.sh prod` (or `test`).
+2. **Commit** — conventional prefix (`feat:` / `fix:` / `chore:` / `docs:`),
+   concise message. Never leave work uncommitted at the end of a session.
+3. **Push to `main` (prod) or `preprod` (test)** — this triggers `docker-publish.yml`
+   → GHCR → Coolify auto-deploy (see **Ship & Deploy** above). No PR required.
+4. **Verify LIVE after deploy** — `bash scripts/verify-env.sh prod` (or `test`).
    Confirms HTTP 200, noindex signals (test-only), and the noindex absence
    (prod-only). Then curl `https://1ed.ge` and confirm the changed bits are
    actually in the served HTML/bundle.
-6. Local verification servers on port 4323 and `node dist/server/entry.mjs`
+5. Local verification servers on port 4323 and `node dist/server/entry.mjs`
    are for tests only — kill them when done so they do not hold memory.
 
 The one exception: do NOT commit when the user explicitly says "don't commit /
-wait". Default is commit + ship via PR + deploy + verify.
+wait". Default is commit + push + deploy + verify.
 
 ## Layout
 

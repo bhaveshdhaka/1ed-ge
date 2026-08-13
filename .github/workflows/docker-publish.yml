@@ -1,12 +1,12 @@
 name: Publish image to GHCR
 
-# Builds the Docker image and pushes it to ghcr.io on every merge to main.
-# Coolify (Server B) pulls the `main` tag and runs it — no self-hosted runner
-# build context, no rsync, no /srv/1edge compose juggling.
+# Builds the Docker image and pushes it to ghcr.io on every push to main or
+# preprod. Coolify pulls the per-branch tag (:main / :preprod) and runs it —
+# no self-hosted runner build context, no rsync, no /srv/1edge compose juggling.
 
 on:
   push:
-    branches: [main]
+    branches: [main, preprod]
   workflow_dispatch:
 
 concurrency:
@@ -38,14 +38,12 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE }}
-          # latest=auto flavor adds a :latest tag only on the default branch,
-          # so Coolify's dockerimage apps (which default to tag=latest) pull
-          # the right image without needing to PATCH docker_registry_image_tag.
-          flavor: latest=auto
+          # Publish a per-branch tag (:main / :preprod) + git sha (+ :latest on
+          # main only) so each Coolify app pulls the image for its environment.
           tags: |
             type=ref,event=branch
             type=sha,prefix=
-            type=semver,pattern={{version}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -55,3 +53,19 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
+
+      # Trigger Coolify to pull the freshly published image for this environment.
+      # main -> 1edge-prod, preprod -> 1edge-preprod.
+      - name: Trigger Coolify deploy
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          case "${{ github.ref }}" in
+            refs/heads/main) uuids="oqz7u0yho3lulqdt0ymwdibx" ;;
+            refs/heads/preprod) uuids="fyn2fhxrsltey8dr6k6plxg8" ;;
+          esac
+          for uuid in $uuids; do
+            echo "deploying app $uuid"
+            curl -sf -X POST "https://coolify.bhavesh.hk/api/v1/applications/$uuid/start" \
+              -H "Authorization: Bearer ${COOLIFY_TOKEN}" || echo "deploy trigger failed (non-fatal)"
+          done
