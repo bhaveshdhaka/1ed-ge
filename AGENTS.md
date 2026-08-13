@@ -367,3 +367,6 @@ optional title/summary/tags/featuredImage.
   so it ports cleanly — swap the adapter, keep the content layer.
 - Safari/iOS polish: viewport-fit + apple meta already in the head; a fuller
   pass (safe-area insets, touch targets, PWA) is tracked in `MEMORY.md`.
+
+## Ship protocol
+**Standard protocol:** read **`docs/SHIP.md`** — the exact push commands, the Coolify webhook to watch, and the identical chat reply (with lead-time timing) every agent gives.
