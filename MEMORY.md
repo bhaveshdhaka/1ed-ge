@@ -7,9 +7,9 @@ decisions, gotchas and open items here; keep it short and factual.
 
 **Commit + deploy + verify live after every meaningful change.** The owner looks
 at `https://1ed.ge`, never the working tree. Local `dist/` and port-4323 test
-servers do NOT count as "done". Workflow: typecheck → commit on a `feat/*` branch
-→ push (pre-push hook gates) → open a PR → merge → CI deploys → curl-verify the
-changed bits live. Kill test servers when finished.
+servers do NOT count as "done". Workflow: typecheck → commit on a branch →
+push (CI gates) → `docker-publish.yml` → GHCR → Coolify deploys → curl-verify
+the changed bits live. Kill test servers when finished.
 
 ## GOTCHA — prod container uses CONTAINER paths in .env.production (2026-08-12)
 
@@ -26,33 +26,30 @@ in `/srv/1edge/content`. Symptom: trades/journal missing on live but present in
 the volume. Fix: correct `.env.production` + `docker-compose up -d`. The deploy
 workflow does NOT overwrite `.env.production`, so this fix persists.
 
-## HANDOFF — two-server migration COMPLETE (2026-08-12) (READ FIRST)
+## HANDOFF — single-server Coolify pipeline (READ FIRST)
 
-**The migration is DONE and live.** Prod `1ed.ge` now runs on **Server B**
-(`202.73.4.149`, docker, `server-b` runner). Test `test.1ed.ge` stays on
-**Server A** (`142.91.108.254`, host node, `server-a` runner). The pipeline is
-now **GitHub PR → Actions → deploy** — no more worktrees, no ship.sh, no
-sync scripts. Full contract in **`docs/PIPELINE.md`**.
+**Current.** Prod `1ed.ge` and test `test.1ed.ge` both run as **Coolify
+docker-image apps on Server B** (`202.73.4.149`), behind the Cloudflare tunnel.
+There is **no Server A**. Deploy = `docker-publish.yml` → GHCR → Coolify → live.
+Full contract in **`docs/PIPELINE.md`**.
 
 Key facts:
-- **Repos:** `bhaveshdhaka/1ed-ge` (public) + `bhaveshdhaka/walogger-v2` (public). Both have `main` + `preprod` protected (PR required, 1 review, no force push).
-- **Runners:** `server-b` (deploy user, uid 1001, on B) + `server-a` (agent user, on A). Both online.
-- **Content is env-driven:** `DATA_PATH`/`MEDIA_PATH`/`DATA_DIR`. Prod → `/srv/1edge/*` on B; test → `/var/data/test/*` on A. Content lives outside git.
-- **Agent ships via PR only.** Pre-push hook (`.githooks/pre-push`) runs typecheck+test+lint and blocks main/preprod. Remote branch protection (GH006) is the hard gate.
-- **OpenCode lockdown** (`.opencode/opencode.json`): `git push main`/`preprod` denied; `docker*`/`sudo*`/`ssh*`/`systemctl*` denied. Backed up at `/etc/opencode/opencode.json`.
-- **Agent user** (non-root, uid 1000, docker group) runs OpenChamber + OpenCode sessions on A. Scoped sudoers (`/etc/sudoers.d/agent`) covers openchamber/nginx/runner only.
-- **walogger v2** dockerized on B (`/srv/walogger`, bound 127.0.0.1:8000, behind Cloudflare Access `wa.1ed.ge`/`test-wa.1ed.ge`). A-side v2 decommissioned; v1 untouched.
-- **Server B "don't touch":** `/srv/slices`, `slice-*`/`pg-*` containers, `slices.conf`, `bhavesh.hk.*` certs. `deploy` user is isolated (can't read `/srv/slices`).
-- **Cloudflare:** `1ed.ge` + `www.1ed.ge` → Server B (proxied). Access apps for `wa.1ed.ge` + `test-wa.1ed.ge` (allow `mail@bhavesh.net` + `mail@char.hk`).
-
-### The pre-prod environment (test.1ed.ge)
-The full setup, env contract, scripts, and daily workflow are in **`docs/PIPELINE.md`**.
-That doc is the single source of truth. Key points:
-- Test runs on Server A (host node, port 4323), deployed by the `server-a` runner on merge to `preprod`.
-- `.env` declares `SITE_ENV=test`, `SITE_URL=https://test.1ed.ge`, `SITE_PORT=4323`, `DATA_PATH=/var/data/test/content`
-- `bash scripts/audit-pipeline.sh` is the 10-second "wired up?" check
-- The preprod keeps its sandbox filler: 6 accounts (4 profitable, 2 FAILED with post-mortem
-  stories), 180 weekly payouts, review notes + an AI comparison, media placeholders, account
+- **Repo:** `bhaveshdhaka/1ed-ge` (public). `main` (prod) + `preprod` (test).
+  Branch protection: `ci` required, **0 required reviews**, force-push disabled
+  → agents push autonomously, CI does the checks.
+- **Coolify apps:** 1edge-prod `oqz7u0yho3lulqdt0ymwdibx` (4321), 1edge-preprod
+  `fyn2fhxrsltey8dr6k6plxg8` (4323).
+- **Content is env-driven:** `DATA_PATH`/`MEDIA_PATH`/`DATA_DIR`. Host volumes
+  `/srv/1edge/{content,media,data}` map into the container. Content lives in git.
+- **Ship:** push (or merge) → `docker-publish.yml` builds GHCR `:main`/`:preprod`
+  → POSTs Coolify `/start` → Coolify pulls + recreates → verify live.
+- **OpenCode lockdown** (`.opencode/opencode.json`): `git push main`/`preprod`
+  **allow** (automated); `docker*`/`sudo*`/`ssh*`/`systemctl*` denied.
+- **Auth:** Cloudflare Access on `wa.1ed.ge`/`test-wa.1ed.ge` (wa.1ed.ge =
+  walogger-v2 app; not 1ed-ge). 1ed.ge + test.1ed.ge are public (no Access).
+- **Server B "don't touch":** `/srv/slices`, `slice-*`/`pg-*` containers,
+  `slices.conf`, `bhavesh.hk.*` certs.
+- **Repository push** uses a per-repo SSH deploy key (**not** the owner PAT).
   rules on 3 accounts. The filler is generated by `node scripts/seed-review.mjs --days=N` (the
   preprod branch's `seed-review.mjs` has a date tweak so days end today — do not merge that
   tweak to main unless intended).

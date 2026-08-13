@@ -369,3 +369,9 @@ optional title/summary/tags/featuredImage.
   so it ports cleanly — swap the adapter, keep the content layer.
 - Safari/iOS polish: viewport-fit + apple meta already in the head; a fuller
   pass (safe-area insets, touch targets, PWA) is tracked in `MEMORY.md`.
+
+## oc-infra vs oc-dev (read on this box)
+
+- The agent that manages the server (Coolify, Cloudflare, containers, /srv, secrets) is **oc-infra**: oc-infra.bhavesh.hk, host-level, no single git project. Its global guide is `/srv/AGENTS.md`.
+- The agent that works on THIS repo (code, CI, PRs, ship) is **oc-dev**: oc-dev.bhavesh.hk, restricted perms.
+- Full authoritative doc: `/srv/AGENTS.md`. Keep it and this file in sync.

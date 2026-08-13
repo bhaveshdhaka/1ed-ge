@@ -5,8 +5,8 @@
   "permission": {
     "bash": {
       "*": "ask",
-      "git push main": "deny",
-      "git push preprod": "deny"
+      "git push main": "allow",
+      "git push preprod": "allow"
     }
   }
 }

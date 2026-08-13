@@ -17,7 +17,8 @@ Worktrees / local repos:
 - `/var/repos/<repo>` → prod (`main`)
 - `/var/repos/<repo>-preprod` → test (`preprod`)
 
-> In oc-dev, pushes are `ask`-gated — you approve each `git push` in the chat.
+> In oc-dev, pushes are **automated** — the agent pushes directly, CI runs the
+> checks, and the pipeline (GHCR + Coolify) deploys. No approval prompt.
 
 ## 2. Deploy trigger (how a push becomes LIVE)
 
