@@ -1,0 +1,13 @@
+---
+interface Props {
+  step?: string
+  title: string
+  desc?: string
+}
+const { step, title, desc } = Astro.props
+---
+<div class="mx-auto max-w-2xl">
+  {step && <div class="capsule w-fit">{step}</div>}
+  <h1 class="mt-3 text-2xl font-semibold text-ink sm:text-3xl">{title}</h1>
+  {desc && <p class="mt-3 text-sm text-dim leading-relaxed">{desc}</p>}
+</div>
