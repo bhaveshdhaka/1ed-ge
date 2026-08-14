@@ -17,7 +17,8 @@
     "test:lhci": "lhci autorun --config=lighthouserc.cjs",
     "test:perf": "playwright test e2e/public.spec.ts",
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
-    "test:full": "npm run typecheck && npm run test:e2e && npm run test:lhci"
+    "test:full": "npm run typecheck && npm run test:e2e && npm run test:lhci",
+    "ci": "npm run typecheck && npm run lint && npm run test && npm run build && node scripts/ui-audit.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",

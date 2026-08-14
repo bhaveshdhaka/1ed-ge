@@ -17,32 +17,30 @@ screen time, and trades all live in the same daily record.
 
 ## Ship & Deploy (push → GitHub → GHCR → Coolify)
 
-Develop in **oc-dev**, commit, and **push to GitHub** — that is the whole ship
-path. There is no PR gate for the agent; direct pushes to `main` (prod) or
-`preprod` (test) are allowed. Pushing is what triggers deployment, end-to-end:
+Develop in **oc-dev**, commit, and **push** — the whole ship path. No PR gate;
+direct pushes to `main` (prod) or `preprod` (test) are allowed.
 
-1. **Push** to `main` or `preprod` on `github.com/bhaveshdhaka/1ed-ge`.
-2. GitHub Actions `docker-publish.yml` builds the image and pushes it to **GHCR**
-   (`ghcr.io/bhaveshdhaka/1ed-ge`, tagged `:main` / `:preprod` + git sha + `:latest`).
-3. The same workflow then POSTs to the **Coolify API** to pull the tag for that
-   branch and redeploy the matching app.
-4. Coolify (on this host) pulls the image and serves the live URL behind Cloudflare.
+1. `npm run ci` locally (see below) — it must pass.
+2. `git push origin main` (prod) or `git push origin preprod` (test).
+3. CI runs the check, then builds the image → GHCR → Coolify redeploys.
+4. Verify live: `curl -N https://dash.bhavesh.hk/events` (wait for `status=finished`),
+   then confirm HTTP 200 on `https://1ed.ge` (prod) / `https://test.1ed.ge` (test).
 
-**Verify live**: open `https://1ed.ge` (prod) / `https://test.1ed.ge` (test), or
-`curl` the app, and confirm your change is present. If Coolify didn't redeploy,
-check the deploy log in the Coolify dashboard or hit the trigger endpoint.
-**Standard protocol:** read **`docs/SHIP.md`** — the exact push commands, the Coolify webhook to watch, and the identical chat reply (with lead-time timing) every agent gives.
+| Branch | Coolify app | URL |
+|---|---|---|
+| `main` | 1edge-prod `oqz7u0yho3lulqdt0ymwdibx` (pulls `:main`) | 1ed.ge |
+| `preprod` | 1edge-preprod `fyn2fhxrsltey8dr6k6plxg8` (pulls `:preprod`) | test.1ed.ge |
 
+CI is the gate — no manual review, no PR-required.
 
-**Key facts:**
-- Coolify API: `https://coolify.bhavesh.hk/api/v1` (public, via tunnel). Token:
-  `/srv/secrets/coolify-api`; also stored in GitHub Actions as `COOLIFY_TOKEN`.
-- Deploy trigger endpoint: `POST /api/v1/applications/<uuid>/start` (pulls the
-  image + recreates the container).
-- Branch → app → image tag:
-  - `main` → **1edge-prod** `oqz7u0yho3lulqdt0ymwdibx` → `1ed.ge` (pulls `:main`)
-  - `preprod` → **1edge-preprod** `fyn2fhxrsltey8dr6k6plxg8` → `test.1ed.ge` (pulls `:preprod`)
-- Public URLs sit behind Cloudflare (presently without the Access login wall).
+## Before you push
+
+```bash
+npm run ci
+```
+
+`npm run ci` = `typecheck && lint && test && build && ui-audit` — the same
+command CI runs. Fix everything before pushing.
 
 ## Stack
 
@@ -179,7 +177,7 @@ src/components/*.astro      shared UI + SVG charts (zero JS)
 public/media/               uploaded images (webp) — git-tracked
 scripts/seed.mjs, migrate.mjs, start.sh, verify-env.sh, status-snapshot.mjs, market-news-fetch.mjs
 nginx/1ed.ge.conf           host nginx vhost
-Dockerfile / docker-compose.yml   bind-mounts src/content + public/media
+Dockerfile                    multi-stage build (CI → GHCR)
 ```
 
 ## Content model
@@ -326,8 +324,7 @@ optional title/summary/tags/featuredImage.
   SSR per-route with `export const prerender = false`.
 - The server's system resolver does **not** resolve `1ed.ge`. When testing
   locally use `curl --resolve 1ed.ge:443:104.21.7.179 https://1ed.ge/`.
-- nginx `/media/` proxies to node (a filesystem `alias` fails because
-  `/root` is mode 700).
+- Media is served by the Astro SSR route `src/pages/media/[...file].ts`.
 - **`/dev` page** — public build log with stack, features, principles, changelog, token costs, and version tracking. Updated whenever meaningful features ship.
 - Style: monospace, off-black (`#0a0a0c`), green `#4ade80` = up, red `#f87171`
   = down, low-contrast dim text, terminal aesthetic. Nav labels are plain
@@ -368,10 +365,10 @@ optional title/summary/tags/featuredImage.
 - Move to Cloudflare Pages + CDN: everything is file-based (content in git),
   so it ports cleanly — swap the adapter, keep the content layer.
 - Safari/iOS polish: viewport-fit + apple meta already in the head; a fuller
-  pass (safe-area insets, touch targets, PWA) is tracked in `MEMORY.md`.
+  pass (safe-area insets, touch targets, PWA) is tracked in session notes.
 
-## oc-infra vs oc-dev (read on this box)
+## Roles
 
-- The agent that manages the server (Coolify, Cloudflare, containers, /srv, secrets) is **oc-infra**: oc-infra.bhavesh.hk, host-level, no single git project. Its global guide is `/srv/AGENTS.md`.
-- The agent that works on THIS repo (code, CI, PRs, ship) is **oc-dev**: oc-dev.bhavesh.hk, restricted perms.
-- Full authoritative doc: `/srv/AGENTS.md`. Keep it and this file in sync.
+- **oc-infra** manages the server/platform (Coolify, Cloudflare, containers,
+  secrets). **You are oc-dev** — you write this app's code and push. Keep to
+  that split.

@@ -1,9 +1,10 @@
 ---
-description: Ship changes to production.
+description: Ship changes to production (or test).
 ---
-1. `npm run typecheck`
-2. `npm run build`
-3. `git add -A && git commit -m "<conventional message>"`
-4. `bash scripts/ship.sh prod-only`
+1. `npm run ci` (typecheck + lint + test + build + ui-audit) — fix anything that fails.
+2. `git add -A && git commit -m "<conventional message>"`
+3. `git push origin main` (prod) or `git push origin preprod` (test).
+4. Verify live: `curl -N https://dash.bhavesh.hk/events` (wait for `status=finished`),
+   then confirm HTTP 200 on the public URL.
 
-That's it. The deploy script handles everything else (changelog, build stamp, tokenomics, pending clear, crons, verify).
+CI is the gate — if it fails, fix and re-push.
