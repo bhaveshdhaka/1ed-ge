@@ -1,0 +1,163 @@
+---
+/**
+ * Nature Time — 20-minute nature timer, streak + mood.
+ * Auth-gated. Private aesthetic.
+ */
+import Bare from '../../../../layouts/Bare.astro'
+import PrivateNav from '../../../../components/private/PrivateNav.astro'
+import PrivateStep from '../../../../components/private/PrivateStep.astro'
+import Icon from '../../../../components/ui/Icon.astro'
+import { sessionOk } from '../../../../lib/auth'
+
+export const prerender = false
+
+if (!sessionOk(Astro.request)) {
+  return Astro.redirect('/zen')
+}
+---
+
+<Bare title="nature — private — 1ed.ge">
+  <section class="shell pt-12 pb-32">
+    <PrivateStep
+      step="step two"
+      title="Nature Time"
+      desc="Spend at least twenty minutes in nature each day. Nature regulates your state, quiets mental noise, and reconnects you with the present moment."
+    />
+
+    <!-- Timer -->
+    <div class="mx-auto mt-8 max-w-2xl">
+      <div class="panel-hero overflow-hidden">
+        <div class="card-hd">
+          <div class="card-ico"><Icon name="leaf" size={15} /></div>
+          <div class="card-lbl">In Nature</div>
+          <div id="nt-status" class="tmr">ready</div>
+        </div>
+        <div class="p-6 text-center">
+          <div id="nt-display" class="font-mono text-6xl tabular-nums text-ink tracking-tight">00:00</div>
+          <div class="mt-5 flex flex-wrap items-center justify-center gap-2">
+            {[5, 10, 20].map((m) => (
+              <button data-preset={m} class="capsule cursor-pointer hover:border-accent/50 hover:text-ink">+{m} min</button>
+            ))}
+            <input id="nt-custom" type="number" min="1" max="240" placeholder="own" class="input w-20 text-center" />
+          </div>
+          <div class="mt-6 flex justify-center gap-3">
+            <button id="nt-start" class="btn btn-primary min-h-[48px] px-8 text-sm">Begin</button>
+            <button id="nt-reset" class="btn min-h-[48px] px-6 text-sm">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="mx-auto mt-6 grid max-w-2xl grid-cols-2 gap-3">
+      <div class="panel p-5 text-center">
+        <div class="text-3xl font-semibold text-ink" id="nt-streak">0</div>
+        <div class="mt-1 capsule mx-auto">🔥 current streak · days</div>
+      </div>
+      <div class="panel p-5 text-center">
+        <div class="text-3xl font-semibold text-ink" id="nt-total">0</div>
+        <div class="mt-1 capsule mx-auto">🌿 total nature days</div>
+      </div>
+    </div>
+
+    <!-- Mood -->
+    <div id="nt-mood" class="mx-auto mt-6 hidden max-w-2xl">
+      <div class="panel">
+        <div class="card-hd">
+          <div class="card-ico"><Icon name="smile" size={15} /></div>
+          <div class="card-lbl">After your time outside</div>
+        </div>
+        <div class="p-5">
+          <div class="text-2xs uppercase tracking-widest text-faint mb-3">how do you feel?</div>
+          <div class="flex flex-wrap justify-center gap-3">
+            <button data-mood="better" class="btn min-h-[48px] px-6 text-base">🙂 Better</button>
+            <button data-mood="same" class="btn min-h-[48px] px-6 text-base">😐 Same</button>
+            <button data-mood="worse" class="btn min-h-[48px] px-6 text-base">🙁 Worse</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <PrivateNav active="nature" />
+</Bare>
+
+<script>
+  const display = document.getElementById('nt-display') as HTMLDivElement
+  const startBtn = document.getElementById('nt-start') as HTMLButtonElement
+  const resetBtn = document.getElementById('nt-reset') as HTMLButtonElement
+  const status = document.getElementById('nt-status') as HTMLDivElement
+  const custom = document.getElementById('nt-custom') as HTMLInputElement
+  const moodBox = document.getElementById('nt-mood') as HTMLDivElement
+  const streakEl = document.getElementById('nt-streak') as HTMLDivElement
+  const totalEl = document.getElementById('nt-total') as HTMLDivElement
+  const presets = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-preset]'))
+
+  let total = 20 * 60
+  let remaining = 0
+  let timer: ReturnType<typeof setInterval> | null = null
+  let running = false
+
+  const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+  const render = () => { display.textContent = fmt(remaining) }
+
+  presets.forEach((b) => b.addEventListener('click', () => {
+    total = Number(b.dataset.preset) * 60
+    remaining = total
+    render()
+    status.textContent = `+${b.dataset.preset} min set`
+  }))
+  custom.addEventListener('change', () => {
+    const v = Number(custom.value)
+    if (v > 0) { total = v * 60; remaining = total; render(); status.textContent = `${v} min set` }
+  })
+
+  function tick() {
+    remaining--
+    render()
+    if (remaining <= 0) { stop(); onComplete() }
+  }
+  function start() {
+    if (running) return
+    if (remaining <= 0) remaining = total
+    running = true; startBtn.textContent = 'Pause'
+    timer = setInterval(tick, 1000)
+  }
+  function stop() {
+    running = false; startBtn.textContent = 'Begin'
+    if (timer) { clearInterval(timer); timer = null }
+  }
+  startBtn.addEventListener('click', () => (running ? stop() : start()))
+  resetBtn.addEventListener('click', () => { stop(); remaining = 0; render(); status.textContent = 'ready'; moodBox.classList.add('hidden') })
+
+  function onComplete() {
+    status.textContent = 'complete · log mood'
+    moodBox.classList.remove('hidden')
+  }
+
+  const todayKey = (d = new Date()) => d.toISOString().slice(0, 10)
+  function loadStats() {
+    fetch('/api/admin/private/nature').then((r) => r.json()).then((d) => {
+      const recs = (d.records ?? []) as { data: { date?: string } }[]
+      totalEl.textContent = String(recs.length)
+      const dates = new Set(recs.map((r) => (r.data.date ?? '').slice(0, 10)).filter(Boolean).sort())
+      let streak = 0
+      let cursor = new Date()
+      while (dates.has(todayKey(cursor))) { streak++; cursor.setDate(cursor.getDate() - 1) }
+      streakEl.textContent = String(streak)
+    }).catch(() => {})
+  }
+
+  Array.from(moodBox.querySelectorAll<HTMLButtonElement>('[data-mood]')).forEach((b) => {
+    b.addEventListener('click', () => {
+      fetch('/api/admin/private/nature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: { date: todayKey(), minutes: Math.round(total / 60), mood: b.dataset.mood } }),
+      }).then(() => { moodBox.classList.add('hidden'); status.textContent = 'saved'; loadStats() }).catch(() => {})
+    })
+  })
+
+  render()
+  loadStats()
+</script>

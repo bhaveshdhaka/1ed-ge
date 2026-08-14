@@ -33,13 +33,8 @@ check() {
 
 echo "── verify-env: $expected @ $url ───────────────────────────────"
 
-# Curl args: test env needs basic auth to pass the nginx auth_basic gate.
 CURL_BASE=(curl -sS --max-time 10 -L)
-if [ "$expected" = "test" ]; then
-  CURL_AUTH=(-u trader:wonderland)
-else
-  CURL_AUTH=()
-fi
+CURL_AUTH=()
 
 # Loopback DNS bypass: the runner/server may not resolve the site hostname
 # (Cloudflare-proxied). When SITE_RESOLVE="host:port:ip" is set, pin the

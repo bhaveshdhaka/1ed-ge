@@ -1,0 +1,148 @@
+---
+/**
+ * Quiet Time — 20-minute threshold with meditation audio.
+ * Auth-gated. Private aesthetic (panel / panel-hero / capsule).
+ */
+import Bare from '../../../../layouts/Bare.astro'
+import PrivateNav from '../../../../components/private/PrivateNav.astro'
+import PrivateStep from '../../../../components/private/PrivateStep.astro'
+import Icon from '../../../../components/ui/Icon.astro'
+import { sessionOk } from '../../../../lib/auth'
+
+export const prerender = false
+
+if (!sessionOk(Astro.request)) {
+  return Astro.redirect('/zen')
+}
+
+const meditations = [
+  { by: 'Francesco Cracolici', title: 'Full Moon Meditation', src: '/private/audio/full-moon-meditation.mp3' },
+  { by: 'Trevor G. Blake', title: 'Mini Mind Movie', src: '/private/audio/trevor-mini-mind-movie-meditation.mp3' },
+]
+const named = [
+  'Energetic Cleansing', 'Friction and Light', 'Grounding', 'Deep Roots',
+  'Thought Management', 'Clouds passing by', 'Non-Directive Meditation',
+  'Spontaneous Drift', 'Sigh of Relief', 'The Audible Exhale',
+]
+---
+
+<Bare title="quiet — private — 1ed.ge">
+  <section class="shell pt-12 pb-32">
+    <PrivateStep
+      step="step one"
+      title="Quiet Time"
+      desc="Twenty minutes. As you cross this Threshold, a node lights up on your Neural Map and the Chamber of Intentions opens — your brain will be receptive."
+    />
+
+    <!-- Timer -->
+    <div class="mx-auto mt-8 max-w-2xl">
+      <div class="panel-hero overflow-hidden">
+        <div class="card-hd">
+          <div class="card-ico"><Icon name="waves" size={15} /></div>
+          <div class="card-lbl">Threshold</div>
+          <div id="qt-status" class="tmr">ready</div>
+        </div>
+        <div class="p-6 text-center">
+          <div id="qt-display" class="font-mono text-6xl tabular-nums text-ink tracking-tight">20:00</div>
+          <div class="mt-5 flex flex-wrap justify-center gap-2">
+            {[5, 10, 20, 30].map((m) => (
+              <button data-preset={m} class="capsule cursor-pointer hover:border-accent/50 hover:text-ink">{m} min</button>
+            ))}
+          </div>
+          <div class="mt-6 flex justify-center gap-3">
+            <button id="qt-start" class="btn btn-primary min-h-[48px] px-8 text-sm">Begin</button>
+            <button id="qt-reset" class="btn min-h-[48px] px-6 text-sm">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Francesco & Trevor Meditations -->
+    <div class="mx-auto mt-8 max-w-2xl">
+      <div class="panel">
+        <div class="card-hd">
+          <div class="card-ico"><Icon name="headphones" size={15} /></div>
+          <div class="card-lbl">Francesco &amp; Trevor Meditations</div>
+        </div>
+        <div class="divide-y divide-line/60">
+          {meditations.map((m) => (
+            <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+              <div class="flex-1">
+                <div class="card-sub">Meditation by {m.by}</div>
+                <div class="mt-0.5 text-sm font-medium text-ink">{m.title}</div>
+              </div>
+              <audio class="w-full sm:w-64" controls preload="none" src={m.src}></audio>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <!-- Named library -->
+    <div class="mx-auto mt-6 max-w-2xl">
+      <div class="text-2xs uppercase tracking-widest text-faint mb-3">the library</div>
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {named.map((n) => (
+          <div class="panel-flat flex items-center gap-3 px-3 py-2.5">
+            <Icon name="waves" size={15} class="text-accent" />
+            <span class="text-sm text-ink">{n}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <PrivateNav active="quiet" />
+</Bare>
+
+<script>
+  const display = document.getElementById('qt-display') as HTMLDivElement
+  const startBtn = document.getElementById('qt-start') as HTMLButtonElement
+  const resetBtn = document.getElementById('qt-reset') as HTMLButtonElement
+  const status = document.getElementById('qt-status') as HTMLDivElement
+  const presets = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-preset]'))
+
+  let total = 20 * 60
+  let remaining = total
+  let timer: ReturnType<typeof setInterval> | null = null
+  let running = false
+
+  const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+  const render = () => { display.textContent = fmt(remaining) }
+
+  presets.forEach((b) => b.addEventListener('click', () => {
+    total = Number(b.dataset.preset) * 60
+    remaining = total
+    render()
+    status.textContent = `${b.dataset.preset} min set`
+  }))
+
+  function tick() {
+    remaining--
+    render()
+    if (remaining <= 0) {
+      stop()
+      status.textContent = 'complete · node lit'
+      fetch('/api/admin/private/quiet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: { minutes: Math.round(total / 60), completed: true } }),
+      }).catch(() => {})
+    }
+  }
+  function start() {
+    if (running) return
+    running = true
+    startBtn.textContent = 'Pause'
+    timer = setInterval(tick, 1000)
+  }
+  function stop() {
+    running = false
+    startBtn.textContent = 'Begin'
+    if (timer) { clearInterval(timer); timer = null }
+  }
+  startBtn.addEventListener('click', () => (running ? stop() : start()))
+  resetBtn.addEventListener('click', () => { stop(); remaining = total; render(); status.textContent = 'ready' })
+
+  render()
+</script>

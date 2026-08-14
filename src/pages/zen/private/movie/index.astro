@@ -1,0 +1,174 @@
+---
+/**
+ * Mind Movie — 5-senses rehearsal with camera/photo/video capture.
+ * Client-side only (IndexedDB). iPhone-first. Auth-gated page.
+ */
+import Bare from '../../../../layouts/Bare.astro'
+import PrivateNav from '../../../../components/private/PrivateNav.astro'
+import PrivateStep from '../../../../components/private/PrivateStep.astro'
+import Icon from '../../../../components/ui/Icon.astro'
+import { sessionOk } from '../../../../lib/auth'
+
+export const prerender = false
+
+if (!sessionOk(Astro.request)) {
+  return Astro.redirect('/zen')
+}
+
+const senses = [
+  { name: 'Sight', icon: 'eye' },
+  { name: 'Sound', icon: 'volume-2' },
+  { name: 'Touch', icon: 'hand' },
+  { name: 'Taste', icon: 'coffee' },
+  { name: 'Smell', icon: 'wind' },
+]
+---
+
+<Bare title="mind movie — private — 1ed.ge">
+  <section class="shell pt-12 pb-32">
+    <PrivateStep
+      step="step three"
+      title="Mind Movie"
+      desc="Structured rehearsal for the 5 senses."
+    />
+
+    <!-- 5 senses -->
+    <div class="mx-auto mt-8 max-w-2xl">
+      <div class="grid grid-cols-5 gap-2">
+        {senses.map((s) => (
+          <div class="panel-flat flex flex-col items-center gap-2 px-2 py-3">
+            <div class="card-ico"><Icon name={s.icon} size={15} /></div>
+            <div class="text-3xs uppercase tracking-widest text-dim">{s.name}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Capture -->
+    <div class="mx-auto mt-6 max-w-2xl">
+      <div class="panel-hero overflow-hidden">
+        <div class="card-hd">
+          <div class="card-ico"><Icon name="film" size={15} /></div>
+          <div class="card-lbl">Capture</div>
+        </div>
+        <div class="p-5 text-center">
+          <div class="text-sm font-medium text-ink">Choose from gallery image or short video</div>
+          <p class="mt-2 text-2xs uppercase tracking-widest text-faint">on laptops without a camera, these open your file picker</p>
+          <div class="mt-4 flex flex-wrap justify-center gap-3">
+            <label class="btn btn-primary min-h-[48px] cursor-pointer px-6 text-sm">
+              <Icon name="camera" size={15} /> Take a photo
+              <input id="mm-photo" type="file" accept="image/*" capture="environment" class="hidden" />
+            </label>
+            <label class="btn min-h-[48px] cursor-pointer px-6 text-sm">
+              <Icon name="video" size={15} /> Record video
+              <input id="mm-video" type="file" accept="video/*" capture="environment" class="hidden" />
+            </label>
+            <label class="btn min-h-[48px] cursor-pointer px-6 text-sm">
+              <Icon name="image" size={15} /> Gallery
+              <input id="mm-gallery" type="file" accept="image/*,video/*" multiple class="hidden" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gallery -->
+    <div class="mx-auto mt-6 max-w-2xl">
+      <div class="card-lbl mb-3">your mind movie</div>
+      <div id="mm-grid" class="grid grid-cols-2 gap-3 sm:grid-cols-3"></div>
+      <p id="mm-empty" class="panel-flat mt-3 px-4 py-6 text-center text-sm text-dim">
+        Nothing captured yet — your clips live only on this device.
+      </p>
+    </div>
+  </section>
+
+  <PrivateNav active="mindmovie" />
+</Bare>
+
+<script>
+  const DB = 'mindmovie'
+  const STORE = 'clips'
+
+  function openDb(): Promise<IDBDatabase> {
+    return new Promise((res, rej) => {
+      const req = indexedDB.open(DB, 1)
+      req.onupgradeneeded = () => {
+        const db = req.result
+        if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' })
+      }
+      req.onsuccess = () => res(req.result)
+      req.onerror = () => rej(req.error)
+    })
+  }
+
+  async function allClips(): Promise<{ id: string; kind: string; url: string; ts: number }[]> {
+    const db = await openDb()
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, 'readonly')
+      const out: { id: string; kind: string; url: string; ts: number }[] = []
+      tx.objectStore(STORE).openCursor().onsuccess = (e) => {
+        const cur = (e.target as IDBRequest).result
+        if (cur) { out.push(cur.value); cur.continue() } else res(out.sort((a, b) => b.ts - a.ts))
+      }
+      tx.onerror = () => rej(tx.error)
+    })
+  }
+
+  async function addClip(file: File) {
+    const db = await openDb()
+    const rec = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      kind: file.type.startsWith('video') ? 'video' : 'image',
+      url: URL.createObjectURL(file),
+      ts: Date.now(),
+    }
+    await new Promise<void>((res, rej) => {
+      const tx = db.transaction(STORE, 'readwrite')
+      tx.objectStore(STORE).put(rec)
+      tx.oncomplete = () => res()
+      tx.onerror = () => rej(tx.error)
+    })
+    render()
+  }
+
+  async function delClip(id: string) {
+    const db = await openDb()
+    await new Promise<void>((res, rej) => {
+      const tx = db.transaction(STORE, 'readwrite')
+      tx.objectStore(STORE).delete(id)
+      tx.oncomplete = () => res()
+      tx.onerror = () => rej(tx.error)
+    })
+    render()
+  }
+
+  const grid = document.getElementById('mm-grid') as HTMLDivElement
+  const empty = document.getElementById('mm-empty') as HTMLParagraphElement
+
+  async function render() {
+    const clips = await allClips()
+    empty.style.display = clips.length ? 'none' : 'block'
+    grid.innerHTML = ''
+    for (const c of clips) {
+      const cell = document.createElement('div')
+      cell.className = 'panel-flat relative overflow-hidden'
+      const media = c.kind === 'video'
+        ? `<video src="${c.url}" class="h-40 w-full object-cover" controls muted playsinline></video>`
+        : `<img src="${c.url}" class="h-40 w-full object-cover" alt="mind movie clip" />`
+      cell.innerHTML = `${media}<button data-del="${c.id}" class="absolute right-1.5 top-1.5 rounded-full bg-bg/80 px-2 py-1 text-2xs text-dim backdrop-blur">✕</button>`
+      cell.querySelector('[data-del]')!.addEventListener('click', () => delClip(c.id))
+      grid.appendChild(cell)
+    }
+  }
+
+  function bind(id: string) {
+    const el = document.getElementById(id) as HTMLInputElement
+    el.addEventListener('change', () => {
+      Array.from(el.files ?? []).forEach((f) => addClip(f))
+      el.value = ''
+    })
+  }
+  bind('mm-photo'); bind('mm-video'); bind('mm-gallery')
+
+  render()
+</script>

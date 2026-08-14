@@ -31,13 +31,13 @@ try {
 // Activity cards
 const base = '/zen/private'
 const activities = [
-  { id: 'quiet', label: 'Quiet Time', icon: 'waves', href: '#', disabled: true },
-  { id: 'nature', label: 'Nature Time', icon: 'leaf', href: '#', disabled: true },
-  { id: 'exercises', label: 'Daily Exercises', icon: 'book-open', href: '#', disabled: true },
+  { id: 'quiet', label: 'Quiet Time', icon: 'waves', href: `${base}/quiet/`, disabled: false },
+  { id: 'nature', label: 'Nature Time', icon: 'leaf', href: `${base}/nature/`, disabled: false },
+  { id: 'exercises', label: 'Daily Exercises', icon: 'book-open', href: `${base}/exercises/`, disabled: false },
   { id: 'intentions', label: 'Intentions', icon: 'feather', href: `${base}/intentions/`, disabled: false },
-  { id: 'rewiring', label: 'Re-Wiring', icon: 'activity', href: '#', disabled: true },
-  { id: 'mindmovie', label: 'Mind Movie', icon: 'film', href: '#', disabled: true },
-  { id: '21days', label: '21 Days', icon: 'calendar-check', href: '#', disabled: true },
+  { id: 'rewiring', label: 'Re-Wiring', icon: 'activity', href: `${base}/rewiring/`, disabled: false },
+  { id: 'mindmovie', label: 'Mind Movie', icon: 'film', href: `${base}/movie/`, disabled: false },
+  { id: '21days', label: '21 Days', icon: 'calendar-check', href: `${base}/21/`, disabled: false },
 ]
 ---
 
