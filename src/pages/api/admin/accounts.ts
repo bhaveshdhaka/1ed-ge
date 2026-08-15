@@ -10,7 +10,7 @@ export const prerender = false
 
 const STAGES = ['eval', 'funded', 'buffer', 'payout', 'failed', 'paused']
 
-/** Owner-dictated rules pass-through — only the six known fields survive; empty → dropped. */
+/** Owner-dictated rules pass-through — only the known rule fields survive; empty → dropped. */
 function rulesFrom(body: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {}
   const dll = Number(body.dailyLossLimit)
@@ -25,6 +25,7 @@ function rulesFrom(body: Record<string, unknown>): Record<string, unknown> {
   if (['eod', 'intraday', 'intraday-to-eod'].includes(dm)) out.drawdownMode = dm
   const ps = Number(body.payoutSplit)
   if (Number.isFinite(ps) && ps >= 0 && ps <= 100) out.payoutSplit = ps
+  if (typeof body.lockout === 'boolean') out.lockout = body.lockout
   return out
 }
 
@@ -104,7 +105,9 @@ export const POST: APIRoute = async ({ request }) => {
       })),
       ...(body.note ? { note: String(body.note) } : {}),
       platformIds: Array.isArray(body.platformIds) ? body.platformIds.filter((p: unknown) => typeof p === 'string') : [],
-      ...(body.rules && typeof body.rules === 'object' ? rulesFrom(body.rules as Record<string, unknown>) : {}),
+      // rules are canonical as a NESTED block — the collection schema, the UI, and
+      // accountRuleStatus all read account.rules.*, never flat top-level fields.
+      ...(body.rules && typeof body.rules === 'object' ? { rules: rulesFrom(body.rules as Record<string, unknown>) } : {}),
     }
     writeEntry('accounts', `${id}.md`, data, '')
     addChange('account', `account ${id}`, `${data.firm} ${data.sizeLabel} → ${stage}`)

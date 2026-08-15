@@ -2,47 +2,13 @@ import path from 'node:path'
 import { defineCollection, z } from 'astro:content'
 import { glob } from 'astro/loaders'
 import { CONTENT } from './lib/paths'
+import { accountSchema } from './lib/account-schema'
 
 const c = (kind: string) => path.join(CONTENT, kind)
 
-const accountStages = z.enum(['eval', 'funded', 'buffer', 'payout', 'failed', 'paused'])
-
 const accounts = defineCollection({
   loader: glob({ pattern: '**/*.md', base: c('accounts') }),
-  schema: z.object({
-    id: z.string(),
-    firm: z.string(),
-    size: z.number(),
-    sizeLabel: z.string(),
-    drawdownLimit: z.number(),
-    trailing: z.boolean().default(true),
-    contract: z.string().default('MNQ'),
-    pointsValue: z.number(),
-    riskPerTrade: z.number(),
-    stage: accountStages,
-    stages: z
-      .array(
-        z.object({
-          stage: accountStages,
-          from: z.string(),
-          to: z.string().optional(),
-          note: z.string().optional(),
-        }),
-      )
-      .default([]),
-    note: z.string().optional(),
-    platformIds: z.array(z.string()).default([]),
-    rules: z
-      .object({
-        dailyLossLimit: z.number().positive().optional(), // DLL — daily soft breach
-        profitTarget: z.number().positive().optional(), // eval profit target
-        consistencyPct: z.number().min(0).max(100).optional(), // % — largest-day ≤ X%
-        bufferBalance: z.number().positive().optional(), // MLL + 100, locks at this balance
-        drawdownMode: z.enum(['eod', 'intraday', 'intraday-to-eod']).default('eod'),
-        payoutSplit: z.number().min(0).max(100).default(90), // trader's cut %
-      })
-      .optional(),
-  }),
+  schema: accountSchema,
 })
 
 const execution = z.object({

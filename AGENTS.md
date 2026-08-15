@@ -234,6 +234,13 @@ draft:                       # NEW — private, NEVER rendered publicly
   instance; old ones stay forever. Accounts also carry `platformIds[]` — the
   Tradovate platform-id → internal-id alias map, persisted once on the owner's
   first import confirm.
+- **Account rules live NESTED under `rules:`** (dailyLossLimit, profitTarget,
+  consistencyPct, bufferBalance, drawdownMode, payoutSplit, lockout) — never
+  flat top-level fields. The single source of truth is `src/lib/account-schema.ts`
+  (imported by `content.config.ts` AND tests, so schema/file/API/UI can't drift);
+  `src/lib/account-rules.ts` computes per-account rule status from it.
+- **`/health` is the public liveness probe** (`src/pages/health.ts`) — static
+  `ok`, no data, no auth.
 - **Trading models** = `models/` collection (name, premise, rules, status,
   order). Every trade may carry a `model` tag. Public `/models` page renders
   models + rules + their trades. Rules are owner-authored only — never AI
@@ -372,3 +379,10 @@ optional title/summary/tags/featuredImage.
 - **oc-infra** manages the server/platform (Coolify, Cloudflare, containers,
   secrets). **You are oc-dev** — you write this app's code and push. Keep to
   that split.
+
+## Maintaining this file
+
+Keep this file for knowledge useful to almost every future agent session in this project.
+Do not repeat what the codebase already shows; point to the authoritative file or command instead.
+Prefer rewriting or pruning existing entries over appending new ones.
+When updating this file, preserve this bar for all agents and keep entries concise.
