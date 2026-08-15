@@ -130,6 +130,15 @@ src/lib/accountability.ts    pending reflections — Mon–Fri every day (3h gra
 src/lib/copy.ts              SINGLE source of every public message string (trader/admin/reflection vocabulary)
 src/lib/ingest.ts            import pipeline — CSV/PDF/image parse (cheap model + poppler), CT→HKT,
                              fill-id attribution, fill→position grouping, per-account dedup (tested)
+src/lib/tradovate.ts         Tradovate CSV import (deterministic, NO AI): Performance / Position History /
+                             Orders per-account exports → round trips in the day's PRIVATE draft.tradovate
+                             (never public). Position History = the account bridge; Orders = exit type +
+                             recorded stops; Cash History skipped. Honest MAE/MFE from fill data (exact only
+                             when stopped out, else proven bounds) + mental-SL prompt (needsStop) for
+                             stop-less positions. API: src/pages/api/admin/tradovate*; UI:
+                             src/components/admin/TradovateSheet.tsx + ledger panel in DayWorkspace. Mental
+                             SLs survive re-imports (mergeTradovateEntries) and day saves (days.ts preserves
+                             unknown draft fields).
 src/lib/live.ts             admin-heartbeat read/write (/tmp/1edge-live.json, 5-min live window)
 src/lib/ai.ts               OpenRouter: structureDayFull (text ± screenshots), readScreenshot,
                              readScreenTime, coachReply, assist, captionAlt (cheap-model alt text)

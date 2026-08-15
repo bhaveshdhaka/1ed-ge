@@ -10,9 +10,11 @@ import { WriteZone, type ReflectionObligation } from '../WriteZone'
 import { NotificationDrawer } from '../NotificationDrawer'
 import { HabitRow } from '../HabitRow'
 import { IngestSheet } from '../IngestSheet'
+import { TradovateSheet, type TradovateLedgerEntry } from '../TradovateSheet'
 import { DayPickerSheet } from '../DayPickerSheet'
 import { ghostTextOn } from '../useGhostText'
 import { toast } from 'sonner'
+import { TRADOVATE_EXCURSION_NOTE, tradovateMentalStopSaved } from '../../../lib/copy'
 
 export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 export interface HabitDef { slug: string; name: string; emoji?: string; color: string; kind?: string; target?: number }
@@ -108,6 +110,9 @@ export function DayWorkspace({
   const [stream, setStream] = useState<ThoughtForm[]>([])
 
   const [ingestOpen, setIngestOpen] = useState(false)
+  const [tradovateOpen, setTradovateOpen] = useState(false)
+  const [tvLedger, setTvLedger] = useState<TradovateLedgerEntry[]>([])
+  const [slEdits, setSlEdits] = useState<Record<string, string>>({})
   const [dayPickerOpen, setDayPickerOpen] = useState(false)
   const [expandedTrade, setExpandedTrade] = useState<number | null>(null)
   const [expandAll, setExpandAll] = useState(false)
@@ -158,6 +163,8 @@ export function DayWorkspace({
         setDeviceNotes(day?.device?.notes ?? '')
         setDeviceScreens(day?.device?.screenshots ?? [])
         setReflection(String(day?.draft?.reflection ?? ''))
+        setTvLedger(Array.isArray(day?.draft?.tradovate) ? day.draft.tradovate : [])
+        setSlEdits({})
         setStream((day?.stream ?? []).map(toThoughtForm))
         setTrades((day?.trades ?? []).map((t: any) => ({
           market: String(t.market ?? 'MNQ'),
@@ -495,6 +502,23 @@ export function DayWorkspace({
     setSaving(false)
   }
 
+  const saveMentalStop = async (key: string) => {
+    const raw = slEdits[key]
+    const mentalStop = raw !== '' && raw != null && Number.isFinite(Number(raw)) ? Number(raw) : null
+    if (mentalStop == null) return toast.error('enter a mental SL price first')
+    try {
+      await api('/api/admin/tradovate/mental-stop', {
+        method: 'POST',
+        body: { date, key, mentalStop },
+      })
+      toast.success(tradovateMentalStopSaved(tvLedger.filter((t) => t.needsStop && t.key !== key).length))
+      notifyChanged()
+      await load(date)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'save failed')
+    }
+  }
+
   const removeDay = async () => {
     if (!confirm(`hard-delete day ${date}? the day record and its journal are removed permanently.`)) return
     try {
@@ -732,6 +756,13 @@ export function DayWorkspace({
                       >
                         ⤓ import trades ▸
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => setTradovateOpen(true)}
+                        className="flex h-8 items-center border border-line2 px-2.5 text-xs text-dim transition-colors hover:border-accent hover:text-ink"
+                      >
+                        ⤓ tradovate csv ▸
+                      </button>
                     </div>
                   </div>
                   <div className="p-3 md:p-4">
@@ -763,6 +794,107 @@ export function DayWorkspace({
                   </div>
                 </div>
               </div>
+
+              {/* ---------- Z3b TRADOVATE LEDGER (private) ---------- */}
+              {tvLedger.length > 0 && (
+                <div className="panel mt-3 md:mt-5">
+                  <div className="card-hd">
+                    <span className="card-ico">🗂</span>
+                    <span className="card-lbl">tradovate ledger</span>
+                    <span className="card-sub">{tvLedger.length}</span>
+                    <span className="ml-2 border border-line px-1.5 py-0.5 text-3xs uppercase tracking-wide text-faint">private</span>
+                    <div className="ml-auto flex items-center gap-2">
+                      <Button size="sm" onClick={() => setTradovateOpen(true)}>re-import ▸</Button>
+                    </div>
+                  </div>
+                  <div className="p-3 md:p-4">
+                    {tvLedger.filter((t) => t.needsStop).length > 0 && (
+                      <div className="mb-3 border border-warn/50 bg-bg p-2 text-xs text-warn">
+                        {tvLedger.filter((t) => t.needsStop).length} position{tvLedger.filter((t) => t.needsStop).length === 1 ? '' : 's'} have no recorded stop — add the mental SL below.
+                      </div>
+                    )}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-2xs">
+                        <thead>
+                          <tr className="border-b border-line">
+                            <th className="whitespace-nowrap px-2 py-1.5 font-normal uppercase tracking-wide text-faint">market</th>
+                            <th className="whitespace-nowrap px-2 py-1.5 font-normal uppercase tracking-wide text-faint">entry→exit</th>
+                            <th className="whitespace-nowrap px-2 py-1.5 font-normal uppercase tracking-wide text-faint">pts</th>
+                            <th className="whitespace-nowrap px-2 py-1.5 font-normal uppercase tracking-wide text-faint">accounts</th>
+                            <th className="whitespace-nowrap px-2 py-1.5 font-normal uppercase tracking-wide text-faint">SL</th>
+                            <th className="whitespace-nowrap px-2 py-1.5 font-normal uppercase tracking-wide text-faint">R</th>
+                            <th className="whitespace-nowrap px-2 py-1.5 font-normal uppercase tracking-wide text-faint">mae</th>
+                            <th className="whitespace-nowrap px-2 py-1.5 font-normal uppercase tracking-wide text-faint">mfe</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {tvLedger.map((t) => {
+                            const risk = t.stop != null ? Math.abs(t.entry - t.stop) : null
+                            const r = risk != null && risk > 0 ? t.points / risk : null
+                            const exactMae = t.exitType === 'stop'
+                            return (
+                              <tr key={t.key} className="border-b border-line/60">
+                                <td className="whitespace-nowrap px-2 py-1.5">
+                                  <span className="text-ink">{t.direction === 'long' ? '▲' : '▼'} {t.market}</span>
+                                </td>
+                                <td className="whitespace-nowrap px-2 py-1.5 tabular-nums">{t.entry}→{t.exit}</td>
+                                <td className={`whitespace-nowrap px-2 py-1.5 tabular-nums ${t.points >= 0 ? 'text-up' : 'text-down'}`}>{t.points >= 0 ? '+' : ''}{t.points}</td>
+                                <td className="whitespace-nowrap px-2 py-1.5">
+                                  <span className="flex flex-wrap gap-1">
+                                    {t.accounts.map((a, i) => (
+                                      <span key={i} className={`border px-1 py-0.5 font-mono text-3xs ${a.internalId ? 'border-line text-dim' : 'border-warn/50 text-warn'}`}>
+                                        {a.internalId ?? a.platformId ?? '—'}
+                                        {a.platformId && !a.internalId ? ' ?' : ''}
+                                      </span>
+                                    ))}
+                                  </span>
+                                </td>
+                                <td className="whitespace-nowrap px-2 py-1.5">
+                                  {t.needsStop ? (
+                                    <div className="flex items-center gap-1">
+                                      <TextInput
+                                        type="number"
+                                        step="0.25"
+                                        value={slEdits[t.key] ?? ''}
+                                        onChange={(e) => setSlEdits((m) => ({ ...m, [t.key]: e.target.value }))}
+                                        placeholder="mental SL"
+                                        aria-label={`mental stop for ${t.key}`}
+                                        className="w-20 px-1.5 py-1 text-2xs"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => saveMentalStop(t.key)}
+                                        className="border border-accent/50 px-1.5 py-1 text-3xs uppercase tracking-wide text-accent hover:border-accent"
+                                      >
+                                        set
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <span className={`tabular-nums text-dim ${t.stopSource === 'mental' ? 'italic' : ''}`}>
+                                      {t.stop}
+                                      {t.stopSource === 'recorded' ? ' ↯' : t.stopSource === 'mental' ? ' ✎' : ''}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className={`whitespace-nowrap px-2 py-1.5 tabular-nums ${r == null ? 'text-faint' : t.points > 0 ? 'text-up' : t.points < 0 ? 'text-down' : 'text-dim'}`}>
+                                  {r == null ? '—' : r.toFixed(2).replace(/0+$/, '').replace(/\.$/, '.0')}
+                                </td>
+                                <td className="whitespace-nowrap px-2 py-1.5 tabular-nums">
+                                  {t.mae == null ? <span className="text-faint">—</span> : <span className={exactMae ? 'text-ink' : 'text-dim'}>{exactMae ? '' : '≥'}{t.mae}</span>}
+                                </td>
+                                <td className="whitespace-nowrap px-2 py-1.5 tabular-nums">
+                                  {t.mfe == null ? <span className="text-faint">—</span> : <span className="text-dim">≥{t.mfe}</span>}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="mt-2 text-2xs text-faint">imported from tradovate CSVs · private to the admin · {TRADOVATE_EXCURSION_NOTE}</p>
+                  </div>
+                </div>
+              )}
 
               {/* ---------- FOOTER ---------- */}
               <div className="panel">
@@ -806,6 +938,14 @@ export function DayWorkspace({
       <IngestSheet
         open={ingestOpen}
         onOpenChange={setIngestOpen}
+        notify={sheetNotify}
+        markDirty={markDirty}
+        date={date}
+        onImported={load}
+      />
+      <TradovateSheet
+        open={tradovateOpen}
+        onOpenChange={setTradovateOpen}
         notify={sheetNotify}
         markDirty={markDirty}
         date={date}

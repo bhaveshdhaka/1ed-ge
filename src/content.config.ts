@@ -3,6 +3,7 @@ import { defineCollection, z } from 'astro:content'
 import { glob } from 'astro/loaders'
 import { CONTENT } from './lib/paths'
 import { accountSchema } from './lib/account-schema'
+import { tradovateEntrySchema } from './lib/tradovate'
 
 const c = (kind: string) => path.join(CONTENT, kind)
 
@@ -77,6 +78,9 @@ const days = defineCollection({
       .object({
         reflection: z.string().optional(),
         moments: z.array(thought).default([]),
+        // private Tradovate import ledger — owner data behind the passkey,
+        // NEVER rendered on public pages (see src/lib/tradovate.ts)
+        tradovate: z.array(tradovateEntrySchema).default([]),
       })
       .optional(),
   }),

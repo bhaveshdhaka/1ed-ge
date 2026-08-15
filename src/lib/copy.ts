@@ -90,3 +90,30 @@ export const EMPTY_PERIOD = 'no days logged in this period.'
 export function importedTrades(n: number): string {
   return `imported ${n} trades`
 }
+
+// --- Tradovate CSV import surface (owner plan: CSV-file import, honest
+// MAE/MFE from fill data, mental-SL prompt for stop-less positions) ---
+
+/** `imported N tradovate round trips` — tradovate apply-confirm line. */
+export function tradovateImported(n: number): string {
+  return `imported ${n} tradovate round trip${n === 1 ? '' : 's'}`
+}
+
+/** `N updated` — re-import merged into the existing ledger. */
+export function tradovateUpdated(n: number): string {
+  return `${n} updated`
+}
+
+/** `N positions have no recorded stop — set the mental SL.` — the SL prompt banner. */
+export function tradovateNeedsStop(n: number): string {
+  return `${n} position${n === 1 ? '' : 's'} have no recorded stop — set the mental SL`
+}
+
+/** `mental SL set — 3 left` — ledger save-confirm line. */
+export function tradovateMentalStopSaved(remaining: number): string {
+  return `mental SL set${remaining ? ` — ${remaining} left` : ''}`
+}
+
+/** Honesty note for the mae/mfe columns (fills-only data, never invented). */
+export const TRADOVATE_EXCURSION_NOTE =
+  'mae/mfe from fill data only — exact when stopped out, otherwise a proven bound (≥); true intra-trade excursion needs tick data'
