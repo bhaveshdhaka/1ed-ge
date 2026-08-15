@@ -143,6 +143,16 @@ export const POST: APIRoute = async ({ request }) => {
   }
   const draftThoughts = normalizeThoughts(body.draft?.moments)
   if (draftThoughts.length) draft.moments = draftThoughts
+  // Preserve day-record fields the workspace payload doesn't carry — the
+  // private tradovate import ledger (draft.tradovate) must survive a normal
+  // day save. Anything else already on disk (unknown draft fields) is kept too.
+  if (listMds('days').includes(`${date}.md`)) {
+    const onDisk = (readEntry('days', `${date}.md`).data.draft as Record<string, unknown> | undefined) ?? {}
+    const known = new Set(Object.keys(draft))
+    for (const [k, v] of Object.entries(onDisk)) {
+      if (!known.has(k) && v !== undefined) draft[k] = v
+    }
+  }
 
   const data: Record<string, unknown> = {
     date,

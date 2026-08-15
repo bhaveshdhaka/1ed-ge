@@ -360,7 +360,7 @@ export async function parseImage(dataUrl: string): Promise<Fill[]> {
 // ---------------------------------------------------------------------------
 
 /** 'MNQU6' → 'MNQ' (strips the delivery code: month letter + 1–2 digit year). */
-function stripContract(symbol: string): string {
+export function stripContract(symbol: string): string {
   return symbol.replace(/[A-Z][0-9]{1,2}$/, '').toUpperCase() || symbol.toUpperCase()
 }
 
