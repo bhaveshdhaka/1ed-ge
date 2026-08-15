@@ -19,6 +19,7 @@ export interface AccountRuleFields {
   bufferBalance?: number | null // $ — MLL + 100, locks at this balance
   drawdownMode?: 'eod' | 'intraday' | 'intraday-to-eod' | null
   payoutSplit?: number | null // % — trader's cut
+  lockout?: boolean | null // day locks at the DLL; next day resumes with drawdownLimit − dailyLossLimit
 }
 
 export interface AccountLike {
@@ -56,6 +57,7 @@ export interface AccountRuleStatus {
   breach: 'drawdown' | 'daily' | 'none' | null // computed from the math; null = nothing configured
   consistencyPct: number | null // the stored %
   consistencyApplies: boolean // true whenever the account HAS a consistency% (any stage)
+  lockout: boolean // stored flag — trading locks for the day at the DLL
 }
 
 export function accountRuleStatus(
@@ -120,5 +122,6 @@ export function accountRuleStatus(
     breach,
     consistencyPct,
     consistencyApplies,
+    lockout: rules.lockout === true,
   }
 }
