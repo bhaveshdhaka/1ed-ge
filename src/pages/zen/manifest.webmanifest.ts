@@ -8,7 +8,7 @@ export const GET: APIRoute = async ({ request }) => {
   const manifest = {
     name: 'admin — 1ed.ge',
     short_name: 'admin',
-    description: 'admin — the private trading desk of 1ed.ge',
+    description: 'admin — the trading desk of 1ed.ge',
     start_url: '/zen/',
     scope: '/zen/',
     display: 'standalone',
