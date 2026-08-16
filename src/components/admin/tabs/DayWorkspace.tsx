@@ -772,7 +772,7 @@ export function DayWorkspace({
                   onNavigateLibrary={onNavigateLibrary ?? (() => {})}
                 />
 
-              {/* ---------- Z2b ROUTINES (private) ---------- */}
+              {/* ---------- Z2b ROUTINES ---------- */}
               <RoutinesPanel date={date} />
 
                 {/* ---------- Z3 TRADES ---------- */}
@@ -835,14 +835,13 @@ export function DayWorkspace({
                 </div>
               </div>
 
-              {/* ---------- Z3b TRADOVATE LEDGER (private) ---------- */}
+              {/* ---------- Z3b TRADOVATE LEDGER ---------- */}
               {tvLedger.length > 0 && (
                 <div className="panel mt-3 md:mt-5">
                   <div className="card-hd">
                     <span className="card-ico">🗂</span>
                     <span className="card-lbl">tradovate ledger</span>
                     <span className="card-sub">{tvLedger.length}</span>
-                    <span className="ml-2 border border-line px-1.5 py-0.5 text-3xs uppercase tracking-wide text-faint">private</span>
                     <div className="ml-auto flex items-center gap-2">
                       <Button
                         size="sm"
@@ -939,7 +938,7 @@ export function DayWorkspace({
                         </tbody>
                       </table>
                     </div>
-                    <p className="mt-2 text-2xs text-faint">imported from tradovate CSVs · private to the admin · {TRADOVATE_EXCURSION_NOTE}
+                    <p className="mt-2 text-2xs text-faint">imported from tradovate CSVs · admin-only · {TRADOVATE_EXCURSION_NOTE}
                       {pullLeft != null && <span className="ml-2 text-warn">· {tradovatePullBudget(pullLeft, 5)}</span>}</p>
                   </div>
                 </div>

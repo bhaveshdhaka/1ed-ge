@@ -121,14 +121,12 @@ function globTrace(entries: string[], base: string): TraceItem[] {
 const tracePages = globTrace(Object.keys(import.meta.glob('/src/pages/**/*.{astro,ts}')), 'src/pages')
 const traceComponents = globTrace(Object.keys(import.meta.glob('/src/components/**/*.astro')), 'src/components')
 const traceUi = globTrace(Object.keys(import.meta.glob('/src/components/ui/**/*.astro')), 'src/components/ui')
-const tracePrivate = globTrace(Object.keys(import.meta.glob('/src/components/private/**/*.astro')), 'src/components/private')
 const traceLib = globTrace(Object.keys(import.meta.glob('/src/lib/**/*.ts')), 'src/lib')
 
 const traceability = [
   { category: 'Public Pages', items: tracePages },
   { category: 'Components', items: traceComponents },
   { category: 'UI Primitives', items: traceUi },
-  { category: 'Private', items: tracePrivate },
   { category: 'Libraries', items: traceLib },
 ]
 
