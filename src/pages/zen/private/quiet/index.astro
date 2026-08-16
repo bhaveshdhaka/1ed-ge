@@ -16,8 +16,8 @@ if (!sessionOk(Astro.request)) {
 }
 
 const meditations = [
-  { by: 'Francesco Cracolici', title: 'Full Moon Meditation', src: '/private/audio/full-moon-meditation.mp3' },
-  { by: 'Trevor G. Blake', title: 'Mini Mind Movie', src: '/private/audio/trevor-mini-mind-movie-meditation.mp3' },
+  { by: 'Francesco Cracolici', title: 'Full Moon Meditation', src: '/api/admin/private/assets/audio/full-moon-meditation.mp3' },
+  { by: 'Trevor G. Blake', title: 'Mini Mind Movie', src: '/api/admin/private/assets/audio/trevor-mini-mind-movie-meditation.mp3' },
 ]
 const library = [
   { title: 'Energetic Cleansing', subtitle: 'Friction and Light', freqs: [220, 330, 440, 660], lowpass: 1200 },
@@ -112,8 +112,8 @@ const library = [
     { noise: true },
   ]
 
-  function oscBank(freqs, lpFreq) {
-    return (ctx) => {
+  function oscBank(freqs: number[], lpFreq: number) {
+    return (ctx: AudioContext) => {
       const gain = ctx.createGain()
       gain.gain.setValueAtTime(0, ctx.currentTime)
       gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 2)
@@ -121,7 +121,7 @@ const library = [
       lp.type = 'lowpass'
       lp.frequency.value = lpFreq
       gain.connect(lp).connect(ctx.destination)
-      const oscs = freqs.map((f) => {
+      const oscs = freqs.map((f: number) => {
         const o = ctx.createOscillator()
         o.type = 'sine'
         o.frequency.value = f
@@ -138,7 +138,7 @@ const library = [
           active = false
           gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.2)
           setTimeout(() => {
-            oscs.forEach((o) => { try { o.stop() } catch {} })
+            oscs.forEach((o: OscillatorNode) => { try { o.stop() } catch {} })
             try { ctx.close() } catch {}
           }, 1400)
         },
@@ -147,7 +147,7 @@ const library = [
   }
 
   function noiseGen() {
-    return (ctx) => {
+    return (ctx: AudioContext) => {
       const gain = ctx.createGain()
       gain.gain.value = 0
       gain.connect(ctx.destination)
@@ -215,10 +215,10 @@ const library = [
     if (remaining <= 0) {
       stop()
       status.textContent = 'complete · node lit'
-      fetch('/api/admin/private/quiet', {
+      fetch('/api/admin/routines', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: { minutes: Math.round(total / 60), completed: true } }),
+        body: JSON.stringify({ activity: 'quiet', minutes: Math.round(total / 60) }),
       }).catch(() => {})
     }
   }

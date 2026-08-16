@@ -8,9 +8,10 @@ import Icon from '../ui/Icon.astro'
 interface Props {
   active?: 'home' | 'quiet' | 'nature' | 'exercises' | 'intentions' | 'rewiring' | 'mindmovie' | '21days'
   secret?: string
+  zenHref?: string
 }
 
-const { active = 'home', secret = '' } = Astro.props
+const { active = 'home', secret = '', zenHref = '' } = Astro.props
 const base = secret ? `/zen/${secret}/private` : '/zen/private'
 
 const items = [
@@ -21,6 +22,7 @@ const items = [
   { id: 'intentions', label: 'intentions', icon: 'feather', href: `${base}/intentions/` },
   { id: 'rewiring', label: 're-wiring', icon: 'activity', href: `${base}/rewiring/` },
   { id: 'mindmovie', label: 'mind movie', icon: 'film', href: `${base}/movie/` },
+  { id: '21days', label: '21 days', icon: 'calendar-check', href: `${base}/21/` },
 ]
 ---
 
@@ -39,5 +41,15 @@ const items = [
         <span class="text-3xs font-semibold uppercase tracking-widest">{item.label}</span>
       </a>
     ))}
+    {zenHref && (
+      <a
+        href={zenHref}
+        class="flex flex-col items-center gap-0.5 px-1 py-1 min-w-[44px] min-h-[44px] justify-center text-dim hover:text-ink transition-colors"
+        aria-label="back to zen admin"
+      >
+        <Icon name="arrow-left" size={18} />
+        <span class="text-3xs font-semibold uppercase tracking-widest">zen</span>
+      </a>
+    )}
   </div>
 </nav>

@@ -95,7 +95,7 @@ const A = '#0af'
           <p class="text-sm text-dim leading-relaxed">
             Treat your 20 minutes as a formal business appointment with the subconscious. Block them every day.
           </p>
-          <a href="/private/rewiring-appointment.ics" download class="btn btn-primary mt-4 min-h-[48px] w-full justify-center text-sm">
+          <a href="/api/admin/private/assets/rewiring-appointment.ics" download class="btn btn-primary mt-4 min-h-[48px] w-full justify-center text-sm">
             <Icon name="calendar" size={15} /> Apple · .ics
           </a>
         </div>
@@ -162,7 +162,9 @@ const A = '#0af'
   const nowRing = document.querySelector('#rw-now') as SVGCircleElement
   const milestones = [7, 14, 21]
 
-  const todayKey = (d = new Date()) => d.toISOString().slice(0, 10)
+  const todayKey = () => {
+    return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10)
+  }
 
   function nodeXY(i: number): { x: number; y: number } {
     const svg = document.getElementById('rw-map')!
@@ -198,12 +200,20 @@ const A = '#0af'
   }
 
   function load() {
-    fetch('/api/admin/private/rewiring').then((r) => r.json()).then((d) => {
-      const recs = (d.records ?? []) as { data: { date?: string } }[]
-      const dates = new Set(recs.map((r) => (r.data.date ?? '').slice(0, 10)).filter(Boolean).sort())
+    // Re-wiring derives from quiet-time completions of 20+ minutes
+    fetch('/api/admin/routines?activity=quiet').then((r) => r.json()).then((d) => {
+      const recs = (d.records ?? []) as { date?: string; minutes?: number }[]
+      // Count days with 20+ min quiet sessions as re-wiring progress
+      const qualifyingDays = new Set<string>()
+      for (const r of recs) {
+        const date = (r.date ?? '').slice(0, 10)
+        const mins = r.minutes ?? 0
+        if (date && mins >= 20) qualifyingDays.add(date)
+      }
       let progress = 0
-      let cursor = new Date()
-      while (dates.has(todayKey(cursor)) && progress < 21) { progress++; cursor.setDate(cursor.getDate() - 1) }
+      let checkDate = todayKey()
+      // Walk backwards from today counting consecutive qualifying days
+      while (qualifyingDays.has(checkDate) && progress < 21) { progress++; const d = new Date(checkDate + 'T00:00:00+08:00'); d.setDate(d.getDate() - 1); checkDate = d.toISOString().slice(0, 10) }
       paint(progress)
     }).catch(() => paint(0))
   }

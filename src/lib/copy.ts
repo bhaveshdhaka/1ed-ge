@@ -143,3 +143,25 @@ export function tradovatePullBudget(left: number, max: number): string {
 /** ToS/grey-area note shown next to the pull button. */
 export const TRADOVATE_PULL_NOTE =
   'auto-pull re-plays the browser session — read-only, low-frequency, use at your own risk; manual CSV upload always works'
+
+// --- Routine display vocabulary ---
+
+/** Routine completion line for public day pages. */
+export function routinesLine(routines: { quiet?: boolean; nature?: boolean; exercise?: boolean; intentions?: boolean; rewiring?: boolean; '21days'?: boolean }): string {
+  const done: string[] = []
+  if (routines.quiet) done.push('quiet')
+  if (routines.nature) done.push('nature')
+  if (routines.exercise) done.push('exercise')
+  if (routines.intentions) done.push('intentions')
+  if (routines.rewiring) done.push('rewiring')
+  if (routines['21days']) done.push('21 days')
+  if (done.length === 0) return 'no routines completed'
+  return `routines · ${done.join(' · ')}`
+}
+
+/** Routine completion summary for archive cards. */
+export function routinesSummary(count: number, total: number): string {
+  if (count === 0) return 'no routines'
+  if (count === total) return 'all routines done'
+  return `${count}/${total} routines`
+}

@@ -23,3 +23,4 @@ test-results/
 
 # auto-generated per-deploy changelog (scripts/post-deploy.mjs)
 changelog/
+src/content/private/assets/audio/*.mp3
