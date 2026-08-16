@@ -3,7 +3,8 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const PORT = Number(process.env.TEST_PORT ?? 4323)
-const BASE = `http://127.0.0.1:${PORT}`
+const BASE = `https://localhost:${PORT}`
+const PROFILE = process.env.TEST_PROFILE_DIR ?? '.tmp/e2e-profile'
 
 export default defineConfig({
   testDir: './e2e',
@@ -16,6 +17,7 @@ export default defineConfig({
   use: {
     baseURL: BASE,
     trace: 'retain-on-failure',
+    ignoreHTTPSErrors: true,
   },
   projects: [
     {
@@ -28,9 +30,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `PORT=${PORT} HOST=0.0.0.0 node dist/server/entry.mjs`,
+    command: `PORT=${PORT} HOST=0.0.0.0 TEST_PROFILE_DIR=${PROFILE} node scripts/e2e-server.mjs`,
     url: BASE,
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     timeout: 120000,
+    ignoreHTTPSErrors: true,
   },
 })
