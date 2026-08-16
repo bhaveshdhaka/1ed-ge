@@ -351,6 +351,7 @@ test('applyMentalStop stores the mental stop and derives riskPoints', () => {
     exitType: 'market',
     mae: null,
     mfe: 5,
+    dup: false,
   }
   const withStop = applyMentalStop(t, 99.5)
   assert.equal(withStop.mentalStop, 99.5)

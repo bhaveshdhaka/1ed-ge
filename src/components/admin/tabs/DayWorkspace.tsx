@@ -14,7 +14,7 @@ import { TradovateSheet, type TradovateLedgerEntry } from '../TradovateSheet'
 import { DayPickerSheet } from '../DayPickerSheet'
 import { ghostTextOn } from '../useGhostText'
 import { toast } from 'sonner'
-import { TRADOVATE_EXCURSION_NOTE, tradovateMentalStopSaved } from '../../../lib/copy'
+import { TRADOVATE_EXCURSION_NOTE, tradovateMentalStopSaved, tradovatePullSummary, tradovatePullFailed, tradovatePullBudget, TRADOVATE_PULL_NOTE } from '../../../lib/copy'
 
 export interface AccRow { id: string; firm: string; sizeLabel: string; pointsValue: number }
 export interface HabitDef { slug: string; name: string; emoji?: string; color: string; kind?: string; target?: number }
@@ -111,6 +111,8 @@ export function DayWorkspace({
 
   const [ingestOpen, setIngestOpen] = useState(false)
   const [tradovateOpen, setTradovateOpen] = useState(false)
+  const [pullBusy, setPullBusy] = useState(false)
+  const [pullLeft, setPullLeft] = useState<number | null>(null)
   const [tvLedger, setTvLedger] = useState<TradovateLedgerEntry[]>([])
   const [slEdits, setSlEdits] = useState<Record<string, string>>({})
   const [dayPickerOpen, setDayPickerOpen] = useState(false)
@@ -218,6 +220,40 @@ export function DayWorkspace({
       setDaysList(res.days)
     } catch {}
   }, [])
+
+  /** On-demand pull — stage-1 (in-trade) and stage-2 (post-trade) both merge
+   * into the SAME day's ledger, so a re-pull updates the trade in place. */
+  const doTradovatePull = useCallback(async () => {
+    if (pullBusy) return
+    setPullBusy(true)
+    try {
+      const res = await api<{
+        ok: boolean
+        imported: number
+        updated: number
+        needsStop: number
+        open: { positionId: string; market: string; direction: string; entry: number | null }[]
+        budgetLeft: number
+        budgetMax: number
+        error?: string
+      }>('/api/admin/tradovate/pull', {
+        method: 'POST',
+        body: { date },
+      })
+      setPullLeft(res.budgetLeft != null ? res.budgetLeft : null)
+      const openCount = res.open?.length ?? 0
+      toast.success(
+        tradovatePullSummary(res.imported ?? 0, res.updated ?? 0, openCount) +
+          (openCount ? ' — pull again once closed' : ''),
+      )
+      await load(date)
+    } catch (e) {
+      setPullLeft(null)
+      toast.error(tradovatePullFailed(e instanceof Error ? e.message : 'request failed'))
+    } finally {
+      setPullBusy(false)
+    }
+  }, [pullBusy, date, load])
 
   useEffect(() => {
     load(date)
@@ -804,6 +840,14 @@ export function DayWorkspace({
                     <span className="card-sub">{tvLedger.length}</span>
                     <span className="ml-2 border border-line px-1.5 py-0.5 text-3xs uppercase tracking-wide text-faint">private</span>
                     <div className="ml-auto flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        onClick={doTradovatePull}
+                        disabled={pullBusy}
+                        title={TRADOVATE_PULL_NOTE}
+                      >
+                        {pullBusy ? 'pulling…' : '⤓ pull ▸'}
+                      </Button>
                       <Button size="sm" onClick={() => setTradovateOpen(true)}>re-import ▸</Button>
                     </div>
                   </div>
@@ -891,7 +935,8 @@ export function DayWorkspace({
                         </tbody>
                       </table>
                     </div>
-                    <p className="mt-2 text-2xs text-faint">imported from tradovate CSVs · private to the admin · {TRADOVATE_EXCURSION_NOTE}</p>
+                    <p className="mt-2 text-2xs text-faint">imported from tradovate CSVs · private to the admin · {TRADOVATE_EXCURSION_NOTE}
+                      {pullLeft != null && <span className="ml-2 text-warn">· {tradovatePullBudget(pullLeft, 5)}</span>}</p>
                   </div>
                 </div>
               )}

@@ -117,3 +117,29 @@ export function tradovateMentalStopSaved(remaining: number): string {
 /** Honesty note for the mae/mfe columns (fills-only data, never invented). */
 export const TRADOVATE_EXCURSION_NOTE =
   'mae/mfe from fill data only — exact when stopped out, otherwise a proven bound (≥); true intra-trade excursion needs tick data'
+
+// --- Tradovate on-demand puller surface (Option 2; manual CSV stays the fallback) ---
+
+/** `pulled 2 new · 1 updated` — on-demand pull summary line. */
+export function tradovatePullSummary(imported: number, updated: number, open: number): string {
+  const bits: string[] = []
+  if (imported) bits.push(`${imported} new`)
+  if (updated) bits.push(`${updated} updated`)
+  if (open) bits.push(`${open} open`)
+  bits.push('pulled from tradovate')
+  return bits.join(' · ')
+}
+
+/** `pull failed — … fall back to CSV upload` — a failed on-demand pull. */
+export function tradovatePullFailed(msg: string): string {
+  return `pull failed — ${msg}`
+}
+
+/** `/ 5 pulls left today` — the low-frequency budget hint in the ledger panel. */
+export function tradovatePullBudget(left: number, max: number): string {
+  return `${left}/${max} pulls left today`
+}
+
+/** ToS/grey-area note shown next to the pull button. */
+export const TRADOVATE_PULL_NOTE =
+  'auto-pull re-plays the browser session — read-only, low-frequency, use at your own risk; manual CSV upload always works'
