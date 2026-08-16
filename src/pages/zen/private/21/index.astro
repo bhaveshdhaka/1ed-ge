@@ -59,19 +59,19 @@ const practices = [
   }
 
   function load() {
-    fetch('/api/admin/private/21').then((r) => r.json()).then((d) => {
-      const recs = (d.records ?? []) as { data: { practice?: string } }[]
-      paint(recs[0]?.data?.practice ?? null)
+    fetch('/api/admin/routines?activity=21days').then((r) => r.json()).then((d) => {
+      const recs = (d.records ?? []) as { practice?: string }[]
+      paint(recs[0]?.practice ?? null)
     }).catch(() => {})
   }
 
   buttons.forEach((b) => b.addEventListener('click', () => {
     const practice = b.dataset.practice!
     status.textContent = 'saving…'
-    fetch('/api/admin/private/21', {
+    fetch('/api/admin/routines', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: { practice } }),
+      body: JSON.stringify({ activity: '21days', practice }),
     }).then(() => { paint(practice); status.textContent = '✓ saved' }).catch(() => { status.textContent = 'error' })
   }))
 

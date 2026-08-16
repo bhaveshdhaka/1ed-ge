@@ -135,25 +135,30 @@ if (!sessionOk(Astro.request)) {
     moodBox.classList.remove('hidden')
   }
 
-  const todayKey = (d = new Date()) => d.toISOString().slice(0, 10)
+  const todayKey = () => {
+    // HKT clock — same as the rest of the site
+    return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10)
+  }
   function loadStats() {
-    fetch('/api/admin/private/nature').then((r) => r.json()).then((d) => {
-      const recs = (d.records ?? []) as { data: { date?: string } }[]
+    fetch('/api/admin/routines?activity=nature').then((r) => r.json()).then((d) => {
+      const recs = (d.records ?? []) as { date?: string }[]
       totalEl.textContent = String(recs.length)
-      const dates = new Set(recs.map((r) => (r.data.date ?? '').slice(0, 10)).filter(Boolean).sort())
+      const dates = new Set(recs.map((r) => (r.date ?? '').slice(0, 10)).filter(Boolean).sort())
       let streak = 0
-      let cursor = new Date()
-      while (dates.has(todayKey(cursor))) { streak++; cursor.setDate(cursor.getDate() - 1) }
+      let cursor = new Date(Date.now() + 8 * 3600 * 1000)
+      const hktToday = cursor.toISOString().slice(0, 10)
+      let checkDate = hktToday
+      while (dates.has(checkDate)) { streak++; const d = new Date(checkDate + 'T00:00:00+08:00'); d.setDate(d.getDate() - 1); checkDate = d.toISOString().slice(0, 10) }
       streakEl.textContent = String(streak)
     }).catch(() => {})
   }
 
   Array.from(moodBox.querySelectorAll<HTMLButtonElement>('[data-mood]')).forEach((b) => {
     b.addEventListener('click', () => {
-      fetch('/api/admin/private/nature', {
+      fetch('/api/admin/routines', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: { date: todayKey(), minutes: Math.round(total / 60), mood: b.dataset.mood } }),
+        body: JSON.stringify({ activity: 'nature', minutes: Math.round(total / 60), mood: b.dataset.mood }),
       }).then(() => { moodBox.classList.add('hidden'); status.textContent = 'saved'; loadStats() }).catch(() => {})
     })
   })

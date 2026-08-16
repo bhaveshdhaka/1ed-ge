@@ -9,6 +9,7 @@ import { TradeList } from '../TradeCard'
 import { WriteZone, type ReflectionObligation } from '../WriteZone'
 import { NotificationDrawer } from '../NotificationDrawer'
 import { HabitRow } from '../HabitRow'
+import { RoutinesPanel } from '../RoutinesPanel'
 import { IngestSheet } from '../IngestSheet'
 import { TradovateSheet, type TradovateLedgerEntry } from '../TradovateSheet'
 import { DayPickerSheet } from '../DayPickerSheet'
@@ -770,6 +771,9 @@ export function DayWorkspace({
                   onAdjust={(slug, delta) => { setHabits((x) => { const cur = typeof x[slug] === 'number' ? (x[slug] as number) : 0; return { ...x, [slug]: Math.max(0, cur + delta) } as Record<string, boolean> }); markDirty() }}
                   onNavigateLibrary={onNavigateLibrary ?? (() => {})}
                 />
+
+              {/* ---------- Z2b ROUTINES (private) ---------- */}
+              <RoutinesPanel date={date} />
 
                 {/* ---------- Z3 TRADES ---------- */}
                 <div id="sec-trades" className="mt-3 md:mt-5 scroll-mt-20">

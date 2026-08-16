@@ -22,6 +22,8 @@ const TABS: { id: Tab; label: string; key: string }[] = [
   { id: 'reviews', label: 'reviews', key: '7' },
 ]
 
+const PRIVATE_HREF = '/zen/private/'
+
 function isTyping(e: KeyboardEvent): boolean {
   const el = e.target as HTMLElement
   if (!el) return false
@@ -189,6 +191,13 @@ export default function AdminApp() {
             >
               ⌘K
             </button>
+            <a
+              href={PRIVATE_HREF}
+              className="ml-1 flex h-10 items-center border border-line2 px-2.5 text-xs text-dim transition-colors hover:border-accent hover:text-ink md:h-11"
+              aria-label="private routines"
+            >
+              🧘 private
+            </a>
             </nav>
         </div>
       </header>

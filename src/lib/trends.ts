@@ -15,6 +15,7 @@ export interface DayStat {
   mood?: number
   sleepHours?: number
   habitsDone?: number
+  routinesDone?: number
 }
 
 export interface TrendSnapshot {
@@ -38,6 +39,7 @@ export interface TrendSnapshot {
     screen: { bucket: string; days: number; trades: number; sumR: number; avgR: number; winRate: number | null }[]
     session: { key: string; trades: number; sumR: number; avgR: number; winRate: number | null }[]
     setup: { key: string; trades: number; sumR: number; avgR: number; winRate: number | null }[]
+    routines: { bucket: string; days: number; trades: number; sumR: number; avgR: number; winRate: number | null }[]
   }
   flags: string[]
 }
@@ -91,6 +93,8 @@ export function buildTrends(
       const sumR = list.reduce((s, t) => s + t.R, 0)
       const sumPnl = list.reduce((s, t) => s + t.pnl, 0)
       const habitsDone = d.data.habits ? Object.values(d.data.habits).filter(Boolean).length : undefined
+      const routines = d.data.routines as Record<string, boolean | undefined> | undefined
+      const routinesDone = routines ? Object.values(routines).filter(Boolean).length : undefined
       return {
         date: d.data.date,
         trades: list.length,
@@ -103,6 +107,7 @@ export function buildTrends(
         mood: d.data.mood,
         sleepHours: d.data.sleep?.hours,
         habitsDone,
+        routinesDone,
       }
     })
 
@@ -231,6 +236,32 @@ export function buildTrends(
   if (!dayStats.some((d) => screenByDay.has(d.date)))
     flags.push('no screen-time data yet — paste your Screen Time screenshot daily for signal.')
 
+  // Routines correlation: days with N routines done vs R
+  const routinesCorr: { bucket: string; days: number; trades: number; sumR: number; wins: number; losses: number }[] =
+    ['0 done', '1-2 done', '3-4 done', '5-6 done'].map((b) => ({ bucket: b, days: 0, trades: 0, sumR: 0, wins: 0, losses: 0 }))
+  for (const d of dayStats) {
+    const r = d.routinesDone
+    if (r === undefined) continue
+    const bucket = r === 0 ? '0 done' : r <= 2 ? '1-2 done' : r <= 4 ? '3-4 done' : '5-6 done'
+    const e = routinesCorr.find((x) => x.bucket === bucket)!
+    const list = tradesByDay.get(d.date) ?? []
+    e.days++
+    e.trades += list.length
+    e.sumR += list.reduce((s, t) => s + t.R, 0)
+    e.wins += list.filter((t) => t.win).length
+    e.losses += list.filter((t) => t.pnl < 0).length
+  }
+  const routines = routinesCorr
+    .map((v) => ({
+      bucket: v.bucket,
+      days: v.days,
+      trades: v.trades,
+      sumR: round2(v.sumR),
+      avgR: v.trades ? round2(v.sumR / v.trades) : 0,
+      winRate: v.wins + v.losses ? round2((v.wins / (v.wins + v.losses)) * 100) : null,
+    }))
+    .filter((x) => x.days > 0)
+
   return {
     generatedAt: nowHkt(),
     windows: [windowStat('7d', 7), windowStat('30d', 30), windowStat('90d', 90)],
@@ -277,6 +308,7 @@ export function buildTrends(
       })(),
       session: byKey(trades, (t) => t.session),
       setup: byKey(trades, (t) => t.setup),
+      routines,
     },
     flags,
   }
@@ -301,6 +333,7 @@ export function trendsForLLM(s: TrendSnapshot): string {
     corr('by screen time', s.correlations.screen),
     corr('by session', s.correlations.session),
     corr('by setup', s.correlations.setup),
+    corr('by routines', s.correlations.routines),
     s.flags.length ? `— observations —\n${s.flags.join('\n')}` : '',
   ]
     .filter(Boolean)

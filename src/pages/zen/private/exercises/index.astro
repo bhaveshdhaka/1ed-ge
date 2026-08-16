@@ -19,12 +19,12 @@ const today = {
   title: "Trevor's Mini Mind Movie Meditation",
   meta: 'Audio · 20 Minutes',
   blurb: 'A short guided meditation from Trevor to anchor your mind movie and align with your intentions.',
-  src: '/private/audio/trevor-mini-mind-movie-meditation.mp3',
+  src: '/api/admin/private/assets/audio/trevor-mini-mind-movie-meditation.mp3',
 }
 const previous = {
   title: 'Full Moon Meditation',
   meta: 'Audio · 20 min',
-  src: '/private/audio/full-moon-meditation.mp3',
+  src: '/api/admin/private/assets/audio/full-moon-meditation.mp3',
 }
 ---
 
@@ -88,14 +88,17 @@ const previous = {
   const status = document.getElementById('ex-status') as HTMLDivElement
   const streakEl = document.getElementById('ex-streak') as HTMLDivElement
 
-  const todayKey = (d = new Date()) => d.toISOString().slice(0, 10)
+  const todayKey = () => {
+    return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10)
+  }
   function loadStats() {
-    fetch('/api/admin/private/exercise').then((r) => r.json()).then((d) => {
-      const recs = (d.records ?? []) as { data: { date?: string } }[]
-      const dates = new Set(recs.map((r) => (r.data.date ?? '').slice(0, 10)).filter(Boolean).sort())
+    fetch('/api/admin/routines?activity=exercise').then((r) => r.json()).then((d) => {
+      const recs = (d.records ?? []) as { date?: string }[]
+      const dates = new Set(recs.map((r) => (r.date ?? '').slice(0, 10)).filter(Boolean).sort())
       let streak = 0
-      let cursor = new Date()
-      while (dates.has(todayKey(cursor))) { streak++; cursor.setDate(cursor.getDate() - 1) }
+      let cursor = new Date(Date.now() + 8 * 3600 * 1000)
+      let checkDate = cursor.toISOString().slice(0, 10)
+      while (dates.has(checkDate)) { streak++; const d = new Date(checkDate + 'T00:00:00+08:00'); d.setDate(d.getDate() - 1); checkDate = d.toISOString().slice(0, 10) }
       streakEl.textContent = String(streak)
     }).catch(() => {})
   }
@@ -103,10 +106,10 @@ const previous = {
   startBtn.addEventListener('click', () => {
     startBtn.toggleAttribute('disabled')
     status.textContent = 'saving…'
-    fetch('/api/admin/private/exercise', {
+    fetch('/api/admin/routines', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: { date: todayKey(), title: "Trevor's Mini Mind Movie Meditation", completed: true } }),
+      body: JSON.stringify({ activity: 'exercise', title: "Trevor's Mini Mind Movie Meditation" }),
     }).then(() => { status.textContent = '✓ done'; loadStats() })
       .catch(() => { status.textContent = 'error'; startBtn.removeAttribute('disabled') })
   })

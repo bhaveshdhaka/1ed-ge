@@ -71,6 +71,16 @@ const days = defineCollection({
       })
       .optional(),
     habits: z.record(z.string(), z.union([z.boolean(), z.number()])).optional(),
+    routines: z
+      .object({
+        quiet: z.boolean().optional(),
+        nature: z.boolean().optional(),
+        exercise: z.boolean().optional(),
+        intentions: z.boolean().optional(),
+        rewiring: z.boolean().optional(),
+        '21days': z.boolean().optional(),
+      })
+      .optional(),
     device,
     trades: z.array(trade).default([]),
     stream: z.array(thought).default([]),
