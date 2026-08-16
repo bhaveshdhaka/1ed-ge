@@ -19,10 +19,12 @@ const meditations = [
   { by: 'Francesco Cracolici', title: 'Full Moon Meditation', src: '/private/audio/full-moon-meditation.mp3' },
   { by: 'Trevor G. Blake', title: 'Mini Mind Movie', src: '/private/audio/trevor-mini-mind-movie-meditation.mp3' },
 ]
-const named = [
-  'Energetic Cleansing', 'Friction and Light', 'Grounding', 'Deep Roots',
-  'Thought Management', 'Clouds passing by', 'Non-Directive Meditation',
-  'Spontaneous Drift', 'Sigh of Relief', 'The Audible Exhale',
+const library = [
+  { title: 'Energetic Cleansing', subtitle: 'Friction and Light', freqs: [220, 330, 440, 660], lowpass: 1200 },
+  { title: 'Grounding', subtitle: 'Deep roots', freqs: [110, 165, 220], lowpass: 500 },
+  { title: 'Thought Management', subtitle: 'Clouds passing by', freqs: [261.6, 329.6, 392], lowpass: 900 },
+  { title: 'Non-Directive Meditation', subtitle: 'Spontaneous drift', freqs: [196, 246.9, 293.7, 369.9], lowpass: 700 },
+  { title: 'Sigh of Relief', subtitle: 'The Audible Exhale', noise: true },
 ]
 ---
 
@@ -78,15 +80,20 @@ const named = [
       </div>
     </div>
 
-    <!-- Named library -->
+    <!-- Library -->
     <div class="mx-auto mt-6 max-w-2xl">
       <div class="text-2xs uppercase tracking-widest text-faint mb-3">the library</div>
-      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {named.map((n) => (
-          <div class="panel-flat flex items-center gap-3 px-3 py-2.5">
-            <Icon name="waves" size={15} class="text-accent" />
-            <span class="text-sm text-ink">{n}</span>
-          </div>
+      <div id="library" class="flex flex-col gap-2">
+        {library.map((item, i) => (
+          <button type="button" data-library={i} class="panel-flat flex items-center gap-3 px-3 py-3 text-left hover:border-accent/50 transition-colors">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink/10 text-accent">
+              <Icon name="play" size={14} />
+            </span>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-ink">{item.title}</div>
+              <div class="text-2xs uppercase tracking-widest text-faint">{item.subtitle}</div>
+            </div>
+          </button>
         ))}
       </div>
     </div>
@@ -96,6 +103,91 @@ const named = [
 </Bare>
 
 <script>
+  // ── Web Audio library generators ──
+  const libData = [
+    { freqs: [220, 330, 440, 660], lowpass: 1200 },
+    { freqs: [110, 165, 220], lowpass: 500 },
+    { freqs: [261.6, 329.6, 392], lowpass: 900 },
+    { freqs: [196, 246.9, 293.7, 369.9], lowpass: 700 },
+    { noise: true },
+  ]
+
+  function oscBank(freqs, lpFreq) {
+    return (ctx) => {
+      const gain = ctx.createGain()
+      gain.gain.setValueAtTime(0, ctx.currentTime)
+      gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 2)
+      const lp = ctx.createBiquadFilter()
+      lp.type = 'lowpass'
+      lp.frequency.value = lpFreq
+      gain.connect(lp).connect(ctx.destination)
+      const oscs = freqs.map((f) => {
+        const o = ctx.createOscillator()
+        o.type = 'sine'
+        o.frequency.value = f
+        const g = ctx.createGain()
+        g.gain.value = 1 / freqs.length
+        o.connect(g).connect(gain)
+        o.start()
+        return o
+      })
+      let active = true
+      return {
+        stop() {
+          if (!active) return
+          active = false
+          gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.2)
+          setTimeout(() => {
+            oscs.forEach((o) => { try { o.stop() } catch {} })
+            try { ctx.close() } catch {}
+          }, 1400)
+        },
+      }
+    }
+  }
+
+  function noiseGen() {
+    return (ctx) => {
+      const gain = ctx.createGain()
+      gain.gain.value = 0
+      gain.connect(ctx.destination)
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate)
+      const data = buf.getChannelData(0)
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.6
+      const src = ctx.createBufferSource()
+      src.buffer = buf
+      src.loop = true
+      const bp = ctx.createBiquadFilter()
+      bp.type = 'bandpass'
+      bp.frequency.value = 600
+      bp.Q.value = 0.7
+      src.connect(bp).connect(gain)
+      src.start()
+      let active = true
+      function wave() {
+        if (!active) return
+        const t = ctx.currentTime
+        gain.gain.cancelScheduledValues(t)
+        gain.gain.setValueAtTime(0.02, t)
+        gain.gain.linearRampToValueAtTime(0.22, t + 4)
+        gain.gain.linearRampToValueAtTime(0.02, t + 9)
+        setTimeout(wave, 9500)
+      }
+      wave()
+      return {
+        stop() {
+          active = false
+          gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1)
+          setTimeout(() => {
+            try { src.stop() } catch {}
+            try { ctx.close() } catch {}
+          }, 1200)
+        },
+      }
+    }
+  }
+
+  // ── Timer ──
   const display = document.getElementById('qt-display') as HTMLDivElement
   const startBtn = document.getElementById('qt-start') as HTMLButtonElement
   const resetBtn = document.getElementById('qt-reset') as HTMLButtonElement
@@ -143,6 +235,48 @@ const named = [
   }
   startBtn.addEventListener('click', () => (running ? stop() : start()))
   resetBtn.addEventListener('click', () => { stop(); remaining = total; render(); status.textContent = 'ready' })
+
+  // ── Library playback ──
+  let libPlaying: number | null = null
+  let libHandle: { stop(): void } | null = null
+  const libBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-library]'))
+
+  function libIcon(btn: HTMLButtonElement, on: boolean) {
+    const span = btn.querySelector('span')
+    if (!span) return
+    span.innerHTML = on
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
+      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
+    span.classList.toggle('bg-accent/20', on)
+  }
+
+  libBtns.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const idx = Number(btn.dataset.library)
+      if (libPlaying === idx) {
+        libHandle?.stop()
+        libHandle = null
+        libPlaying = null
+        libIcon(btn, false)
+        return
+      }
+      // stop previous
+      if (libHandle) {
+        libHandle.stop()
+        libHandle = null
+        if (libPlaying !== null) libIcon(libBtns[libPlaying], false)
+      }
+      // start new
+      const Ctx = window.AudioContext || (window as any).webkitAudioContext
+      const ctx = new Ctx()
+      if (ctx.state === 'suspended') await ctx.resume()
+      const item = libData[idx]
+      const builder = item.noise ? noiseGen() : oscBank(item.freqs!, item.lowpass!)
+      libHandle = builder(ctx)
+      libPlaying = idx
+      libIcon(btn, true)
+    })
+  })
 
   render()
 </script>
