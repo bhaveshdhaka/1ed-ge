@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import type { TradovateEntry } from '../src/lib/tradovate'
 
 /**
  * Tradovate import integration: the full day-file round trip — import (merge
@@ -21,7 +22,7 @@ process.env.DATA_DIR = tmp
 const { readEntry, writeEntry } = await import('../src/lib/content')
 const { mergeTradovateEntries, applyMentalStop, tradovateEntrySchema } = await import('../src/lib/tradovate')
 
-const entry = (over: Record<string, unknown> = {}) => ({
+const entry = (over: Partial<TradovateEntry> = {}): TradovateEntry => ({
   key: '620926680030|620926680012',
   market: 'MNQ',
   direction: 'short',
@@ -39,6 +40,7 @@ const entry = (over: Record<string, unknown> = {}) => ({
   exitType: 'limit',
   mae: null,
   mfe: 8,
+  dup: false,
   ...over,
 })
 
@@ -97,7 +99,7 @@ test('day save preserves the private ledger (draft merge semantics)', () => {
   // Simulate the days POST: a normal day-workspace save carries only
   // draft.reflection — the on-disk draft.tradovate must survive.
   const existing = readEntry('days', '2026-08-14.md').data as Record<string, unknown>
-  const draft = { reflection: 'today was fine' }
+  const draft: Record<string, unknown> = { reflection: 'today was fine' }
   const onDiskDraft = (existing.draft as Record<string, unknown>) ?? {}
   const known = new Set(Object.keys(draft))
   for (const [k, v] of Object.entries(onDiskDraft)) {

@@ -93,7 +93,7 @@ export function detectTradovateCsv(rows: string[][]): TradovateCsvKind {
   return null
 }
 
-interface RawRoundTrip {
+export interface RawRoundTrip {
   key: string
   positionId?: string
   pairId?: string
