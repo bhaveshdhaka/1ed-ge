@@ -15,15 +15,17 @@ The centerpiece metric is **R** = points risked vs points made. All
 performance math is risk-based. Everything is linked: mood, sleep, habits,
 screen time, and trades all live in the same daily record.
 
-## Ship & Deploy (push → GitHub → GHCR → Coolify)
+## Ship & Deploy (PR → CI → merge → GHCR → Coolify)
 
-Develop in **oc-dev**, commit, and **push** — the whole ship path. No PR gate;
-direct pushes to `main` (prod) or `preprod` (test) are allowed.
+Develop in **oc-dev**, commit, and push a feature branch — then open a PR. All changes
+go through PRs; green CI is the gate. No direct pushes to `main` or `preprod`.
 
 1. `npm run ci` locally (see below) — it must pass.
-2. `git push origin main` (prod) or `git push origin preprod` (test).
-3. CI runs the check, then builds the image → GHCR → Coolify redeploys.
-4. Verify live: `curl -N https://dash.bhavesh.hk/events` (wait for `status=finished`),
+2. Push your branch and open a PR targeting `main` (prod) or `preprod` (test).
+3. CI runs the check job on the PR. Green CI is required.
+4. **firstmate merges green PRs autonomously** (see **Agentic delivery** below).
+5. Merge triggers `docker-publish.yml` → GHCR → Coolify redeploys.
+6. Verify live: `curl -N https://dash.bhavesh.hk/events` (wait for `status=finished`),
    then confirm HTTP 200 on `https://1ed.ge` (prod) / `https://test.1ed.ge` (test).
 
 | Branch | Coolify app | URL |
@@ -31,7 +33,12 @@ direct pushes to `main` (prod) or `preprod` (test) are allowed.
 | `main` | 1edge-prod `oqz7u0yho3lulqdt0ymwdibx` (pulls `:main`) | 1ed.ge |
 | `preprod` | 1edge-preprod `fyn2fhxrsltey8dr6k6plxg8` (pulls `:preprod`) | test.1ed.ge |
 
-CI is the gate — no manual review, no PR-required.
+## Agentic delivery
+
+firstmate (the agent orchestrator) merges green PRs autonomously — no manual
+captain review step. The captain escalates only for truly irreversible or
+security-sensitive changes. If your PR has green CI and is not flagged for
+escalation, it will be merged without human intervention.
 
 ## Before you push
 
@@ -85,13 +92,15 @@ does not exist to them. After ANY meaningful change:
 1. `npm run typecheck` (and `npm run build` if it touches the site).
 2. **Commit** — conventional prefix (`feat:` / `fix:` / `chore:` / `docs:`),
    concise message. Never leave work uncommitted at the end of a session.
-3. **Push to `main` (prod) or `preprod` (test)** — this triggers `docker-publish.yml`
-   → GHCR → Coolify auto-deploy (see **Ship & Deploy** above). No PR required.
-4. **Verify LIVE after deploy** — `bash scripts/verify-env.sh prod` (or `test`).
+3. **Push your branch and open a PR** targeting `main` (prod) or `preprod` (test).
+4. CI runs the check job. Green CI is the gate.
+5. **firstmate merges green PRs** — no manual review required (see **Agentic delivery**).
+   Merge triggers `docker-publish.yml` → GHCR → Coolify auto-deploy (see **Ship & Deploy**).
+6. **Verify LIVE after deploy** — `bash scripts/verify-env.sh prod` (or `test`).
    Confirms HTTP 200, noindex signals (test-only), and the noindex absence
    (prod-only). Then curl `https://1ed.ge` and confirm the changed bits are
    actually in the served HTML/bundle.
-5. Local verification servers on port 4323 and `node dist/server/entry.mjs`
+7. Local verification servers on port 4323 and `node dist/server/entry.mjs`
    are for tests only — kill them when done so they do not hold memory.
 
 The one exception: do NOT commit when the user explicitly says "don't commit /
@@ -386,8 +395,10 @@ optional title/summary/tags/featuredImage.
 ## Roles
 
 - **oc-infra** manages the server/platform (Coolify, Cloudflare, containers,
-  secrets). **You are oc-dev** — you write this app's code and push. Keep to
+  secrets). **You are oc-dev** — you write this app's code and open PRs. Keep to
   that split.
+- **firstmate** is the agent orchestrator. It merges green PRs autonomously and
+  escalates to the captain only for irreversible or security-sensitive changes.
 
 ## Maintaining this file
 
