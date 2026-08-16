@@ -9,7 +9,8 @@ test('unauthenticated zen and routine API are protected', async ({ page }) => {
 })
 
 test('authenticated zen exposes routines and persists a completion', async ({ zen: page }) => {
-  await page.getByRole('button', { name: /2 day/ }).click()
+  // the day tab's numeric key badge ("2") is hidden below sm — match the stable label
+  await page.getByRole('navigation', { name: 'admin tabs' }).getByRole('button', { name: 'day' }).click()
   await expect(page.getByText('routines')).toBeVisible()
   const save = await page.request.post('/api/admin/routines', { data: { activity: 'nature' } })
   expect(save.ok()).toBe(true)
