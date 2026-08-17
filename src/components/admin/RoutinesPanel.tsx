@@ -235,7 +235,7 @@ export function RoutinesPanel({ date }: { date: string }) {
     try {
       await api('/api/admin/routines', {
         method: 'POST',
-        body: JSON.stringify({ activity, date }),
+        body: { activity, date },
       })
       await load()
     } catch {
@@ -250,7 +250,7 @@ export function RoutinesPanel({ date }: { date: string }) {
     try {
       await api('/api/admin/routines', {
         method: 'POST',
-        body: JSON.stringify({ activity, date, ...data }),
+        body: { activity, date, ...data },
       })
       await load()
     } catch {
