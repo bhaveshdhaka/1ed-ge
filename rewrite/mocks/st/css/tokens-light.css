@@ -1,0 +1,97 @@
+/* ============================================================
+   1edge tokens — LIGHT theme overlay · variant A
+   S00 · rev R4 · session C04 · DRAFT until owner freeze
+   (values unchanged since R3; R4 = theme wiring + iOS zoom fixes)
+   ------------------------------------------------------------
+   Same custom-property API as tokens.css (dark canon) — values
+   only. Loaded TWICE by every page:
+     #ls-auto  media="(prefers-color-scheme: light)"  ← system
+     #ls-force disabled                              ← manual
+   st/js/theme.js flips the pair; no-JS still follows system.
+   ADOPTED SYSTEMS:
+   · LINEAR light app — white cards on cool paper, black-alpha
+     hairlines, brand indigo #5e6ad2 EXACT (their light-mode
+     button/link color), hover darkens (light-mode convention).
+   · RADIX COLORS light steps — text-safe step-11 data colors,
+     gray alpha hairlines.
+   · APPLE HIG light materials — white vibrancy (~.72) for
+     floating chrome; sheets stay opaque; scrim lightens.
+   Geometry, spacing, motion: UNCHANGED from dark (structure is
+   chromatic-invariant by design).
+   ============================================================ */
+
+:root {
+    color-scheme: light;
+
+    /* ---- surface ladder ---- */
+    --bg: #f4f5f8;
+    --bg-raise: #ffffff;
+    --bg-overlay: #ffffff;
+    --inset: rgba(19, 23, 32, 0.05);
+    --surface-solid: #ffffff;
+    --material: rgba(255, 255, 255, 0.72);
+    --blur: 20px;
+    --edge-hi: rgba(255, 255, 255, 0.65);
+    --ambient: rgba(94, 106, 210, 0.05);
+
+    /* ---- hairlines / edges (black-alpha, never opaque gray) ---- */
+    --line: rgba(19, 23, 32, 0.08);
+    --line2: rgba(19, 23, 32, 0.13);
+    --line3: rgba(19, 23, 32, 0.21);
+
+    /* ---- ink ladder ---- */
+    --ink: rgba(22, 24, 29, 0.95);
+    --soft: rgba(22, 24, 29, 0.60);
+    --dim: rgba(22, 24, 29, 0.44);
+    --faint: rgba(22, 24, 29, 0.27);
+
+    /* ---- accent: chrome only (Linear indigo, light-canvas step) ---- */
+    --accent: #5e6ad2;
+    --accent-hi: #4f59c0;
+    --accent-dim: rgba(94, 106, 210, 0.10);
+    --accent-glow: rgba(94, 106, 210, 0.22);
+    --on-accent: #ffffff;
+
+    /* ---- data colors: Radix light step-11 (text-safe) ---- */
+    --up: #299764;
+    --down: #ce2c31;
+    --warn: #b88216;
+    --scrim: rgba(23, 25, 35, 0.34);
+
+    /* ---- depth: shadows carry elevation on light canvas ---- */
+    --shadow-panel: 0 1px 2px rgba(20, 22, 30, 0.08), 0 4px 14px rgba(20, 22, 30, 0.07);
+    --shadow-float: 0 2px 8px rgba(20, 22, 30, 0.10), 0 16px 48px rgba(20, 22, 30, 0.16);
+
+    /* ---- type / geometry / metrics: identical to dark canon ---- */
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+                 "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", SFMono-Regular,
+                 Menlo, monospace;
+    --text-3xs: 0.625rem;
+    --text-2xs: 0.6875rem;
+    --text-xs: 0.75rem;
+    --text-sm: 0.8125rem;
+    --text-base: 0.875rem;
+    --text-md: 1rem;
+    --text-lg: 1.25rem;
+    --text-xl: 1.5rem;
+    --text-2xl: 1.875rem;
+    --leading: 1.5;
+    --track-tight: -0.015em;
+    --track-wide: 0.08em;
+    --track-num: -0.005em;
+    --radius-lg: 12px;
+    --radius: 8px;
+    --radius-sm: 6px;
+    --ctl-h: 30px;
+    --ctl-pad-x: 11px;
+    --input-h: 34px;
+    --row-h: 36px;
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px;
+    --s5: 20px; --s6: 24px; --s7: 28px; --s8: 32px; --s10: 40px;
+    --ease: cubic-bezier(0.22, 0.61, 0.21, 1);
+    --t-fast: 130ms var(--ease);
+    --t-med: 210ms var(--ease);
+    --t-slow: 340ms var(--ease);
+}
+

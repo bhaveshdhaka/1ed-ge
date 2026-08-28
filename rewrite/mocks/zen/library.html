@@ -1,0 +1,827 @@
+<!doctype html>
+<!-- S06-secondary · rev R1 · session C13 · library — habits/models/
+     rules/quotes behind the palette. One segmented panel, four shelves.
+     REORDER VIA BUTTONS ONLY (up/down stepper with hit-slop) — no
+     drag-drop dependency on touch (acceptance). Inline edit sheets
+     (real form, named inputs, seg synced into hidden inputs), active
+     toggles as iOS switches (chrome control, accent on).
+     SHELL DOCTRINE (S06): config screens carry topbar + chrono band +
+     sessions rail only — the calendar strip is a day-surface navigator
+     and this screen is not day-anchored.
+     deep links: ?tab=habits|models|rules|quotes opens one shelf ·
+     ?empty=1 empties the active shelf · ?dt=1.2 (dynamic type)
+     ?at=<hkt wall> freezes
+     readouts. reachable from ⌘K in 2 actions everywhere. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="1edge">
+<meta name="theme-color" content="#0b0d12">
+<link rel="icon" href="data:,">
+<title>1edge — library</title>
+<link rel="stylesheet" href="/st/css/tokens?v=c13">
+<link rel="stylesheet" href="/st/css/tokens-light?v=c13" id="ls-auto" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="/st/css/tokens-light?v=c13" id="ls-force" disabled>
+<script src="/st/js/theme?v=c13"></script>
+<link rel="stylesheet" href="/st/css/base?v=c16">
+<link rel="stylesheet" href="/st/css/frame?v=c16">
+<link rel="stylesheet" href="/st/css/rail?v=c13r">
+<link rel="stylesheet" href="/st/css/composer?v=c13">
+<link rel="stylesheet" href="/st/css/secondary?v=c13">
+<script type="module" src="/st/js/feedback?v=c13"></script>
+<style>
+  .pal-list { -webkit-touch-callout: none; }
+</style>
+</head>
+<body>
+
+<div class="app">
+<div class="app">
+
+  <header class="topbar glass" id="topbar">
+    <div class="shell-fit topbar-inner">
+      <div class="topbar-row">
+        <div class="row" style="gap:10px;">
+          <span class="pulse" aria-hidden="true"></span>
+          <span class="brand">1edge<b>.</b></span>
+          <span class="capsule mkt" id="mkt"><span class="dot"></span><span id="mkt-label">cme</span>&nbsp;<span id="mkt-cd" style="color:var(--dim);"></span></span>
+          <span class="sim-chip" id="sim-chip" hidden>mock time</span>
+        </div>
+        <span class="num" style="font-size:var(--text-xs); color:var(--dim);" id="today-date">—</span>
+      </div>
+      <div class="band-wrap">
+        <div class="band" id="band"><div class="nowmark" id="nowmark"></div></div>
+        <div class="band-ruler" id="ruler" aria-hidden="true"></div>
+        <p class="band-caption" id="band-cap" hidden></p>
+      </div>
+    </div>
+    <nav class="rail" id="rail" aria-label="trading sessions">
+      <div class="sess" id="sess-tok">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.6 1h.8l3 10.2H7.3l-.7-2.4H5.4l-.7 2.4H2.6Zm.4 3.4-.5 2.6h1Z"/></svg>
+          <span class="sess-code">tok</span>
+        </span>
+        <span class="sess-state" id="st-tok">—</span>
+        <span class="sess-win" id="sw-tok">—</span>
+      </div>
+      <div class="sess" id="sess-lon">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M6 .4 7.7 3.1v8.1H4.3V3.1ZM6 4.9a1.2 1.2 0 1 0 .01 2.41A1.2 1.2 0 0 0 6 4.9Z"/></svg>
+          <span class="sess-code">lon</span>
+        </span>
+        <span class="sess-state" id="st-lon">—</span>
+        <span class="sess-win" id="sw-lon">—</span>
+      </div>
+      <div class="sess" id="sess-nyc">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M5.7.8h.6l.2 1.7h.7v1.6h.7v1.9h.8v5.2H7.4V8h-.9v3.2H5.4V8h-.9v3.2H3.3V6h.8V4.1h.7V2.5h.7Z"/></svg>
+          <span class="sess-code">nyc</span>
+        </span>
+        <span class="sess-state" id="st-nyc">—</span>
+        <span class="sess-win" id="sw-nyc">—</span>
+      </div>
+    </nav>
+  </header>
+  <main class="content">
+    <div class="day-head spread">
+      <div>
+        <h1>library</h1>
+        <p class="pg-sub" id="pg-sub">—</p>
+      </div>
+      <button class="btn btn-primary" id="add-item">add</button>
+    </div>
+
+    <section class="panel" id="sec-shelf" aria-label="library shelves" style="padding: var(--s3) var(--s3) var(--s2); margin-top: var(--s4);">
+      <div class="seg" id="lib-seg" role="group" aria-label="library shelf">
+        <button data-tab="habits" aria-pressed="true">habits</button><button data-tab="models" aria-pressed="false">models</button><button data-tab="rules" aria-pressed="false">rules</button><button data-tab="quotes" aria-pressed="false">quotes</button>
+      </div>
+      <div class="lib-list" id="lib-list" style="margin-top: var(--s3);"></div>
+    </section>
+  </main>
+
+  <details class="devrail">
+    <summary>s06 · demo states</summary>
+    <div class="row">
+      <span class="label">shelf</span>
+      <div class="seg" id="dev-seg" role="group" aria-label="demo shelf">
+        <button data-tab="habits">habits</button><button data-tab="models">models</button><button data-tab="rules">rules</button><button data-tab="quotes">quotes</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">shelf state</span>
+      <div class="seg" id="empty-seg" role="group" aria-label="empty shelf state">
+        <button data-e="full" aria-pressed="true">populated</button><button data-e="empty">empty</button>
+      </div>
+    </div>
+    <p class="empty" style="padding: var(--s2) 0;">?tab=rules · ?empty=1 · ?at=2026-08-25T09:20 freeze every readout.</p>
+  </details>
+
+</div>
+<!-- account sheet editor: one OPAQUE dialog, add + edit share it -->
+<dialog class="sheet sh" id="sh" aria-labelledby="sh-title">
+  <span class="sh-grab" aria-hidden="true"></span>
+  <form id="sh-form" action="#" method="post" novalidate>
+    <div class="sh-head">
+      <span class="sh-title" id="sh-title">edit account</span>
+      <span class="sh-sub" id="sh-sub"></span>
+    </div>
+    <div class="sh-body" id="sh-body"></div>
+    <div class="sh-foot">
+      <button type="button" class="btn btn-ghost" id="sh-cancel">cancel</button>
+      <button type="submit" class="btn btn-primary">save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- micro-toast -->
+<div class="toast glass" id="toast" role="status" hidden>
+  <span class="toast-msg" id="toast-msg"></span>
+  <i class="toast-drain" id="toast-drain" aria-hidden="true"></i>
+</div>
+
+<button class="fab-k" id="fab-k" aria-label="open command palette" hidden>⌘k</button>
+
+<dialog class="palette" id="palette" aria-label="command palette">
+  <input class="pal-input" id="pal-input" type="text" placeholder="jump, compose…" role="combobox"
+         aria-expanded="true" aria-controls="pal-list" aria-autocomplete="list" autocomplete="off">
+  <div class="pal-list" id="pal-list" role="listbox"></div>
+</dialog>
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const qs = new URLSearchParams(location.search);
+
+  /* S09 a11y demo: dynamic type — rem type scale survives the bump */
+  (() => {
+    const dt = parseFloat(qs.get("dt"));
+    if (Number.isFinite(dt) && dt >= 0.8 && dt <= 2) document.documentElement.style.fontSize = (dt * 100) + "%";
+  })();
+  const MONTHS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  const DOWS = ["sun","mon","tue","wed","thu","fri","sat"];
+  const DOW_IDX = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+  const pad = (n) => String(n).padStart(2, "0");
+  const CT = "America/Chicago";
+  const esc = (s) => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+  /* ================================================================
+     TIME ENGINE — ?at=<hkt wall> freezes every readout (S01 doctrine)
+     ================================================================ */
+  const AT_MS = (() => {
+    const raw = qs.get("at");
+    if (!raw) return null;
+    const ms = Date.parse(`${raw.length === 13 ? raw + ":00" : raw}+08:00`);
+    return Number.isFinite(ms) ? ms : null;
+  })();
+  const LIVE = AT_MS === null;
+  const nowMs = () => LIVE ? Date.now() : AT_MS;
+
+  function tzParts(tz, ms) {
+    const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23",
+      weekday: "short", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(ms));
+    const o = {}; for (const x of p) o[x.type] = x.value; return o;
+  }
+  const isoOfParts = (o) => `${o.year}-${o.month}-${o.day}`;
+  const hktIsoAt = (ms) => isoOfParts(tzParts("Asia/Hong_Kong", ms));
+  function tzOffMin(tz, ms) {
+    const o = tzParts(tz, ms);
+    const asUTC = Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour, +o.minute);
+    return Math.round((asUTC - ms) / 60000);
+  }
+  function wallUTC(tz, iso, hh, mm) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const guess = Date.UTC(y, m - 1, d, hh, mm);
+    return guess - tzOffMin(tz, new Date(guess)) * 60000;
+  }
+  const addIso = (iso, n) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d + n));
+    return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+  };
+  const dowOfIso = (iso) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  };
+  const dateOfIso = (iso) => new Date(`${iso}T12:00:00Z`);
+  const fmtDay = (d) => `${pad(d.getDate())}-${MONTHS[d.getMonth()]}-${d.getFullYear()}`;
+  const hkHM = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Hong_Kong", hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const hkHHMM = (ms) => hkHM.format(new Date(ms));
+  /* COUNTDOWN GRAMMAR — S01 r2.2 + S05 extension: ≥1d reads "5d 1h";
+     seconds ONLY on timers/news T-15m. bare colon forms banned. */
+  const fmtDur = (ms, secs = false) => {
+    let s = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60), ss = s % 60;
+    if (h >= 24) { const d = Math.floor(h / 24), hh = h % 24; return hh ? `${d}d ${hh}h` : `${d}d`; }
+    if (h > 0) return secs ? `${h}h ${pad(m)}m ${pad(ss)}s` : `${h}h ${m}m`;
+    if (secs) return `${m}m ${pad(ss)}s`;
+    return m >= 1 ? `${m}m` : "<1m";
+  };
+
+  /* ================================================================
+     CME MASTER CLOCK — faithful mock port of src/lib/market.ts
+     ================================================================ */
+  const addD = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const isoD = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const nthWd = (y, m, wd, n) => {
+    const f = new Date(y, m, 1), diff = (wd - f.getDay() + 7) % 7;
+    return addD(f, diff + (n - 1) * 7);
+  };
+  const lastWd = (y, m, wd) => {
+    const l = new Date(y, m + 1, 0);
+    return addD(l, -((l.getDay() - wd + 7) % 7));
+  };
+  const observed = (d) => d.getDay() === 6 ? addD(d, -1) : d.getDay() === 0 ? addD(d, 1) : d;
+  function easter(y) {
+    const a = y % 19, b = Math.floor(y / 100), c = y % 100, d2 = Math.floor(b / 4), e2 = b % 4,
+      f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d2 - g + 15) % 30,
+      i2 = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e2 + 2 * i2 - h - k) % 7,
+      mm = Math.floor((a + 11 * h + 22 * l) / 451),
+      month = Math.floor((h + l - 7 * mm + 114) / 31),
+      day = ((h + l - 7 * mm + 114) % 31) + 1;
+    return new Date(y, month - 1, day);
+  }
+  const MEM = new Map();
+  const once = (key, fn) => { if (!MEM.has(key)) MEM.set(key, fn()); return MEM.get(key); };
+  const cmeHolidays = (y) => once(`ch${y}`, () => [
+    observed(new Date(y, 0, 1)), addD(easter(y), -2), observed(new Date(y, 5, 19)),
+    observed(new Date(y, 6, 4)), nthWd(y, 10, 4, 4), observed(new Date(y, 11, 25)),
+  ].map(isoD));
+  const nyseHolidays = (y) => once(`nh${y}`, () => [
+    observed(new Date(y, 0, 1)), nthWd(y, 0, 1, 3), nthWd(y, 1, 1, 3), addD(easter(y), -2),
+    lastWd(y, 4, 1), observed(new Date(y, 5, 19)), observed(new Date(y, 6, 4)),
+    nthWd(y, 8, 1, 1), nthWd(y, 10, 4, 4), observed(new Date(y, 11, 25)),
+  ].map(isoD));
+  const japanHolidays = (y) => once(`jh${y}`, () => {
+    const eq = (c) => Math.floor(c + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
+    const base = [
+      new Date(y, 0, 1), new Date(y, 0, 2), nthWd(y, 0, 1, 2), new Date(y, 1, 11), new Date(y, 1, 23),
+      new Date(y, 2, eq(20.8431)), new Date(y, 3, 29), new Date(y, 4, 3), new Date(y, 4, 4), new Date(y, 4, 5),
+      nthWd(y, 6, 1, 3), new Date(y, 7, 11), nthWd(y, 8, 1, 3), new Date(y, 8, eq(23.2488)),
+      nthWd(y, 9, 1, 2), new Date(y, 10, 3), new Date(y, 10, 23),
+    ];
+    const set = new Set(base.map(isoD));
+    for (const d of base) if (d.getDay() === 0) {
+      let sub = addD(d, 1);
+      while (set.has(isoD(sub)) || sub.getDay() === 0 || sub.getDay() === 6) sub = addD(sub, 1);
+      set.add(isoD(sub));
+    }
+    return [...set];
+  });
+  const ukHolidays = (y) => once(`uh${y}`, () => {
+    const shift = (d) => (d.getDay() === 0 || d.getDay() === 6 ? addD(d, 2) : d);
+    const ny = new Date(y, 0, 1);
+    return [...new Set([
+      ny.getDay() === 6 ? addD(ny, 2) : ny.getDay() === 0 ? addD(ny, 1) : ny,
+      addD(easter(y), -2), addD(easter(y), 1),
+      nthWd(y, 4, 1, 1), lastWd(y, 4, 1), lastWd(y, 7, 1),
+      shift(new Date(y, 11, 25)), shift(new Date(y, 11, 26)),
+    ].map(isoD))];
+  });
+  const isTradingDay = (iso, hol) => dowOfIso(iso) !== 0 && dowOfIso(iso) !== 6 && !hol.has(iso);
+  const cmeStatus = (iso) => {
+    const wd = dowOfIso(iso);
+    if (wd === 0 || wd === 6) return { kind: "closed", reason: "weekend" };
+    const y = +iso.slice(0, 4);
+    if (cmeHolidays(y).includes(iso) || cmeHolidays(y + 1).includes(iso) || cmeHolidays(y - 1).includes(iso))
+      return { kind: "closed", reason: "holiday" };
+    for (const e of once(`eh${y}`, () => [
+      { iso: isoD(nthWd(y, 0, 1, 3)), hh: 12, mm: 0 }, { iso: isoD(nthWd(y, 1, 1, 3)), hh: 12, mm: 0 },
+      { iso: isoD(lastWd(y, 4, 1)), hh: 12, mm: 0 },
+    ])) if (e.iso === iso && dowOfIso(e.iso) !== 0 && dowOfIso(e.iso) !== 6) return { kind: "early-halt", hh: e.hh, mm: e.mm };
+    for (const e of once(`ec${y}`, () => {
+      const jul4 = new Date(y, 6, 4);
+      return [
+        { iso: isoD(addD(nthWd(y, 10, 4, 4), 1)), hh: 13, mm: 15 },
+        { iso: `${y}-12-24`, hh: 13, mm: 15 }, { iso: `${y}-12-31`, hh: 13, mm: 15 },
+        ...(jul4.getDay() === 6 ? [{ iso: isoD(addD(jul4, -2)), hh: 12, mm: 0 }] : []),
+      ];
+    })) if (e.iso === iso && dowOfIso(e.iso) !== 0 && dowOfIso(e.iso) !== 6) return { kind: "early", hh: e.hh, mm: e.mm };
+    return { kind: "open" };
+  };
+  const rank = { open: 0, halt: 1, close: 2 };
+  const boundsCache = new Map();
+  function boundsAround(centerIso) {
+    if (!boundsCache.has(centerIso)) {
+      const out = [];
+      for (let i = -4; i <= 11; i++) {
+        const D = addIso(centerIso, i), st = cmeStatus(D);
+        if (st.kind === "closed") continue;
+        out.push({ ms: wallUTC(CT, addIso(D, -1), 17, 0), t: "open", iso: D });
+        if (st.kind === "early") out.push({ ms: wallUTC(CT, D, st.hh, st.mm), t: "close", iso: D });
+        else if (cmeStatus(addIso(D, 1)).kind === "closed") out.push({ ms: wallUTC(CT, D, 16, 0), t: "close", iso: D });
+        else {
+          if (st.kind === "early-halt") out.push({ ms: wallUTC(CT, D, st.hh, st.mm), t: "halt", iso: D });
+          out.push({ ms: wallUTC(CT, D, 16, 0), t: "halt", iso: D });
+        }
+      }
+      out.sort((a, b) => a.ms - b.ms || rank[a.t] - rank[b.t]);
+      boundsCache.set(centerIso, out);
+    }
+    return boundsCache.get(centerIso);
+  }
+  function windowFor(iso) {
+    const bs = boundsAround(iso);
+    const open = bs.find((b) => b.t === "open" && b.iso === iso);
+    if (!open) return null;
+    const mine = bs.filter((b) => b.iso === iso && b.t !== "open");
+    return { open: open.ms, end: mine.length ? mine[mine.length - 1].ms : open.ms + 1380 * 60000, iso };
+  }
+  function phaseAt(ms) {
+    const bs = boundsAround(hktIsoAt(ms));
+    let cur = null;
+    for (const b of bs) { if (b.ms <= ms) cur = b; else break; }
+    const next = bs.find((b) => b.ms > ms) || null;
+    if (!cur || cur.t === undefined) return { phase: "closed", reason: "weekend", untilMs: next?.ms ?? ms };
+    if (cur.t === "open") return { phase: "open", untilMs: next.ms, iso: cur.iso };
+    if (cur.t === "halt") {
+      const st = cmeStatus(cur.iso);
+      return { phase: "halt", early: st.kind === "early-halt", untilMs: next.ms, iso: cur.iso };
+    }
+    const st = cmeStatus(cur.iso);
+    const reason = st.kind === "early" ? "early close"
+      : dowOfIso(cur.iso) === 5 ? "weekend" : "holiday";
+    return { phase: "closed", reason, untilMs: next?.ms ?? ms };
+  }
+  function sessSpans(iso) {
+    const st = cmeStatus(iso);
+    if (st.kind === "closed") return null;
+    const win = windowFor(iso);
+    const clampEnd = st.kind === "early" ? wallUTC(CT, iso, st.hh, st.mm) : win.end;
+    const mk = (tz, aH, aM, bH, bM) => {
+      const s = wallUTC(tz, iso, aH, aM), e = wallUTC(tz, iso, bH, bM);
+      if (e <= win.open || s >= clampEnd) return null;
+      return [Math.max(s, win.open), Math.min(e, clampEnd)];
+    };
+    const jp = new Set(japanHolidays(+iso.slice(0, 4)));
+    const uk = new Set(ukHolidays(+iso.slice(0, 4)));
+    const us = new Set(nyseHolidays(+iso.slice(0, 4)));
+    const usEarly = nyseHolidays(+iso.slice(0, 4)).includes(iso) ? null :
+      (st.kind === "early" ? 13 : 16);
+    const tok = [];
+    if (isTradingDay(iso, jp)) {
+      const a = mk("Asia/Tokyo", 9, 0, 11, 30), b = mk("Asia/Tokyo", 12, 30, 15, 30);
+      if (a) tok.push(a); if (b) tok.push(b);
+    }
+    const lon = isTradingDay(iso, uk) ? [mk("Europe/London", 8, 0, 16, 30)].filter(Boolean) : [];
+    const nyc = isTradingDay(iso, us) && usEarly ? [mk("America/New_York", 9, 30, usEarly, 0)].filter(Boolean) : [];
+    return { tok, lon, nyc };
+  }
+
+  /* ================================================================
+     CHROME — topbar, chrono band, sessions rail (no strip: S06 shells
+     are config surfaces, not day-anchored ones)
+     ================================================================ */
+  const band = $("band"), nowmark = $("nowmark"), ruler = $("ruler"), bandCap = $("band-cap");
+  const NOW0 = nowMs();
+  const TODAY_ISO = hktIsoAt(NOW0);
+  function effIso() {
+    const ph = phaseAt(nowMs());
+    return ph.iso ?? TODAY_ISO;
+  }
+  function buildBand() {
+    band.querySelectorAll(".sp").forEach((n) => n.remove());
+    ruler.innerHTML = "";
+    const iso = effIso();
+    const win = windowFor(iso);
+    const spans = sessSpans(iso);
+    if (!win) {
+      band.classList.add("is-dim");
+      nowmark.style.display = "none";
+      bandCap.hidden = false;
+      bandCap.textContent = `no cme session · ${cmeStatus(iso).reason}`;
+      return;
+    }
+    bandCap.hidden = true;
+    band.classList.remove("is-dim");
+    const pct = (ms) => ((ms - win.open) / (win.end - win.open) * 100).toFixed(3) + "%";
+    for (const [name, arr] of Object.entries(spans || {})) {
+      for (const [s, e] of arr) {
+        const f = document.createElement("div");
+        f.className = `sp s-${name}`;
+        f.style.left = pct(s);
+        f.style.width = ((e - s) / (win.end - win.open) * 100).toFixed(3) + "%";
+        band.appendChild(f);
+      }
+    }
+    for (let k = 180; k < 1380; k += 180) {
+      const major = k % 360 === 0;
+      const t = document.createElement("i");
+      t.className = "tick" + (major ? " major" : "");
+      t.style.left = (k / 1380 * 100).toFixed(3) + "%";
+      ruler.appendChild(t);
+      if (major) {
+        const lab = document.createElement("span");
+        lab.className = "tlab";
+        lab.style.left = (k / 1380 * 100).toFixed(3) + "%";
+        lab.textContent = hkHHMM(win.open + k * 60000).slice(0, 2);
+        ruler.appendChild(lab);
+      }
+    }
+    band.dataset.open = win.open; band.dataset.end = win.end;
+  }
+  const MKT_LABEL = { open: ["cme · open", "is-open"], halt: ["cme · halt", "is-open"], closed: ["cme · closed", ""] };
+  function renderClock() {
+    const now = nowMs();
+    const ph = phaseAt(now);
+    const live = ph.phase === "open";
+    $("topbar").classList.toggle("is-live", live);
+    const [label, cls] = ph.phase === "closed" && ph.reason === "holiday"
+      ? ["cme · holiday", "is-holiday"] : MKT_LABEL[ph.phase];
+    $("mkt-label").textContent = label;
+    $("mkt").className = "capsule mkt " + cls;
+    const remainS = Math.max(0, Math.floor((ph.untilMs - now) / 1000));
+    $("mkt-cd").textContent = fmtDur(remainS * 1000);
+
+    const winOpen = +band.dataset.open, winEnd = +band.dataset.end;
+    const inWin = Number.isFinite(winOpen) && now >= winOpen && now < winEnd;
+    band.classList.toggle("is-dim", !inWin);
+    nowmark.style.display = inWin ? "" : "none";
+    if (inWin) nowmark.style.left = `calc(${((now - winOpen) / (winEnd - winOpen) * 100).toFixed(3)}% - 1px)`;
+
+    const spans = sessSpans(effIso());
+    const railDefs = [["tok", spans?.tok], ["lon", spans?.lon], ["nyc", spans?.nyc]];
+    for (const [name, arr] of railDefs) {
+      const el = $("sess-" + name), stEl = $("st-" + name), swEl = $("sw-" + name);
+      el.classList.remove("is-live");
+      if (!arr || !arr.length) {
+        stEl.textContent = "closed";
+        swEl.textContent = "no session";
+        continue;
+      }
+      swEl.textContent = `${hkHHMM(arr[0][0])}–${hkHHMM(arr[arr.length - 1][1])} hkt`;
+      const cur = arr.find(([s, e]) => now >= s && now < e);
+      if (cur) {
+        el.classList.add("is-live");
+        stEl.innerHTML = `<span class="live-dot" aria-hidden="true"></span>live · <b>${fmtDur(cur[1] - now)}</b> left`;
+      } else if (name === "tok" && arr.length === 2 && now >= arr[0][1] && now < arr[1][0]) {
+        stEl.innerHTML = `back in <b>${fmtDur(arr[1][0] - now)}</b>`;
+      } else {
+        const nx = arr.find(([s]) => s > now);
+        if (!nx) stEl.textContent = now >= winEnd ? "done" : "closed";
+        else if (now < winOpen) stEl.textContent = "scheduled";
+        else stEl.innerHTML = `opens in <b>${fmtDur(nx[0] - now)}</b>`;
+      }
+    }
+
+    if (!LIVE) {
+      $("sim-chip").hidden = false;
+      const o = tzParts("Asia/Hong_Kong", now);
+      $("today-date").textContent = `${DOWS[DOW_IDX[o.weekday]]} ${o.day} ${MONTHS[+o.month - 1]} · ${o.hour}:${o.minute} hkt · mock`;
+    } else {
+      $("today-date").textContent = fmtDay(dateOfIso(TODAY_ISO));
+    }
+  }
+
+  /* ================================================================
+     LIBRARY — four shelves, stepper reorder (no dnd), switches,
+     inline edit sheets. order + toggles are mock-in-memory.
+     ================================================================ */
+  const TABS = ["habits", "models", "rules", "quotes"];
+  let LIB = {
+    habits: [
+      { name: "cold shower", meta: "daily · since 02-jun-2026", active: true },
+      { name: "morning pages", meta: "daily · since 14-jul-2026", active: true },
+      { name: "no screens before the open", meta: "weekdays · since 03-aug-2026", active: true },
+      { name: "journal one insight", meta: "trading days · since 21-jul-2026", active: true },
+      { name: "evening walk", meta: "daily · since 09-aug-2026", active: false },
+    ],
+    models: [
+      { name: "tok open fade", meta: "mnq · asia · 09:15–10:30 hkt", active: true },
+      { name: "lon trend pull", meta: "mnq · london · 15:00–18:00 hkt", active: true },
+      { name: "ny open drive", meta: "mnq · new york · 21:30–23:00 hkt", active: true },
+      { name: "globex reversion", meta: "mnq · overnight · 00:00–05:00 hkt", active: false },
+    ],
+    rules: [
+      { name: "max 3 trades a day", meta: "hard · always", active: true },
+      { name: "flat after two losses", meta: "hard · always", active: true },
+      { name: "no trades red folder ±2m", meta: "hard · news", active: true },
+      { name: "size down after a red day", meta: "soft · recovery", active: true },
+      { name: "no weekend chart-watching", meta: "soft · recovery", active: false },
+    ],
+    quotes: [
+      { name: "the stock market is a device for transferring money from the impatient to the patient.", meta: "warren buffett", active: true },
+      { name: "plan the trade. trade the plan.", meta: "trading proverb", active: true },
+      { name: "cut losses quickly. let winners run.", meta: "trading proverb", active: true },
+      { name: "amateurs want to be right. professionals want to make money.", meta: "alexander elder", active: true },
+      { name: "risk comes from not knowing what you are doing.", meta: "warren buffett", active: false },
+    ],
+  };
+  let tab = qs.get("tab") || "habits";
+  if (!TABS.includes(tab)) tab = "habits";
+  let emptyShelf = qs.get("empty") === "1";
+
+  const pencilSvg = `<svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M9.7 2.6l2.7 2.7-7.4 7.4-3.2.5.5-3.2 7.4-7.4Zm1.4-1.4a1.1 1.1 0 0 1 1.6 0l1.1 1.1a1.1 1.1 0 0 1 0 1.6l-1 1-2.7-2.7 1-1Z"/></svg>`;
+
+  function rowHtml(item, i, n) {
+    return `<div class="lib-row${tab === "quotes" ? " lib-quote" : ""}" data-i="${i}">
+      <div class="lib-stepper">
+        <button type="button" class="step-btn" data-move="up" aria-label="move up" aria-disabled="${String(i === 0)}">↑</button>
+        <button type="button" class="step-btn" data-move="down" aria-label="move down" aria-disabled="${String(i === n - 1)}">↓</button>
+      </div>
+      <div class="lib-body">
+        <span class="lib-name">${esc(item.name)}</span>
+        <span class="lib-meta">${esc(item.meta)}</span>
+      </div>
+      <button type="button" class="icon-btn lib-edit" data-edit="${i}" aria-label="edit ${esc(item.meta)}">${pencilSvg}</button>
+      <button type="button" class="switch" role="switch" aria-checked="${String(item.active)}" data-active="${i}" aria-label="${esc(item.meta)} active"></button>
+    </div>`;
+  }
+
+  function render() {
+    const items = LIB[tab];
+    const act = items.filter((i) => i.active).length;
+    $("pg-sub").textContent = `${TABS.map((t) => `${LIB[t].length} ${t}`).join(" · ")}`;
+    const list = $("lib-list");
+    const rows = emptyShelf ? [] : items;
+    list.innerHTML = rows.length
+      ? rows.map((it, i) => rowHtml(it, i, rows.length)).join("")
+      : `<p class="empty" style="padding: var(--s3) var(--s2);">${{ habits: "no habits yet — add one to build the chain.", models: "no models yet — name the setups you actually trade.", rules: "no rules yet — write the lines you will not cross.", quotes: "no quotes yet — keep the wall that keeps you steady." }[tab]}</p>`;
+    document.querySelectorAll("#lib-seg [data-tab], #dev-seg [data-tab]").forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.dataset.tab === tab)));
+
+    list.querySelectorAll("[data-move]").forEach((b) => b.addEventListener("click", () => {
+      const i = +b.closest(".lib-row").dataset.i;
+      const j = b.dataset.move === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= LIB[tab].length) return;
+      [LIB[tab][i], LIB[tab][j]] = [LIB[tab][j], LIB[tab][i]];
+      render();
+      toastMsg("order saved");
+    }));
+    list.querySelectorAll("[data-active]").forEach((b) => b.addEventListener("click", () => {
+      const it = LIB[tab][+b.dataset.active];
+      it.active = !it.active;
+      b.setAttribute("aria-checked", String(it.active));
+    }));
+    list.querySelectorAll("[data-edit]").forEach((b) =>
+      b.addEventListener("click", () => openSheet(+b.dataset.edit)));
+  }
+
+  /* ---- sheet: add + edit per shelf (real form, named inputs) ---- */
+  const sheet = $("sh"), shForm = $("sh-form"), shBody = $("sh-body");
+  let editing = null, lastFocus = null;
+  const txtField = (name, label, current, ph) =>
+    `<label class="sh-field"><span class="label">${label}</span>
+       <input class="input" type="text" name="${name}" value="${esc(current ?? "")}" placeholder="${ph}" autocomplete="off"></label>`;
+  const areaField = (name, label, current, ph) =>
+    `<label class="sh-field"><span class="label">${label}</span>
+       <textarea class="input" name="${name}" rows="3" placeholder="${ph}" autocomplete="off">${esc(current ?? "")}</textarea></label>`;
+  const segField = (name, options, current, label) =>
+    `<div class="sh-field"><span class="label">${label}</span>
+       <div class="seg" data-sync="${name}" role="group" aria-label="${label}">` +
+    options.map((o) => `<button type="button" data-v="${o}" aria-pressed="${String(o === current)}">${o}</button>`).join("") +
+    `<input type="hidden" name="${name}" value="${current}"></div></div>`;
+  function wireSync(root) {
+    root.querySelectorAll("[data-sync]").forEach((box) => {
+      const input = box.querySelector("input[type='hidden']");
+      box.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-v]");
+        if (!b) return;
+        box.querySelectorAll("[data-v]").forEach((x) => x.setAttribute("aria-pressed", "false"));
+        b.setAttribute("aria-pressed", "true");
+        input.value = b.dataset.v;
+      });
+    });
+  }
+  const SHEETS = {
+    habits: {
+      body: (it) =>
+        txtField("name", "habit", it?.name, "cold shower") +
+        segField("cadence", ["daily", "weekdays", "trading days"], it ? it.meta.split(" · ")[0] : "daily", "cadence") +
+        txtField("since", "since", it ? (it.meta.match(/since (.+)$/) || [, ""])[1] : "", "28-aug-2026") +
+        segField("active", ["on", "off"], it ? (it.active ? "on" : "off") : "on", "active"),
+      apply(fd, it) {
+        it.name = String(fd.get("name") || "").trim() || "new habit";
+        it.meta = `${fd.get("cadence")} · since ${String(fd.get("since") || "").trim() || "today"}`;
+        it.active = fd.get("active") === "on";
+      },
+    },
+    models: {
+      body: (it) =>
+        txtField("name", "model", it?.name, "tok open fade") +
+        txtField("market", "market", it ? it.meta.split(" · ")[0] : "", "mnq") +
+        txtField("window", "session window", it ? it.meta.split(" · ").slice(1).join(" · ") : "", "asia · 09:15–10:30 hkt") +
+        segField("active", ["on", "off"], it ? (it.active ? "on" : "off") : "on", "active"),
+      apply(fd, it) {
+        it.name = String(fd.get("name") || "").trim() || "new model";
+        it.meta = `${String(fd.get("market") || "mnq")} · ${String(fd.get("window") || "").trim() || "window open"}`;
+        it.active = fd.get("active") === "on";
+      },
+    },
+    rules: {
+      body: (it) =>
+        txtField("name", "rule", it?.name, "max 3 trades a day") +
+        segField("kind", ["hard", "soft"], it ? it.meta.split(" · ")[0] : "hard", "kind") +
+        segField("active", ["on", "off"], it ? (it.active ? "on" : "off") : "on", "active"),
+      apply(fd, it) {
+        it.name = String(fd.get("name") || "").trim() || "new rule";
+        it.meta = `${fd.get("kind")} · personal`;
+        it.active = fd.get("active") === "on";
+      },
+    },
+    quotes: {
+      body: (it) =>
+        areaField("name", "quote", it?.name, "the market rewards patience, not activity.") +
+        txtField("author", "author", it?.meta, "trading proverb") +
+        segField("active", ["on", "off"], it ? (it.active ? "on" : "off") : "on", "active"),
+      apply(fd, it) {
+        it.name = String(fd.get("name") || "").trim() || "a quote worth keeping.";
+        it.meta = String(fd.get("author") || "").trim() || "unattributed";
+        it.active = fd.get("active") === "on";
+      },
+    },
+  };
+  function openSheet(idx) {
+    editing = idx === null ? null : idx;
+    lastFocus = document.activeElement;
+    const it = idx === null ? null : LIB[tab][idx];
+    $("sh-title").textContent = it ? `edit ${tab.slice(0, -1)}` : `add ${tab.slice(0, -1)}`;
+    $("sh-sub").textContent = tab;
+    shBody.innerHTML = SHEETS[tab].body(it);
+    wireSync(shBody);
+    sheet.showModal();
+  }
+  shForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const fd = new FormData(shForm);
+    if (editing === null) {
+      const it = {};
+      SHEETS[tab].apply(fd, it);
+      LIB[tab].unshift(it);
+      toastMsg(`${tab.slice(0, -1)} added`);
+    } else {
+      SHEETS[tab].apply(fd, LIB[tab][editing]);
+      toastMsg(`${tab.slice(0, -1)} saved`);
+    }
+    render();
+    sheet.close();
+  });
+  $("sh-cancel").addEventListener("click", () => sheet.close());
+  sheet.addEventListener("click", (e) => { if (e.target === sheet) sheet.close(); });
+  sheet.addEventListener("close", () => { lastFocus?.focus?.({ preventScroll: true }); });
+  $("add-item").addEventListener("click", () => openSheet(null));
+
+  /* ---- shelf switching + devrail (roundtrip through URL) ---- */
+  function setTab(v) {
+    tab = v;
+    const u = new URL(location); u.searchParams.set("tab", v);
+    history.replaceState(null, "", u);
+    render();
+  }
+  $("lib-seg").addEventListener("click", (e) => { if (e.target.dataset.tab) setTab(e.target.dataset.tab); });
+  $("dev-seg").addEventListener("click", (e) => { if (e.target.dataset.tab) setTab(e.target.dataset.tab); });
+  $("empty-seg").addEventListener("click", (e) => {
+    const v = e.target.dataset.e; if (!v) return;
+    emptyShelf = v === "empty";
+    document.querySelectorAll("#empty-seg [data-e]").forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.dataset.e === v)));
+    render();
+  });
+  if (emptyShelf) {
+    document.querySelectorAll("#empty-seg [data-e]").forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.dataset.e === "empty")));
+  }
+
+  /* ---- palette data (page-owned; machinery is shared S06 code) ---- */
+  const ITEMS = [
+    { sec: "jump", label: "shelf", hint: "g l", go: "sec-shelf" },
+    { sec: "jump", label: "habits", url: "?tab=habits", self: true },
+    { sec: "jump", label: "models", url: "?tab=models", self: true },
+    { sec: "jump", label: "rules", url: "?tab=rules", self: true },
+    { sec: "jump", label: "quotes", url: "?tab=quotes", self: true },
+    { sec: "compose", label: "thought", hint: "n", url: "composer.html?mode=thought" },
+    { sec: "compose", label: "quote", hint: "q", url: "composer.html?mode=quote" },
+    { sec: "compose", label: "trade", hint: "t", url: "composer.html?mode=trade" },
+    { sec: "screens", label: "today rail", url: "today.html" },
+    { sec: "screens", label: "rituals", url: "rituals.html" },
+    { sec: "screens", label: "evening", url: "evening.html" },
+    { sec: "screens", label: "cockpit", url: "index.html" },
+    { sec: "settings", label: "accounts", url: "accounts.html" },
+    { sec: "settings", label: "media", url: "media.html" },
+    { sec: "settings", label: "zen settings", url: "settings.html" },
+  ];
+  const CHORDS = { l: "sec-shelf" };
+  const COMPOSE_KEYS = { n: "thought", q: "quote", t: "trade" };
+
+  render();
+  /* ---- toast ---- */
+  const toastEl = $("toast"), toastMsgEl = $("toast-msg"), drainEl = $("toast-drain");
+  let toastTimer = null;
+  function toastMsg(text) {
+    toastMsgEl.textContent = text;
+    toastEl.hidden = false;
+    drainEl.style.transition = "none"; drainEl.style.transform = "scaleX(1)";
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      drainEl.style.transition = "transform 2.4s linear"; drainEl.style.transform = "scaleX(0)";
+    }));
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toastEl.hidden = true; }, 2400);
+  }
+
+  /* ---- command palette (⌘K reaches everything in ≤2 actions) ---- */
+  const palette = $("palette"), palInput = $("pal-input"), palList = $("pal-list");
+  let visible = [], cursor = 0, palLastFocus = null;
+  function fuzzy(q, hay) {
+    q = q.toLowerCase(); hay = hay.toLowerCase();
+    const idx = hay.indexOf(q);
+    if (idx >= 0) return idx === 0 || hay[idx - 1] === " " ? 0 : 1;
+    let i = 0;
+    for (const ch of hay) if (ch === q[i]) i++;
+    return i === q.length ? 2 : -1;
+  }
+  function renderPal() {
+    const q = palInput.value.trim();
+    const pool = !q ? [...ITEMS]
+      : ITEMS.map((i) => ({ item: i, s: fuzzy(q, i.label + " " + i.sec) }))
+          .filter((x) => x.s >= 0).sort((a, b) => a.s - b.s).map((x) => x.item);
+    visible = pool; cursor = 0;
+    let html = "", lastSec = null;
+    pool.forEach((i, n) => {
+      if (i.sec !== lastSec) { html += `<p class="pal-sec">${i.sec}</p>`; lastSec = i.sec; }
+      html += `<div class="pal-item" role="option" id="pal-o${n}" data-i="${n}" data-active="${n === cursor}" aria-selected="${n === cursor}">
+                 <span class="grow">${i.label}</span><span class="hint">${i.hint}</span></div>`;
+    });
+    palList.innerHTML = html || `<p class="pal-empty empty">nothing matches “${q.replace(/</g, "&lt;")}”.</p>`;
+    palInput.setAttribute("aria-activedescendant", pool.length ? `pal-o${cursor}` : "");
+  }
+  function moveCursor(delta) {
+    if (!visible.length) return;
+    cursor = (cursor + delta + visible.length) % visible.length;
+    palList.querySelectorAll(".pal-item").forEach((el) =>
+      el.dataset.active = String(+el.dataset.i === cursor));
+    palList.querySelector(`[data-i="${cursor}"]`)?.scrollIntoView({ block: "nearest" });
+    palInput.setAttribute("aria-activedescendant", `pal-o${cursor}`);
+  }
+  function jumpTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function pick() {
+    const it = visible[cursor];
+    if (!it) return;
+    palette.close();
+    if (it.go) jumpTo(it.go);
+    else if (it.url) location.assign(it.url);
+    else toastMsg(`mock → ${it.label}`);
+  }
+  function openPal() {
+    palLastFocus = document.activeElement;
+    palInput.value = ""; renderPal();
+    palette.showModal();
+    setTimeout(() => palInput.focus(), 60);
+  }
+  palette.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); moveCursor(1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); moveCursor(-1); }
+    else if (e.key === "Enter") { e.preventDefault(); pick(); }
+  });
+  palInput.addEventListener("input", renderPal);
+  palList.addEventListener("click", (e) => {
+    const it = e.target.closest(".pal-item");
+    if (it) { cursor = +it.dataset.i; pick(); }
+  });
+  palette.addEventListener("click", (e) => { if (e.target === palette) palette.close(); });
+  palette.addEventListener("close", () => { palLastFocus?.focus?.({ preventScroll: true }); });
+
+  /* keyboard: ⌘K palette · / palette · g-chords · compose keys */
+  let chordArm = 0;
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      palette.open ? palette.close() : openPal();
+      return;
+    }
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
+    if (e.key === "/") { e.preventDefault(); openPal(); return; }
+    const nowT = Date.now();
+    if (e.key.toLowerCase() === "g" && nowT - chordArm > 400) {
+      chordArm = nowT;
+      setTimeout(() => { chordArm = 0; }, 1200);
+      return;
+    }
+    if (nowT - chordArm <= 1200) {
+      const dest = CHORDS[e.key.toLowerCase()];
+      if (dest) { chordArm = 0; jumpTo(dest); return; }
+    }
+    chordArm = 0;
+    const m = COMPOSE_KEYS[e.key.toLowerCase()];
+    if (m) location.assign(`composer.html?mode=${m}`);
+  });
+  const COARSE = matchMedia("(pointer: coarse)").matches;
+  if (COARSE) {
+    $("fab-k").hidden = false;
+    $("fab-k").addEventListener("click", openPal);
+  }
+
+  /* ---- init + loop ---- */
+  buildBand();
+  renderClock();
+  setInterval(renderClock, 1000);
+})();
+</script>
+</body>
+</html>

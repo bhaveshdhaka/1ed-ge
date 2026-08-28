@@ -1,0 +1,164 @@
+<!doctype html>
+<!-- S00-foundation · rev R4 · iOS Safari/retina torture test · light/dark follows system + manual seg -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0d12">
+<title>torture — 1edge</title>
+<link rel="stylesheet" href="st/css/tokens?v=r4b">
+<link rel="stylesheet" href="st/css/tokens-light?v=r4b" id="ls-auto" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="st/css/tokens-light?v=r4b" id="ls-force" disabled>
+<script src="st/js/theme?v=r4b"></script>
+<link rel="stylesheet" href="st/css/base?v=c16">
+<script type="module" src="st/js/feedback?v=r4b"></script>
+<style>
+  /* page-local layout only — every primitive lives in base.css */
+  .bar {
+    position: fixed; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--s2) max(var(--s4), env(safe-area-inset-left)) ;
+    border-radius: 0;
+  }
+  .bar.top { top: 0; padding-top: calc(env(safe-area-inset-top, 0px) + var(--s2)); }
+  .bar.bottom { bottom: 0; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--s2)); }
+  /* full-bleed glass bars keep only their content-facing hairline */
+  .bar.top.glass { box-shadow: inset 0 -1px 0 var(--line2); }
+  .bar.bottom.glass { box-shadow: inset 0 1px 0 var(--line2); }
+  .hero {
+    padding: calc(env(safe-area-inset-top, 0px) + var(--s7)) var(--s4) var(--s6);
+    display: grid; place-items: center;
+    background:
+      radial-gradient(80% 90% at 20% 10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+      radial-gradient(70% 80% at 85% 80%, color-mix(in srgb, var(--up) 8%, transparent), transparent 55%);
+  }
+  .hero .panel { width: min(420px, 86vw); }
+  .screen { min-height: 100svh; display: grid; place-items: center; text-align: center; }
+  .tapgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s2); }
+  .tapgrid button {
+    height: 44px; border-radius: var(--radius-sm);
+    background: var(--bg-overlay); box-shadow: inset 0 0 0 1px var(--line2);
+    font-size: var(--text-2xs); color: var(--dim); transition: all var(--t-fast);
+  }
+  .tapgrid button:active { background: var(--accent-dim); color: var(--accent); transform: scale(.96); }
+  .hairlines i { display: block; height: 1px; background: var(--line2); }
+  .hairlines i.half { height: 0.5px; }
+  .scroller { max-height: 168px; overflow-y: auto; overscroll-behavior: contain;
+              -webkit-overflow-scrolling: touch; }
+  .scroller .kv { padding-inline: var(--s3); }
+  @media (max-width: 479px) { .bar.bottom > span { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="bar top glass fade-up">
+  <span style="font-weight:700;font-size:var(--text-sm)">1edge<span style="color:var(--accent)">_</span></span>
+  <span class="capsule">torture</span>
+</div>
+
+<section class="hero">
+  <div class="panel glass fade-up" style="--i:1;padding:var(--s5)">
+    <p class="label">backdrop-filter over gradient</p>
+    <h1 style="font-size:var(--text-xl);font-weight:700;letter-spacing:var(--track-tight);margin:var(--s2) 0">
+      blur must be glassy, not milky
+    </h1>
+    <p style="color:var(--soft);font-size:var(--text-sm);margin:0">
+      This panel floats over two radial glows. If edges look frosted-white in
+      Safari, -webkit-backdrop-filter is doing its job.
+    </p>
+  </div>
+</section>
+
+<main class="shell" style="padding-block:var(--s6) 96px">
+
+  <section>
+    <h2 class="sec-title"><span class="sec-no">01</span>safe areas — notch + home indicator</h2>
+    <div class="well" style="padding:var(--s3)">
+      <p style="margin:0;font-size:var(--text-sm);color:var(--soft)">
+        Fixed bars hug the true screen edges. Nothing sits under the notch or
+        clashes with the home indicator.
+      </p>
+    </div>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">02</span>tap targets — 44px minimum, :active feedback</h2>
+    <div class="tapgrid">
+      <button class="tap">a1</button><button class="tap">b2</button><button class="tap">c3</button>
+      <button class="tap">d4</button><button class="tap">e5</button><button class="tap">f6</button>
+      <button class="tap">g7</button><button class="tap">h8</button><button class="tap">i9</button>
+      <button class="tap">j0</button>
+    </div>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">03</span>numerals — tabular mono alignment</h2>
+    <div class="well" style="padding:var(--s1) var(--s3)">
+      <div class="kv"><dt>proportional (wrong for data)</dt><dd>23,410.25 vs 988.5</dd></div>
+      <div class="kv"><dt>tabular mono (correct)</dt><dd class="num">23,410.25 vs&nbsp;&nbsp;&nbsp;988.50</dd></div>
+    </div>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">04</span>hairline crispness on retina — 1px vs 0.5px</h2>
+    <div class="well hairlines" style="padding:var(--s3)">
+      <i></i><span class="label" style="display:block;padding:6px 0">solid 1px</span>
+      <i class="half"></i><span class="label" style="display:block;padding:6px 0">half-pixel (crisper on 3x)</span>
+      <i></i>
+    </div>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">05</span>nested momentum scroll + overscroll containment</h2>
+    <div class="scroller well" style="padding-block:var(--s1)">
+      <div class="kv"><dt>r1</dt><dd class="num num-up">+1.2R</dd></div>
+      <div class="kv"><dt>r2</dt><dd class="num num-down">−0.8R</dd></div>
+      <div class="kv"><dt>r3</dt><dd class="num num-up">+2.4R</dd></div>
+      <div class="kv"><dt>r4</dt><dd class="num num-up">+0.4R</dd></div>
+      <div class="kv"><dt>r5</dt><dd class="num num-down">−1.0R</dd></div>
+      <div class="kv"><dt>r6</dt><dd class="num num-up">+1.1R</dd></div>
+    </div>
+    <p class="empty" style="margin-top:var(--s2)">scroll inside must not chain to page.</p>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">06</span>native dialog — opaque sheet, dim scrim</h2>
+    <button class="btn btn-ghost tap" id="dlg-open" style="margin-top:var(--s1)">open dialog</button>
+  </section>
+
+</main>
+
+<section class="screen">
+  <div>
+    <p class="label">07 · svh section</p>
+    <p style="color:var(--soft)">exactly one small-viewport tall.</p>
+  </div>
+</section>
+
+<div class="bar bottom glass">
+  <span style="font-size:var(--text-xs);color:var(--dim)">home-indicator clearance</span>
+  <div class="seg" id="theme-seg" role="group" aria-label="theme" style="background:transparent;box-shadow:none">
+    <button data-t="auto" aria-pressed="true">auto</button><button data-t="light" aria-pressed="false">light</button><button data-t="dark" aria-pressed="false">dark</button>
+  </div>
+  <button class="btn btn-primary">action</button>
+</div>
+
+<dialog id="dlg" class="sheet" style="width:min(360px,88vw);color:var(--ink)">
+  <p class="label">native &lt;dialog&gt;</p>
+  <p style="font-size:var(--text-sm);color:var(--soft);margin:var(--s2) 0 var(--s4)">
+    If this centered over a dim scrim with an opaque surface, dialogs follow
+    the adopted convention.
+  </p>
+  <div style="display:flex;justify-content:flex-end">
+    <button class="btn btn-ghost" onclick="document.getElementById('dlg').close()">close</button>
+  </div>
+</dialog>
+
+<script>
+  document.getElementById("dlg-open").addEventListener("click", () =>
+    document.getElementById("dlg").showModal());
+</script>
+</body>
+</html>

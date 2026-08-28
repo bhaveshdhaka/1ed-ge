@@ -1,0 +1,355 @@
+/* ============================================================
+   1edge base primitives — S00 · rev R4 · session C04
+   Consumes st/css/tokens.css (dark canon) + tokens-light.css
+   overlay — identical property names across themes.
+   ZERO literals: every value is a var() or color-mix() of one.
+   iOS Safari primary: safe areas, 44pt targets (visual controls
+   use invisible hit-slop), -webkit-backdrop-filter on FLOATING
+   chrome only, svh, :active feedback (never hover-only),
+   tabular mono numerals for data.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading);
+    letter-spacing: var(--track-tight);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* single accent-derived ambience at the top of the canvas */
+    background-image: radial-gradient(120% 60% at 50% -10%, var(--ambient), transparent 60%);
+    padding:
+        env(safe-area-inset-top, 0px)
+        env(safe-area-inset-right, 0px)
+        env(safe-area-inset-bottom, 0px)
+        env(safe-area-inset-left, 0px);
+    overscroll-behavior-y: none;
+}
+
+/* ---- interaction resets: no tap flash, native-feel active ---- */
+a, button { -webkit-tap-highlight-color: transparent; }
+
+/* ---- hidden means hidden: author display rules beat the UA
+   [hidden] default (specificity aside, author origin wins), which
+   is how a "mock time" chip could render on the live clock.
+   Promoted from per-layer copies (composer/rail/secondary) — S09. ---- */
+[hidden] { display: none !important; }
+button {
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+}
+a { color: inherit; text-decoration: none; }
+.link { color: var(--accent); }
+::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+/* explicit opt-in 44×44 target grid (HIG minimum) */
+.tap { min-height: 44px; min-width: 44px; }
+
+/* ---- focus: Linear-style glow halo, keyboard-only.
+   Dark gap-ring first so the halo reads on any surface. ---- */
+:focus { outline: none; }
+:focus-visible {
+    box-shadow: 0 0 0 1px var(--bg), 0 0 0 3px var(--accent-glow);
+    border-radius: var(--radius-sm);
+}
+.btn:focus-visible {
+    box-shadow: inset 0 0 0 1px var(--line2), 0 0 0 1px var(--bg), 0 0 0 3px var(--accent-glow);
+}
+.input:focus-visible,
+.input:focus {
+    box-shadow: inset 0 0 0 1px var(--accent),
+                0 0 0 3px var(--accent-dim),
+                0 0 14px var(--accent-glow);
+}
+
+/* ---- numerals are always mono + tabular ---- */
+.num, td.num, .kv dd {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    letter-spacing: var(--track-num);
+}
+.num-up { color: var(--up); }
+.num-down { color: var(--down); }
+
+/* ---- surfaces: separate by LUMINANCE, resting = flat.
+   Hairline ring + top light-catch; depth is earned by floating. ---- */
+.panel {
+    position: relative;
+    background: var(--bg-raise);
+    border-radius: var(--radius);
+    box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 var(--edge-hi);
+}
+.panel-raised { background: var(--bg-overlay); }
+.well {
+    position: relative;
+    background: var(--inset);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 0 0 0 1px var(--line);
+}
+.hairline-t { box-shadow: inset 0 1px 0 var(--line); }
+
+/* ---- glass material: FLOATING CHROME OVER CONTENT ONLY.
+   Adopted iOS nav-bar recipe: blur + saturate boost.
+   Never on in-flow cards; NEVER on overlays (locked rule). ---- */
+.glass {
+    background: var(--material);
+    -webkit-backdrop-filter: saturate(180%) blur(var(--blur));
+    backdrop-filter: saturate(180%) blur(var(--blur));
+    box-shadow: inset 0 0 0 1px var(--line2), var(--shadow-panel);
+}
+
+/* ---- micro-labels ---- */
+.label {
+    font-size: var(--text-3xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--track-wide);
+    color: var(--dim);
+}
+/* section headings read as headings (owner note): ink, not muted */
+.sec-title {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+    margin: 0 0 var(--s4);
+}
+.sec-title .sec-no {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--faint);
+    margin-right: 8px;
+}
+
+/* ---- capsule ---- */
+.capsule {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--bg-overlay);
+    box-shadow: inset 0 0 0 1px var(--line2);
+    color: var(--soft);
+    font-size: var(--text-2xs);
+    font-weight: 500;
+    white-space: nowrap;
+}
+.capsule-accent {
+    background: var(--accent-dim);
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+.capsule-up { color: var(--up); }
+.capsule-down { color: var(--down); }
+
+/* ---- buttons: tight pro-tool metrics (Linear) ---- */
+.btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: var(--ctl-h);
+    padding: 0 var(--ctl-pad-x);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    transition: transform var(--t-fast), filter var(--t-fast), background var(--t-fast), opacity var(--t-fast);
+}
+/* HIG pattern: visual can be compact if the TARGET stays ≥44pt.
+   Invisible slop extends the hit area without moving pixels. */
+.btn::after { content: ""; position: absolute; inset: -7px -4px; }
+.btn:active { transform: scale(0.98); filter: brightness(0.92); }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+@media (hover: hover) { .btn-primary:hover { filter: brightness(1.07); } }
+.btn-ghost { box-shadow: inset 0 0 0 1px var(--line2); color: var(--soft); }
+.btn-ghost:active { background: var(--bg-overlay); }
+.btn-danger {
+    color: var(--down);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--down) 35%, transparent);
+}
+
+/* ---- overlay surfaces (sheets/dialogs): OPAQUE + dim scrim.
+   Adopted Radix Dialog / iOS sheet convention — glass never on
+   overlays (locked rule); depth comes from shadow layering. ---- */
+.sheet {
+    background: var(--surface-solid);
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: inset 0 0 0 1px var(--line2), var(--shadow-float);
+    padding: var(--s5);
+}
+.sheet::backdrop { background: var(--scrim); }
+
+/* ---- inputs ---- */
+.input, textarea.input, select.input {
+    width: 100%;
+    height: var(--input-h);
+    padding: 0 var(--ctl-pad-x);
+    border-radius: var(--radius-sm);
+    background: var(--inset);
+    box-shadow: inset 0 0 0 1px var(--line2);
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--text-sm);
+    appearance: none;
+    -webkit-appearance: none;
+    transition: box-shadow var(--t-fast);
+}
+.input::placeholder { color: var(--faint); }
+
+/* iOS Safari auto-zooms the whole page when a focused field's font-size
+   is < 16px (owner note 06:28 "everything messed up" = page caught at
+   ~1.31× zoom). Adopted mobile-form rule (HIG/Radix forms): inputs read
+   16px on touch devices; desktop keeps the dense 13px. */
+@media (pointer: coarse) {
+    .input, textarea.input, select.input { font-size: var(--text-md); }
+}
+
+/* ---- segmented control (iOS anatomy: recessed track, raised thumb) ---- */
+.seg {
+    display: inline-flex;
+    padding: 2px;
+    gap: 2px;
+    border-radius: var(--radius-sm);
+    background: var(--inset);
+    box-shadow: inset 0 0 0 1px var(--line);
+}
+.seg button {
+    position: relative;
+    height: calc(var(--ctl-h) - 4px);
+    padding: 0 12px;
+    border-radius: calc(var(--radius-sm) - 2px);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--dim);
+    transition: background var(--t-fast), color var(--t-fast);
+}
+/* compact visuals, full-size targets (HIG hit-slop, as .btn):
+   vertical-only slop = exact 44pt target AND zero lateral overlap with
+   neighbouring segments (lateral slop made edge taps land on the sibling) */
+.seg button::after { content: ""; position: absolute; inset: -9px 0; }
+.seg button[aria-pressed="true"] {
+    background: var(--bg-overlay);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--line2);
+}
+
+/* ---- key-value rows ---- */
+.kv {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s3);
+    min-height: var(--row-h);
+    padding: var(--s2) 0;
+    border-bottom: 1px solid var(--line);
+}
+.kv:last-child { border-bottom: none; }
+.kv dt { color: var(--dim); font-size: var(--text-sm); }
+.kv dd { margin: 0; font-size: var(--text-sm); }
+
+/* ---- table ---- */
+.th, .td { padding: var(--s2) var(--s3); text-align: left; }
+.th {
+    font-size: var(--text-3xs);
+    font-weight: 600;
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+    color: var(--dim);
+}
+.td { font-size: var(--text-sm); border-top: 1px solid var(--line); }
+
+/* ---- empty state: one line, lowercase, ends with a period ---- */
+.empty { color: var(--faint); font-size: var(--text-sm); }
+
+/* ---- skeleton: structure-shaped waiting (S09).
+   No spinners where layout can show — blocks preview the final
+   geometry, sweep is a luminance drift on the same hairline family.
+   Reduced motion: the global 1ms guard freezes the sweep; the bar
+   rests as a quiet static block (calm by construction). ---- */
+.skel {
+    display: block;
+    height: 12px;
+    border-radius: 4px;
+    background: linear-gradient(90deg,
+        var(--bg-overlay) 0%, var(--bg-overlay) 35%,
+        color-mix(in srgb, var(--ink) 8%, transparent) 50%,
+        var(--bg-overlay) 65%, var(--bg-overlay) 100%);
+    background-size: 200% 100%;
+    animation: skel-sweep 1.6s linear infinite;
+}
+@keyframes skel-sweep { from { background-position: 200% 0; } to { background-position: 0% 0; } }
+
+/* ---- inline status note: one line + action (S09).
+   Calm by grammar: kind rides the OUTLINE hue only, text stays
+   normal ink — tint surfaces, never text into its own background.
+   Markup: <p class="note note-err" role="alert">msg <button class="note-act">retry</button></p> ---- */
+.note {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    min-height: 36px;
+    padding: var(--s2) var(--s3);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 0 0 0 1px var(--line2);
+    color: var(--soft);
+    font-size: var(--text-sm);
+}
+.note-err  { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--down) 45%, transparent); }
+.note-warn { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 45%, transparent); }
+.note-ok   { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--up) 40%, transparent); }
+.note .note-act {
+    position: relative;
+    margin-left: auto;
+    flex: none;
+    padding: var(--s4) var(--s2);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--accent);
+    transition: opacity var(--t-fast);
+}
+.note .note-act::after { content: ""; position: absolute; inset: 0 -6px; }  /* 44pt slop */
+.note .note-act:active { opacity: 0.65; }
+
+/* ---- layout ---- */
+.shell { max-width: 680px; margin-inline: auto; padding-inline: var(--s4); }
+.stack > * + * { margin-top: var(--s3); }
+.row { display: flex; align-items: center; gap: var(--s2); }
+.spread { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
+.section-gap { margin-top: var(--s8); }
+
+@media (min-width: 768px) {
+    .shell { max-width: 820px; padding-inline: var(--s6); }
+}
+
+/* ---- fade-up entrance (the only entrance motion) ---- */
+.fade-up { animation: fade-up var(--t-slow) both; animation-delay: calc(var(--i, 0) * 45ms); }
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ---- reduced motion: absolute ---- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}

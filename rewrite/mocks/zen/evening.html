@@ -1,0 +1,1596 @@
+<!doctype html>
+<!-- S05-evening · rev R1 · session C12 · evening mode — after the close,
+     zen becomes a guided review ritual: obligation-driven, not menu-driven.
+     Builds ONLY on frozen S00–S04 primitives (+ evening.css additions).
+     flow: recap → reflect (ai-draft stub) → accountability queue →
+     week/month review (svg charts, no libs) → csv import → payout entry.
+     obligation grammar inherited from S03: reflection due by 03:00 hkt of
+     the following morning; severity rides hue + stroke weight only.
+     real forms with named inputs everywhere a form exists (house rule).
+     deep states: ?state=done|due|overdue (obligation) ·
+     ?csv=drop|preview|conflict|stop|merged · ?view=week|month · ?cmp=1 ·
+     ?at=<hkt wall time> freezes every readout (S01 doctrine).
+     S09 states: ?err=save (conflict on next reflect submit) ·
+     ?err=csv (import parse failure) · ?stress=reflect (2k-word form) ·
+     ?dt=1.2 (dynamic type 120%).
+     happy path mockable end-to-end: open → reflect → submit →
+     queue clears → empty state. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="1edge">
+<meta name="theme-color" content="#0b0d12">
+<link rel="icon" href="data:,">
+<title>1edge — evening</title>
+<link rel="stylesheet" href="/st/css/tokens?v=c12">
+<link rel="stylesheet" href="/st/css/tokens-light?v=c12" id="ls-auto" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="/st/css/tokens-light?v=c12" id="ls-force" disabled>
+<script src="/st/js/theme?v=c12"></script>
+<link rel="stylesheet" href="/st/css/base?v=c16">
+<link rel="stylesheet" href="/st/css/frame?v=c16">
+<link rel="stylesheet" href="/st/css/composer?v=c12">
+<link rel="stylesheet" href="/st/css/rail?v=c13r">
+<link rel="stylesheet" href="/st/css/evening?v=c12">
+<script type="module" src="/st/js/feedback?v=c12"></script>
+<style>
+  .strip, .pal-list { -webkit-touch-callout: none; }
+  .day-cell { user-select: none; -webkit-user-select: none; }
+  .strip.no-snap { scroll-snap-type: none; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar glass is-live" id="topbar">
+    <div class="shell-fit topbar-inner">
+      <div class="topbar-row">
+        <div class="row" style="gap:10px;">
+          <span class="pulse" aria-hidden="true"></span>
+          <span class="brand">1edge<b>.</b></span>
+          <span class="capsule mkt" id="mkt"><span class="dot"></span><span id="mkt-label">cme</span>&nbsp;<span id="mkt-cd" style="color:var(--dim);"></span></span>
+          <span class="sim-chip" id="sim-chip" hidden>mock time</span>
+        </div>
+        <span class="num" style="font-size:var(--text-xs); color:var(--dim);" id="today-date">—</span>
+      </div>
+      <div class="band-wrap">
+        <div class="band" id="band"><div class="nowmark" id="nowmark"></div></div>
+        <div class="band-ruler" id="ruler" aria-hidden="true"></div>
+        <p class="band-caption" id="band-cap" hidden></p>
+      </div>
+    </div>
+    <nav class="rail" id="rail" aria-label="trading sessions">
+      <div class="sess" id="sess-tok">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.6 1h.8l3 10.2H7.3l-.7-2.4H5.4l-.7 2.4H2.6Zm.4 3.4-.5 2.6h1Z"/></svg>
+          <span class="sess-code">tok</span>
+        </span>
+        <span class="sess-state" id="st-tok">—</span>
+        <span class="sess-win" id="sw-tok">—</span>
+      </div>
+      <div class="sess" id="sess-lon">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M6 .4 7.7 3.1v8.1H4.3V3.1ZM6 4.9a1.2 1.2 0 1 0 .01 2.41A1.2 1.2 0 0 0 6 4.9Z"/></svg>
+          <span class="sess-code">lon</span>
+        </span>
+        <span class="sess-state" id="st-lon">—</span>
+        <span class="sess-win" id="sw-lon">—</span>
+      </div>
+      <div class="sess" id="sess-nyc">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M5.7.8h.6l.2 1.7h.7v1.6h.7v1.9h.8v5.2H7.4V8h-.9v3.2H5.4V8h-.9v3.2H3.3V6h.8V4.1h.7V2.5h.7Z"/></svg>
+          <span class="sess-code">nyc</span>
+        </span>
+        <span class="sess-state" id="st-nyc">—</span>
+        <span class="sess-win" id="sw-nyc">—</span>
+      </div>
+    </nav>
+  </header>
+
+  <div class="strip-shell">
+    <nav class="strip" id="strip" aria-label="calendar strip"></nav>
+  </div>
+
+  <main class="content">
+
+    <!-- ============ evening switch ============ -->
+    <section class="panel ev-band fade-up" id="ev-band" aria-label="evening mode">
+      <span class="ev-moon" aria-hidden="true">
+        <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M13.5 9.5A5.7 5.7 0 0 1 6.5 2.5a5.7 5.7 0 1 0 7 7Z"/></svg>
+      </span>
+      <div class="ev-copy">
+        <span class="ev-title">evening mode</span>
+        <p class="ev-sub" id="ev-sub">—</p>
+      </div>
+      <button type="button" class="btn btn-ghost" style="flex:none;" id="to-cockpit">cockpit</button>
+    </section>
+
+    <!-- ============ jump nav ============ -->
+    <nav class="rail-nav" id="rail-nav" aria-label="evening sections">
+      <button type="button" class="navchip" data-jump="sec-recap"><span class="n">01</span>recap</button><button type="button" class="navchip" data-jump="sec-reflect"><span class="n">02</span>reflect</button><button type="button" class="navchip" data-jump="sec-queue"><span class="n">03</span>queue<span class="q-badge num" id="q-badge"></span></button><button type="button" class="navchip" data-jump="sec-review"><span class="n">04</span>review</button><button type="button" class="navchip" data-jump="sec-import"><span class="n">05</span>import</button><button type="button" class="navchip" data-jump="sec-payout"><span class="n">06</span>payout</button>
+    </nav>
+
+    <!-- ============ 01 · recap ============ -->
+    <section class="rail-sec" id="sec-recap" aria-labelledby="h-recap">
+      <div class="sec-head">
+        <h2 class="sec-title" id="h-recap">recap</h2>
+        <span class="capsule num" style="color:var(--faint);" id="recap-date">—</span>
+      </div>
+      <div class="recap-grid fade-up" style="--i:1;">
+        <div class="stat">
+          <span class="stat-k">day r</span>
+          <span class="stat-v num" id="rc-r">—</span>
+          <span class="stat-s" id="rc-open">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-k">trades</span>
+          <span class="stat-v num" id="rc-n">—</span>
+          <span class="stat-s" id="rc-wl">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-k">best</span>
+          <span class="stat-v num" id="rc-best">—</span>
+          <span class="stat-s" id="rc-best-tag">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-k">worst</span>
+          <span class="stat-v num" id="rc-worst">—</span>
+          <span class="stat-s" id="rc-worst-tag">—</span>
+        </div>
+      </div>
+      <p class="refl-meta" style="margin:var(--s2) var(--s1) 0;" id="rc-facts">—</p>
+    </section>
+
+    <!-- ============ 02 · reflect ============ -->
+    <section class="rail-sec" id="sec-reflect" aria-labelledby="h-reflect">
+      <div class="sec-head">
+        <h2 class="sec-title" id="h-reflect">reflection</h2>
+        <span class="state-chip due" id="refl-chip">—</span>
+      </div>
+      <form class="panel refl" id="refl-form" action="#" method="post" novalidate>
+        <textarea class="refl-ta" id="refl-ta" name="reflection"
+          placeholder="three honest lines — what worked, what leaked, what changes tomorrow."
+          autocomplete="off"></textarea>
+        <p class="refl-meta" id="refl-meta">due by 03:00 hkt · grace window · ai may draft from your stream</p>
+        <div class="refl-foot">
+          <button type="button" class="btn btn-ghost" id="draft-btn">
+            <svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M7 1.5 8.3 5.7 12.5 7 8.3 8.3 7 12.5 5.7 8.3 1.5 7 5.7 5.7Z"/></svg>
+            draft with ai
+          </button>
+          <button type="submit" class="btn btn-primary" id="log-btn">log reflection</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ 03 · accountability queue ============ -->
+    <section class="rail-sec" id="sec-queue" aria-labelledby="h-queue">
+      <div class="sec-head">
+        <h2 class="sec-title" id="h-queue">accountability</h2>
+        <span class="capsule num" id="q-count">—</span>
+      </div>
+      <div class="panel" id="q-box"><!-- rows rendered by js --></div>
+    </section>
+
+    <!-- ============ 04 · week/month review ============ -->
+    <section class="rail-sec" id="sec-review" aria-labelledby="h-review">
+      <div class="sec-head">
+        <h2 class="sec-title" id="h-review">review</h2>
+        <div class="seg" role="group" aria-label="review period">
+          <button type="button" data-view="week" aria-pressed="true">week</button><button type="button" data-view="month" aria-pressed="false">month</button>
+        </div>
+      </div>
+      <div class="panel" style="padding:var(--s4);" id="rv-panel">
+
+        <div class="rv-block">
+          <div class="rv-head">
+            <span class="rv-cap" style="margin:0;">r distribution</span>
+            <button type="button" class="btn btn-ghost" id="cmp-btn" aria-pressed="false" style="height:24px;">vs previous</button>
+          </div>
+          <div class="rv-stats spread" style="margin:var(--s2) 0;">
+            <span class="num" style="font-size:var(--text-md);" id="rv-netr">—</span>
+            <span class="num" style="font-size:var(--text-xs); color:var(--dim);" id="rv-winrate">—</span>
+          </div>
+          <div id="rv-hist"></div>
+        </div>
+
+        <div class="rv-block">
+          <p class="rv-cap">win / loss runs</p>
+          <div class="runs" id="rv-runs"></div>
+        </div>
+
+        <div class="rv-block">
+          <p class="rv-cap">habit adherence</p>
+          <div class="heat" id="rv-heat"></div>
+        </div>
+
+        <div class="rv-block">
+          <p class="rv-cap">rule violations</p>
+          <div class="viol" id="rv-viol"></div>
+        </div>
+
+        <form class="rv-block" id="rv-form" action="#" method="post" novalidate>
+          <label class="rv-cap" for="rv-ta" style="display:block;">narrative</label>
+          <textarea class="refl-ta" id="rv-ta" name="narrative" rows="3"
+            style="min-height:96px;"
+            placeholder="the story of the period — patterns over single days." autocomplete="off"></textarea>
+          <div class="row" style="justify-content:flex-end; margin-top:var(--s2);">
+            <button type="submit" class="btn btn-primary">save narrative</button>
+          </div>
+        </form>
+
+      </div>
+    </section>
+
+    <!-- ============ 05 · csv import ============ -->
+    <section class="rail-sec" id="sec-import" aria-labelledby="h-import">
+      <div class="sec-head">
+        <h2 class="sec-title" id="h-import">csv import</h2>
+        <span class="capsule" id="csv-src">tradovate</span>
+      </div>
+      <div class="panel" style="padding:var(--s4);" id="csv-panel"><!-- states rendered by js --></div>
+    </section>
+
+    <!-- ============ 06 · payout ============ -->
+    <section class="rail-sec" id="sec-payout" aria-labelledby="h-payout">
+      <div class="sec-head">
+        <h2 class="sec-title" id="h-payout">payout</h2>
+        <span class="capsule num" id="pay-count">3 lifetime</span>
+      </div>
+      <form class="panel pay-form" id="pay-form" action="#" method="post" novalidate style="padding:var(--s4);">
+        <div class="pay-grid">
+          <label class="sh-field" style="gap:5px;">
+            <span class="label">account</span>
+            <select class="input" name="account" id="pay-acct">
+              <option value="funded-1" data-eq="52400" data-thresh="45000">funded-1</option>
+              <option value="eval-b" data-eq="27800" data-thresh="0">eval-b</option>
+              <option value="buffer" data-eq="11200" data-thresh="10000">buffer</option>
+            </select>
+          </label>
+          <label class="sh-field" style="gap:5px;">
+            <span class="label">amount usd</span>
+            <input class="input num" type="text" inputmode="decimal" name="amount" id="pay-amt"
+                   placeholder="2000" autocomplete="off">
+          </label>
+        </div>
+        <label class="sh-field" style="gap:5px;">
+          <span class="label">date</span>
+          <input class="input num" type="date" name="date" id="pay-date">
+        </label>
+        <div class="pay-hint" id="pay-hint">select an amount to see the equity impact.</div>
+        <div class="row" style="justify-content:flex-end;">
+          <button type="submit" class="btn btn-primary">record payout</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ ambient clocks (demoted, S02 doctrine) ============ -->
+    <section class="clock-block shell-fit" aria-label="clocks">
+      <div class="clock-grid clock-pad">
+        <div>
+          <p class="label" id="focus-line">—</p>
+          <div class="clock-hkt"><span id="clk-hkt">--:--</span><span class="secs" id="clk-hkt-s">--</span></div>
+          <p class="clock-zone">hong kong</p>
+        </div>
+        <div>
+          <div class="clock-sub"><span id="clk-ct">--:--</span><span class="clock-zone" style="margin-top:0;">chicago</span></div>
+          <p class="next-change" id="next-change">—</p>
+          <div class="day-prog" aria-hidden="true">
+            <div class="bar"><div class="fill" id="prog-fill" style="width:0%"></div></div>
+            <p id="prog-cap">—</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <details class="devrail">
+    <summary>s05 · evening states</summary>
+    <div class="row">
+      <span class="label">obligation</span>
+      <div class="seg" id="state-seg" role="group" aria-label="obligation state presets">
+        <button data-s="clear">live</button><button data-s="done">done</button><button data-s="due">due</button><button data-s="overdue">overdue</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">csv</span>
+      <div class="seg" id="csv-seg" role="group" aria-label="csv state presets">
+        <button data-c="clear">live</button><button data-c="drop">drop</button><button data-c="preview">preview</button><button data-c="conflict">conflict</button><button data-c="stop">stop</button><button data-c="merged">merged</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">review</span>
+      <div class="seg" id="view-seg" role="group" aria-label="review period presets">
+        <button data-v="week">week</button><button data-v="month">month</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">theme</span>
+      <div class="seg" id="theme-seg" role="group" aria-label="theme">
+        <button data-t="auto" aria-pressed="true">auto</button><button data-t="light" aria-pressed="false">light</button><button data-t="dark" aria-pressed="false">dark</button>
+      </div>
+    </div>
+    <p class="empty" style="padding: var(--s2) 0;">mock-only chrome — never ships.</p>
+  </details>
+
+</div>
+
+<!-- day-reflection editor: one OPAQUE dialog (queue rows land here) -->
+<dialog class="sheet sh" id="sh" aria-labelledby="sh-title">
+  <span class="sh-grab" aria-hidden="true"></span>
+  <form id="sh-form" action="#" method="post" novalidate>
+    <div class="sh-head">
+      <span class="sh-title" id="sh-title">reflection</span>
+      <span class="sh-sub" id="sh-sub"></span>
+    </div>
+    <div class="sh-body">
+      <textarea class="refl-ta" id="sh-ta" name="day_reflection" rows="4"
+        placeholder="three honest lines." autocomplete="off"></textarea>
+    </div>
+    <div class="sh-foot">
+      <button type="button" class="btn btn-ghost" id="sh-cancel">cancel</button>
+      <button type="submit" class="btn btn-primary">log &amp; clear</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- mental-stop prompt: OPAQUE dialog, real form -->
+<dialog class="sheet sh" id="ms" aria-labelledby="ms-title">
+  <span class="sh-grab" aria-hidden="true"></span>
+  <form id="ms-form" action="#" method="post" novalidate>
+    <div class="sh-head">
+      <span class="sh-title" id="ms-title">mental stop?</span>
+      <span class="sh-sub">trades without a hard stop</span>
+    </div>
+    <div class="sh-body" id="ms-body"></div>
+    <div class="sh-foot">
+      <button type="button" class="btn btn-ghost" id="ms-cancel">cancel import</button>
+      <button type="submit" class="btn btn-primary">confirm merge</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- micro-toast -->
+<div class="toast glass" id="toast" role="status" hidden>
+  <span class="toast-msg" id="toast-msg"></span>
+  <i class="toast-drain" id="toast-drain" aria-hidden="true"></i>
+</div>
+
+<button class="fab-k" id="fab-k" aria-label="open command palette" hidden>⌘k</button>
+
+<dialog class="palette" id="palette" aria-label="command palette">
+  <input class="pal-input" id="pal-input" type="text" placeholder="jump, compose…" role="combobox"
+         aria-expanded="true" aria-controls="pal-list" aria-autocomplete="list" autocomplete="off">
+  <div class="pal-list" id="pal-list" role="listbox"></div>
+</dialog>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const qs = new URLSearchParams(location.search);
+  const MONTHS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  const DOWS = ["sun","mon","tue","wed","thu","fri","sat"];
+  const pad = (n) => String(n).padStart(2, "0");
+  const CT = "America/Chicago";
+  const esc = (s) => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const DOW_IDX = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+
+  /* ================================================================
+     TIME ENGINE (trimmed frozen canon) — ?at=<hkt wall> freezes all.
+     ================================================================ */
+  const AT_MS = (() => {
+    const raw = qs.get("at");
+    if (!raw) return null;
+    const ms = Date.parse(`${raw.length === 13 ? raw + ":00" : raw}+08:00`);
+    return Number.isFinite(ms) ? ms : null;
+  })();
+  const LIVE = AT_MS === null;
+  const nowMs = () => LIVE ? Date.now() : AT_MS;
+
+  function tzParts(tz, ms) {
+    const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23",
+      weekday: "short", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(ms));
+    const o = {}; for (const x of p) o[x.type] = x.value; return o;
+  }
+  const isoOfParts = (o) => `${o.year}-${o.month}-${o.day}`;
+  const hktIsoAt = (ms) => isoOfParts(tzParts("Asia/Hong_Kong", ms));
+  function tzOffMin(tz, ms) {
+    const o = tzParts(tz, ms);
+    const asUTC = Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour, +o.minute);
+    return Math.round((asUTC - ms) / 60000);
+  }
+  function wallUTC(tz, iso, hh, mm) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const guess = Date.UTC(y, m - 1, d, hh, mm);
+    return guess - tzOffMin(tz, new Date(guess)) * 60000;
+  }
+  const addIso = (iso, n) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d + n));
+    return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+  };
+  const dowOfIso = (iso) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  };
+  const dateOfIso = (iso) => new Date(`${iso}T12:00:00Z`);
+  const fmtDay = (d) => `${pad(d.getDate())}-${MONTHS[d.getMonth()]}-${d.getFullYear()}`;
+  const fmtIso = (iso) => fmtDay(dateOfIso(iso));
+  const hkHM = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Hong_Kong", hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const hkHHMM = (ms) => hkHM.format(new Date(ms));
+  /* countdown grammar (S01 r2.2 canon): "3h 24m" ≥1h · "45m" under ·
+     "<1m" floor; seconds only where a stopwatch lives.
+     evening extension (S05): ≥1 day reads "5d 1h" — hour-only strings
+     past 24h stopped being scannable on grace windows. */
+  const fmtDur = (ms) => {
+    let s = Math.max(0, Math.floor(ms / 1000));
+    const d = Math.floor(s / 86400); s -= d * 86400;
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60);
+    if (d > 0) return `${d}d ${h}h`;
+    if (h > 0) return `${h}h ${m}m`;
+    return m >= 1 ? `${m}m` : "<1m";
+  };
+
+  /* ---- cme master clock (faithful mock of src/lib/market.ts) ---- */
+  const addD = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const isoD = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const nthWd = (y, m, wd, n) => {
+    const f = new Date(y, m, 1), diff = (wd - f.getDay() + 7) % 7;
+    return addD(f, diff + (n - 1) * 7);
+  };
+  const lastWd = (y, m, wd) => {
+    const l = new Date(y, m + 1, 0);
+    return addD(l, -((l.getDay() - wd + 7) % 7));
+  };
+  const observed = (d) => d.getDay() === 6 ? addD(d, -1) : d.getDay() === 0 ? addD(d, 1) : d;
+  function easter(y) {
+    const a = y % 19, b = Math.floor(y / 100), c = y % 100, d2 = y % 4, e2 = b % 4,
+      f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d2 - g + 15) % 30,
+      i2 = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e2 + 2 * i2 - h - k) % 7,
+      mm = Math.floor((a + 11 * h + 22 * l) / 451),
+      month = Math.floor((h + l - 7 * mm + 114) / 31),
+      day = ((h + l - 7 * mm + 114) % 31) + 1;
+    return new Date(y, month - 1, day);
+  }
+  const MEM = new Map();
+  const once = (key, fn) => { if (!MEM.has(key)) MEM.set(key, fn()); return MEM.get(key); };
+  const cmeHolidays = (y) => once(`ch${y}`, () => [
+    observed(new Date(y, 0, 1)), addD(easter(y), -2), observed(new Date(y, 5, 19)),
+    observed(new Date(y, 6, 4)), nthWd(y, 10, 4, 4), observed(new Date(y, 11, 25)),
+  ].map(isoD));
+  const nyseHolidays = (y) => once(`nh${y}`, () => [
+    observed(new Date(y, 0, 1)), nthWd(y, 0, 1, 3), nthWd(y, 1, 1, 3), addD(easter(y), -2),
+    lastWd(y, 4, 1), observed(new Date(y, 5, 19)), observed(new Date(y, 6, 4)),
+    nthWd(y, 8, 1, 1), nthWd(y, 10, 4, 4), observed(new Date(y, 11, 25)),
+  ].map(isoD));
+  const japanHolidays = (y) => once(`jh${y}`, () => {
+    const eq = (c) => Math.floor(c + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
+    const base = [
+      new Date(y, 0, 1), new Date(y, 0, 2), nthWd(y, 0, 1, 2), new Date(y, 1, 11), new Date(y, 1, 23),
+      new Date(y, 2, eq(20.8431)), new Date(y, 3, 29), new Date(y, 4, 3), new Date(y, 4, 4), new Date(y, 4, 5),
+      nthWd(y, 6, 1, 3), new Date(y, 7, 11), nthWd(y, 8, 1, 3), new Date(y, 8, eq(23.2488)),
+      nthWd(y, 9, 1, 2), new Date(y, 10, 3), new Date(y, 10, 23),
+    ];
+    const set = new Set(base.map(isoD));
+    for (const d of base) if (d.getDay() === 0) {
+      let sub = addD(d, 1);
+      while (set.has(isoD(sub)) || sub.getDay() === 0 || sub.getDay() === 6) sub = addD(sub, 1);
+      set.add(isoD(sub));
+    }
+    return [...set];
+  });
+  const ukHolidays = (y) => once(`uh${y}`, () => {
+    const shift = (d) => (d.getDay() === 0 || d.getDay() === 6 ? addD(d, 2) : d);
+    const ny = new Date(y, 0, 1);
+    return [...new Set([
+      ny.getDay() === 6 ? addD(ny, 2) : ny.getDay() === 0 ? addD(ny, 1) : ny,
+      addD(easter(y), -2), addD(easter(y), 1),
+      nthWd(y, 4, 1, 1), lastWd(y, 4, 1), lastWd(y, 7, 1),
+      shift(new Date(y, 11, 25)), shift(new Date(y, 11, 26)),
+    ].map(isoD))];
+  });
+  const isTradingDay = (iso, hol) => dowOfIso(iso) !== 0 && dowOfIso(iso) !== 6 && !hol.has(iso);
+  const cmeStatus = (iso) => {
+    const wd = dowOfIso(iso);
+    if (wd === 0 || wd === 6) return { kind: "closed", reason: "weekend" };
+    const y = +iso.slice(0, 4);
+    if (cmeHolidays(y).includes(iso) || cmeHolidays(y + 1).includes(iso) || cmeHolidays(y - 1).includes(iso))
+      return { kind: "closed", reason: "holiday" };
+    for (const e of once(`eh${y}`, () => [
+      { iso: isoD(nthWd(y, 0, 1, 3)), hh: 12, mm: 0 }, { iso: isoD(nthWd(y, 1, 1, 3)), hh: 12, mm: 0 },
+      { iso: isoD(lastWd(y, 4, 1)), hh: 12, mm: 0 },
+    ])) if (e.iso === iso && dowOfIso(e.iso) !== 0 && dowOfIso(e.iso) !== 6) return { kind: "early-halt", hh: e.hh, mm: e.mm };
+    for (const e of once(`ec${y}`, () => {
+      const jul4 = new Date(y, 6, 4);
+      return [
+        { iso: isoD(addD(nthWd(y, 10, 4, 4), 1)), hh: 13, mm: 15 },
+        { iso: `${y}-12-24`, hh: 13, mm: 15 }, { iso: `${y}-12-31`, hh: 13, mm: 15 },
+        ...(jul4.getDay() === 6 ? [{ iso: isoD(addD(jul4, -2)), hh: 12, mm: 0 }] : []),
+      ];
+    })) if (e.iso === iso && dowOfIso(e.iso) !== 0 && dowOfIso(e.iso) !== 6) return { kind: "early", hh: e.hh, mm: e.mm };
+    return { kind: "open" };
+  };
+
+  const rank = { open: 0, halt: 1, close: 2 };
+  const boundsCache = new Map();
+  function boundsAround(centerIso) {
+    if (!boundsCache.has(centerIso)) {
+      const out = [];
+      for (let i = -4; i <= 11; i++) {
+        const D = addIso(centerIso, i), st = cmeStatus(D);
+        if (st.kind === "closed") continue;
+        out.push({ ms: wallUTC(CT, addIso(D, -1), 17, 0), t: "open", iso: D });
+        if (st.kind === "early") out.push({ ms: wallUTC(CT, D, st.hh, st.mm), t: "close", iso: D });
+        else if (cmeStatus(addIso(D, 1)).kind === "closed") out.push({ ms: wallUTC(CT, D, 16, 0), t: "close", iso: D });
+        else {
+          if (st.kind === "early-halt") out.push({ ms: wallUTC(CT, D, st.hh, st.mm), t: "halt", iso: D });
+          out.push({ ms: wallUTC(CT, D, 16, 0), t: "halt", iso: D });
+        }
+      }
+      out.sort((a, b) => a.ms - b.ms || rank[a.t] - rank[b.t]);
+      boundsCache.set(centerIso, out);
+    }
+    return boundsCache.get(centerIso);
+  }
+  function windowFor(iso) {
+    const bs = boundsAround(iso);
+    const open = bs.find((b) => b.t === "open" && b.iso === iso);
+    if (!open) return null;
+    const mine = bs.filter((b) => b.iso === iso && b.t !== "open");
+    return { open: open.ms, end: mine.length ? mine[mine.length - 1].ms : open.ms + 1380 * 60000, iso };
+  }
+  function phaseAt(ms) {
+    const bs = boundsAround(hktIsoAt(ms));
+    let cur = null;
+    for (const b of bs) { if (b.ms <= ms) cur = b; else break; }
+    const next = bs.find((b) => b.ms > ms) || null;
+    if (!cur) return { phase: "closed", reason: "weekend", untilMs: next?.ms ?? ms };
+    if (cur.t === "open") return { phase: "open", untilMs: next.ms, iso: cur.iso };
+    if (cur.t === "halt") {
+      const st = cmeStatus(cur.iso);
+      return { phase: "halt", early: st.kind === "early-halt", untilMs: next.ms, iso: cur.iso };
+    }
+    const st = cmeStatus(cur.iso);
+    const reason = st.kind === "early" ? "early close"
+      : dowOfIso(cur.iso) === 5 ? "weekend" : "holiday";
+    return { phase: "closed", reason, untilMs: next?.ms ?? ms };
+  }
+  let selOff = 0;
+  const NOW0 = nowMs();
+  const TODAY_ISO = hktIsoAt(NOW0);
+  const TODAY = dateOfIso(TODAY_ISO);
+  const atIso = (off) => addIso(TODAY_ISO, off);
+  function effIso() {
+    if (selOff !== 0) return atIso(selOff);
+    const ph = phaseAt(nowMs());
+    return ph.iso ?? atIso(0);
+  }
+  function sessSpans(iso) {
+    const st = cmeStatus(iso);
+    if (st.kind === "closed") return null;
+    const win = windowFor(iso);
+    const clampEnd = st.kind === "early" ? wallUTC(CT, iso, st.hh, st.mm) : win.end;
+    const mk = (tz, aH, aM, bH, bM) => {
+      const s = wallUTC(tz, iso, aH, aM), e = wallUTC(tz, iso, bH, bM);
+      if (e <= win.open || s >= clampEnd) return null;
+      return [Math.max(s, win.open), Math.min(e, clampEnd)];
+    };
+    const jp = new Set(japanHolidays(+iso.slice(0, 4)));
+    const uk = new Set(ukHolidays(+iso.slice(0, 4)));
+    const us = new Set(nyseHolidays(+iso.slice(0, 4)));
+    const usEarly = nyseHolidays(+iso.slice(0, 4)).includes(iso) ? null :
+      (st.kind === "early" ? 13 : 16);
+    const tok = [];
+    if (isTradingDay(iso, jp)) {
+      const a = mk("Asia/Tokyo", 9, 0, 11, 30), b = mk("Asia/Tokyo", 12, 30, 15, 30);
+      if (a) tok.push(a); if (b) tok.push(b);
+    }
+    const lon = isTradingDay(iso, uk) ? [mk("Europe/London", 8, 0, 16, 30)].filter(Boolean) : [];
+    const nyc = isTradingDay(iso, us) && usEarly ? [mk("America/New_York", 9, 30, usEarly, 0)].filter(Boolean) : [];
+    return { tok, lon, nyc };
+  }
+
+  /* ================================================================
+     CHROME — strip, band (news pins), clocks (frozen canon)
+     ================================================================ */
+  const STRIP_LO = -14, STRIP_HI = 28;
+  const strip = $("strip");
+  const cells = [];
+  const HOLIDAY_OFF = 3, UNLOGGED = new Set([-5, -8]);
+  const kindOf = (off) => {
+    const d = dateOfIso(atIso(off)), dow = d.getUTCDay();
+    if (off === HOLIDAY_OFF) return "holiday";
+    if (dow === 0 || dow === 6) return "weekend";
+    if (off < 0 && !UNLOGGED.has(off)) return "logged";
+    if (off < 0) return "missed";
+    return off === 0 ? "today" : "future";
+  };
+  for (let off = STRIP_LO; off <= STRIP_HI; off++) {
+    const iso = atIso(off), d = dateOfIso(iso);
+    const prev = off > STRIP_LO ? dateOfIso(atIso(off - 1)) : null;
+    const isMonthStart = !prev || d.getUTCMonth() !== prev.getUTCMonth();
+    const k = kindOf(off);
+    const b = document.createElement("button");
+    b.className = "day-cell" +
+      (k === "weekend" || k === "holiday" ? " is-off" : "") +
+      (k === "logged" ? " is-logged" : "") +
+      (k === "holiday" ? " is-holiday" : "") +
+      (off === 0 ? " is-today" : "") +
+      (isMonthStart ? " is-month" : "");
+    b.dataset.off = off;
+    b.setAttribute("aria-pressed", String(off === 0));
+    if (off === 0) b.setAttribute("aria-current", "date");
+    const dowTxt = off === 0 ? "today" : isMonthStart ? MONTHS[d.getUTCMonth()] : DOWS[d.getUTCDay()];
+    b.innerHTML = `<span class="dow">${dowTxt}</span>` +
+                  `<span class="dom">${pad(d.getUTCDate())}</span><span class="mark"></span>`;
+    strip.appendChild(b); cells.push(b);
+  }
+  const IDX = (off) => off - STRIP_LO;
+
+  const band = $("band"), nowmark = $("nowmark"), ruler = $("ruler"), bandCap = $("band-cap");
+  function buildBand() {
+    band.querySelectorAll(".sp,.pin").forEach((n) => n.remove());
+    ruler.innerHTML = "";
+    const iso = effIso();
+    const win = windowFor(iso);
+    const spans = sessSpans(iso);
+    if (!win) {
+      band.classList.add("is-dim");
+      nowmark.style.display = "none";
+      bandCap.hidden = false;
+      bandCap.textContent = `no cme session · ${cmeStatus(iso).reason}`;
+      return;
+    }
+    bandCap.hidden = true;
+    band.classList.remove("is-dim");
+    const pctBase = win.end - win.open;
+    const pct = (ms) => ((ms - win.open) / pctBase * 100).toFixed(3) + "%";
+    for (const [name, arr] of Object.entries(spans || {})) {
+      for (const [s, e] of arr) {
+        const f = document.createElement("div");
+        f.className = `sp s-${name}`;
+        f.style.left = pct(s);
+        f.style.width = ((e - s) / pctBase * 100).toFixed(3) + "%";
+        band.appendChild(f);
+      }
+    }
+    for (let k = 180; k < 1380; k += 180) {
+      const major = k % 360 === 0;
+      const t = document.createElement("i");
+      t.className = "tick" + (major ? " major" : "");
+      t.style.left = (k / 1380 * 100).toFixed(3) + "%";
+      ruler.appendChild(t);
+      if (major) {
+        const lab = document.createElement("span");
+        lab.className = "tlab";
+        lab.style.left = (k / 1380 * 100).toFixed(3) + "%";
+        lab.textContent = hkHHMM(win.open + k * 60000).slice(0, 2);
+        ruler.appendChild(lab);
+      }
+    }
+    if (NEWS) {
+      for (const ev of NEWS.flat) {
+        if (ev.iso !== iso) continue;
+        const p = document.createElement("button");
+        p.className = "pin" + (ev.kind === "red" ? " is-red" : "");
+        p.dataset.ms = ev.ms;
+        p.style.left = pct(Math.min(Math.max(ev.ms, win.open + 60000), win.end - 60000));
+        p.setAttribute("aria-label", `${ev.kind} ${ev.time} ${ev.title}`);
+        p.addEventListener("click", () => showPop(p,
+          `<p class="pop-line"><b class="${ev.kind === "red" ? "num-down" : ""}">${ev.kind}</b> ${esc(ev.title)}<span>${ev.time} hkt · ${ev.src.toLowerCase()}${ev.v ? " ✓" : ""}</span></p>`));
+        band.appendChild(p);
+      }
+    }
+    band.dataset.open = win.open; band.dataset.end = win.end;
+  }
+
+  const hkFmt = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Hong_Kong", hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const ctFmt = new Intl.DateTimeFormat("en-US", { timeZone: CT, hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const MKT_LABEL = { open: ["cme · open", "is-open"], halt: ["cme · halt", "is-open"], closed: ["cme · closed", ""] };
+  function renderClock() {
+    const now = nowMs();
+    $("clk-hkt").textContent = hkFmt.format(now);
+    $("clk-hkt-s").textContent = LIVE ? pad(new Date(now).getSeconds()) : pad(new Date(now + 8 * 3600e3).getUTCSeconds());
+    $("clk-ct").textContent = ctFmt.format(now);
+
+    const ph = phaseAt(now);
+    $("topbar").classList.toggle("is-live", ph.phase === "open");
+    const [label, cls] = ph.phase === "closed" && ph.reason === "holiday"
+      ? ["cme · holiday", "is-holiday"] : MKT_LABEL[ph.phase];
+    $("mkt-label").textContent = label;
+    $("mkt").className = "capsule mkt " + cls;
+
+    const remainS = Math.max(0, Math.floor((ph.untilMs - now) / 1000));
+    const verb = ph.phase === "open" ? "closes" : ph.phase === "halt" ? "resumes" : "opens";
+    $("mkt-cd").textContent = fmtDur(remainS * 1000);
+    const extra = ph.phase === "closed" ? ` · ${ph.reason}` : "";
+    $("next-change").innerHTML =
+      `${verb} in <b>${fmtDur(remainS * 1000)}</b> · ${hkHHMM(ph.untilMs)} hkt${extra}`;
+
+    const winOpen = +band.dataset.open, winEnd = +band.dataset.end;
+    const inWin = Number.isFinite(winOpen) && now >= winOpen && now < winEnd;
+    const iso = effIso();
+    const st = cmeStatus(iso);
+    band.classList.toggle("is-dim", !inWin);
+    nowmark.style.display = inWin ? "" : "none";
+    if (inWin) nowmark.style.left = `calc(${((now - winOpen) / (winEnd - winOpen) * 100).toFixed(3)}% - 1px)`;
+
+    const spans = sessSpans(iso);
+    const railDefs = [["tok", spans?.tok], ["lon", spans?.lon], ["nyc", spans?.nyc]];
+    for (const [name, arr] of railDefs) {
+      const el = $("sess-" + name), stEl = $("st-" + name), swEl = $("sw-" + name);
+      el.classList.remove("is-live");
+      if (!arr || !arr.length) {
+        stEl.textContent = "closed";
+        swEl.textContent = "no session";
+        continue;
+      }
+      swEl.textContent = `${hkHHMM(arr[0][0])}–${hkHHMM(arr[arr.length - 1][1])} hkt`;
+      const cur = arr.find(([s, e]) => now >= s && now < e);
+      if (cur) {
+        el.classList.add("is-live");
+        stEl.innerHTML = `<span class="live-dot" aria-hidden="true"></span>live · <b>${fmtDur(cur[1] - now)}</b> left`;
+      } else if (name === "tok" && arr.length === 2 && now >= arr[0][1] && now < arr[1][0]) {
+        stEl.innerHTML = `back in <b>${fmtDur(arr[1][0] - now)}</b>`;
+      } else {
+        const nx = arr.find(([s]) => s > now);
+        if (!nx) stEl.textContent = now >= winEnd ? "done" : "closed";
+        else if (now < winOpen) stEl.textContent = "scheduled";
+        else stEl.innerHTML = `opens in <b>${fmtDur(nx[0] - now)}</b>`;
+      }
+    }
+
+    if (Number.isFinite(winOpen) && st.kind !== "closed") {
+      const p = Math.min(100, Math.max(0, (Math.min(now, winEnd) - winOpen) / (winEnd - winOpen) * 100));
+      $("prog-fill").style.width = p.toFixed(1) + "%";
+      $("prog-cap").textContent = inWin
+        ? `cme day ${Math.round(p)}% · ${fmtDur(remainS * 1000)} to ${ph.phase === "open" ? "close" : "resume"}`
+        : `${iso} · session ${Math.round(p)}%`;
+    } else {
+      $("prog-fill").style.width = "0%";
+      $("prog-cap").textContent = `no session · ${st.reason}`;
+    }
+
+    /* evening-switch caption: auto when cme closed, manual otherwise */
+    const evSub = $("ev-sub");
+    if (ph.phase === "closed") {
+      evSub.innerHTML = `cme closed · reopens in <b>${fmtDur(ph.untilMs - now)}</b> — review time.`;
+    } else {
+      evSub.innerHTML = `cme still ${ph.phase} · engaged manually.`;
+    }
+
+    if (!LIVE) {
+      $("sim-chip").hidden = false;
+      const o = tzParts("Asia/Hong_Kong", now);
+      $("today-date").textContent = `${DOWS[DOW_IDX[o.weekday]]} ${o.day} ${MONTHS[+o.month - 1]} · ${o.hour}:${o.minute} hkt · mock`;
+    } else {
+      $("today-date").textContent = fmtDay(TODAY);
+    }
+  }
+
+  function select(off, focusCell) {
+    selOff = off;
+    const d = dateOfIso(atIso(off)), k = kindOf(off);
+    cells.forEach((c) => {
+      const on = +c.dataset.off === off;
+      c.setAttribute("aria-pressed", String(on));
+      c.tabIndex = on ? 0 : -1;
+    });
+    $("focus-line").textContent =
+      `${DOWS[d.getUTCDay()]} ${fmtDay(d)} · ` +
+      ({ logged: "logged", missed: "trading day · no log", today: "today", future: "ahead",
+         weekend: "weekend", holiday: "market holiday" }[k]);
+    buildBand();
+    if (focusCell) focusCell.focus({ preventScroll: true });
+  }
+  strip.addEventListener("click", (e) => {
+    const c = e.target.closest(".day-cell");
+    if (c) select(+c.dataset.off, null);
+  });
+  strip.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const off = Math.max(STRIP_LO, Math.min(STRIP_HI, selOff + (e.key === "ArrowRight" ? 1 : -1)));
+    select(off, cells[IDX(off)]);
+  });
+
+  /* ---- popover (band pins) ---- */
+  let pop = null, popAnchor = null;
+  function closePop() { pop?.remove(); pop = null; popAnchor = null; }
+  function placePop(cell) {
+    const r = cell.getBoundingClientRect(), pw = pop.offsetWidth, ph2 = pop.offsetHeight;
+    let x = r.left + r.width / 2 - pw / 2;
+    x = Math.max(8, Math.min(innerWidth - pw - 8, x));
+    let y = r.top - ph2 - 10;
+    if (y < 60) y = r.bottom + 10;
+    pop.style.left = x + "px"; pop.style.top = y + "px";
+  }
+  function showPop(el, html) {
+    closePop();
+    pop = document.createElement("div");
+    pop.className = "pop";
+    pop.setAttribute("role", "dialog");
+    pop.innerHTML = html;
+    document.body.appendChild(pop);
+    placePop(el);
+    popAnchor = el;
+  }
+  document.addEventListener("pointerdown", (e) => {
+    if (pop && !pop.contains(e.target) && e.target !== popAnchor && !popAnchor?.contains?.(e.target)) closePop();
+  }, true);
+  document.addEventListener("scroll", closePop, true);
+
+  let NEWS = null;
+  async function loadNews() {
+    try {
+      const j = await fetch("/st/data/news.json?v=c12").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      const flat = [];
+      for (const [iso, d] of Object.entries(j.days || {})) {
+        const win = windowFor(iso);
+        const base = win ? win.open : Date.parse(`${iso}T06:00:00+08:00`);
+        for (const kind of ["red", "orange"]) {
+          for (const ev of d[kind] || []) {
+            let ms = Date.parse(`${iso}T${ev.time}:00+08:00`);
+            if (!Number.isFinite(ms)) continue;
+            if (ms < base) ms += 86400000;
+            flat.push({ ms, iso, time: ev.time, title: ev.title, kind, src: ev.src || "?", v: !!ev.v });
+          }
+        }
+      }
+      flat.sort((a, b) => a.ms - b.ms);
+      NEWS = { flat };
+    } catch {
+      NEWS = { flat: [] };
+    }
+    buildBand();
+  }
+
+  /* ================================================================
+     RECAP — today's numbers (mock seeds, same shape as S03 rail)
+     ================================================================ */
+  const TRADES = [
+    { time: "09:42", dir: "long",  market: "mnq", setup: "osb",   entry: "23420.00", stop: "23392.00", exit: "23470.00", size: "2", pv: 2 },
+    { time: "11:26", dir: "long",  market: "mnq", setup: "fvg",   entry: "23455.00", stop: "23433.00", exit: "23442.00", size: "1", pv: 2 },
+    { time: "16:08", dir: "short", market: "mes", setup: "sweep", entry: "6412.25",  stop: "6419.50",  exit: "6409.50",  size: "3", pv: 5 },
+    { time: "22:58", dir: "long",  market: "mnq", setup: "trend", entry: "23488.00", stop: "23460.00", exit: "23552.00", size: "2", pv: 2 },
+  ];
+  const num = (v) => {
+    v = String(v ?? "").trim().replace(/,/g, "");
+    if (!v) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  const fmtN = (x) => x.toLocaleString("en-US", { maximumFractionDigits: Math.abs(x) >= 100 ? 0 : 1 });
+  const fmtR = (R) => `${R >= 0 ? "+" : "−"}${fmtN(Math.abs(R))}r`;
+  function tradeCalc(t) {
+    const e = num(t.entry), s = num(t.stop), x = num(t.exit);
+    const risk = e != null && s != null ? Math.abs(e - s) : null;
+    const pts = x != null && e != null ? (t.dir === "long" ? x - e : e - x) : null;
+    const R = risk && pts != null ? pts / risk : null;
+    return { risk, pts, R };
+  }
+  function renderRecap() {
+    $("recap-date").textContent = fmtDay(TODAY);
+    let rSum = 0, wins = 0, losses = 0, best = null, worst = null;
+    for (const t of TRADES) {
+      const { R, pts } = tradeCalc(t);
+      if (R == null) continue;
+      rSum += R;
+      if (R >= 0) wins++; else losses++;
+      if (!best || R > best.R) best = { R, t };
+      if (!worst || R < worst.R) worst = { R, t };
+    }
+    $("rc-r").innerHTML = `<span class="${rSum >= 0 ? "num-up" : "num-down"}">${fmtR(rSum)}</span>`;
+    $("rc-open").textContent = "all resolved";
+    $("rc-n").textContent = String(TRADES.length);
+    $("rc-wl").textContent = `${wins}w · ${losses}l`;
+    $("rc-best").innerHTML = `<span class="num-up">${fmtR(best.R)}</span>`;
+    $("rc-best-tag").textContent = `${best.t.market} · ${best.t.setup}`;
+    $("rc-worst").innerHTML = `<span class="num-down">${fmtR(worst.R)}</span>`;
+    $("rc-worst-tag").textContent = `${worst.t.market} · ${worst.t.setup}`;
+    $("rc-facts").textContent = "mood sharp · sleep 7.5h good · screen 4.1h (creeping)";
+  }
+
+  /* ================================================================
+     REFLECTION — obligation clock, ai-draft stub, real form.
+     due by 03:00 hkt of the following morning (S03 grammar).
+     ?state=done|due|overdue forces the chip for owner review.
+     ================================================================ */
+  const AI_DRAFT = "execution held on the london opens; the midday chase was boredom, not signal; the runner into the close paid for the patience. tomorrow: protect the first hour.";
+  let REFL = { done: false };
+  const FORCED = (() => {
+    const v = qs.get("state");
+    return ["done", "due", "overdue"].includes(v) ? v : null;
+  })();
+  if (FORCED === "done") REFL.done = true;
+
+  const DEADLINE = wallUTC("Asia/Hong_Kong", addIso(TODAY_ISO, 1), 3, 0);
+  function reflState() {
+    if (FORCED && FORCED !== "done") return FORCED;
+    if (REFL.done) return "done";
+    return nowMs() < DEADLINE ? "due" : "overdue";
+  }
+  const reflChip = $("refl-chip"), reflTa = $("refl-ta"), reflForm = $("refl-form");
+  function tickReflChip(st) {
+    const now = nowMs();
+    if (st === "done") reflChip.textContent = "logged";
+    else if (st === "due") reflChip.textContent = `due · ${fmtDur(DEADLINE - now)}`;
+    else reflChip.textContent = `overdue · ${fmtDur(now - DEADLINE)}`;
+  }
+  reflForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!reflTa.value.trim()) { reflTa.focus(); toastMsg("write something first"); return; }
+    /* S09: ?err=save — armed conflict fires on the first real submit;
+       recovery ("keep mine") logs with your text intact */
+    if (qs.get("err") === "save" && !saveConflictShown) {
+      saveConflictShown = true;
+      document.getElementById("refl-conflict")?.remove();
+      const foot = document.querySelector("#refl-form .refl-foot");
+      const note = document.createElement("p");
+      note.className = "note note-err"; note.id = "refl-conflict"; note.setAttribute("role", "alert");
+      note.innerHTML = `save conflict — this day was edited in another tab.<button type="button" class="note-act" id="refl-keep">keep mine</button>`;
+      foot.before(note);
+      note.querySelector("#refl-keep").addEventListener("click", () => {
+        note.remove();
+        REFL.done = true;
+        renderReflect();
+        renderQueue();
+        toastMsg("reflection logged — kept yours");
+      });
+      return;
+    }
+    REFL.done = true;
+    renderReflect();
+    renderQueue();
+    toastMsg("reflection logged");
+  });
+  let saveConflictShown = false;
+  $("draft-btn").addEventListener("click", () => {
+    const btn = $("draft-btn");
+    btn.disabled = true;
+    btn.querySelector("svg").classList.add("spin");
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.querySelector("svg").classList.remove("spin");
+      reflTa.value = AI_DRAFT;
+      toastMsg("draft inserted — make it yours");
+    }, 900);
+  });
+  function renderReflect() {
+    const st = reflState();
+    reflChip.className = "state-chip " + st;
+    tickReflChip(st);
+    $("log-btn").hidden = REFL.done;
+    if (REFL.done) {
+      reflTa.value = AI_DRAFT;
+      reflTa.disabled = true;
+      $("draft-btn").hidden = true;
+      $("refl-meta").textContent = "logged — see you after tomorrow's close.";
+    }
+  }
+
+  /* ================================================================
+     ACCOUNTABILITY QUEUE — calm checklist with grace countdowns.
+     tap a row → that day's editor (opaque sheet). clearing rows
+     animates out; empty state when nothing is owed.
+     ================================================================ */
+  const WEEK_REVIEW_ISO = (() => {
+    let iso = TODAY_ISO, guard = 0;
+    while (dowOfIso(iso) !== 0 && guard++ < 7) iso = addIso(iso, 1);
+    return iso;
+  })();
+  let QUEUE = [
+    { id: "refl--2", kind: "reflection", iso: atIso(-2) },
+    { id: "refl--4", kind: "reflection", iso: atIso(-4) },
+    { id: "rev-week", kind: "review", period: "week", iso: WEEK_REVIEW_ISO },
+  ];
+  const qBox = $("q-box"), qCount = $("q-count"), qBadge = $("q-badge");
+
+  function queueMeta(item) {
+    const now = nowMs();
+    if (item.kind === "reflection") {
+      const deadline = wallUTC("Asia/Hong_Kong", addIso(item.iso, 1), 3, 0);
+      const over = now - deadline;
+      return over > 0
+        ? { sev: "overdue", cd: `overdue ${fmtDur(over)}` }
+        : { sev: "warn", cd: `grace ${fmtDur(deadline - now)}` };
+    }
+    const deadline = wallUTC("Asia/Hong_Kong", item.iso, 23, 0);
+    const left = deadline - now;
+    return left > 0
+      ? { sev: "warn", cd: `due in ${fmtDur(left)}` }
+      : { sev: "overdue", cd: `overdue ${fmtDur(-left)}` };
+  }
+  function renderQueue() {
+    if (FORCED && FORCED !== "done") {
+      QUEUE = [{ id: "refl-0", kind: "reflection", iso: TODAY_ISO },
+        ...QUEUE.filter((q) => q.kind !== "reflection")];
+    } else if (!REFL.done && !QUEUE.some((q) => q.id === "refl-0")) {
+      QUEUE = [{ id: "refl-0", kind: "reflection", iso: TODAY_ISO }, ...QUEUE];
+    } else if (REFL.done) {
+      QUEUE = QUEUE.filter((q) => q.id !== "refl-0");
+    }
+    /* reflections first, oldest debt on top; reviews after */
+    QUEUE.sort((a, b) =>
+      (a.kind === b.kind ? a.iso.localeCompare(b.iso) : a.kind === "reflection" ? -1 : 1));
+    if (qs.get("queue") === "empty") QUEUE = [];
+    qCount.textContent = QUEUE.length ? `${QUEUE.length} owed` : "clear";
+    qBadge.textContent = QUEUE.length ? String(QUEUE.length) : "";
+    qBadge.hidden = !QUEUE.length;
+    if (!QUEUE.length) {
+      qBox.innerHTML = `<p class="empty" style="padding:var(--s3) var(--s4);">accountability clear — nothing owed.</p>`;
+      return;
+    }
+    qBox.innerHTML = QUEUE.map((item) => {
+      const meta = queueMeta(item);
+      const dayName = `${DOWS[dowOfIso(item.iso)]} ${fmtIso(item.iso)}`;
+      const title = item.kind === "reflection" ? "reflection missing" : `${item.period} review pending`;
+      return `<button type="button" class="qrow" data-q="${item.id}" aria-haspopup="dialog">
+        <span class="q-dot ${meta.sev === "warn" ? "is-warn" : ""}" aria-hidden="true"></span>
+        <span class="q-main">
+          <span class="q-title">${title}<span class="q-day num">${dayName}</span></span>
+          <span class="q-meta">${item.kind === "reflection" ? "tap to write it now" : "r runs, habits, narrative"}</span>
+        </span>
+        <span class="q-cd ${meta.sev === "overdue" ? "num-down" : ""}">${meta.cd}</span>
+        <span class="q-chev" aria-hidden="true">›</span>
+      </button>`;
+    }).join("");
+  }
+  qBox.addEventListener("click", (e) => {
+    const row = e.target.closest("[data-q]");
+    if (!row) return;
+    const item = QUEUE.find((q) => q.id === row.dataset.q);
+    if (!item) return;
+    if (item.kind === "review") { jumpTo("sec-review"); return; }
+    openDaySheet(item);
+  });
+
+  /* day-reflection sheet (real form, named input) */
+  const sheet = $("sh"), shForm = $("sh-form"), shTa = $("sh-ta");
+  let shItem = null, shLastFocus = null;
+  function openDaySheet(item) {
+    shItem = item;
+    shLastFocus = document.activeElement;
+    $("sh-sub").textContent = `${DOWS[dowOfIso(item.iso)]} ${fmtIso(item.iso)}`;
+    shTa.value = "";
+    sheet.showModal();
+    setTimeout(() => shTa.focus(), 60);
+  }
+  shForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!shTa.value.trim()) { shTa.focus(); return; }
+    QUEUE = QUEUE.filter((q) => q.id !== shItem.id);
+    sheet.close();
+    renderReflect(); renderQueue();
+    toastMsg(`${$("sh-sub").textContent} cleared`);
+  });
+  $("sh-cancel").addEventListener("click", () => sheet.close());
+  sheet.addEventListener("click", (e) => { if (e.target === sheet) sheet.close(); });
+  sheet.addEventListener("close", () => { shLastFocus?.focus?.({ preventScroll: true }); });
+
+  /* ================================================================
+     REVIEW — week/month. svg histogram (no libs), run cells,
+     habit heat, violations log, narrative form, vs-previous deltas.
+     ?view=week|month · ?cmp=1 pin states.
+     ================================================================ */
+  const RV_DATA = {
+    week: {
+      range: "mon 17 → sun 23 aug",
+      rs: [2.4, -1, 0.8, 3.1, -1, -0.5, 1.6, 2.2, -1, 0.4],
+      netPrev: "+4.2r", winratePrev: 44, adherPrev: 71, violPrev: 4,
+      heat: [
+        { name: "workout",    cells: [1,1,0,1,1,0,1] },
+        { name: "reading",    cells: [1,1,1,1,0,0,2] },
+        { name: "journaling", cells: [1,0,0,1,1,0,0] },
+        { name: "sunlight",   cells: [2,1,1,2,1,0,1] },
+      ],
+      viols: [
+        { t: "tue 11:26", rule: "no revenge", note: "re-entered fvg 4 min after stop-out", broken: true },
+        { t: "thu 15:02", rule: "max 3 trades", note: "fourth trade of the london block", broken: false },
+        { t: "fri 09:58", rule: "news blackout", note: "opened 6 min before cpi", broken: true },
+      ],
+      narrative: "best week of the month — the osb model carried it. leaks are both revenge-shaped: the tuesday chase and the friday pre-cpi poke. adherence dipped only when i traded bored.",
+    },
+    month: {
+      range: "01 → 25 aug",
+      rs: [2.4,-1,0.8,3.1,-1,-0.5,1.6,2.2,-1,0.4,-1,1.1,-2,0.9,2.8,-1,-0.7,1.4,-1,3.4,0.6,-2,-1,1.9,0.3],
+      netPrev: "+9.8r", winratePrev: 41, adherPrev: 64, violPrev: 7,
+      heat: [
+        { name: "workout",    cells: [1,1,0,1,1,0,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,0,1,0,1,1,0,1] },
+        { name: "reading",    cells: [1,1,1,1,0,0,2,1,1,0,1,1,1,2,1,0,1,1,1,0,2,1,1,1,0,1,1,2] },
+        { name: "journaling", cells: [1,0,0,1,1,0,0,1,0,1,1,0,1,1,0,0,1,0,1,1,0,1,1,0,1,0,1,1] },
+        { name: "sunlight",   cells: [2,1,1,2,1,0,1,2,1,1,2,1,1,2,1,1,1,2,1,1,2,1,1,0,1,1,2,1] },
+      ],
+      viols: [
+        { t: "tue 05 aug", rule: "no revenge", note: "3 revenge re-entries across the month", broken: true },
+        { t: "fri 15 aug", rule: "size cap", note: "doubled size after two greens", broken: true },
+        { t: "wed 20 aug", rule: "news blackout", note: "position into fomc minutes", broken: false },
+      ],
+      narrative: "",
+    },
+  };
+  let rvView = qs.get("view") === "month" ? "month" : "week";
+  let rvCmp = qs.get("cmp") === "1";
+
+  function histSvg(rs) {
+    const lo = -3, hi = 5, W = 320, H = 108, padL = 8, baseY = 84, maxH = 62;
+    const buckets = new Array(hi - lo + 1).fill(0);
+    for (const r of rs) {
+      const b = Math.min(hi, Math.max(lo, Math.ceil(r)));
+      buckets[b - lo]++;
+    }
+    const maxC = Math.max(...buckets, 1);
+    const bw = (W - padL * 2) / buckets.length;
+    let bars = "", labs = "";
+    buckets.forEach((c, i) => {
+      const x = padL + i * bw;
+      const hgt = c ? Math.max(6, c / maxC * maxH) : 0;
+      const rVal = lo + i;
+      if (c) bars += `<rect class="h-bar${rVal < 0 ? " neg" : ""}" x="${(x + 3).toFixed(1)}" y="${(baseY - hgt).toFixed(1)}" width="${(bw - 6).toFixed(1)}" height="${hgt.toFixed(1)}" rx="2"></rect>`
+        + `<text class="h-val" text-anchor="middle" x="${(x + bw / 2).toFixed(1)}" y="${(baseY - hgt - 4).toFixed(1)}">${c}</text>`;
+      labs += `<text class="h-lab" text-anchor="middle" x="${(x + bw / 2).toFixed(1)}" y="${baseY + 14}">${rVal}${rVal === hi ? "+" : ""}</text>`;
+    });
+    return `<svg class="hist" viewBox="0 0 ${W} ${H}" role="img" aria-label="r distribution">
+      <line class="h-line" x1="${padL}" y1="${baseY}" x2="${W - padL}" y2="${baseY}"></line>
+      ${bars}${labs}</svg>`;
+  }
+  function renderRuns(rs) {
+    const best = Math.max(...rs);
+    $("rv-runs").innerHTML = rs.map((r, i) =>
+      `<span class="run-cell${r < 0 ? " neg" : ""}${r === best ? " be" : ""}" title="trade ${i + 1} · ${fmtR(r)}"></span>`).join("");
+  }
+  function renderHeat(rows) {
+    $("rv-heat").innerHTML = rows.map((h) =>
+      `<div class="heat-row"><span class="heat-name">${esc(h.name)}</span><span class="heat-cells">` +
+      h.cells.map((c) => `<span class="heat-cell${c === 1 ? " on" : c === 2 ? " part" : ""}"></span>`).join("") +
+      `</span></div>`).join("");
+  }
+  function renderViols(rows) {
+    $("rv-viol").innerHTML = rows.map((v) =>
+      `<div class="viol-row${v.broken ? " is-broken" : ""}">
+        <span class="v-t num">${v.t}</span>
+        <span class="v-rule">${esc(v.rule)}</span>
+        <span class="v-note">${esc(v.note)}</span>
+      </div>`).join("") || `<p class="empty">no violations logged.</p>`;
+  }
+  function deltaHtml(nowV, prevV, unit, goodWhenUp = true) {
+    const diff = nowV - prevV;
+    const up = diff >= 0;
+    const good = up === goodWhenUp;
+    return `<span class="delta ${good ? "up" : "down"}" hidden>prev ${esc(prevV)} · <b>${up ? "+" : "−"}${esc(String(Math.abs(diff)))}${unit}</b></span>`;
+  }
+  function renderReview() {
+    const d = RV_DATA[rvView];
+    const netR = d.rs.reduce((a, b) => a + b, 0);
+    const wins = d.rs.filter((r) => r >= 0).length;
+    const wr = Math.round(wins / d.rs.length * 100);
+    $("rv-netr").innerHTML =
+      `<span class="${netR >= 0 ? "num-up" : "num-down"}">${fmtR(netR)}</span>` +
+      (rvCmp ? deltaHtml(netR, parseFloat(d.netPrev.slice(1, -2)) * (d.netPrev.startsWith("−") ? -1 : 1), "r") : "");
+    $("rv-winrate").innerHTML =
+      `${wr}% win · ${d.rs.length} trips` +
+      (rvCmp ? deltaHtml(wr, d.winratePrev, "%") : "");
+    $("rv-hist").innerHTML = histSvg(d.rs);
+    renderRuns(d.rs);
+    renderHeat(d.heat);
+    renderViols(d.viols);
+    if (!$("rv-ta").value.trim() && d.narrative) $("rv-ta").value = d.narrative;
+    document.querySelectorAll("[data-view]").forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.dataset.view === rvView)));
+    $("cmp-btn").setAttribute("aria-pressed", String(rvCmp));
+    $("cmp-btn").hidden = false;
+    document.querySelectorAll(".delta").forEach((el) => { el.hidden = !rvCmp; });
+  }
+  document.querySelectorAll("[data-view]").forEach((b) =>
+    b.addEventListener("click", () => { rvView = b.dataset.view; renderReview(); }));
+  $("cmp-btn").addEventListener("click", () => { rvCmp = !rvCmp; renderReview(); });
+  $("rv-form").addEventListener("submit", (e) => { e.preventDefault(); toastMsg("narrative saved"); });
+
+  /* ================================================================
+     CSV IMPORT — tradovate drop → preview → map → merge.
+     conflict rows highlighted (warn outline); tapping a conflict
+     row skips it. rows without stops trigger the mental-stop prompt.
+     ?csv=drop|preview|conflict|stop|merged pins states.
+     ================================================================ */
+  const CSV_ROWS = [
+    { d: "2026-08-25", sym: "MNQ", side: "long",  qty: 2, inp: "23420.00", out: "23470.00", pnl: 500,  stop: true,  day: "today", conflict: false },
+    { d: "2026-08-25", sym: "MNQ", side: "long",  qty: 1, inp: "23455.00", out: "23442.00", pnl: -26,   stop: true,  day: "today", conflict: false },
+    { d: "2026-08-25", sym: "MES", side: "short", qty: 3, inp: "6412.25",  out: "6409.50",  pnl: 41.25, stop: true,  day: "today", conflict: false },
+    { d: "2026-08-25", sym: "MNQ", side: "long",  qty: 2, inp: "23488.00", out: "23552.00", pnl: 256,   stop: false, day: "today", conflict: false },
+    { d: "2026-08-25", sym: "NQ",  side: "long",  qty: 1, inp: "23510.00", out: "23546.00", pnl: 720,   stop: false, day: "today", conflict: false },
+    { d: "2026-08-22", sym: "MNQ", side: "long",  qty: 1, inp: "23390.00", out: "23431.00", pnl: 82,    stop: true,  day: "fri 22-aug", conflict: false },
+    { d: "2026-08-22", sym: "MES", side: "long",  qty: 2, inp: "6398.75",  out: "6391.25",  pnl: -75,   stop: true,  day: "fri 22-aug", conflict: false },
+    { d: "2026-08-22", sym: "MNQ", side: "long",  qty: 2, inp: "23420.00", out: "23470.00", pnl: 500,   stop: true,  day: "—", conflict: true },
+    { d: "2026-08-19", sym: "MNQ", side: "short", qty: 1, inp: "23288.00", out: "23334.00", pnl: -92,   stop: false, day: "—", conflict: false },
+  ];
+  let csvSkips = new Set(), csvState = null;
+  const CSV_FORCED = (() => {
+    const v = qs.get("err") === "csv" ? "error" : qs.get("csv");
+    return ["drop", "preview", "conflict", "stop", "merged", "error"].includes(v) ? v : null;
+  })();
+  const csvPanel = $("csv-panel");
+
+  function csvSummary() {
+    const live = CSV_ROWS.filter((_, i) => !csvSkips.has(i));
+    const conflicts = CSV_ROWS.filter((r, i) => r.conflict && !csvSkips.has(i)).length;
+    const noStop = live.filter((r) => !r.stop).length;
+    const unmapped = live.filter((r) => r.day === "—").length;
+    return { total: live.length, conflicts, noStop, unmapped };
+  }
+  function renderCsv(state) {
+    csvState = state;
+    if (state === "drop") {
+      csvPanel.innerHTML = `
+        <div class="dropzone" id="dz">
+          <input type="file" id="dz-file" accept=".csv,text/csv" aria-label="select tradovate csv">
+          <span class="dz-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M10 13V3.5M10 3.5 6.5 7M10 3.5 13.5 7"/><path d="M3.5 13v2A1.5 1.5 0 0 0 5 16.5h10a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg>
+          </span>
+          <span class="dz-t">drop tradovate csv</span>
+          <span class="dz-s">or tap to select · round trips parsed locally</span>
+        </div>`;
+      wireDropzone();
+      return;
+    }
+    if (state === "error") {   /* S09: parse failure — calm, honest, one way out */
+      csvPanel.innerHTML = `
+        <div class="dropzone" style="opacity:0.4;" aria-hidden="true">
+          <span class="dz-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M10 13V3.5M10 3.5 6.5 7M10 3.5 13.5 7"/><path d="M3.5 13v2A1.5 1.5 0 0 0 5 16.5h10a1.5 1.5 0 0 0 1.5-1.5v-2"/></svg>
+          </span>
+          <span class="dz-t">drop tradovate csv</span>
+          <span class="dz-s">or tap to select · round trips parsed locally</span>
+        </div>
+        <p class="note note-err" role="alert" style="margin-top: var(--s3);">import failed — the file didn't parse as tradovate round trips.<button type="button" class="note-act" id="csv-retry">try another</button></p>`;
+      $("csv-retry").addEventListener("click", () => renderCsv("drop"));
+      return;
+    }
+    if (state === "merged") {
+      csvPanel.innerHTML = `
+        <div class="imported-ok">
+          <span class="ok-ring" aria-hidden="true">
+            <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m2 6.2 2.6 2.6L10 3.4"/></svg>
+          </span>
+          <div style="flex:1;">
+            <p style="margin:0; font-size:var(--text-sm); font-weight:600;">imported ${csvSummary().total || 7} trips across 3 days</p>
+            <p style="margin:2px 0 0; font-size:var(--text-xs); color:var(--dim);">days updated · rebuild queued with your next publish</p>
+          </div>
+          <button type="button" class="btn btn-ghost" id="csv-again">another</button>
+        </div>`;
+      $("csv-again").addEventListener("click", () => renderCsv("drop"));
+      return;
+    }
+    /* preview | conflict | stop share the table */
+    const s = csvSummary();
+    const rowsHtml = CSV_ROWS.map((r, i) => {
+      const skip = csvSkips.has(i);
+      return `<tr class="${r.conflict ? "is-conflict" : ""}" data-row="${i}" ${skip ? 'data-skip="1" style="opacity:0.38;"' : ""}>
+        <td>${r.d}</td>
+        <td class="txt">${r.sym}</td>
+        <td class="txt">${r.side}</td>
+        <td>${r.qty}</td>
+        <td>${r.inp}</td>
+        <td>${r.out}</td>
+        <td class="${r.pnl >= 0 ? "num-up" : "num-down"}">${r.pnl >= 0 ? "+" : "−"}$${fmtN(Math.abs(r.pnl))}</td>
+        <td>${r.stop ? "hard" : '<span class="csv-flag">none</span>'}</td>
+        <td class="csv-map ${r.day !== "—" ? "is-set" : ""}">${r.conflict ? '<span class="csv-flag">dup</span>' : esc(r.day)}</td>
+      </tr>`;
+    }).join("");
+    csvPanel.innerHTML = `
+      <div class="csv-scroll" tabindex="0" role="region" aria-label="parsed round trips, scroll sideways">
+        <table class="csv-table">
+          <thead><tr><th>date</th><th>sym</th><th>side</th><th>qty</th><th>entry</th><th>exit</th><th>pnl</th><th>stop</th><th>maps to</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+      <div class="csv-summary hairline-t">
+        <span class="cs-counts"><b>${s.total}</b> trips · <b>${s.conflicts}</b> conflict${s.conflicts === 1 ? "" : "s"} · <b>${s.noStop}</b> no-stop · <b>${s.unmapped}</b> unmapped</span>
+        <span class="csv-actions">
+          <button type="button" class="btn btn-ghost" id="csv-cancel">cancel</button>
+          <button type="button" class="btn btn-primary" id="csv-confirm">merge ${s.total}</button>
+        </span>
+      </div>`;
+    $("csv-cancel").addEventListener("click", () => renderCsv("drop"));
+    $("csv-confirm").addEventListener("click", confirmMerge);
+    csvPanel.querySelector(".csv-scroll tbody").addEventListener("click", (e) => {
+      const tr = e.target.closest("tr[data-row]");
+      if (!tr || !tr.classList.contains("is-conflict")) return;
+      const i = +tr.dataset.row;
+      if (csvSkips.has(i)) csvSkips.delete(i); else csvSkips.add(i);
+      renderCsv(csvState === "stop" ? "preview" : csvState);
+      toastMsg(csvSkips.has(i) ? "conflict row skipped" : "conflict row restored");
+    });
+    if (state === "conflict") {
+      const first = csvPanel.querySelector("tr.is-conflict");
+      first?.scrollIntoView({ block: "center" });
+      toastMsg("duplicate of an already-logged trip — tap to skip");
+    }
+  }
+  function wireDropzone() {
+    const dz = $("dz"), file = $("dz-file");
+    dz.addEventListener("dragover", (e) => { e.preventDefault(); dz.classList.add("is-over"); });
+    dz.addEventListener("dragleave", () => dz.classList.remove("is-over"));
+    dz.addEventListener("drop", (e) => { e.preventDefault(); dz.classList.remove("is-over"); renderCsv("preview"); });
+    file.addEventListener("change", () => renderCsv("preview"));
+  }
+  function confirmMerge() {
+    const live = CSV_ROWS.filter((_, i) => !csvSkips.has(i));
+    const noStop = live.filter((r) => !r.stop);
+    if (noStop.length) { openMentalStop(noStop); return; }
+    renderCsv("merged");
+    toastMsg("merge complete");
+  }
+
+  /* mental-stop prompt (real form, named radios) */
+  const msSheet = $("ms"), msForm = $("ms-form"), msBody = $("ms-body");
+  function openMentalStop(rows) {
+    msBody.innerHTML = rows.map((r, i) =>
+      `<div class="ms-row">
+        <span class="ms-id">${r.d} · ${r.sym.toLowerCase()} ${r.side} ×${r.qty}</span>
+        <div class="seg" role="radiogroup" aria-label="stop kind">
+          <label style="display:inline-flex; align-items:center; gap:4px; padding:0 10px; height:calc(var(--ctl-h) - 4px); border-radius:calc(var(--radius-sm) - 2px); cursor:pointer;">
+            <input type="radio" name="ms_${rows.indexOf(r)}" value="mental" checked style="accent-color:var(--accent);"> mental
+          </label>
+          <label style="display:inline-flex; align-items:center; gap:4px; padding:0 10px; height:calc(var(--ctl-h) - 4px); border-radius:calc(var(--radius-sm) - 2px); cursor:pointer;">
+            <input type="radio" name="ms_${rows.indexOf(r)}" value="naked" style="accent-color:var(--down);"> naked
+          </label>
+        </div>
+      </div>`).join("");
+    msSheet.showModal();
+  }
+  msForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    msSheet.close();
+    renderCsv("merged");
+    toastMsg("merge complete · stops annotated");
+  });
+  $("ms-cancel").addEventListener("click", () => msSheet.close());
+  msSheet.addEventListener("click", (e) => { if (e.target === msSheet) msSheet.close(); });
+
+  /* ================================================================
+     PAYOUT — account select, amount, date, live equity hint.
+     ================================================================ */
+  const payAcct = $("pay-acct"), payAmt = $("pay-amt"), payHint = $("pay-hint");
+  $("pay-date").value = TODAY_ISO;
+  function updPayHint() {
+    const opt = payAcct.selectedOptions[0];
+    const eq = num(opt.dataset.eq), th = num(opt.dataset.thresh) ?? 0;
+    const amt = num(payAmt.value);
+    if (amt == null || amt <= 0) {
+      payHint.textContent = "select an amount to see the equity impact.";
+      return;
+    }
+    const after = eq - amt;
+    const cushion = after - th;
+    payHint.innerHTML =
+      `<span>equity <span class="num">$${fmtN(eq)}</span> − <span class="num">$${fmtN(amt)}</span> → <span class="num">$${fmtN(after)}</span></span>` +
+      `<span style="color:${cushion >= 0 ? "var(--dim)" : "var(--down)"};">` +
+      (th ? `cushion <span class="num">$${fmtN(Math.abs(cushion))}</span> ${cushion >= 0 ? "above" : "<b>below</b>"} threshold` : `no payout threshold on this account`) +
+      `</span>`;
+  }
+  payAcct.addEventListener("change", updPayHint);
+  payAmt.addEventListener("input", updPayHint);
+  $("pay-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (num(payAmt.value) == null) { payAmt.focus(); toastMsg("amount needed"); return; }
+    toastMsg(`payout recorded · ${payAcct.value}`);
+  });
+
+  /* ================================================================
+     NAVIGATION — navchips, g-chords, palette (trimmed canon)
+     ================================================================ */
+  function jumpTo(id) {
+    const el = $(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    history.replaceState(null, "", "#" + id);
+  }
+  document.querySelectorAll("[data-jump]").forEach((el) =>
+    el.addEventListener("click", () => jumpTo(el.dataset.jump)));
+  $("to-cockpit").addEventListener("click", () => location.assign("index.html"));
+
+  const ITEMS = [
+    { sec: "jump", label: "recap", hint: "g r", go: "sec-recap" },
+    { sec: "jump", label: "reflect", hint: "g f", go: "sec-reflect" },
+    { sec: "jump", label: "queue", hint: "g q", go: "sec-queue" },
+    { sec: "jump", label: "review", hint: "g v", go: "sec-review" },
+    { sec: "jump", label: "import csv", hint: "g i", go: "sec-import" },
+    { sec: "jump", label: "payout", hint: "g p", go: "sec-payout" },
+    { sec: "compose", label: "thought", hint: "n", url: "composer.html?mode=thought" },
+    { sec: "compose", label: "quote", hint: "", url: "composer.html?mode=quote" },
+    { sec: "screens", label: "today rail", url: "today.html" },
+    { sec: "screens", label: "rituals", url: "rituals.html" },
+    { sec: "screens", label: "cockpit frame", url: "index.html" },
+    { sec: "settings", label: "accounts", hint: "", url: "accounts.html" },
+    { sec: "settings", label: "library", hint: "", url: "library.html" },
+    { sec: "settings", label: "media", hint: "", url: "media.html" },
+    { sec: "settings", label: "zen settings", hint: "", url: "settings.html" },
+  ];
+  const palette = $("palette"), palInput = $("pal-input"), palList = $("pal-list");
+  let visible = [], cursor = 0, palLastFocus = null;
+  function fuzzy(q, hay) {
+    q = q.toLowerCase(); hay = hay.toLowerCase();
+    const idx = hay.indexOf(q);
+    if (idx >= 0) return idx === 0 || hay[idx - 1] === " " ? 0 : 1;
+    let i = 0;
+    for (const ch of hay) if (ch === q[i]) i++;
+    return i === q.length ? 2 : -1;
+  }
+  function renderPal() {
+    const q = palInput.value.trim();
+    const pool = !q ? [...ITEMS]
+      : ITEMS.map((i) => ({ item: i, s: fuzzy(q, i.label + " " + i.sec) }))
+          .filter((x) => x.s >= 0).sort((a, b) => a.s - b.s).map((x) => x.item);
+    visible = pool; cursor = 0;
+    let html = "", lastSec = null;
+    pool.forEach((i, n) => {
+      if (i.sec !== lastSec) { html += `<p class="pal-sec">${i.sec}</p>`; lastSec = i.sec; }
+      html += `<div class="pal-item" role="option" id="pal-o${n}" data-i="${n}" data-active="${n === cursor}" aria-selected="${n === cursor}">
+                 <span class="grow">${i.label}</span><span class="hint">${i.hint}</span></div>`;
+    });
+    palList.innerHTML = html || `<p class="pal-empty empty">nothing matches “${q.replace(/</g, "&lt;")}”.</p>`;
+    palInput.setAttribute("aria-activedescendant", pool.length ? `pal-o${cursor}` : "");
+  }
+  function moveCursor(delta) {
+    if (!visible.length) return;
+    cursor = (cursor + delta + visible.length) % visible.length;
+    palList.querySelectorAll(".pal-item").forEach((el) =>
+      el.dataset.active = String(+el.dataset.i === cursor));
+    palList.querySelector(`[data-i="${cursor}"]`)?.scrollIntoView({ block: "nearest" });
+    palInput.setAttribute("aria-activedescendant", `pal-o${cursor}`);
+  }
+  function pick() {
+    const it = visible[cursor];
+    if (!it) return;
+    palette.close();
+    if (it.go) jumpTo(it.go);
+    else if (it.url) location.assign(it.url);
+    else toastMsg(`mock → ${it.label}`);
+  }
+  function openPal() {
+    palLastFocus = document.activeElement;
+    palInput.value = ""; renderPal();
+    palette.showModal();
+    setTimeout(() => palInput.focus(), 60);
+  }
+  palette.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); moveCursor(1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); moveCursor(-1); }
+    else if (e.key === "Enter") { e.preventDefault(); pick(); }
+  });
+  palInput.addEventListener("input", renderPal);
+  palList.addEventListener("click", (e) => {
+    const it = e.target.closest(".pal-item");
+    if (it) { cursor = +it.dataset.i; pick(); }
+  });
+  palette.addEventListener("click", (e) => { if (e.target === palette) palette.close(); });
+  palette.addEventListener("close", () => { closePop(); palLastFocus?.focus?.({ preventScroll: true }); });
+
+  let chordArm = 0;
+  const CHORDS = { r: "sec-recap", f: "sec-reflect", q: "sec-queue", v: "sec-review", i: "sec-import", p: "sec-payout" };
+  const COMPOSE_KEYS = { n: "thought" };
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      palette.open ? palette.close() : openPal();
+      return;
+    }
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
+    if (document.querySelector("dialog[open]")) return;
+    if (e.key === "/") { e.preventDefault(); openPal(); return; }
+    const nowT = Date.now();
+    if (e.key.toLowerCase() === "g" && nowT - chordArm > 400) {
+      chordArm = nowT;
+      setTimeout(() => { chordArm = 0; }, 1200);
+      return;
+    }
+    if (nowT - chordArm <= 1200) {
+      const dest = CHORDS[e.key.toLowerCase()];
+      if (dest) { chordArm = 0; jumpTo(dest); return; }
+    }
+    chordArm = 0;
+    const m = COMPOSE_KEYS[e.key.toLowerCase()];
+    if (m) location.assign(`composer.html?mode=${m}`);
+  });
+  const COARSE = matchMedia("(pointer: coarse)").matches;
+  if (COARSE) {
+    $("fab-k").hidden = false;
+    $("fab-k").addEventListener("click", openPal);
+  }
+
+  /* ---- toast ---- */
+  const toastEl = $("toast"), toastMsgEl = $("toast-msg"), drainEl = $("toast-drain");
+  let toastTimer = null;
+  function toastMsg(text) {
+    toastMsgEl.textContent = text;
+    toastEl.hidden = false;
+    drainEl.style.setProperty("--drain-ms", "2200ms");
+    drainEl.style.animation = "none";
+    void drainEl.offsetWidth;
+    drainEl.style.animation = "";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toastEl.hidden = true; }, 2200);
+  }
+
+  /* ---- devrail: presets roundtrip through the URL (shareable) ---- */
+  $("state-seg").addEventListener("click", (e) => {
+    const s = e.target.dataset.s;
+    if (!s) return;
+    const u = new URL(location);
+    if (s === "clear") u.searchParams.delete("state"); else u.searchParams.set("state", s);
+    location.assign(u);
+  });
+  $("csv-seg").addEventListener("click", (e) => {
+    const s = e.target.dataset.c;
+    if (!s) return;
+    const u = new URL(location);
+    if (s === "clear") u.searchParams.delete("csv"); else u.searchParams.set("csv", s);
+    location.assign(u);
+  });
+  $("view-seg").addEventListener("click", (e) => {
+    const s = e.target.dataset.v;
+    if (!s) return;
+    const u = new URL(location);
+    if (s === "week") u.searchParams.delete("view"); else u.searchParams.set("view", s);
+    location.assign(u);
+  });
+
+  /* ================================================================
+     BOOT
+     ================================================================ */
+  if (LIVE) document.body.classList.add("live-tick");
+  select(0, null);
+  renderClock();
+  loadNews();
+  renderRecap();
+  renderReflect();
+  renderQueue();
+  renderReview();
+  renderCsv(CSV_FORCED ?? "drop");
+  updPayHint();
+  /* S09: ?err=save pre-fills so the conflict fires on the first submit ·
+     ?stress=reflect → a 2k-word reflection (the form must not care) ·
+     ?dt = dynamic-type demo (rem scale survives) */
+  if (qs.get("err") === "save")
+    reflTa.value = "execution held on the london opens; the chase was boredom. tomorrow: protect the first hour.";
+  if (qs.get("stress") === "reflect") {
+    const beat = "held the plan through the london open, took the midday setup out of boredom and paid for it, then gave the runner the room it asked for and it paid for the whole afternoon. ";
+    const lessons = ["the first hour is the only hour that needs me at full attention. ", "boredom trades cost more than losses — they cost the ledger's honesty. ", "the runner rule works when i let the structure trail instead of my nerves. ", "screenshots at entry, not after — the story reads cleaner when it is captured live. ", "size stayed honest on the third attempt; that is the habit that compounds. "];
+    reflTa.value = (beat + lessons.join("") + beat + lessons.reverse().join("")).repeat(9);
+  }
+  (() => {
+    const dt = parseFloat(qs.get("dt"));
+    if (Number.isFinite(dt) && dt >= 0.8 && dt <= 2) document.documentElement.style.fontSize = (dt * 100) + "%";
+  })();
+  setInterval(() => {
+    renderClock(); tickReflChip(reflState());
+    qBox.querySelectorAll("[data-q]").forEach((row) => {
+      const item = QUEUE.find((q) => q.id === row.dataset.q);
+      if (!item) return;
+      const meta = queueMeta(item);
+      const cd = row.querySelector(".q-cd");
+      cd.textContent = meta.cd;
+      cd.classList.toggle("num-down", meta.sev === "overdue");
+      row.querySelector(".q-dot").className =
+        `q-dot ${meta.sev === "warn" ? "is-warn" : ""}`;
+    });
+  }, 1000);
+  function centerToday() {
+    const c = cells[IDX(0)];
+    strip.classList.add("no-snap");
+    strip.scrollLeft = c.offsetLeft - (strip.clientWidth - c.offsetWidth) / 2;
+    requestAnimationFrame(() => requestAnimationFrame(() => strip.classList.remove("no-snap")));
+  }
+  centerToday();
+  addEventListener("load", centerToday);
+})();
+</script>
+</body>
+</html>

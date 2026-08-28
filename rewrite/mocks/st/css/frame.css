@@ -1,0 +1,827 @@
+/* ============================================================
+   1edge frame primitives — ZEN SHELL LAYER
+   S01 · rev R2 · session C06 · consumes tokens.css + base.css,
+   adds ZERO literals (var()/color-mix() only). These patterns
+   are shared by every zen screen AND the future public site:
+   topbar glass · chrono band (CME master timeline) · sessions
+   rail (TOK/LON/NYC) · calendar strip · dual clock · events
+   tape (day/wk/8wk) · command palette · stat popover · fab.
+   iOS Safari primary: safe areas, svh, hit-slop ≥44pt targets,
+   :active feedback, no hover-only affordances.
+   R2: desktop shell column (--shell-w) so wide screens read as
+   intentional, not cut off; virtual-time ("sim") chrome;
+   reduced-motion guards.
+   ============================================================ */
+
+:root {
+    /* cockpit reads as ONE centered column on desktop monitors */
+    --shell-w: 768px;
+}
+
+/* centered column helper — every chrome region sits on it */
+.shell-fit {
+    width: min(100%, var(--shell-w));
+    margin-inline: auto;
+}
+
+/* ---- app shell: one screen, internal scroll only ----
+   overflow-x: clip contains the strip's full-bleed negative margins —
+   without it the box overflows the viewport and mobile Safari/Chrome
+   shrink-to-fit zooms the whole page out (breaks fixed chrome coords). */
+.app {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: clip;
+}
+
+/* ---- top bar: FLOATING CHROME — the one allowed glass surface ---- */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    padding: calc(env(safe-area-inset-top, 0px) + var(--s2)) 0 var(--s2);
+}
+
+.topbar-inner {
+    padding-inline: var(--s4);
+}
+
+.topbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s3);
+    min-height: 32px;
+}
+
+.brand {
+    font-weight: 700;
+    font-size: var(--text-base);
+    letter-spacing: var(--track-tight);
+    color: var(--ink);
+    white-space: nowrap;
+}
+.brand b { color: var(--accent); font-weight: 700; }
+
+.pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--faint);
+    flex: none;
+}
+.is-live .pulse {
+    background: var(--up);
+    animation: pulse-ring 2.4s ease-out infinite;
+}
+@keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--up) 42%, transparent); }
+    70%  { box-shadow: 0 0 0 7px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* market state capsule variants (chrome states — ink ladder, data stays numeric) */
+.mkt { gap: 6px; }
+.mkt .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--faint); flex: none; }
+.mkt.is-open .dot { background: var(--up); }
+.mkt.is-holiday .dot { background: var(--warn); }
+
+/* ---- chrono band: CME trading-day timeline (open→close), the master clock ----
+   x-axis = minutes since 17:00 ct open (0..1380 on a normal 23h day).
+   session spans sit IN the band; event pins ride its top edge;
+   hour ticks hang below as a quiet ruler labeled in hkt. */
+.band-wrap { margin-top: var(--s2); }
+.band {
+    position: relative;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--inset);
+    box-shadow: inset 0 0 0 1px var(--line);
+}
+.band .sp {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.05);            /* tok */
+}
+.band .sp.s-lon { background: rgba(255, 255, 255, 0.075); }
+.band .sp.s-nyc { background: rgba(255, 255, 255, 0.10); }
+.band.is-dim { opacity: 0.4; }
+
+/* event pins — folder chips riding the top edge */
+.pin {
+    position: absolute;
+    top: -3px;
+    width: 7px;
+    height: 7px;
+    margin-left: -4px;
+    padding: 0;
+    border: none;
+    border-radius: 2px;
+    background: var(--warn);
+    cursor: pointer;
+}
+.pin.is-red { background: var(--down); }
+.pin.is-soon { animation: pin-pulse 1.5s ease-out infinite; }
+@keyframes pin-pulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--down) 45%, transparent); }
+    70%  { box-shadow: 0 0 0 7px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* now marker — accent line + soft glow, glides between ticks */
+.band .nowmark {
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--accent-hi);
+    box-shadow: 0 0 9px var(--accent-glow), 0 0 2px var(--accent-glow);
+}
+.live-tick .band .nowmark { transition: left 0.9s linear; }
+
+/* ruler: chrono ticks in hkt */
+.band-ruler {
+    position: relative;
+    height: 13px;
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-3xs);
+    color: var(--faint);
+    user-select: none;
+}
+.band-ruler .tick {
+    position: absolute;
+    top: -6px;
+    width: 1px;
+    height: 3px;
+    background: var(--line2);
+}
+.band-ruler .tick.major { height: 4px; top: -7px; background: var(--line3); }
+.band-ruler .tlab {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    letter-spacing: 0.04em;
+}
+.band-caption {
+    margin-top: 2px;
+    font-family: var(--font-mono);
+    font-size: var(--text-3xs);
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+    color: var(--faint);
+}
+
+/* ---- sessions rail: TOK / LON / NYC under the cme clock ---- */
+.rail {
+    display: grid;
+    /* minmax(0,1fr), not 1fr: nowrap state strings were expanding the
+       auto track minimum past 390px and clipping NYC (S09 fix) */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s2);
+    margin-top: var(--s2);
+    padding-inline: var(--s4);
+    width: min(100%, var(--shell-w));
+    margin-inline: auto;
+}
+.sess {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 48px;
+    min-width: 0;
+    padding: var(--s1) var(--s3);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: box-shadow var(--t-fast), background var(--t-fast);
+}
+.sess-top {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--faint);
+}
+.sess svg { width: 10px; height: 10px; flex: none; }
+.sess-code {
+    font-size: var(--text-3xs);
+    font-weight: 700;
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+}
+.sess-state {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-xs);
+    color: var(--dim);
+    white-space: nowrap;
+}
+.sess-state b { color: var(--soft); font-weight: 500; }
+.sess-win {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-3xs);
+    color: var(--faint);
+    white-space: nowrap;
+}
+/* live session: accent hairline + lit code + live dot */
+.sess.is-live {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 36%, transparent);
+    background: color-mix(in srgb, var(--accent-dim) 46%, transparent);
+}
+.sess.is-live .sess-code,
+.sess.is-live svg { color: var(--accent-hi); }
+.sess.is-live .sess-state b { color: var(--ink); }
+.sess .live-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--up);
+    align-self: center;
+    animation: pulse-ring 2.4s ease-out infinite;
+}
+
+/* ---- calendar strip: momentum scroller, snap-to-day ----
+   R2: scroller lives INSIDE the shell column (no viewport bleed) and
+   fades at its edges — wide monitors read "continues", not "cut off". */
+.strip-shell {
+    width: min(100%, var(--shell-w));
+    margin-inline: auto;
+    overflow-x: clip;
+}
+.strip {
+    position: relative;   /* offsetParent for cells — scroll math is native */
+    display: flex;
+    gap: var(--s1);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: calc(50% - 22px);
+    padding: var(--s2) calc(50% - 22px);
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 18px, #000 calc(100% - 18px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 18px, #000 calc(100% - 18px), transparent);
+}
+.strip::-webkit-scrollbar { display: none; }
+
+.day-cell {
+    position: relative;
+    scroll-snap-align: center;
+    flex: none;
+    width: 44px;
+    min-height: 44px;
+    padding: 6px 0 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    border-radius: var(--radius-sm);
+    transition: transform var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+}
+.day-cell:active { transform: scale(0.94); background: var(--bg-overlay); }
+.day-cell[aria-current="date"] {
+    box-shadow: inset 0 0 0 1px var(--line3);
+}
+.day-cell[aria-pressed="true"] {
+    background: var(--accent-dim);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent);
+}
+.day-cell .dow {
+    font-size: var(--text-3xs);
+    font-weight: 600;
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+    color: var(--dim);
+}
+.day-cell .dom {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-sm);
+    color: var(--ink);
+}
+.day-cell .mark {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: transparent;
+}
+.day-cell.is-off .dom { color: var(--faint); }
+.day-cell.is-off .dow { color: var(--faint); }
+.day-cell.is-logged .mark { background: var(--soft); }
+.day-cell.is-holiday .dom {
+    color: var(--faint);
+    text-decoration: line-through;
+    text-decoration-color: var(--line3);
+}
+.day-cell.is-today .dow { color: var(--accent); }
+
+/* month tick — the quiet "a new month starts here" signal:
+   accent caret above the cell + month abbr in the dow slot */
+.day-cell.is-month::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 3px;
+    height: 3px;
+    margin-left: -1.5px;
+    border-radius: 999px;
+    background: var(--accent);
+}
+.day-cell.is-month .dow { color: var(--accent-hi); font-weight: 700; }
+
+/* ---- dual clock block ---- */
+.clock-block { padding: var(--s5) 0 0; }
+.clock-block .clock-pad { padding-inline: var(--s4); }
+.clock-hkt {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    letter-spacing: var(--track-num);
+    font-size: 44px;
+    line-height: 1;
+    color: var(--ink);
+}
+.clock-hkt .secs { font-size: var(--text-lg); color: var(--dim); }
+.clock-zone {
+    font-size: var(--text-3xs);
+    font-weight: 600;
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-top: 6px;
+}
+.clock-sub {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: var(--s3);
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-md);
+    color: var(--soft);
+}
+.next-change {
+    margin-top: var(--s2);
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-xs);
+    color: var(--dim);
+}
+.next-change b { color: var(--soft); font-weight: 500; }
+
+/* cme-day completion hairline — the quiet chrono line */
+.day-prog { margin-top: var(--s4); }
+.day-prog .bar {
+    height: 2px;
+    border-radius: 999px;
+    background: var(--inset);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+}
+.day-prog .fill {
+    height: 100%;
+    background: var(--accent);
+    opacity: 0.55;
+}
+.day-prog p {
+    margin-top: 5px;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-3xs);
+    letter-spacing: 0.04em;
+    color: var(--faint);
+}
+
+/* wide screens: clock cluster sits as two columns — hkt left, the
+   cme readouts right — so the cockpit uses the column, not a ribbon */
+@media (min-width: 760px) {
+    .clock-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: var(--s6) var(--s8);
+        align-items: start;
+    }
+    .clock-sub { margin-top: var(--s2); }
+}
+
+/* ---- floating palette trigger (one-handed reach, mirrors annotator pill) ---- */
+.fab-k {
+    position: fixed;
+    left: max(12px, env(safe-area-inset-left));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 40;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--dim);
+    background: var(--material);
+    -webkit-backdrop-filter: saturate(180%) blur(var(--blur));
+    backdrop-filter: saturate(180%) blur(var(--blur));
+    box-shadow: inset 0 0 0 1px var(--line2), var(--shadow-panel);
+    transition: transform var(--t-fast), color var(--t-fast);
+}
+.fab-k:active { transform: scale(0.95); color: var(--ink); }
+
+/* ---- command palette: OPAQUE overlay sheet (locked rule: no glass) ---- */
+dialog.palette {
+    width: min(560px, 94vw);
+    margin: auto auto 0;
+    top: auto;
+    bottom: auto;
+    margin-top: min(14vh, 120px);
+    margin-inline: auto;
+    padding: 0;
+    background: var(--surface-solid);
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: inset 0 0 0 1px var(--line2), var(--shadow-float);
+    overflow: hidden;
+}
+dialog.palette::backdrop { background: var(--scrim); }
+.pal-input {
+    width: 100%;
+    height: 48px;
+    padding: 0 var(--s4);
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--text-md);
+    box-shadow: inset 0 -1px 0 var(--line);
+}
+.pal-input::placeholder { color: var(--faint); }
+@media (pointer: coarse) { .pal-input { font-size: var(--text-md); } }
+.pal-list {
+    max-height: min(46svh, 380px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--s2);
+}
+.pal-sec {
+    padding: var(--s2) var(--s2) 4px;
+    font-size: var(--text-3xs);
+    font-weight: 600;
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.pal-item {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    min-height: 44px;
+    padding: 0 var(--s3);
+    border-radius: var(--radius-sm);
+    color: var(--soft);
+    font-size: var(--text-sm);
+}
+.pal-item[data-active="true"] {
+    background: var(--accent-dim);
+    color: var(--ink);
+}
+.pal-item .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pal-item .hint {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--faint);
+    flex: none;
+}
+.pal-item[data-active="true"] .hint { color: var(--soft); }
+.pal-empty { padding: var(--s4); }
+
+/* ---- long-press stat popover (floating chrome over content) ---- */
+.pop {
+    position: fixed;
+    z-index: 50;
+    min-width: 148px;
+    max-width: 320px;
+    padding: var(--s2) var(--s3);
+    background: var(--material);
+    -webkit-backdrop-filter: saturate(180%) blur(var(--blur));
+    backdrop-filter: saturate(180%) blur(var(--blur));
+    border-radius: var(--radius-sm);
+    box-shadow: inset 0 0 0 1px var(--line2), var(--shadow-float);
+    animation: pop-in var(--t-med) both;
+}
+@keyframes pop-in {
+    from { opacity: 0; transform: translateY(4px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+.pop .kv { min-height: 24px; padding: var(--s1) 0; }
+.pop .kv dt { font-size: var(--text-xs); }
+.pop .kv dd { font-size: var(--text-xs); }
+/* one-line event detail — tight, no dl chrome */
+.pop .pop-line {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-xs);
+    color: var(--soft);
+    white-space: nowrap;
+}
+.pop .pop-line b { font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn); }
+.pop .pop-line b.num-down { color: var(--down); }
+.pop .pop-line span { color: var(--faint); }
+
+/* ---- content region ---- */
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: min(100%, var(--shell-w));
+    margin-inline: auto;
+    padding: var(--s2) var(--s4) calc(env(safe-area-inset-bottom, 0px) + 84px);
+}
+.day-head { margin: var(--s4) 0 var(--s4); }
+.day-head h1 {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: var(--track-tight);
+}
+.stub-panel { padding: var(--s5); }
+
+/* ---- events tape: red/orange folders, day · wk ---- */
+.ev-panel { padding: var(--s4); }
+.ev-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--s3);
+    flex-wrap: wrap;
+}
+.ev-scope {
+    margin-top: 2px;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-2xs);
+    color: var(--faint);
+    letter-spacing: 0.04em;
+}
+.ev-next {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 38px;
+    margin-top: var(--s3);
+    padding: var(--s2) var(--s3);
+    border-radius: var(--radius-sm);
+    background: var(--bg-raise);
+    box-shadow: inset 0 0 0 1px var(--line);
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-xs);
+    color: var(--dim);
+}
+.ev-next .fold { display: flex; align-items: center; color: var(--faint); }
+.ev-next .fold svg { width: 13px; height: 13px; display: block; }
+.ev-next.is-red .fold { color: var(--down); }
+.ev-next.is-orange .fold { color: var(--warn); }
+.ev-next .ttl {
+    color: var(--soft);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ev-next .cd { margin-left: auto; color: var(--ink); font-weight: 500; white-space: nowrap; }
+/* T-15m state: the OUTLINE alone carries the kind colour — countdown and
+   title stay normal ink (owner: "enough orange", don't tint the text) */
+.ev-next.is-red.is-soon { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--down) 46%, transparent); }
+.ev-next.is-orange.is-soon { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 52%, transparent); }
+
+.ev-list { display: flex; flex-direction: column; gap: 1px; margin-top: var(--s2); }
+.ev-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 38px;
+    padding: var(--s1) var(--s2);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--soft);
+    font-size: var(--text-sm);
+    text-align: left;
+    transition: background var(--t-fast);
+}
+.ev-row:active { background: var(--bg-overlay); }
+.ev-row.is-past { opacity: 0.42; }
+.ev-row.is-next { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); }
+.ev-row .fold { flex: none; display: block; }
+.ev-row .fold svg { width: 12px; height: 12px; display: block; }
+.ev-row.is-red .fold { color: var(--down); }
+.ev-row.is-orange .fold { color: var(--warn); }
+.ev-row .ev-t {
+    flex: none;
+    width: 42px;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-xs);
+    color: var(--dim);
+}
+.ev-row .ttl {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ev-row .srcs {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--faint);
+    letter-spacing: 0.04em;
+}
+.ev-row.is-verified .srcs { color: var(--up); opacity: 0.8; }
+.ev-cd {
+    flex: none;
+    min-width: 56px;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-2xs);
+    color: var(--accent-hi);
+}
+
+/* week view — tap a day, it expands to its events */
+.wk-list { display: flex; flex-direction: column; margin-top: var(--s2); }
+.wk-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 var(--s2);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--soft);
+    font-size: var(--text-sm);
+    text-align: left;
+}
+.wk-row.is-today { box-shadow: inset 0 0 0 1px var(--line3); }
+.wk-row.is-off .hd,
+.wk-row.is-off .d { opacity: 0.5; }
+.wk-row .chev {
+    flex: none;
+    width: 10px;
+    font-family: var(--font-mono);
+    color: var(--faint);
+    transform: rotate(90deg);
+    transition: transform var(--t-fast);
+}
+.wk-row.is-open .chev { transform: rotate(90deg) scaleY(-1); }
+.wk-row .d {
+    flex: none;
+    width: 66px;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-xs);
+    color: var(--dim);
+    text-transform: uppercase;
+}
+.wk-row .cnt { flex: none; display: flex; gap: 5px; }
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 18px;
+    padding: 0 7px;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px var(--line2);
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-3xs);
+    color: var(--dim);
+}
+.badge.red { color: var(--down); }
+.badge.orange { color: var(--warn); }
+.wk-row .hd {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-xs);
+    color: var(--faint);
+}
+.wk-detail {
+    margin: 2px 0 var(--s2) 26px;
+    padding-left: var(--s3);
+    box-shadow: inset 2px 0 0 var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    animation: pop-in var(--t-med) both;
+}
+.ev-row.is-flat {
+    min-height: 32px;
+    pointer-events: none;
+}
+
+/* empty cockpit */
+.cockpit-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: var(--s3);
+    padding-bottom: 18vh;
+}
+.cockpit-empty .glyph {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xl);
+    color: var(--line3);
+    user-select: none;
+}
+.cockpit-empty h2 {
+    margin: 0;
+    font-size: var(--text-lg);
+    font-weight: 650;
+    letter-spacing: var(--track-tight);
+}
+body[data-view="empty"] .only-full { display: none; }
+body[data-view="day"]  .only-empty { display: none; }
+
+/* ---- demo rail (mock chrome, bottom of page) ----
+   scenario presets freeze virtual time (?at=) so every market
+   situation is a shareable, screenshot-able mockup. */
+.devrail {
+    width: min(100%, var(--shell-w));
+    margin: 0 auto calc(env(safe-area-inset-bottom, 0px) + 72px);
+    padding-inline: var(--s4);
+    color: var(--faint);
+}
+.devrail summary {
+    cursor: pointer;
+    font-size: var(--text-3xs);
+    font-weight: 600;
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+    user-select: none;
+    padding: var(--s2) 0;
+}
+.devrail .row { flex-wrap: wrap; gap: var(--s3) var(--s4); padding: var(--s2) 0; }
+
+/* virtual-time chip — frozen mockups must announce themselves */
+.sim-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: var(--text-3xs);
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+    color: var(--warn);
+}
+.sim-chip::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--warn);
+}
+
+/* motion is a garnish, never information */
+@media (prefers-reduced-motion: reduce) {
+    .pulse,
+    .sess .live-dot,
+    .pin.is-soon { animation: none; }
+    .live-tick .band .nowmark { transition: none; }
+}
+
+/* narrow phones: clock scales down, brand row wraps gracefully */
+@media (max-width: 359px) {
+    .clock-hkt { font-size: 36px; }
+}
+
+/* ≤420px: the rail state line may wrap onto two lines — an honest
+   wrap beats an ellipsis on a countdown (data never truncates to a
+   lie); at this width the longest state ("live · 1h 24m left") cannot
+   fit one line of a 3-up track. */
+@media (max-width: 420px) {
+    .sess-state { white-space: normal; }
+    .sess { padding-inline: var(--s2); }
+}

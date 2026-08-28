@@ -1,0 +1,1396 @@
+<!doctype html>
+<!-- S02-composer · rev R1 · session C09 · capture-first composer, rebuilt
+     from scratch (C07/C08 output voided by owner). Builds ONLY on frozen
+     S00 tokens/base + S01 frame primitives.
+     Layout note: composer docks at the TOP of the working area (between
+     calendar strip and stream); ambient clocks sit below the stream on
+     this screen so capture stays above the iOS keyboard fold.
+     deep links: ?mode=thought|quote|trade · ?more=1 (trade row 2 open)
+                 ?err=1 (invalid geometry preset) · ?shots=1 (demo rail)
+                 ?diff=1 (ai diff over demo shot) · ?pub=thought|quote|trade
+                 ?at=<hkt wall time> (virtual time, S01 doctrine)
+     S09 states: ?err=ai (ai read fails once, retry succeeds) ·
+                 ?err=upload (attach fails, kept locally + retry) ·
+                 ?dt=1.2 (dynamic type 120%) -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="1edge">
+<meta name="theme-color" content="#0b0d12">
+<link rel="icon" href="data:,">
+<title>1edge — compose</title>
+<link rel="stylesheet" href="/st/css/tokens?v=c9">
+<link rel="stylesheet" href="/st/css/tokens-light?v=c9" id="ls-auto" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="/st/css/tokens-light?v=c9" id="ls-force" disabled>
+<script src="/st/js/theme?v=c9"></script>
+<link rel="stylesheet" href="/st/css/base?v=c16">
+<link rel="stylesheet" href="/st/css/frame?v=c16">
+<link rel="stylesheet" href="/st/css/composer?v=c9">
+<script type="module" src="/st/js/feedback?v=c9"></script>
+<style>
+  .strip { -webkit-touch-callout: none; }
+  .day-cell { user-select: none; -webkit-user-select: none; }
+  .strip.no-snap { scroll-snap-type: none; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar glass is-live" id="topbar">
+    <div class="shell-fit topbar-inner">
+      <div class="topbar-row">
+        <div class="row" style="gap:10px;">
+          <span class="pulse" aria-hidden="true"></span>
+          <span class="brand">1edge<b>.</b></span>
+          <span class="capsule mkt is-open" id="mkt"><span class="dot"></span><span id="mkt-label">cme</span>&nbsp;<span id="mkt-cd" style="color:var(--dim);"></span></span>
+          <span class="sim-chip" id="sim-chip" hidden>mock time</span>
+        </div>
+        <span class="num" style="font-size:var(--text-xs); color:var(--dim);" id="today-date">—</span>
+      </div>
+      <div class="band-wrap">
+        <div class="band" id="band"><div class="nowmark" id="nowmark"></div></div>
+        <div class="band-ruler" id="ruler" aria-hidden="true"></div>
+        <p class="band-caption" id="band-cap" hidden></p>
+      </div>
+    </div>
+    <nav class="rail" id="rail" aria-label="trading sessions">
+      <div class="sess" id="sess-tok">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.6 1h.8l3 10.2H7.3l-.7-2.4H5.4l-.7 2.4H2.6Zm.4 3.4-.5 2.6h1Z"/></svg>
+          <span class="sess-code">tok</span>
+        </span>
+        <span class="sess-state" id="st-tok">—</span>
+        <span class="sess-win" id="sw-tok">—</span>
+      </div>
+      <div class="sess" id="sess-lon">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M6 .4 7.7 3.1v8.1H4.3V3.1ZM6 4.9a1.2 1.2 0 1 0 .01 2.41A1.2 1.2 0 0 0 6 4.9Z"/></svg>
+          <span class="sess-code">lon</span>
+        </span>
+        <span class="sess-state" id="st-lon">—</span>
+        <span class="sess-win" id="sw-lon">—</span>
+      </div>
+      <div class="sess" id="sess-nyc">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M5.7.8h.6l.2 1.7h.7v1.6h.7v1.9h.8v5.2H7.4V8h-.9v3.2H5.4V8h-.9v3.2H3.3V6h.8V4.1h.7V2.5h.7Z"/></svg>
+          <span class="sess-code">nyc</span>
+        </span>
+        <span class="sess-state" id="st-nyc">—</span>
+        <span class="sess-win" id="sw-nyc">—</span>
+      </div>
+    </nav>
+  </header>
+
+  <div class="strip-shell">
+    <nav class="strip" id="strip" aria-label="calendar strip"></nav>
+  </div>
+
+  <main class="content">
+
+    <!-- ============ docked composer (the hero) ============ -->
+    <section class="panel comp" id="composer" aria-label="capture">
+      <form id="comp-form" action="#" method="post" novalidate>
+
+        <div class="comp-mode" data-mode="thought">
+          <textarea id="f-thought" name="thought" class="comp-ta" rows="1"
+            placeholder="a thought — just start typing" enterkeyhint="send"
+            aria-label="thought"></textarea>
+        </div>
+
+        <div class="comp-mode" data-mode="quote" hidden>
+          <textarea id="f-quote" name="quote_text" class="comp-ta comp-ta-quote" rows="1"
+            placeholder="the line worth keeping" enterkeyhint="send"
+            aria-label="quote"></textarea>
+          <div class="comp-author">
+            <span aria-hidden="true">—</span>
+            <input id="f-author" name="quote_author" class="comp-author-in" type="text"
+              placeholder="author" autocomplete="off" aria-label="author">
+          </div>
+        </div>
+
+        <div class="comp-mode" data-mode="trade" hidden>
+          <input type="hidden" name="trade_direction" id="dir-input" value="long">
+          <div class="trade-r1">
+            <div class="t-fields">
+              <div class="seg seg-dir" id="dir-seg" role="group" aria-label="direction">
+                <button type="button" data-dir="long" aria-pressed="true">long</button><button type="button" data-dir="short" aria-pressed="false">short</button>
+              </div>
+              <label class="t-field">
+                <span class="label">market</span>
+                <select id="f-market" name="trade_market" class="fld t-market">
+                  <option value="mnq" selected>mnq</option><option value="nq">nq</option>
+                  <option value="mes">mes</option><option value="es">es</option>
+                </select>
+              </label>
+              <label class="t-field">
+                <span class="label">entry</span>
+                <input id="f-entry" name="trade_entry" class="fld t-entry" type="text" inputmode="decimal"
+                  placeholder="0.00" autocomplete="off" enterkeyhint="next" aria-label="entry price">
+              </label>
+              <label class="t-field">
+                <span class="label">stop</span>
+                <input id="f-stop" name="trade_stop" class="fld t-stop" type="text" inputmode="decimal"
+                  placeholder="0.00" autocomplete="off" enterkeyhint="next" aria-label="stop price">
+              </label>
+            </div>
+            <div class="r-box" id="r-box" aria-live="polite">
+              <span class="r-val num" id="r-val">—</span>
+              <span class="r-sub" id="r-sub">no risk yet</span>
+            </div>
+          </div>
+          <p class="t-hint" id="t-hint" role="status" hidden></p>
+
+          <button type="button" class="more-btn" id="more-btn" aria-expanded="false" aria-controls="trade-more">
+            <span class="chev" aria-hidden="true">›</span><span class="more-lab">&nbsp;more fields</span>
+          </button>
+          <div class="trade-more" id="trade-more" hidden>
+            <div class="t-grid">
+              <label class="t-field">
+                <span class="label">target</span>
+                <input id="f-target" name="trade_target" class="fld t-target" type="text" inputmode="decimal"
+                  placeholder="planned" autocomplete="off" aria-label="target price">
+              </label>
+              <label class="t-field">
+                <span class="label">exit</span>
+                <input id="f-exit" name="trade_exit" class="fld t-exit" type="text" inputmode="decimal"
+                  placeholder="filled" autocomplete="off" aria-label="exit price">
+              </label>
+              <label class="t-field">
+                <span class="label">size</span>
+                <input id="f-size" name="trade_size" class="fld t-size" type="text" inputmode="decimal"
+                  value="1" autocomplete="off" aria-label="size">
+              </label>
+              <div class="t-field">
+                <span class="label" id="acc-label">accounts</span>
+                <div class="chips" id="acc-chips" role="group" aria-labelledby="acc-label">
+                  <button type="button" class="chip" data-v="eval-a" aria-pressed="false">eval-a</button><button type="button" class="chip" data-v="eval-b" aria-pressed="false">eval-b</button><button type="button" class="chip" data-v="funded-1" aria-pressed="false">funded-1</button>
+                </div>
+              </div>
+              <input type="hidden" name="trade_accounts" id="acc-input">
+              <div class="t-field">
+                <span class="label" id="setup-label">setup</span>
+                <div class="chips" id="setup-chips" role="group" aria-labelledby="setup-label">
+                  <button type="button" class="chip" data-v="osb" aria-pressed="false">osb</button><button type="button" class="chip" data-v="fvg" aria-pressed="false">fvg</button><button type="button" class="chip" data-v="sweep" aria-pressed="false">sweep</button><button type="button" class="chip" data-v="breakout" aria-pressed="false">breakout</button><button type="button" class="chip" data-v="trend" aria-pressed="false">trend</button>
+                </div>
+              </div>
+              <input type="hidden" name="trade_setup" id="setup-input">
+              <div class="t-field t-span">
+                <span class="label" id="model-label">model</span>
+                <div class="chips" id="model-chips" role="group" aria-labelledby="model-label">
+                  <button type="button" class="chip" data-v="open-drive" aria-pressed="false">open-drive</button><button type="button" class="chip" data-v="liq-sweep" aria-pressed="false">liq-sweep</button><button type="button" class="chip" data-v="mean-revert" aria-pressed="false">mean-revert</button>
+                </div>
+              </div>
+              <input type="hidden" name="trade_models" id="model-input">
+              <div class="t-field">
+                <span class="label" id="conf-label">confidence</span>
+                <div class="dots" id="conf-dots" role="group" aria-labelledby="conf-label">
+                  <button type="button" class="dot-b" data-n="1" aria-pressed="false" aria-label="confidence 1"><i></i></button><button type="button" class="dot-b" data-n="2" aria-pressed="false" aria-label="confidence 2"><i></i></button><button type="button" class="dot-b" data-n="3" aria-pressed="false" aria-label="confidence 3"><i></i></button><button type="button" class="dot-b" data-n="4" aria-pressed="false" aria-label="confidence 4"><i></i></button><button type="button" class="dot-b" data-n="5" aria-pressed="false" aria-label="confidence 5"><i></i></button>
+                </div>
+              </div>
+              <input type="hidden" name="trade_confidence" id="conf-input" value="0">
+              <label class="t-field t-span">
+                <span class="label">note</span>
+                <textarea id="f-note" name="trade_note" class="t-note" rows="1"
+                  placeholder="why this trade" aria-label="trade note"></textarea>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="shots" id="shots" hidden>
+          <div class="shots-head">
+            <span class="label" id="shots-label">screenshots</span>
+            <button type="button" class="btn btn-ghost" id="ai-btn" hidden>
+              <svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M7 1.5 8.3 5.7 12.5 7 8.3 8.3 7 12.5 5.7 8.3 1.5 7 5.7 5.7Z"/></svg>
+              structure with ai
+            </button>
+          </div>
+          <div class="shots-row" id="shots-row" role="list" aria-labelledby="shots-label"></div>
+        </div>
+
+        <div class="comp-bar">
+          <div class="seg" id="mode-seg" role="group" aria-label="capture mode">
+            <button type="button" data-m="thought" aria-pressed="true">thought</button><button type="button" data-m="quote" aria-pressed="false">quote</button><button type="button" data-m="trade" aria-pressed="false">trade</button>
+          </div>
+          <div class="comp-bar-right">
+            <button type="button" class="icon-btn" id="attach-btn" aria-label="attach screenshots">
+              <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><path d="M8.5 3.2 4 7.7a2.7 2.7 0 0 0 3.8 3.8l5-5a4 4 0 0 0-5.6-5.6L2.5 5.6a5.3 5.3 0 0 0 7.5 7.5l3.6-3.6"/></svg>
+              <span class="capsule num" id="shot-count" hidden>0</span>
+            </button>
+            <kbd class="kbd" id="kbd-enter" aria-hidden="true">⏎</kbd>
+            <button type="submit" class="btn btn-primary" id="publish-btn">capture</button>
+          </div>
+        </div>
+
+        <input type="file" id="file-in" accept="image/*" multiple hidden>
+      </form>
+    </section>
+
+    <!-- ============ optimistic stream (s03 owns the full rail) ============ -->
+    <section class="stream-sec" aria-label="stream">
+      <div class="spread" style="margin: var(--s4) 0;">
+        <span class="sec-title" style="margin:0;">stream</span>
+        <span class="capsule num" id="stream-count">0 today</span>
+      </div>
+      <div id="stream" aria-live="polite">
+        <p class="empty" id="stream-empty">nothing captured yet — the first line lands here.</p>
+      </div>
+      <p class="empty" style="margin-top: var(--s3);">where this grows up into the full rail is s03.</p>
+    </section>
+
+    <!-- ============ ambient clocks (demoted below capture on this screen) ============ -->
+    <section class="clock-block shell-fit" aria-label="clocks">
+      <div class="clock-grid clock-pad">
+        <div>
+          <p class="label" id="focus-line">—</p>
+          <div class="clock-hkt"><span id="clk-hkt">--:--</span><span class="secs" id="clk-hkt-s">--</span></div>
+          <p class="clock-zone">hong kong</p>
+        </div>
+        <div>
+          <div class="clock-sub"><span id="clk-ct">--:--</span><span class="clock-zone" style="margin-top:0;">chicago</span></div>
+          <p class="next-change" id="next-change">—</p>
+          <div class="day-prog" aria-hidden="true">
+            <div class="bar"><div class="fill" id="prog-fill" style="width:0%"></div></div>
+            <p id="prog-cap">—</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <details class="devrail">
+    <summary>s02 · composer states</summary>
+    <div class="row">
+      <span class="label">compose</span>
+      <div class="seg" id="compose-seg" role="group" aria-label="compose mode presets">
+        <button data-m="thought">thought</button><button data-m="quote">quote</button><button data-m="trade">trade</button><button data-m="trade-more">trade + row 2</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">states</span>
+      <div class="seg" id="state-seg" role="group" aria-label="state presets">
+        <button data-act="bad-stop">bad stop</button><button data-act="paste-demo">paste demo</button><button data-act="ai-demo">ai diff</button><button data-act="undo-demo">undo toast</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">theme</span>
+      <div class="seg" id="theme-seg" role="group" aria-label="theme">
+        <button data-t="auto" aria-pressed="true">auto</button><button data-t="light" aria-pressed="false">light</button><button data-t="dark" aria-pressed="false">dark</button>
+      </div>
+    </div>
+    <p class="empty" style="padding: var(--s2) 0;">mock-only chrome — never ships.</p>
+  </details>
+
+</div>
+
+<!-- undo toast: replaces confirm dialogs -->
+<div class="toast glass" id="toast" role="status" hidden>
+  <span class="toast-msg" id="toast-msg">captured</span>
+  <button class="toast-undo" id="toast-undo">undo</button>
+  <i class="toast-drain" id="toast-drain" aria-hidden="true"></i>
+</div>
+
+<!-- ai structured-trade diff (opaque overlay per locked rule) -->
+<dialog class="sheet diff" id="diff-dlg" aria-label="structured from screenshot">
+  <p class="label">structure with ai · mock read</p>
+  <p class="empty" style="margin-top:4px;">fields read off the screenshot vs the form.</p>
+  <div class="diff-rows" id="diff-rows"></div>
+  <div class="diff-foot">
+    <button class="btn btn-ghost" id="diff-dismiss">dismiss</button>
+    <button class="btn btn-primary" id="diff-apply">apply all</button>
+  </div>
+</dialog>
+
+<button class="fab-k" id="fab-k" aria-label="capture a thought" hidden>n</button>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const qs = new URLSearchParams(location.search);
+  const MONTHS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  const DOWS = ["sun","mon","tue","wed","thu","fri","sat"];
+  const pad = (n) => String(n).padStart(2, "0");
+  const CT = "America/Chicago";
+  const esc = (s) => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const DOW_IDX = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+
+  /* ================================================================
+     TIME ENGINE (trimmed S01 canon) — ?at=<hkt wall> freezes every
+     readout incl. publish timestamps, so frozen mockups stay honest.
+     ================================================================ */
+  const AT_MS = (() => {
+    const raw = qs.get("at");
+    if (!raw) return null;
+    const ms = Date.parse(`${raw.length === 13 ? raw + ":00" : raw}+08:00`);
+    return Number.isFinite(ms) ? ms : null;
+  })();
+  const LIVE = AT_MS === null;
+  const nowMs = () => LIVE ? Date.now() : AT_MS;
+
+  /* S09 a11y demo: dynamic type — rem type scale survives the bump */
+  (() => {
+    const dt = parseFloat(qs.get("dt"));
+    if (Number.isFinite(dt) && dt >= 0.8 && dt <= 2) document.documentElement.style.fontSize = (dt * 100) + "%";
+  })();
+
+  function tzParts(tz, ms) {
+    const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23",
+      weekday: "short", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(ms));
+    const o = {}; for (const x of p) o[x.type] = x.value; return o;
+  }
+  const isoOfParts = (o) => `${o.year}-${o.month}-${o.day}`;
+  const hktIsoAt = (ms) => isoOfParts(tzParts("Asia/Hong_Kong", ms));
+  function tzOffMin(tz, ms) {
+    const o = tzParts(tz, ms);
+    const asUTC = Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour, +o.minute);
+    return Math.round((asUTC - ms) / 60000);
+  }
+  function wallUTC(tz, iso, hh, mm) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const guess = Date.UTC(y, m - 1, d, hh, mm);
+    return guess - tzOffMin(tz, new Date(guess)) * 60000;
+  }
+  const addIso = (iso, n) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d + n));
+    return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+  };
+  const dowOfIso = (iso) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  };
+  const dateOfIso = (iso) => new Date(`${iso}T12:00:00Z`);
+  const fmtDay = (d) => `${pad(d.getDate())}-${MONTHS[d.getMonth()]}-${d.getFullYear()}`;
+  const hkHM = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Hong_Kong", hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const hkHHMM = (ms) => hkHM.format(new Date(ms));
+  /* countdown grammar: "3h 24m" ≥1h · "45m" under · "<1m" floor */
+  const fmtDur = (ms) => {
+    let s = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return m >= 1 ? `${m}m` : "<1m";
+  };
+
+  /* ---- cme master clock (faithful mock of src/lib/market.ts) ---- */
+  const addD = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const isoD = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const nthWd = (y, m, wd, n) => {
+    const f = new Date(y, m, 1), diff = (wd - f.getDay() + 7) % 7;
+    return addD(f, diff + (n - 1) * 7);
+  };
+  const lastWd = (y, m, wd) => {
+    const l = new Date(y, m + 1, 0);
+    return addD(l, -((l.getDay() - wd + 7) % 7));
+  };
+  const observed = (d) => d.getDay() === 6 ? addD(d, -1) : d.getDay() === 0 ? addD(d, 1) : d;
+  function easter(y) {
+    const a = y % 19, b = Math.floor(y / 100), c = y % 100, d2 = Math.floor(b / 4), e2 = b % 4,
+      f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d2 - g + 15) % 30,
+      i2 = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e2 + 2 * i2 - h - k) % 7,
+      mm = Math.floor((a + 11 * h + 22 * l) / 451),
+      month = Math.floor((h + l - 7 * mm + 114) / 31),
+      day = ((h + l - 7 * mm + 114) % 31) + 1;
+    return new Date(y, month - 1, day);
+  }
+  const MEM = new Map();
+  const once = (key, fn) => { if (!MEM.has(key)) MEM.set(key, fn()); return MEM.get(key); };
+  const cmeHolidays = (y) => once(`ch${y}`, () => [
+    observed(new Date(y, 0, 1)), addD(easter(y), -2), observed(new Date(y, 5, 19)),
+    observed(new Date(y, 6, 4)), nthWd(y, 10, 4, 4), observed(new Date(y, 11, 25)),
+  ].map(isoD));
+  const nyseHolidays = (y) => once(`nh${y}`, () => [
+    observed(new Date(y, 0, 1)), nthWd(y, 0, 1, 3), nthWd(y, 1, 1, 3), addD(easter(y), -2),
+    lastWd(y, 4, 1), observed(new Date(y, 5, 19)), observed(new Date(y, 6, 4)),
+    nthWd(y, 8, 1, 1), nthWd(y, 10, 4, 4), observed(new Date(y, 11, 25)),
+  ].map(isoD));
+  const japanHolidays = (y) => once(`jh${y}`, () => {
+    const eq = (c) => Math.floor(c + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
+    const base = [
+      new Date(y, 0, 1), new Date(y, 0, 2), nthWd(y, 0, 1, 2), new Date(y, 1, 11), new Date(y, 1, 23),
+      new Date(y, 2, eq(20.8431)), new Date(y, 3, 29), new Date(y, 4, 3), new Date(y, 4, 4), new Date(y, 4, 5),
+      nthWd(y, 6, 1, 3), new Date(y, 7, 11), nthWd(y, 8, 1, 3), new Date(y, 8, eq(23.2488)),
+      nthWd(y, 9, 1, 2), new Date(y, 10, 3), new Date(y, 10, 23),
+    ];
+    const set = new Set(base.map(isoD));
+    for (const d of base) if (d.getDay() === 0) {
+      let sub = addD(d, 1);
+      while (set.has(isoD(sub)) || sub.getDay() === 0 || sub.getDay() === 6) sub = addD(sub, 1);
+      set.add(isoD(sub));
+    }
+    return [...set];
+  });
+  const ukHolidays = (y) => once(`uh${y}`, () => {
+    const shift = (d) => (d.getDay() === 0 || d.getDay() === 6 ? addD(d, 2) : d);
+    const ny = new Date(y, 0, 1);
+    return [...new Set([
+      ny.getDay() === 6 ? addD(ny, 2) : ny.getDay() === 0 ? addD(ny, 1) : ny,
+      addD(easter(y), -2), addD(easter(y), 1),
+      nthWd(y, 4, 1, 1), lastWd(y, 4, 1), lastWd(y, 7, 1),
+      shift(new Date(y, 11, 25)), shift(new Date(y, 11, 26)),
+    ].map(isoD))];
+  });
+  const isTradingDay = (iso, hol) => dowOfIso(iso) !== 0 && dowOfIso(iso) !== 6 && !hol.has(iso);
+  const cmeStatus = (iso) => {
+    const wd = dowOfIso(iso);
+    if (wd === 0 || wd === 6) return { kind: "closed", reason: "weekend" };
+    const y = +iso.slice(0, 4);
+    if (cmeHolidays(y).includes(iso) || cmeHolidays(y + 1).includes(iso) || cmeHolidays(y - 1).includes(iso))
+      return { kind: "closed", reason: "holiday" };
+    for (const e of once(`eh${y}`, () => [
+      { iso: isoD(nthWd(y, 0, 1, 3)), hh: 12, mm: 0 }, { iso: isoD(nthWd(y, 1, 1, 3)), hh: 12, mm: 0 },
+      { iso: isoD(lastWd(y, 4, 1)), hh: 12, mm: 0 },
+    ])) if (e.iso === iso && dowOfIso(e.iso) !== 0 && dowOfIso(e.iso) !== 6) return { kind: "early-halt", hh: e.hh, mm: e.mm };
+    for (const e of once(`ec${y}`, () => {
+      const jul4 = new Date(y, 6, 4);
+      return [
+        { iso: isoD(addD(nthWd(y, 10, 4, 4), 1)), hh: 13, mm: 15 },
+        { iso: `${y}-12-24`, hh: 13, mm: 15 }, { iso: `${y}-12-31`, hh: 13, mm: 15 },
+        ...(jul4.getDay() === 6 ? [{ iso: isoD(addD(jul4, -2)), hh: 12, mm: 0 }] : []),
+      ];
+    })) if (e.iso === iso && dowOfIso(e.iso) !== 0 && dowOfIso(e.iso) !== 6) return { kind: "early", hh: e.hh, mm: e.mm };
+    return { kind: "open" };
+  };
+
+  const rank = { open: 0, halt: 1, close: 2 };
+  const boundsCache = new Map();
+  function boundsAround(centerIso) {
+    if (!boundsCache.has(centerIso)) {
+      const out = [];
+      for (let i = -4; i <= 11; i++) {
+        const D = addIso(centerIso, i), st = cmeStatus(D);
+        if (st.kind === "closed") continue;
+        out.push({ ms: wallUTC(CT, addIso(D, -1), 17, 0), t: "open", iso: D });
+        if (st.kind === "early") out.push({ ms: wallUTC(CT, D, st.hh, st.mm), t: "close", iso: D });
+        else if (cmeStatus(addIso(D, 1)).kind === "closed") out.push({ ms: wallUTC(CT, D, 16, 0), t: "close", iso: D });
+        else {
+          if (st.kind === "early-halt") out.push({ ms: wallUTC(CT, D, st.hh, st.mm), t: "halt", iso: D });
+          out.push({ ms: wallUTC(CT, D, 16, 0), t: "halt", iso: D });
+        }
+      }
+      out.sort((a, b) => a.ms - b.ms || rank[a.t] - rank[b.t]);
+      boundsCache.set(centerIso, out);
+    }
+    return boundsCache.get(centerIso);
+  }
+  function windowFor(iso) {
+    const bs = boundsAround(iso);
+    const open = bs.find((b) => b.t === "open" && b.iso === iso);
+    if (!open) return null;
+    const mine = bs.filter((b) => b.iso === iso && b.t !== "open");
+    return { open: open.ms, end: mine.length ? mine[mine.length - 1].ms : open.ms + 1380 * 60000, iso };
+  }
+  function phaseAt(ms) {
+    const bs = boundsAround(hktIsoAt(ms));
+    let cur = null;
+    for (const b of bs) { if (b.ms <= ms) cur = b; else break; }
+    const next = bs.find((b) => b.ms > ms) || null;
+    if (!cur) return { phase: "closed", reason: "weekend", untilMs: next?.ms ?? ms };
+    if (cur.t === "open") return { phase: "open", untilMs: next.ms, iso: cur.iso };
+    if (cur.t === "halt") {
+      const st = cmeStatus(cur.iso);
+      return { phase: "halt", early: st.kind === "early-halt", untilMs: next.ms, iso: cur.iso };
+    }
+    const st = cmeStatus(cur.iso);
+    const reason = st.kind === "early" ? "early close"
+      : dowOfIso(cur.iso) === 5 ? "weekend" : "holiday";
+    return { phase: "closed", reason, untilMs: next?.ms ?? ms };
+  }
+  let selOff = 0;
+  function effIso() {
+    if (selOff !== 0) return atIso(selOff);
+    const ph = phaseAt(nowMs());
+    return ph.iso ?? atIso(0);
+  }
+  function sessSpans(iso) {
+    const st = cmeStatus(iso);
+    if (st.kind === "closed") return null;
+    const win = windowFor(iso);
+    const clampEnd = st.kind === "early" ? wallUTC(CT, iso, st.hh, st.mm) : win.end;
+    const mk = (tz, aH, aM, bH, bM) => {
+      const s = wallUTC(tz, iso, aH, aM), e = wallUTC(tz, iso, bH, bM);
+      if (e <= win.open || s >= clampEnd) return null;
+      return [Math.max(s, win.open), Math.min(e, clampEnd)];
+    };
+    const jp = new Set(japanHolidays(+iso.slice(0, 4)));
+    const uk = new Set(ukHolidays(+iso.slice(0, 4)));
+    const us = new Set(nyseHolidays(+iso.slice(0, 4)));
+    const usEarly = nyseHolidays(+iso.slice(0, 4)).includes(iso) ? null :
+      (st.kind === "early" ? 13 : 16);
+    const tok = [];
+    if (isTradingDay(iso, jp)) {
+      const a = mk("Asia/Tokyo", 9, 0, 11, 30), b = mk("Asia/Tokyo", 12, 30, 15, 30);
+      if (a) tok.push(a); if (b) tok.push(b);
+    }
+    const lon = isTradingDay(iso, uk) ? [mk("Europe/London", 8, 0, 16, 30)].filter(Boolean) : [];
+    const nyc = isTradingDay(iso, us) && usEarly ? [mk("America/New_York", 9, 30, usEarly, 0)].filter(Boolean) : [];
+    return { tok, lon, nyc };
+  }
+
+  /* ================================================================
+     CHROME — strip, band, clocks (trimmed from frozen S01 canon)
+     ================================================================ */
+  const NOW0 = nowMs();
+  const TODAY_ISO = hktIsoAt(NOW0);
+  const TODAY = dateOfIso(TODAY_ISO);
+  const atIso = (off) => addIso(TODAY_ISO, off);
+
+  const STRIP_LO = -14, STRIP_HI = 28;
+  const strip = $("strip");
+  const cells = [];
+  const HOLIDAY_OFF = 3, UNLOGGED = new Set([-5, -8]);
+  const kindOf = (off) => {
+    const d = dateOfIso(atIso(off)), dow = d.getUTCDay();
+    if (off === HOLIDAY_OFF) return "holiday";
+    if (dow === 0 || dow === 6) return "weekend";
+    if (off < 0 && !UNLOGGED.has(off)) return "logged";
+    if (off < 0) return "missed";
+    return off === 0 ? "today" : "future";
+  };
+  for (let off = STRIP_LO; off <= STRIP_HI; off++) {
+    const iso = atIso(off), d = dateOfIso(iso);
+    const prev = off > STRIP_LO ? dateOfIso(atIso(off - 1)) : null;
+    const isMonthStart = !prev || d.getUTCMonth() !== prev.getUTCMonth();
+    const k = kindOf(off);
+    const b = document.createElement("button");
+    b.className = "day-cell" +
+      (k === "weekend" || k === "holiday" ? " is-off" : "") +
+      (k === "logged" ? " is-logged" : "") +
+      (k === "holiday" ? " is-holiday" : "") +
+      (off === 0 ? " is-today" : "") +
+      (isMonthStart ? " is-month" : "");
+    b.dataset.off = off;
+    b.setAttribute("aria-pressed", String(off === 0));
+    if (off === 0) b.setAttribute("aria-current", "date");
+    const dowTxt = off === 0 ? "today" : isMonthStart ? MONTHS[d.getUTCMonth()] : DOWS[d.getUTCDay()];
+    b.innerHTML = `<span class="dow">${dowTxt}</span>` +
+                  `<span class="dom">${pad(d.getUTCDate())}</span><span class="mark"></span>`;
+    strip.appendChild(b); cells.push(b);
+  }
+  const IDX = (off) => off - STRIP_LO;
+
+  const band = $("band"), nowmark = $("nowmark"), ruler = $("ruler"), bandCap = $("band-cap");
+  function buildBand() {
+    band.querySelectorAll(".sp").forEach((n) => n.remove());
+    ruler.innerHTML = "";
+    const iso = effIso();
+    const win = windowFor(iso);
+    const spans = sessSpans(iso);
+    if (!win) {
+      band.classList.add("is-dim");
+      nowmark.style.display = "none";
+      bandCap.hidden = false;
+      bandCap.textContent = `no cme session · ${cmeStatus(iso).reason}`;
+      return;
+    }
+    bandCap.hidden = true;
+    band.classList.remove("is-dim");
+    const pctBase = win.end - win.open;
+    for (const [name, arr] of Object.entries(spans || {})) {
+      for (const [s, e] of arr) {
+        const f = document.createElement("div");
+        f.className = `sp s-${name}`;
+        f.style.left = ((s - win.open) / pctBase * 100).toFixed(3) + "%";
+        f.style.width = ((e - s) / pctBase * 100).toFixed(3) + "%";
+        band.appendChild(f);
+      }
+    }
+    for (let k = 180; k < 1380; k += 180) {
+      const major = k % 360 === 0;
+      const t = document.createElement("i");
+      t.className = "tick" + (major ? " major" : "");
+      t.style.left = (k / 1380 * 100).toFixed(3) + "%";
+      ruler.appendChild(t);
+      if (major) {
+        const lab = document.createElement("span");
+        lab.className = "tlab";
+        lab.style.left = (k / 1380 * 100).toFixed(3) + "%";
+        lab.textContent = hkHHMM(win.open + k * 60000).slice(0, 2);
+        ruler.appendChild(lab);
+      }
+    }
+    band.dataset.open = win.open; band.dataset.end = win.end;
+  }
+
+  const hkFmt = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Hong_Kong", hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const ctFmt = new Intl.DateTimeFormat("en-US", { timeZone: CT, hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const MKT_LABEL = { open: ["cme · open", "is-open"], halt: ["cme · halt", "is-open"], closed: ["cme · closed", ""] };
+  function renderClock() {
+    const now = nowMs();
+    $("clk-hkt").textContent = hkFmt.format(now);
+    $("clk-hkt-s").textContent = LIVE ? pad(new Date(now).getSeconds()) : pad(new Date(now + 8 * 3600e3).getUTCSeconds());
+    $("clk-ct").textContent = ctFmt.format(now);
+
+    const ph = phaseAt(now);
+    $("topbar").classList.toggle("is-live", ph.phase === "open");
+    const [label, cls] = ph.phase === "closed" && ph.reason === "holiday"
+      ? ["cme · holiday", "is-holiday"] : MKT_LABEL[ph.phase];
+    $("mkt-label").textContent = label;
+    $("mkt").className = "capsule mkt " + cls;
+
+    const remainS = Math.max(0, Math.floor((ph.untilMs - now) / 1000));
+    const verb = ph.phase === "open" ? "closes" : ph.phase === "halt" ? "resumes" : "opens";
+    $("mkt-cd").textContent = fmtDur(remainS * 1000);
+    const extra = ph.phase === "closed" ? ` · ${ph.reason}` : "";
+    $("next-change").innerHTML =
+      `${verb} in <b>${fmtDur(remainS * 1000)}</b> · ${hkHHMM(ph.untilMs)} hkt${extra}`;
+
+    const winOpen = +band.dataset.open, winEnd = +band.dataset.end;
+    const inWin = Number.isFinite(winOpen) && now >= winOpen && now < winEnd;
+    const iso = effIso();
+    const st = cmeStatus(iso);
+    band.classList.toggle("is-dim", !inWin);
+    nowmark.style.display = inWin ? "" : "none";
+    if (inWin) nowmark.style.left = `calc(${((now - winOpen) / (winEnd - winOpen) * 100).toFixed(3)}% - 1px)`;
+
+    const spans = sessSpans(iso);
+    const railDefs = [["tok", spans?.tok], ["lon", spans?.lon], ["nyc", spans?.nyc]];
+    for (const [name, arr] of railDefs) {
+      const el = $("sess-" + name), stEl = $("st-" + name), swEl = $("sw-" + name);
+      el.classList.remove("is-live");
+      if (!arr || !arr.length) {
+        stEl.textContent = "closed";
+        swEl.textContent = "no session";
+        continue;
+      }
+      swEl.textContent = `${hkHHMM(arr[0][0])}–${hkHHMM(arr[arr.length - 1][1])} hkt`;
+      const cur = arr.find(([s, e]) => now >= s && now < e);
+      if (cur) {
+        el.classList.add("is-live");
+        stEl.innerHTML = `<span class="live-dot" aria-hidden="true"></span>live · <b>${fmtDur(cur[1] - now)}</b> left`;
+      } else if (name === "tok" && arr.length === 2 && now >= arr[0][1] && now < arr[1][0]) {
+        stEl.innerHTML = `back in <b>${fmtDur(arr[1][0] - now)}</b>`;
+      } else {
+        const nx = arr.find(([s]) => s > now);
+        if (!nx) stEl.textContent = now >= winEnd ? "done" : "closed";
+        else if (now < winOpen) stEl.textContent = "scheduled";
+        else stEl.innerHTML = `opens in <b>${fmtDur(nx[0] - now)}</b>`;
+      }
+    }
+
+    if (Number.isFinite(winOpen) && st.kind !== "closed") {
+      const p = Math.min(100, Math.max(0, (Math.min(now, winEnd) - winOpen) / (winEnd - winOpen) * 100));
+      $("prog-fill").style.width = p.toFixed(1) + "%";
+      $("prog-cap").textContent = inWin
+        ? `cme day ${Math.round(p)}% · ${fmtDur(remainS * 1000)} to ${ph.phase === "open" ? "close" : "resume"}`
+        : `${iso} · session ${Math.round(p)}%`;
+    } else {
+      $("prog-fill").style.width = "0%";
+      $("prog-cap").textContent = `no session · ${st.reason}`;
+    }
+
+    if (!LIVE) {
+      $("sim-chip").hidden = false;
+      const o = tzParts("Asia/Hong_Kong", now);
+      $("today-date").textContent = `${DOWS[DOW_IDX[o.weekday]]} ${o.day} ${MONTHS[+o.month - 1]} · ${o.hour}:${o.minute} hkt · mock`;
+    } else {
+      $("today-date").textContent = fmtDay(TODAY);
+    }
+  }
+
+  function select(off, focusCell) {
+    selOff = off;
+    const d = dateOfIso(atIso(off)), k = kindOf(off);
+    cells.forEach((c) => {
+      const on = +c.dataset.off === off;
+      c.setAttribute("aria-pressed", String(on));
+      c.tabIndex = on ? 0 : -1;
+    });
+    $("focus-line").textContent =
+      `${DOWS[d.getUTCDay()]} ${fmtDay(d)} · ` +
+      ({ logged: "logged", missed: "trading day · no log", today: "today", future: "ahead",
+         weekend: "weekend", holiday: "market holiday" }[k]);
+    buildBand();
+    if (focusCell) focusCell.focus({ preventScroll: true });
+  }
+  strip.addEventListener("click", (e) => {
+    const c = e.target.closest(".day-cell");
+    if (c) select(+c.dataset.off, null);
+  });
+  strip.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const off = Math.max(STRIP_LO, Math.min(STRIP_HI, selOff + (e.key === "ArrowRight" ? 1 : -1)));
+    select(off, cells[IDX(off)]);
+  });
+
+  /* ================================================================
+     COMPOSER ISLAND — capture-first. Publishing is implicit.
+     ================================================================ */
+  const form = $("comp-form");
+  const MARKETS = { mnq: { pv: 2 }, nq: { pv: 20 }, mes: { pv: 5 }, es: { pv: 50 } };
+  const MODES = ["thought", "quote", "trade"];
+  const PRIMARY = { thought: "f-thought", quote: "f-quote", trade: "f-entry" };
+  const COARSE = matchMedia("(pointer: coarse)").matches;
+  let mode = "thought";
+
+  const num = (v) => {
+    v = String(v ?? "").trim().replace(/,/g, "");
+    if (!v) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  const fmtN = (x) => {
+    const a = Math.abs(x);
+    const dec = a >= 100 ? 0 : a >= 10 ? 1 : 2;
+    return x.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: dec });
+  };
+
+  /* ---- mode switching ---- */
+  const modeBlocks = () => form.querySelectorAll(".comp-mode");
+  function setMode(m, opts = {}) {
+    if (!MODES.includes(m)) m = "thought";
+    mode = m;
+    form.dataset.mode = m;
+    if (m === "trade") delete document.body.dataset.writing;   /* form work: chrome returns */
+    for (const b of modeBlocks()) b.hidden = b.dataset.mode !== m;
+    document.querySelectorAll("#mode-seg [data-m]").forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.dataset.m === m)));
+    document.querySelectorAll("#compose-seg [data-m]").forEach((b) =>
+      b.setAttribute("aria-pressed", String((b.dataset.m === "trade-more" ? "trade" : b.dataset.m) === m && (b.dataset.m !== "trade-more" || moreOpen))));
+    syncAiVisibility();
+    recompute();
+    if (opts.focus !== false) {
+      const el = $(PRIMARY[m]);
+      if (el) el.focus({ preventScroll: true });
+    }
+  }
+  $("mode-seg").addEventListener("click", (e) => {
+    const m = e.target.dataset.m;
+    if (m) setMode(m);
+  });
+
+  /* ---- autogrow ---- */
+  function grow(ta) {
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight, parseInt(getComputedStyle(ta).maxHeight, 10) || 440) + "px";
+  }
+  for (const ta of form.querySelectorAll("textarea")) {
+    ta.addEventListener("input", () => grow(ta));
+  }
+
+  /* ---- writing calm: body[data-writing] while a writing surface holds
+     the caret (thought, quote, trade note). Stays calm across intra-form
+     focus hops (author field, capture button) so publishing never flickers
+     the chrome; any focus outside the composer hands the page back. ---- */
+  const WRITERS = ["f-thought", "f-quote", "f-note"];
+  const isWriter = (el) => !!el && WRITERS.includes(el.id);
+  form.addEventListener("focusin", (e) => {
+    if (isWriter(e.target)) document.body.dataset.writing = "1";
+  });
+  form.addEventListener("focusout", (e) => {
+    if (!isWriter(e.target)) return;
+    const to = e.relatedTarget;
+    if (isWriter(to) || (to && form.contains(to))) return;
+    delete document.body.dataset.writing;
+  });
+
+  /* ---- trade state + live R ---- */
+  const E = {
+    dir: "long",
+    market: $("f-market"), entry: $("f-entry"), stop: $("f-stop"),
+    target: $("f-target"), exit: $("f-exit"), size: $("f-size"), note: $("f-note"),
+    rBox: $("r-box"), rVal: $("r-val"), rSub: $("r-sub"), hint: $("t-hint"),
+  };
+  const publishBtn = $("publish-btn");
+
+  function chipGroup(id, inputId, multi) {
+    const box = $(id), input = $(inputId);
+    const vals = () => [...box.querySelectorAll('[aria-pressed="true"]')].map((b) => b.dataset.v);
+    const sync = () => { input.value = multi ? vals().join(",") : (vals()[0] ?? ""); };
+    box.addEventListener("click", (e) => {
+      const b = e.target.closest(".chip");
+      if (!b) return;
+      if (multi) {
+        b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true"));
+      } else {
+        const on = b.getAttribute("aria-pressed") === "true";
+        box.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", "false"));
+        if (!on) b.setAttribute("aria-pressed", "true");   /* second tap clears */
+      }
+      sync();
+    });
+    return {
+      set(arr) {
+        box.querySelectorAll(".chip").forEach((c) =>
+          c.setAttribute("aria-pressed", String(multi ? arr.includes(c.dataset.v) : arr[0] === c.dataset.v)));
+        sync();
+      },
+      get: vals,
+    };
+  }
+  const accs = chipGroup("acc-chips", "acc-input", true);
+  const setup = chipGroup("setup-chips", "setup-input", false);
+  const models = chipGroup("model-chips", "model-input", true);
+
+  const confBox = $("conf-dots"), confInput = $("conf-input");
+  const setConf = (n) => {
+    n = Math.max(0, Math.min(5, n | 0));
+    confInput.value = String(n);
+    confBox.querySelectorAll(".dot-b").forEach((b) =>
+      b.setAttribute("aria-pressed", String(+b.dataset.n <= n && n > 0)));
+  };
+  confBox.addEventListener("click", (e) => {
+    const b = e.target.closest(".dot-b");
+    if (!b) return;
+    const n = +b.dataset.n;
+    setConf(+confInput.value === n ? 0 : n);   /* tap active dot clears */
+  });
+
+  $("dir-seg").addEventListener("click", (e) => {
+    const d = e.target.dataset.dir;
+    if (!d) return;
+    setDir(d);
+  });
+  function setDir(d) {
+    E.dir = d;
+    $("dir-input").value = d;
+    document.querySelectorAll("#dir-seg [data-dir]").forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.dataset.dir === d)));
+    recompute();
+  }
+
+  function setHint(msg, fields) {
+    if (msg) {
+      E.hint.textContent = msg;
+      E.hint.hidden = false;
+    } else {
+      E.hint.hidden = true;
+    }
+    for (const el of [E.entry, E.stop]) el.classList.remove("is-err");
+    for (const el of fields || []) el.classList.add("is-err");
+  }
+
+  /* THE single risk rule: risk = riskPoints || |entry − stop|.
+     R = points / risk, points signed by direction. */
+  function recompute() {
+    if (mode !== "trade") { publishBtn.disabled = false; return; }
+    const e = num(E.entry.value), s = num(E.stop.value);
+    const t = num(E.target.value), x = num(E.exit.value);
+    const size = num(E.size.value) ?? 1;
+    const pv = MARKETS[E.market.value]?.pv ?? 2;
+
+    E.rBox.classList.remove("is-err");
+    E.rVal.classList.remove("is-pos", "is-neg");
+
+    let err = null, errFields = [];
+    if (e != null && s != null) {
+      if (s === e) { err = "stop equals entry — give the trade room"; errFields = [E.entry, E.stop]; }
+      else if (E.dir === "long" && s > e) { err = "long stop sits above entry"; errFields = [E.stop]; }
+      else if (E.dir === "short" && s < e) { err = "short stop sits below entry"; errFields = [E.stop]; }
+    }
+    setHint(err, errFields);
+    E.rBox.classList.toggle("is-err", !!err);
+
+    const px = x ?? t;
+    const risk = e != null && s != null ? Math.abs(e - s) : null;
+    const pts = px != null && e != null ? (E.dir === "long" ? px - e : e - px) : null;
+
+    if (err) {
+      E.rVal.textContent = "—";
+      E.rSub.textContent = "fix the stop";
+      publishBtn.disabled = true;
+      return;
+    }
+    publishBtn.disabled = false;
+    if (risk == null) {
+      E.rVal.textContent = "—";
+      E.rSub.textContent = "no risk yet";
+    } else if (pts == null) {
+      E.rVal.textContent = "—";
+      E.rSub.textContent = `risk ${fmtN(risk)} pt`;
+    } else {
+      const R = pts / risk;
+      E.rVal.textContent = `${R >= 0 ? "+" : "−"}${fmtN(Math.abs(R))}r`;
+      E.rVal.classList.add(R >= 0 ? "is-pos" : "is-neg");
+      const dollars = pts * pv * size;
+      E.rSub.textContent = `${x != null ? "exit" : "target"} · ${fmtN(Math.abs(pts))} pt · $${dollars >= 0 ? "" : "−"}${fmtN(Math.abs(dollars))}`;
+    }
+  }
+  for (const el of [E.market, E.entry, E.stop, E.target, E.exit, E.size]) {
+    el.addEventListener("input", recompute);
+  }
+
+  /* ---- progressive disclosure ---- */
+  const moreBtn = $("more-btn"), moreBox = $("trade-more");
+  let moreOpen = false;
+  function setMore(open) {
+    moreOpen = !!open;
+    moreBox.hidden = !moreOpen;
+    moreBtn.setAttribute("aria-expanded", String(moreOpen));
+    moreBtn.querySelector(".more-lab").textContent = moreOpen ? " fewer fields" : " more fields";
+  }
+  moreBtn.addEventListener("click", () => setMore(!moreOpen));
+
+  /* ---- screenshots ---- */
+  const shotsBox = $("shots"), shotsRow = $("shots-row"), shotCount = $("shot-count"), aiBtn = $("ai-btn");
+  let thumbs = [];
+  function renderShots() {
+    shotsRow.innerHTML = "";
+    thumbs.forEach((t, i) => {
+      const d = document.createElement("div");
+      d.className = "thumb";
+      d.setAttribute("role", "listitem");
+      d.style.backgroundImage = `url("${t.url}")`;
+      d.innerHTML = `<button type="button" class="thumb-x" data-i="${i}" aria-label="remove screenshot ${i + 1}">×</button>`;
+      shotsRow.appendChild(d);
+    });
+    shotsBox.hidden = thumbs.length === 0;
+    shotCount.hidden = thumbs.length === 0;
+    shotCount.textContent = String(thumbs.length);
+    syncAiVisibility();
+  }
+  function syncAiVisibility() {
+    aiBtn.hidden = !(thumbs.length > 0 && mode === "trade");
+  }
+  function addFiles(fileList) {
+    for (const f of fileList) {
+      if (!f.type.startsWith("image/") || thumbs.length >= 8) continue;
+      thumbs.push({ url: URL.createObjectURL(f), name: f.name });
+    }
+    renderShots();
+  }
+  shotsRow.addEventListener("click", (e) => {
+    const x = e.target.closest(".thumb-x");
+    if (!x) return;
+    const i = +x.dataset.i;
+    URL.revokeObjectURL(thumbs[i].url);
+    thumbs.splice(i, 1);
+    renderShots();
+  });
+  $("attach-btn").addEventListener("click", () => $("file-in").click());
+  $("file-in").addEventListener("change", (e) => {
+    addFiles(e.target.files);
+    e.target.value = "";
+  });
+  /* paste anywhere — only hijacks the clipboard when it carries an IMAGE
+     and no text (typing/pasting text into fields is never disturbed) */
+  document.addEventListener("paste", (e) => {
+    const items = [...(e.clipboardData?.items || [])];
+    if (!items.length || items.some((i) => i.kind === "string")) return;
+    const files = items.filter((i) => i.type.startsWith("image/")).map((i) => i.getAsFile()).filter(Boolean);
+    if (!files.length) return;
+    e.preventDefault();
+    addFiles(files);
+    toastMsg(`screenshot${files.length > 1 ? "s" : ""} attached`);
+  });
+
+  /* demo thumbnails: tiny inline chart sketches (data URIs, zero assets) */
+  const DEMO_SHOTS = [
+    "data:image/svg+xml," + encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'><rect width='56' height='56' fill='#10131a'/><path d='M4 44 14 34 22 38 34 20 42 26 52 10' fill='none' stroke='#4cb782' stroke-width='2'/><rect x='40' y='6' width='12' height='7' fill='#1d2230'/></svg>`),
+    "data:image/svg+xml," + encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'><rect width='56' height='56' fill='#10131a'/><path d='M4 14 16 26 24 20 36 40 46 32 52 46' fill='none' stroke='#e5484d' stroke-width='2'/><rect x='4' y='6' width='12' height='7' fill='#1d2230'/></svg>`),
+  ];
+  function seedDemoShots() {
+    thumbs.push({ url: DEMO_SHOTS[0], name: "demo-1.svg" }, { url: DEMO_SHOTS[1], name: "demo-2.svg" });
+    renderShots();
+  }
+
+  /* ---- ai structured-trade diff (mock read) ---- */
+  const DIFF_FIELDS = [
+    ["market", "market"], ["direction", "direction"], ["entry", "entry"],
+    ["stop", "stop"], ["target", "target"], ["size", "size"],
+  ];
+  const DETECTED = { market: "mnq", direction: "long", entry: "23452.25", stop: "23418.75", target: "23536.00", size: "2" };
+  const diffDlg = $("diff-dlg"), diffRows = $("diff-rows");
+  const currentOf = (k) =>
+    ({ market: E.market.value, direction: E.dir, entry: E.entry.value, stop: E.stop.value,
+       target: E.target.value, size: E.size.value })[k];
+  function applyField(k, v) {
+    let el = null;
+    if (k === "market") { E.market.value = v; el = E.market; }
+    else if (k === "direction") { setDir(v); el = document.querySelector("#dir-seg [data-dir='" + v + "']"); }
+    else if (k === "entry") { E.entry.value = v; el = E.entry; }
+    else if (k === "stop") { E.stop.value = v; el = E.stop; }
+    else if (k === "target") { E.target.value = v; el = E.target; }
+    else if (k === "size") { E.size.value = v; el = E.size; }
+    if (el) {
+      el.classList.remove("flash");
+      void el.offsetWidth;
+      el.classList.add("flash");
+      setTimeout(() => el.classList.remove("flash"), 900);
+    }
+  }
+  function openDiff(instant) {
+    diffRows.innerHTML = DIFF_FIELDS.map(([k, label]) => `
+      <div class="diff-row" data-k="${k}">
+        <span class="label">${label}</span>
+        <span class="cur">${esc(currentOf(k) || "—")}</span>
+        <span class="arr" aria-hidden="true">→</span>
+        <span class="det">${esc(DETECTED[k])}</span>
+        <button type="button" class="icon-btn diff-one" data-k="${k}" aria-label="apply ${label}">
+          <svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7.5 5.5 11 12 3.5"/></svg>
+        </button>
+      </div>`).join("");
+    if (instant) diffDlg.showModal();
+    else {
+      aiBtn.disabled = true;
+      aiBtn.querySelector("svg").classList.add("spin");
+      setTimeout(() => {
+        aiBtn.disabled = false;
+        aiBtn.querySelector("svg").classList.remove("spin");
+        if (aiFailArmed) {
+          aiFailArmed = false;
+          const host = shotsNote(AI_FAIL_NOTE);
+          host.querySelector("#ai-retry").addEventListener("click", () => {
+            host.remove();
+            openDiff(false);
+          });
+          return;
+        }
+        diffDlg.showModal();
+      }, 900);
+    }
+  }
+  aiBtn.addEventListener("click", () => openDiff(false));
+  /* S09 error states — ai read fails / upload fails: inline, calm,
+     one line + action, recovery always one tap away */
+  let aiFailArmed = qs.get("err") === "ai";
+  function shotsNote(inner) {
+    document.getElementById("shots-note")?.remove();
+    const host = document.createElement("div");
+    host.id = "shots-note";
+    host.innerHTML = inner;
+    $("shots").appendChild(host);
+    return host;
+  }
+  const AI_FAIL_NOTE = `<p class="note note-err" role="alert">ai read failed — retry, or fill the fields by hand.<button type="button" class="note-act" id="ai-retry">retry</button></p>`;
+  const UP_FAIL_NOTE = `<p class="note note-warn" role="alert">upload failed — kept locally, retry when back online.<button type="button" class="note-act" id="up-retry">retry</button></p>`;
+  diffRows.addEventListener("click", (e) => {
+    const b = e.target.closest(".diff-one");
+    if (!b) return;
+    applyField(b.dataset.k, DETECTED[b.dataset.k]);
+    recompute();
+    b.closest(".diff-row").remove();
+    if (!diffRows.children.length) diffDlg.close();
+  });
+  $("diff-apply").addEventListener("click", () => {
+    for (const [k] of DIFF_FIELDS) applyField(k, DETECTED[k]);
+    recompute();
+    diffDlg.close();
+  });
+  $("diff-dismiss").addEventListener("click", () => diffDlg.close());
+  diffDlg.addEventListener("click", (e) => { if (e.target === diffDlg) diffDlg.close(); });
+
+  /* ---- undo toast (replaces confirm dialogs) ---- */
+  const toastEl = $("toast"), toastMsgEl = $("toast-msg"), toastUndo = $("toast-undo"), drainEl = $("toast-drain");
+  let toastTimer = null, toastPayload = null;
+  function toastMsg(text) {
+    toastMsgEl.textContent = text;
+    toastUndo.hidden = true;
+    armToast();
+  }
+  function armToast() {
+    toastEl.hidden = false;
+    drainEl.style.setProperty("--drain-ms", "5000ms");
+    drainEl.style.animation = "none";
+    void drainEl.offsetWidth;
+    drainEl.style.animation = "";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 5000);
+  }
+  function hideToast() {
+    clearTimeout(toastTimer);
+    toastTimer = null;
+    toastEl.hidden = true;
+    toastPayload = null;
+  }
+  toastUndo.addEventListener("click", () => {
+    const p = toastPayload;
+    hideToast();
+    if (p) { p.card.remove(); restore(p.snap); }
+  });
+
+  /* ---- publish → optimistic append ---- */
+  const stream = $("stream"), streamEmpty = $("stream-empty"), streamCount = $("stream-count");
+  const streamSecCount = () => stream.querySelectorAll(".card").length;
+  function bumpCount() {
+    const n = streamSecCount();
+    streamEmpty.hidden = n > 0;
+    streamCount.textContent = `${n} today`;
+  }
+  const confGlyph = (n) => "●".repeat(n) + "○".repeat(5 - n);
+  function cardHtml(s) {
+    const t = `<time>${hkHHMM(s.ts)} hkt</time>`;
+    if (s.mode === "thought") {
+      return `<div class="card-head"><span class="card-tags"><span class="capsule">thought</span></span>${t}</div><p class="card-text">${esc(s.text)}</p>`;
+    }
+    if (s.mode === "quote") {
+      return `<div class="card-head"><span class="card-tags"><span class="capsule">quote</span></span>${t}</div>` +
+        `<blockquote class="q-card">${esc(s.text)}<cite>— ${esc(s.author || "unattributed")}</cite></blockquote>`;
+    }
+    /* trade */
+    const e = num(s.entry), x = num(s.exit) ?? num(s.target), risk = e != null && num(s.stop) != null ? Math.abs(e - num(s.stop)) : null;
+    const pts = x != null && e != null ? (s.dir === "long" ? x - e : e - x) : null;
+    let rChip = `<span class="r-chip is-flat">—r</span>`;
+    if (risk && pts != null) {
+      const R = pts / risk;
+      rChip = `<span class="r-chip ${R >= 0 ? "is-pos" : "is-neg"}">${R >= 0 ? "+" : "−"}${fmtN(Math.abs(R))}r</span>`;
+    }
+    const pxLabel = s.exit ? "exit" : "target";
+    const facts = [];
+    facts.push(`<b>${esc(s.entry)}</b>${x != null ? ` → <b>${esc(String(x))}</b> <span style="color:var(--faint)">${pxLabel}</span>` : ""}`);
+    if (s.stop) facts.push(`stop <b>${esc(s.stop)}</b>`);
+    if (risk) facts.push(`risk ${fmtN(risk)} pt`);
+    const dollars = pts != null ? pts * (MARKETS[s.market]?.pv ?? 2) * (num(s.size) || 1) : null;
+    if (dollars != null) facts.push(`$${dollars >= 0 ? "+" : "−"}${fmtN(Math.abs(dollars))}`);
+    const meta = [];
+    meta.push(`<span class="capsule num">${esc(s.market)}</span>`);
+    if (num(s.size) !== 1 && s.size) meta.push(`size ${esc(s.size)}`);
+    if (s.accounts.length) meta.push(esc(s.accounts.join(" · ")));
+    if (s.setup) meta.push(esc(s.setup));
+    if (s.models.length) meta.push(esc(s.models.join(" · ")));
+    if (+s.conf > 0) meta.push(`<span class="num">${confGlyph(+s.conf)}</span>`);
+    return `<div class="card-head"><span class="card-tags"><span class="dir-chip ${esc(s.dir)}">${esc(s.dir)}</span>${rChip}</span>${t}</div>` +
+      `<p class="t-facts">${facts.join(' <span class="sep">·</span> ')}</p>` +
+      (meta.length ? `<p class="t-meta">${meta.join(' <span class="sep">·</span> ')}</p>` : "") +
+      (s.note ? `<p class="card-text" style="margin-top:var(--s2); font-size:var(--text-sm); color:var(--soft);">${esc(s.note)}</p>` : "") +
+      (s.thumbs.length ? `<div class="mini-thumbs">${s.thumbs.map((th) => `<i style="background-image:url(&quot;${th.url}&quot;)"></i>`).join("")}</div>` : "");
+  }
+  function snapshot() {
+    return {
+      mode,
+      text: (mode === "quote" ? $("f-quote").value : $("f-thought").value).trim(),
+      author: $("f-author").value.trim(),
+      dir: E.dir, market: E.market.value,
+      entry: E.entry.value.trim(), stop: E.stop.value.trim(),
+      target: E.target.value.trim(), exit: E.exit.value.trim(),
+      size: E.size.value.trim(), accounts: accs.get(), setup: setup.get()[0] || "",
+      models: models.get(), conf: confInput.value, note: E.note.value.trim(),
+      thumbs: thumbs.slice(), ts: nowMs(),
+    };
+  }
+  function clearForNext() {
+    if (mode === "thought") { $("f-thought").value = ""; grow($("f-thought")); }
+    else if (mode === "quote") {
+      $("f-quote").value = ""; $("f-author").value = ""; grow($("f-quote"));
+    } else {
+      /* prices + note reset; session context (dir/market/size/tags) stays.
+         blob urls stay alive on purpose — undo must be able to restore them */
+      for (const k of ["entry", "stop", "target", "exit"]) E[k].value = "";
+      E.note.value = ""; grow(E.note);
+      thumbs = [];
+      renderShots();
+    }
+    recompute();
+  }
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (publishBtn.disabled) return;
+    const s = snapshot();
+    if (s.mode !== "trade" && !s.text) {
+      $(PRIMARY[s.mode]).focus();
+      return;
+    }
+    const card = document.createElement("article");
+    card.className = "card panel fade-up";
+    card.innerHTML = cardHtml(s);
+    stream.prepend(card);
+    bumpCount();
+
+    const kindLabel = s.mode === "trade" ? "trade" : s.mode;
+    toastPayload = { card, snap: s };
+    toastMsgEl.textContent = `${kindLabel} captured`;
+    toastUndo.hidden = false;
+    armToast();
+
+    clearForNext();
+    $(PRIMARY[mode])?.focus({ preventScroll: true });
+  });
+
+  function restore(s) {
+    setMode(s.mode, { focus: false });
+    if (s.mode === "thought") { $("f-thought").value = s.text; grow($("f-thought")); }
+    else if (s.mode === "quote") {
+      $("f-quote").value = s.text; $("f-author").value = s.author; grow($("f-quote"));
+    } else {
+      setDir(s.dir); E.market.value = s.market;
+      E.entry.value = s.entry; E.stop.value = s.stop;
+      E.target.value = s.target; E.exit.value = s.exit; E.size.value = s.size;
+      accs.set(s.accounts); setup.set(s.setup ? [s.setup] : []); models.set(s.models);
+      setConf(+s.conf); E.note.value = s.note; grow(E.note);
+      thumbs = s.thumbs.slice();
+      renderShots();
+    }
+    recompute();
+    $(PRIMARY[s.mode])?.focus({ preventScroll: true });
+  }
+
+  /* ---- keyboard grammar ----
+     thought/quote: Enter publishes everywhere (undo is the safety net),
+     shift+enter = newline on hardware keyboards.
+     trade: plain Enter walks the fields — a price field can NEVER fire a
+     trade; capture button or cmd/ctrl+enter only. */
+  for (const id of ["f-thought", "f-quote"]) {
+    $(id).addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+    });
+  }
+  const WALK = ["f-entry", "f-stop", "f-target", "f-exit", "f-size"];
+  form.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      form.requestSubmit();
+      return;
+    }
+    if (e.key !== "Enter" || e.metaKey || e.ctrlKey) return;
+    const t = e.target;
+    if (t.tagName === "TEXTAREA") return;             /* note grows, never submits */
+    if (t.tagName === "SELECT") { $("f-entry").focus(); e.preventDefault(); return; }
+    if (!WALK.includes(t.id)) return;
+    e.preventDefault();
+    /* explicit walk: entry → stop always; stop → target only when row 2
+       is already disclosed (disclosure opens via its button, never forced
+       by Enter); beyond size → capture button */
+    const nxt =
+      t.id === "f-entry" ? $("f-stop") :
+      t.id === "f-stop" ? (moreOpen ? $("f-target") : null) :
+      t.id === "f-target" ? $("f-exit") :
+      t.id === "f-exit" ? $("f-size") :
+      t.id === "f-size" ? null : null;
+    if (nxt) nxt.focus();
+    else publishBtn.focus();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
+    const map = { n: "thought", q: "quote", t: "trade" };
+    const m = map[e.key.toLowerCase()];
+    if (m) { e.preventDefault(); setMode(m); }
+  });
+
+  /* ---- toast rides above the iOS keyboard (visualViewport pin) ---- */
+  if (window.visualViewport) {
+    const vv = window.visualViewport;
+    const setKb = () => {
+      const kb = Math.max(0, Math.round(window.innerHeight - vv.height));
+      document.documentElement.style.setProperty("--kb", kb + "px");
+    };
+    vv.addEventListener("resize", setKb);
+    vv.addEventListener("scroll", setKb);
+    setKb();
+  }
+
+  /* ---- devrail: state presets ---- */
+  function setParam(k, v) {
+    const u = new URL(location); u.searchParams.set(k, v);
+    history.replaceState(null, "", u);
+  }
+  $("compose-seg").addEventListener("click", (e) => {
+    const m = e.target.dataset.m;
+    if (!m) return;
+    const u = new URL(location);
+    u.searchParams.set("mode", m === "trade-more" ? "trade" : m);
+    if (m === "trade-more") u.searchParams.set("more", "1"); else u.searchParams.delete("more");
+    location.assign(u);
+  });
+  $("state-seg").addEventListener("click", (e) => {
+    const act = e.target.dataset.act;
+    if (!act) return;
+    if (act === "bad-stop") {
+      setMode("trade");
+      E.entry.value = "23450"; E.stop.value = "23450";
+      recompute();
+    } else if (act === "paste-demo") {
+      seedDemoShots();
+    } else if (act === "ai-demo") {
+      setMode("trade");
+      if (!thumbs.length) seedDemoShots();
+      openDiff(false);
+    } else if (act === "undo-demo") {
+      setMode("thought", { focus: false });
+      $("f-thought").value = "process over outcome — the screenshot tells the truth.";
+      form.requestSubmit();
+    }
+  });
+
+  /* ================================================================
+     BOOT — deep links: ?mode ?more ?err ?shots ?diff ?pub ?at
+     ================================================================ */
+  if (LIVE) document.body.classList.add("live-tick");
+  select(0, null);
+  renderClock();
+
+  const qMode = qs.get("mode");
+  setMode(MODES.includes(qMode) ? qMode : "thought", { focus: false });
+  if (qs.get("more") === "1") setMore(true);
+  if (qs.get("err") === "1") {
+    setMode("trade", { focus: false });
+    setMore(true);
+    E.entry.value = "23450"; E.stop.value = "23450";
+    recompute();
+  }
+  if (qs.get("shots") === "1") seedDemoShots();
+  /* S09 pins: ?err=upload → local-kept failure + retry · ?err=ai → read
+     fails once, then the retry succeeds (recovery is always shown) */
+  if (qs.get("err") === "upload") {
+    setMode("trade", { focus: false });
+    seedDemoShots();
+    const host = shotsNote(UP_FAIL_NOTE);
+    host.querySelector("#up-retry").addEventListener("click", () => {
+      host.innerHTML = `<p class="note" role="status"><i class="skel" style="width:46%;height:10px;display:block"></i></p>`;
+      setTimeout(() => {
+        host.innerHTML = `<p class="note note-ok" role="status">uploaded — screenshots synced.</p>`;
+        toastMsg("screenshot synced");
+        setTimeout(() => host.remove(), 1600);
+      }, 900);
+    });
+  }
+  if (qs.get("err") === "ai") {
+    setMode("trade", { focus: false });
+    if (!thumbs.length) seedDemoShots();
+    setTimeout(() => openDiff(false), 350);
+  }
+  if (qs.get("diff") === "1") {
+    setMode("trade", { focus: false });
+    if (!thumbs.length) seedDemoShots();
+    setTimeout(() => openDiff(true), 60);
+  }
+  const PUB_SEED = {
+    thought: { text: "flat into the open — waiting for the range to prove itself.", ts: nowMs() },
+    quote:   { text: "amateurs want to be right; professionals want to know.", author: "the desk", ts: nowMs() },
+    trade:   { dir: "long", market: "mnq", entry: "23450", stop: "23420", target: "23540",
+               exit: "", size: "2", accounts: ["eval-a"], setup: "osb", models: ["open-drive"],
+               conf: "4", note: "clean break of the opening range, held the retest.",
+               thumbs: [], ts: nowMs() },
+  };
+  if (PUB_SEED[qs.get("pub")]) {
+    const p = PUB_SEED[qs.get("pub")];
+    const s = p.mode ? p : { mode: qs.get("pub"), author: "", ...p };
+    const card = document.createElement("article");
+    card.className = "card panel fade-up";
+    card.innerHTML = cardHtml(s);
+    stream.prepend(card);
+    bumpCount();
+  }
+  bumpCount();
+
+  if (COARSE && !qs.get("pub")) {
+    $("fab-k").hidden = false;
+    $("fab-k").textContent = "n";
+    $("fab-k").addEventListener("click", () => setMode("thought"));
+  } else if (matchMedia("(pointer: fine)").matches && !qs.toString()) {
+    $(PRIMARY[mode])?.focus({ preventScroll: true });
+  }
+
+  setInterval(renderClock, 1000);
+  function centerToday() {
+    const c = cells[IDX(0)];
+    strip.classList.add("no-snap");
+    strip.scrollLeft = c.offsetLeft - (strip.clientWidth - c.offsetWidth) / 2;
+    requestAnimationFrame(() => requestAnimationFrame(() => strip.classList.remove("no-snap")));
+  }
+  centerToday();
+  addEventListener("load", centerToday);
+})();
+</script>
+</body>
+</html>
