@@ -1,0 +1,610 @@
+<!doctype html>
+<!-- S07-public-home · session C14 · rev 0
+     the public contract: a visitor gets the point in 5 seconds and the
+     whole process in 30. data first; the site explains itself through
+     its content. builds ONLY on frozen S00 tokens/base + the new public
+     layer (st/css/public.css) whose recipes mirror frozen zen DNA.
+     ---------------------------------------------------------------
+     chrome discipline (sprint acceptance): green/red ONLY on data
+     values. the live pulse + market dot ride the accent ladder here —
+     the one deliberate divergence from zen's frozen up-hue live dots;
+     day r is the single green moment on first paint. countdown
+     grammar: "3h 24m" ≥1h · "45m" under · "<1m" floor; seconds ONLY
+     on news events inside T-15m. bare colon forms banned.
+     charts are static server-SVG-style markup (generated fixtures,
+     zero chart js). lightbox = native <dialog> only. no /zen link
+     anywhere — single-user site, the admin door is unlisted.
+     states: ?day=empty pins the graceful last-logged-day fallback ·
+     ?at=<hkt wall time> freezes every readout (S01 doctrine).
+     S09 states: ?err=news (degraded calendar) · ?dt=1.2 (dynamic type) ·
+     edge dates: ?at=2026-05-25T22:00 (holiday monday) · ?at=<tue>T05:58
+     (rollover pair — 17:00 ct day flip). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="description" content="every trade, mood and miss on the road to a hedge fund — public. r = points made ÷ points risked.">
+<link rel="icon" href="data:,">
+<title>1ed.ge — the road to a hedge fund, traded in public</title>
+<link rel="stylesheet" href="/st/css/tokens?v=c14">
+<link rel="stylesheet" href="/st/css/tokens-light?v=c14" id="ls-auto" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="/st/css/tokens-light?v=c14" id="ls-force" disabled>
+<script src="/st/js/theme?v=c14"></script>
+<link rel="stylesheet" href="/st/css/base?v=c16">
+<link rel="stylesheet" href="/st/css/public?v=c14e">
+<script type="module" src="/st/js/feedback?v=c14"></script>
+</head>
+<body>
+
+<header class="mast" id="mast">
+  <div class="shell mast-row">
+    <div class="mast-top">
+      <span class="pulse" aria-hidden="true"></span>
+      <h1 class="brand" style="margin:0;">1ed<b>.</b>ge</h1>
+      <div class="seg" id="theme-seg" role="group" aria-label="theme">
+        <button data-t="auto" aria-pressed="true">auto</button><button data-t="light" aria-pressed="false">light</button><button data-t="dark" aria-pressed="false">dark</button>
+      </div>
+    </div>
+    <p class="mast-thesis">the road to a hedge fund, traded in public</p>
+    <nav class="mast-nav" aria-label="site">
+      <a href="#today">today</a><a href="#news">news</a><a href="/performance/">performance</a><a href="/models/">models</a><a href="/about/">about</a>
+    </nav>
+  </div>
+  <div class="mkt-strip-wrap">
+    <div class="shell mkt-strip">
+      <span class="dot" aria-hidden="true"></span>
+      <span class="num" id="ms-state">cme · —</span>
+      <span class="num ms-next" id="ms-next"></span>
+      <span class="num ms-clock" id="ms-clock">--:--</span>
+    </div>
+  </div>
+</header>
+
+<main class="shell" style="padding-block: var(--s5) 0;">
+
+  <!-- ============ today card: the at-a-glance contract ============ -->
+  <section class="panel today" id="today" aria-label="today">
+    <div class="today-head">
+      <span class="label">today</span>
+      <span class="num today-date" id="today-date">—</span>
+      <span class="num today-cme" id="cme-line">—</span>
+    </div>
+    <p class="fallback" id="fallback" hidden></p>
+
+    <div class="today-hero">
+      <div class="dayr">
+        <span class="num dayr-val" id="dayr">—</span>
+        <span class="dayr-legend">points made ÷ points risked</span>
+      </div>
+      <div class="today-side">
+        <span class="ts-main num" id="day-pnl">—</span>
+        <span class="ts-sub" id="day-sub">—</span>
+      </div>
+    </div>
+
+    <div class="facts-grid" id="facts"></div>
+
+    <div class="news" id="news">
+      <div class="news-head">
+        <span class="label">news</span>
+        <span class="news-tz">times hkt</span>
+      </div>
+      <div id="news-rows">
+        <div class="news-row" aria-hidden="true"><span class="n-dot is-orange" aria-hidden="true"></span><span class="n-time"><i class="skel" style="width:34px;height:10px;display:block"></i></span><span class="n-title"><i class="skel" style="width:64%;height:10px;display:block"></i></span></div>
+        <div class="news-row" aria-hidden="true"><span class="n-dot is-orange" aria-hidden="true"></span><span class="n-time"><i class="skel" style="width:34px;height:10px;display:block"></i></span><span class="n-title"><i class="skel" style="width:48%;height:10px;display:block"></i></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ performance strip: server-svg-style charts ============ -->
+  <section class="panel perf section-gap" id="perf" aria-label="performance">
+    <div class="perf-head">
+      <span class="label">performance</span>
+      <span class="num perf-stats"><b class="num-up">+41.1r</b> · 23/43 green · max dd <span class="num-down">−$1,011</span></span>
+      <a class="link perf-go" href="/performance/">performance →</a>
+    </div>
+    <svg class="spark" viewBox="0 0 460 64" preserveAspectRatio="none" role="img" aria-label="equity, last 60 sessions, 30,000 to 30,721 dollars">
+      <line x1="5" y1="51.9" x2="455" y2="51.9" class="ch-base" stroke-dasharray="2 4" vector-effect="non-scaling-stroke"/>
+      <path d="M5.0 51.9 L12.6 54.9 L20.3 53.1 L27.9 45.4 L35.5 59.0 L43.1 51.6 L50.8 45.7 L58.4 38.8 L66.0 35.7 L73.6 42.1 L81.3 41.6 L88.9 35.9 L96.5 36.2 L104.2 23.6 L111.8 25.2 L119.4 24.3 L127.0 20.3 L134.7 26.7 L142.3 27.3 L149.9 17.1 L157.5 15.9 L165.2 5.0 L172.8 11.8 L180.4 26.8 L188.1 30.0 L195.7 39.7 L203.3 52.1 L210.9 47.3 L218.6 46.0 L226.2 49.4 L233.8 51.3 L241.4 50.2 L249.1 44.1 L256.7 43.9 L264.3 41.6 L271.9 31.0 L279.6 41.1 L287.2 37.8 L294.8 46.8 L302.5 39.6 L310.1 35.5 L317.7 32.2 L325.3 22.0 L333.0 17.8 L340.6 15.5 L348.2 34.7 L355.8 44.2 L363.5 42.5 L371.1 46.4 L378.7 37.8 L386.4 41.0 L394.0 34.0 L401.6 35.3 L409.2 19.7 L416.9 16.3 L424.5 17.7 L432.1 16.1 L439.7 10.6 L447.4 18.5 L455.0 18.3" fill="none" class="ch-up" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="perf-cap"><span>equity · 60 sessions</span><span class="num num-up">+$721</span></div>
+    <svg class="hist" viewBox="0 0 460 44" preserveAspectRatio="none" role="img" aria-label="daily r histogram, 46 logged days, sum plus 41.1 r">
+      <line x1="0" y1="22" x2="460" y2="22" class="ch-base" vector-effect="non-scaling-stroke"/>
+      <g><rect x="1.0" y="22.0" width="6" height="7.1" rx="1" class="h-down"/><rect x="11.0" y="22.0" width="6" height="5.4" rx="1" class="h-down"/><rect x="21.0" y="4.9" width="6" height="16.1" rx="1" class="h-up"/><rect x="31.0" y="21.5" width="6" height="1" rx="0.5" class="h-zero"/><rect x="41.0" y="11.2" width="6" height="9.8" rx="1" class="h-up"/><rect x="51.0" y="22.0" width="6" height="4.9" rx="1" class="h-down"/><rect x="61.0" y="22.0" width="6" height="3.6" rx="1" class="h-down"/><rect x="71.0" y="4.0" width="6" height="17.0" rx="1" class="h-up"/><rect x="81.0" y="11.2" width="6" height="9.8" rx="1" class="h-up"/><rect x="91.0" y="22.0" width="6" height="6.3" rx="1" class="h-down"/><rect x="101.0" y="10.7" width="6" height="10.3" rx="1" class="h-up"/><rect x="111.0" y="22.0" width="6" height="4.5" rx="1" class="h-down"/><rect x="121.0" y="0.0" width="6" height="21.0" rx="1" class="h-up"/><rect x="131.0" y="13.9" width="6" height="7.1" rx="1" class="h-up"/><rect x="141.0" y="22.0" width="6" height="5.8" rx="1" class="h-down"/><rect x="151.0" y="13.4" width="6" height="7.6" rx="1" class="h-up"/><rect x="161.0" y="22.0" width="6" height="4.5" rx="1" class="h-down"/><rect x="171.0" y="21.5" width="6" height="1" rx="0.5" class="h-zero"/><rect x="181.0" y="11.2" width="6" height="9.8" rx="1" class="h-up"/><rect x="191.0" y="22.0" width="6" height="7.1" rx="1" class="h-down"/><rect x="201.0" y="22.0" width="6" height="5.4" rx="1" class="h-down"/><rect x="211.0" y="7.1" width="6" height="13.9" rx="1" class="h-up"/><rect x="221.0" y="22.0" width="6" height="3.1" rx="1" class="h-down"/><rect x="231.0" y="22.0" width="6" height="7.1" rx="1" class="h-down"/><rect x="241.0" y="4.0" width="6" height="17.0" rx="1" class="h-up"/><rect x="251.0" y="22.0" width="6" height="4.9" rx="1" class="h-down"/><rect x="261.0" y="22.0" width="6" height="3.6" rx="1" class="h-down"/><rect x="271.0" y="8.5" width="6" height="12.5" rx="1" class="h-up"/><rect x="281.0" y="4.5" width="6" height="16.5" rx="1" class="h-up"/><rect x="291.0" y="13.0" width="6" height="8.0" rx="1" class="h-up"/><rect x="301.0" y="22.0" width="6" height="7.6" rx="1" class="h-down"/><rect x="311.0" y="21.5" width="6" height="1" rx="0.5" class="h-zero"/><rect x="321.0" y="22.0" width="6" height="3.6" rx="1" class="h-down"/><rect x="331.0" y="11.6" width="6" height="9.4" rx="1" class="h-up"/><rect x="341.0" y="10.7" width="6" height="10.3" rx="1" class="h-up"/><rect x="351.0" y="11.6" width="6" height="9.4" rx="1" class="h-up"/><rect x="361.0" y="5.4" width="6" height="15.6" rx="1" class="h-up"/><rect x="371.0" y="12.1" width="6" height="8.9" rx="1" class="h-up"/><rect x="381.0" y="0.0" width="6" height="21.0" rx="1" class="h-up"/><rect x="391.0" y="22.0" width="6" height="5.8" rx="1" class="h-down"/><rect x="401.0" y="8.0" width="6" height="13.0" rx="1" class="h-up"/><rect x="411.0" y="5.8" width="6" height="15.2" rx="1" class="h-up"/><rect x="421.0" y="10.3" width="6" height="10.7" rx="1" class="h-up"/><rect x="431.0" y="22.0" width="6" height="4.9" rx="1" class="h-down"/><rect x="441.0" y="22.0" width="6" height="6.3" rx="1" class="h-down"/><rect x="451.0" y="22.0" width="6" height="4.9" rx="1" class="h-down"/></g>
+    </svg>
+    <div class="perf-cap"><span>daily r · 46 logged days</span><span class="num num-up">+41.1r</span></div>
+  </section>
+
+  <!-- ============ stream: today, published ============ -->
+  <section class="stream-sec" aria-label="stream">
+    <div class="sec-head">
+      <h2 class="sec-title">the stream</h2>
+      <span class="num stream-count" id="stream-count">—</span>
+    </div>
+    <ol class="stream" id="stream"></ol>
+  </section>
+
+  <!-- ============ footer: follow + reference. no /zen door. ============ -->
+  <footer class="foot">
+    <nav class="foot-links" aria-label="site">
+      <a href="/rss.xml">rss</a><span class="sep">·</span>
+      <a href="/models/">models</a><span class="sep">·</span>
+      <a href="/rules/">rules</a><span class="sep">·</span>
+      <a href="/performance/">performance</a>
+    </nav>
+    <p class="colophon">1ed.ge © 2026 · every trade, mood and miss public · all times hkt</p>
+  </footer>
+</main>
+
+<dialog class="lightbox" id="lb" aria-label="image viewer">
+  <img class="lb-img" id="lb-img" alt="">
+</dialog>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  /* ================================================================
+     TIME CANON — ?at=<hkt wall time> freezes every readout (S01
+     doctrine), ported by diff from the frozen frame.
+     ================================================================ */
+  const qs = new URLSearchParams(location.search);
+  const MONTHS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  const DOWS = ["sun","mon","tue","wed","thu","fri","sat"];
+  const pad = (n) => String(n).padStart(2, "0");
+  const AT_MS = (() => {
+    const raw = qs.get("at");
+    if (!raw) return null;
+    const ms = Date.parse(`${raw.length === 13 ? raw + ":00" : raw}+08:00`);
+    return Number.isFinite(ms) ? ms : null;
+  })();
+  const LIVE = AT_MS === null;
+  const nowMs = () => LIVE ? Date.now() : AT_MS;
+
+  /* S09 a11y demo: dynamic type — rem type scale survives the bump */
+  (() => {
+    const dt = parseFloat(qs.get("dt"));
+    if (Number.isFinite(dt) && dt >= 0.8 && dt <= 2) document.documentElement.style.fontSize = (dt * 100) + "%";
+  })();
+
+  const DOW_IDX = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+  function tzParts(tz, ms) {
+    const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23",
+      weekday: "short", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(ms));
+    const o = {}; for (const x of p) o[x.type] = x.value; return o;
+  }
+  const isoOfParts = (o) => `${o.year}-${o.month}-${o.day}`;
+  const hktIsoAt = (ms) => isoOfParts(tzParts("Asia/Hong_Kong", ms));
+  function tzOffMin(tz, ms) {
+    const o = tzParts(tz, ms);
+    const asUTC = Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour, +o.minute);
+    return Math.round((asUTC - ms) / 60000);
+  }
+  function wallUTC(tz, iso, hh, mm) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const guess = Date.UTC(y, m - 1, d, hh, mm);
+    return guess - tzOffMin(tz, new Date(guess)) * 60000;
+  }
+  const addIso = (iso, n) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d + n));
+    return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+  };
+  const dowOfIso = (iso) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  };
+  const dateOfIso = (iso) => new Date(`${iso}T12:00:00Z`);
+  const fmtDay = (d) => `${pad(d.getDate())}-${MONTHS[d.getMonth()]}-${d.getFullYear()}`;
+  const hkHM = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Hong_Kong", hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const hkHHMM = (ms) => hkHM.format(new Date(ms));
+  /* COUNTDOWN GRAMMAR — one canon everywhere:
+     ≥1h → "3h 24m" · <1h → "24m" · seconds appear ONLY on news events
+     inside the final 15 minutes (fmtDur(x, true) → "14m 32s"). */
+  const fmtDur = (ms, secs = false) => {
+    let s = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60), ss = s % 60;
+    if (h > 0) return secs ? `${h}h ${pad(m)}m ${pad(ss)}s` : `${h}h ${m}m`;
+    if (secs) return `${m}m ${pad(ss)}s`;
+    return m >= 1 ? `${m}m` : "<1m";
+  };
+
+  /* ================================================================
+     CME MASTER CLOCK — faithful port of the frozen S01 frame engine
+     (diffed against zen/index.html, CME-only surface: holidays w/
+     observed shift, early halts, early closes, maintenance halt
+     16:00–17:00 ct, weekend close fri 16:00 ct).
+     ================================================================ */
+  const CT = "America/Chicago";
+  const addD = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const isoD = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const nthWd = (y, m, wd, n) => {
+    const f = new Date(y, m, 1), diff = (wd - f.getDay() + 7) % 7;
+    return addD(f, diff + (n - 1) * 7);
+  };
+  const lastWd = (y, m, wd) => {
+    const l = new Date(y, m + 1, 0);
+    return addD(l, -((l.getDay() - wd + 7) % 7));
+  };
+  const observed = (d) => d.getDay() === 6 ? addD(d, -1) : d.getDay() === 0 ? addD(d, 1) : d;
+  function easter(y) {
+    const a = y % 19, b = Math.floor(y / 100), c = y % 100, d2 = Math.floor(b / 4), e2 = b % 4,
+      f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d2 - g + 15) % 30,
+      i2 = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e2 + 2 * i2 - h - k) % 7,
+      mm = Math.floor((a + 11 * h + 22 * l) / 451),
+      month = Math.floor((h + l - 7 * mm + 114) / 31),
+      day = ((h + l - 7 * mm + 114) % 31) + 1;
+    return new Date(y, month - 1, day);
+  }
+  const MEM = new Map();
+  const once = (key, fn) => { if (!MEM.has(key)) MEM.set(key, fn()); return MEM.get(key); };
+  const cmeHolidays = (y) => once(`ch${y}`, () => [
+    observed(new Date(y, 0, 1)), addD(easter(y), -2), observed(new Date(y, 5, 19)),
+    observed(new Date(y, 6, 4)), nthWd(y, 10, 4, 4), observed(new Date(y, 11, 25)),
+  ].map(isoD));
+  const cmeStatus = (iso) => {
+    const wd = dowOfIso(iso);
+    if (wd === 0 || wd === 6) return { kind: "closed", reason: "weekend" };
+    const y = +iso.slice(0, 4);
+    if (cmeHolidays(y).includes(iso) || cmeHolidays(y + 1).includes(iso) || cmeHolidays(y - 1).includes(iso))
+      return { kind: "closed", reason: "holiday" };
+    for (const e of once(`eh${y}`, () => [
+      { iso: isoD(nthWd(y, 0, 1, 3)), hh: 12, mm: 0 }, { iso: isoD(nthWd(y, 1, 1, 3)), hh: 12, mm: 0 },
+      { iso: isoD(lastWd(y, 4, 1)), hh: 12, mm: 0 }, { iso: isoD(nthWd(y, 8, 1, 1)), hh: 12, mm: 0 },
+    ])) if (e.iso === iso && dowOfIso(e.iso) !== 0 && dowOfIso(e.iso) !== 6) return { kind: "early-halt", hh: e.hh, mm: e.mm };
+    for (const e of once(`ec${y}`, () => {
+      const jul4 = new Date(y, 6, 4);
+      return [
+        { iso: isoD(addD(nthWd(y, 10, 4, 4), 1)), hh: 13, mm: 15 },
+        { iso: `${y}-12-24`, hh: 13, mm: 15 }, { iso: `${y}-12-31`, hh: 13, mm: 15 },
+        ...(jul4.getDay() === 6 ? [{ iso: isoD(addD(jul4, -2)), hh: 12, mm: 0 }] : []),
+      ];
+    })) if (e.iso === iso && dowOfIso(e.iso) !== 0 && dowOfIso(e.iso) !== 6) return { kind: "early", hh: e.hh, mm: e.mm };
+    return { kind: "open" };
+  };
+  const rank = { open: 0, halt: 1, close: 2 };
+  const boundsCache = new Map();
+  function boundsAround(centerIso) {
+    if (!boundsCache.has(centerIso)) {
+      const out = [];
+      for (let i = -4; i <= 11; i++) {
+        const D = addIso(centerIso, i), st = cmeStatus(D);
+        if (st.kind === "closed") continue;
+        out.push({ ms: wallUTC(CT, addIso(D, -1), 17, 0), t: "open", iso: D });
+        if (st.kind === "early") out.push({ ms: wallUTC(CT, D, st.hh, st.mm), t: "close", iso: D });
+        else if (cmeStatus(addIso(D, 1)).kind === "closed") out.push({ ms: wallUTC(CT, D, 16, 0), t: "close", iso: D });
+        else {
+          if (st.kind === "early-halt") out.push({ ms: wallUTC(CT, D, st.hh, st.mm), t: "halt", iso: D });
+          out.push({ ms: wallUTC(CT, D, 16, 0), t: "halt", iso: D });
+        }
+      }
+      out.sort((a, b) => a.ms - b.ms || rank[a.t] - rank[b.t]);
+      boundsCache.set(centerIso, out);
+    }
+    return boundsCache.get(centerIso);
+  }
+  function windowFor(iso) {
+    const bs = boundsAround(iso);
+    const open = bs.find((b) => b.t === "open" && b.iso === iso);
+    if (!open) return null;
+    const mine = bs.filter((b) => b.iso === iso && b.t !== "open");
+    return { open: open.ms, end: mine.length ? mine[mine.length - 1].ms : open.ms + 1380 * 60000, iso };
+  }
+  function phaseAt(ms) {
+    const bs = boundsAround(hktIsoAt(ms));
+    let cur = null;
+    for (const b of bs) { if (b.ms <= ms) cur = b; else break; }
+    const next = bs.find((b) => b.ms > ms) || null;
+    /* S09 fix (by-diff with zen/index): a holiday monday's last bound is
+       friday's close — the hkt day itself decides the label. */
+    const todaySt = cmeStatus(hktIsoAt(ms));
+    if (todaySt.kind === "closed" && todaySt.reason === "holiday")
+      return { phase: "closed", reason: "holiday", untilMs: next?.ms ?? ms };
+    if (!cur || cur.t === undefined) return { phase: "closed", reason: "weekend", untilMs: next?.ms ?? ms };
+    if (cur.t === "open") return { phase: "open", untilMs: next.ms, iso: cur.iso };
+    if (cur.t === "halt") {
+      const st = cmeStatus(cur.iso);
+      return { phase: "halt", early: st.kind === "early-halt", untilMs: next.ms, iso: cur.iso };
+    }
+    const st = cmeStatus(cur.iso);
+    const reason = st.kind === "early" ? "early close"
+      : dowOfIso(cur.iso) === 5 ? "weekend" : "holiday";
+    return { phase: "closed", reason, untilMs: next?.ms ?? ms };
+  }
+
+  /* ================================================================
+     DAY DATA — mock seeds, coherent with the frozen zen day
+     (mood sharp · sleep 7.5h · 5 trades · 1 runner · +3.86r).
+     DAY_B = the graceful last-logged-day fallback (?day=empty).
+     ================================================================ */
+  const chartSvg = (stroke, d) => "data:image/svg+xml," + encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 140'><rect width='240' height='140' fill='#10131a'/><path d='${d}' fill='none' stroke='${stroke}' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>`);
+  const UP_D = "M8 118 48 96 76 104 120 62 152 74 232 18";
+  const DN_D = "M8 30 52 52 84 44 128 88 168 78 232 116";
+  const UP2_D = "M8 108 40 112 72 84 110 92 150 46 190 58 232 22";
+  const BIG_D = "M10 122 54 100 86 108 126 64 158 76 196 34 230 42";
+
+  const DAY_A = {
+    dow: 5, isoOff: 0,
+    facts: {
+      mood: "sharp",
+      sleep: "7.5h · good",
+      screen: "11.4h",
+      habits: "2/4",
+      trades: null,          // computed
+    },
+    hero: { r: "+3.86r", pos: true, pnl: "$471", sub: "resolved · 1 runner open" },
+    stream: [
+      { kind: "thought", time: "06:12", text: "plan locked: osb and sweeps only during london. no lunch trades, no revenge sizing." },
+      { kind: "trade", time: "09:42", dir: "long", market: "mnq", setup: "osb", entry: "23420.00", exit: "23470.00", risk: "28 pt", usd: "+$200", r: "+1.79r", pos: true,
+        meta: "open-drive · eval-a · size 2", shots: [chartSvg("#4cb782", UP_D)],
+        note: "clean break of the opening range, held the retest instead of chasing." },
+      { kind: "trade", time: "11:26", dir: "long", market: "mnq", setup: "fvg", entry: "23455.00", exit: "23442.00", risk: "22 pt", usd: "−$26", r: "−0.59r", pos: false,
+        meta: "mean-revert · eval-b · size 1", shots: [],
+        note: "chased the fill mid-range — that was boredom, not signal." },
+      { kind: "quote", time: "12:40", text: "the goal isn’t to be right — it’s to be paid for being right.", author: "the desk" },
+      { kind: "trade", time: "16:08", dir: "short", market: "mes", setup: "sweep", entry: "6412.25", exit: "6409.50", risk: "7.25 pt", usd: "+$41", r: "+0.38r", pos: true,
+        meta: "liq-sweep · funded-1 · size 3", shots: [], note: "" },
+      { kind: "thought", time: "17:05", text: "london swept the asia low to the tick and handed it straight back. textbook.", img: chartSvg("#7583d8", BIG_D) },
+      { kind: "trade", time: "21:45", dir: "long", market: "nq", setup: "breakout", entry: "23510.00", exit: null, risk: "32 pt", usd: null, r: "—r", pos: null,
+        meta: "open-drive · eval-a · size 1", shots: [],
+        note: "runner into the close — trailing the stop, no target." },
+      { kind: "trade", time: "22:58", dir: "long", market: "mnq", setup: "trend", entry: "23488.00", exit: "23552.00", risk: "28 pt", usd: "+$256", r: "+2.29r", pos: true,
+        meta: "liq-sweep · eval-a · funded-1 · size 2", shots: [chartSvg("#4cb782", UP2_D), chartSvg("#e5484d", DN_D)],
+        note: "asia low sweep held through london open; added on the reclaim, managed to the high." },
+      { kind: "thought", time: "23:41", text: "five trades, one runner still breathing. screen time crept past four hours — flagging it." },
+    ],
+  };
+
+  const DAY_B = {
+    dow: 4, isoOff: -1,     fallback: "thu 27‑aug‑2026",
+    facts: {
+      mood: "clear",
+      sleep: "6.5h · ok",
+      screen: "9.7h",
+      habits: "3/4",
+      trades: null,
+    },
+    hero: { r: "+1.12r", pos: true, pnl: "$134", sub: "resolved · nothing open" },
+    stream: [
+      { kind: "thought", time: "07:58", text: "short week, one goal: no trades outside the two models. that’s the whole plan." },
+      { kind: "trade", time: "10:31", dir: "long", market: "mnq", setup: "osb", entry: "23364.00", exit: "23394.00", risk: "24 pt", usd: "+$60", r: "+0.80r", pos: true,
+        meta: "open-drive · eval-a · size 1", shots: [chartSvg("#4cb782", UP_D)],
+        note: "took the third test of the level, not the first. patience paid one r." },
+      { kind: "quote", time: "15:20", text: "amateurs want to be right. professionals want to be paid.", author: "the library" },
+      { kind: "trade", time: "22:14", dir: "short", market: "mnq", setup: "sweep", entry: "23402.00", exit: "23386.00", risk: "22 pt", usd: "−$32", r: "−0.47r", pos: false,
+        meta: "liq-sweep · eval-b · size 1", shots: [],
+        note: "stopped for exactly the risk agreed. the loss is the fee, the size was the win." },
+    ],
+  };
+
+  const EMPTY = qs.get("day") === "empty";
+  const DAY = EMPTY ? DAY_B : DAY_A;
+  const TODAY_ISO = EMPTY ? addIso(hktIsoAt(nowMs()), -1) : hktIsoAt(nowMs());
+
+  /* ---- numerals: same rounding canon as the frozen frame ---- */
+  const fmtN = (x) => {
+    const a = Math.abs(x);
+    const dec = a >= 100 ? 0 : a >= 10 ? 1 : 2;
+    return x.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: dec });
+  };
+
+  /* ================================================================
+     RENDER — masthead, today card, facts, stream
+     ================================================================ */
+  function renderToday() {
+    const d = dateOfIso(TODAY_ISO);
+    const shownDow = EMPTY ? DAY_B.dow : DOW_IDX[tzParts("Asia/Hong_Kong", nowMs()).weekday];
+    $("today-date").textContent = `${DOWS[shownDow]} ${fmtDay(d)}`;
+    if (EMPTY) {
+      $("fallback").hidden = false;
+      $("fallback").textContent = `no entries logged today · showing ${DAY_B.fallback}.`;
+    }
+    const hero = DAY.hero;
+    $("dayr").textContent = hero.r;
+    $("dayr").classList.add(hero.pos ? "num-up" : "num-down");
+    $("day-pnl").textContent = hero.pnl;
+    $("day-sub").textContent = hero.sub;
+    const f = DAY.facts;
+    const trades = DAY.stream.filter((s) => s.kind === "trade");
+    const resolved = trades.filter((t) => t.pos !== null).length;
+    const open = trades.length - resolved;
+    const tcell = `${trades.length} · ${open} open`;
+    const cells = [
+      ["mood", f.mood],
+      ["sleep", f.sleep],
+      ["screen", f.screen],
+      ["habits", f.habits],
+      ["trades", tcell],
+    ];
+    $("facts").innerHTML = cells.map(([k, v]) =>
+      `<div class="fact"><span class="fact-k label">${k}</span><span class="fact-v">${esc(v)}</span></div>`).join("");
+  }
+
+  function tradeCardHtml(t) {
+    const rCls = t.pos === null ? "is-flat" : t.pos ? "is-pos" : "is-neg";
+    const line = t.exit
+      ? `<b>${esc(t.entry)}</b> → <b>${esc(t.exit)}</b> · ${esc(t.risk)} risk` +
+        (t.usd ? ` · <span class="${t.pos ? "num-up" : "num-down"}">${esc(t.usd)}</span>` : "")
+      : `<b>${esc(t.entry)}</b> · stop armed · ${esc(t.risk)} risk · <span style="color:var(--dim);">open</span>`;
+    return `
+      <div class="card-head">
+        <span class="card-tags">
+          <time>${t.time} hkt</time>
+          <span class="dir-chip ${t.dir}">${t.dir}</span>
+          <span class="card-kind">${esc(t.market)} · ${esc(t.setup)}</span>
+        </span>
+        <span class="r-chip ${rCls}">${esc(t.r)}</span>
+      </div>
+      <p class="t-facts">${line}</p>
+      <p class="t-meta">${esc(t.meta)}</p>
+      ${t.shots && t.shots.length ? `<div class="shots">${t.shots.map((u) =>
+        `<button type="button" class="shot" data-full="${u}" aria-label="open screenshot"><img src="${u}" alt="marked-up chart at the fill" width="96" height="64" loading="lazy" decoding="async"></button>`).join("")}</div>` : ""}
+      ${t.note ? `<p class="card-note">${esc(t.note)}</p>` : ""}`;
+  }
+  function streamCardHtml(s) {
+    if (s.kind === "quote")
+      return `
+      <div class="card-head"><span class="card-tags"><time>${s.time} hkt</time><span class="card-kind">quote</span></span></div>
+      <blockquote class="q-card">${esc(s.text)}<cite>— ${esc(s.author || "unattributed")}</cite></blockquote>`;
+    if (s.kind === "thought")
+      return `
+      <div class="card-head"><span class="card-tags"><time>${s.time} hkt</time><span class="card-kind">thought</span></span></div>
+      <p class="card-text">${esc(s.text)}</p>` +
+      (s.img ? `<button type="button" class="card-img" data-full="${s.img}" aria-label="open attached image"><img src="${s.img}" alt="attached chart sketch" width="240" height="140" loading="lazy" decoding="async"></button>` : "");
+    return tradeCardHtml(s);
+  }
+  function renderStream() {
+    $("stream").innerHTML = DAY.stream.map((s) =>
+      `<li class="${s.kind === "trade" ? "is-trade" : ""}"><article class="card panel">${streamCardHtml(s)}</article></li>`).join("");
+    const n = DAY.stream.length;
+    $("stream-count").textContent = EMPTY ? `${n} · ${DAY_B.fallback}` : `${n} today`;
+  }
+
+  /* ================================================================
+     MARKET STATE — the strip is the main clock: state + countdown +
+     hkt wall clock + next upcoming event. pulse + dots ride the
+     accent ladder (S07 chrome discipline). frozen MKT_LABEL canon.
+     ================================================================ */
+  function renderMkt() {
+    const now = nowMs();
+    const ph = phaseAt(now);
+    const live = ph.phase === "open";
+    $("mast").classList.toggle("is-live", live);
+    const cd = fmtDur(Math.max(0, ph.untilMs - now));
+    let state;
+    if (live) {
+      const win = windowFor(ph.iso);
+      const p = win ? Math.min(100, Math.max(0, (now - win.open) / (win.end - win.open) * 100)) : 0;
+      state = win ? `cme · open · day ${Math.round(p)}% · closes ${hkHHMM(win.end)} (${cd})` : `cme · open (${cd})`;
+    } else if (ph.phase === "halt") {
+      state = `cme · halt · resumes ${hkHHMM(ph.untilMs)} (${cd})`;
+    } else {
+      state = `cme · closed · ${ph.reason} · opens ${hkHHMM(ph.untilMs)} (${cd})`;
+    }
+    $("ms-state").textContent = state;
+    $("ms-clock").textContent = hkHHMM(now);
+    const nx = NEWS.find((ev) => ev.ms > now);
+    $("ms-next").textContent = nx
+      ? `next: ${nx.title.toLowerCase()} ${nx.time} (${fmtDur(nx.ms - now, nx.ms - now <= 15 * 60000)})`
+      : "no events ahead today";
+    /* today-card local context line */
+    const verb = ph.phase === "open" ? "closes" : ph.phase === "halt" ? "resumes" : "opens";
+    let line = `${verb} ${hkHHMM(ph.untilMs)} hkt`;
+    if (live) {
+      const win2 = windowFor(ph.iso);
+      line = win2 ? `cme day ${Math.round(Math.min(100, Math.max(0, (now - win2.open) / (win2.end - win2.open) * 100)))}% · closes ${hkHHMM(win2.end)} hkt` : line;
+    } else if (ph.phase === "closed" && ph.reason !== "holiday") {
+      line = `cme closed · ${ph.reason} · ${verb} ${hkHHMM(ph.untilMs)} hkt`;
+    } else if (ph.phase === "halt") {
+      line = `cme halt · resumes ${hkHHMM(ph.untilMs)} hkt`;
+    }
+    $("cme-line").textContent = line;
+  }
+
+  /* ================================================================
+     NEWS — same deterministic file the frozen frame polls
+     (st/data/news.json, tv+ff cross-verified, zero inference).
+     countdown grammar: seconds only inside the final 15 minutes.
+     ================================================================ */
+  let NEWS = [], NEWS_FAILED = false;
+  function dedupeRows(rows) {
+    const stems = (t) => t.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/)
+      .filter(Boolean).map((w) => w.slice(0, 5));
+    const keptStems = [];
+    const perTime = new Map();
+    const out = [];
+    for (const ev of rows) {
+      if (out.length >= 5) break;
+      if ((perTime.get(ev.time) || 0) >= 3) continue;
+      const st = stems(ev.title);   // cross-wire dupes share ≥2 stems
+      if (keptStems.some((k) => st.filter((s) => k.includes(s)).length >= 2)) continue;
+      perTime.set(ev.time, (perTime.get(ev.time) || 0) + 1);
+      keptStems.push(st);
+      out.push(ev);
+    }
+    return { rows: out, more: rows.length - out.length };
+  }
+  function renderNews() {
+    const now = nowMs();
+    /* S09: degraded calendar — public visitors get the honest one-liner,
+       the market strip and day card keep their clock truth */
+    if (NEWS_FAILED) {
+      $("news-rows").innerHTML = `<p class="note note-warn" role="alert">calendar unavailable — market state and trades unaffected.<button class="note-act" id="news-retry" type="button">retry</button></p>`;
+      $("news-retry").addEventListener("click", () => {
+        $("news-rows").innerHTML = `<i class="skel" aria-hidden="true" style="width:68%;height:10px;display:block"></i>`;
+        const u = new URL(location); u.searchParams.delete("err"); qs.delete("err"); history.replaceState(null, "", u);
+        loadNews();
+      });
+      return;
+    }
+    const { rows, more } = dedupeRows(NEWS);
+    if (!rows.length) {
+      $("news-rows").innerHTML = `<p class="news-more">no events on file.</p>`;
+      return;
+    }
+    $("news-rows").innerHTML = rows.map((ev) => {
+      const past = ev.ms <= now;
+      const cd = past ? "" : fmtDur(ev.ms - now, ev.ms - now <= 15 * 60000);
+      return `<div class="news-row${past ? " is-past" : ""}" data-ms="${ev.ms}">
+        <span class="n-dot ${ev.kind === "red" ? "is-red" : "is-orange"}" aria-hidden="true"></span>
+        <span class="n-time num">${ev.time}</span>
+        <span class="n-title">${esc(ev.title.toLowerCase())}</span>
+        ${cd ? `<span class="n-cd">${cd}</span>` : ""}</div>`;
+    }).join("") + (more > 0 ? `<p class="news-more">+${more} more on the calendar.</p>` : "");
+  }
+  function tickNews() {
+    const now = nowMs();
+    document.querySelectorAll(".news-row[data-ms]").forEach((row) => {
+      const ms = +row.dataset.ms;
+      const cd = row.querySelector(".n-cd");
+      if (ms <= now) { row.classList.add("is-past"); if (cd) cd.remove(); return; }
+      if (cd) cd.textContent = fmtDur(ms - now, ms - now <= 15 * 60000);
+      else row.insertAdjacentHTML("beforeend", `<span class="n-cd">${fmtDur(ms - now)}</span>`);
+    });
+  }
+  async function loadNews() {
+    if (qs.get("err") === "news") {   /* S09: pins the degraded state for review */
+      NEWS_FAILED = true;
+      renderNews();
+      return;
+    }
+    try {
+      const j = await fetch("/st/data/news.json?v=c14").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      const day = j.days[TODAY_ISO] || { red: [], orange: [] };
+      NEWS = [...day.red.map((ev) => ({ ...ev, kind: "red" })), ...day.orange.map((ev) => ({ ...ev, kind: "orange" }))]
+        .map((ev) => ({ ...ev, ms: wallUTC("Asia/Hong_Kong", TODAY_ISO, +ev.time.slice(0, 2), +ev.time.slice(3, 5)) }))
+        .sort((a, b) => a.ms - b.ms || (a.kind === "red" ? -1 : 1));
+    } catch {
+      NEWS_FAILED = true;
+    }
+    renderNews();
+  }
+
+  /* ---- lightbox: native dialog, tap anywhere closes ---- */
+  const lb = $("lb"), lbImg = $("lb-img");
+  document.addEventListener("click", (e) => {
+    const shot = e.target.closest("[data-full]");
+    if (!shot) return;
+    lbImg.src = shot.dataset.full;
+    if (!lb.open) lb.showModal();
+  });
+  lb.addEventListener("click", () => lb.close());
+
+  /* ================================================================
+     BOOT
+     ================================================================ */
+  renderToday();
+  renderStream();
+  renderMkt();
+  loadNews();
+  setInterval(() => { renderMkt(); tickNews(); }, 1000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1079 @@
+<!doctype html>
+<!-- S01-frame · rev R2 · session C06 · zen frame (cockpit chrome)
+     virtual time: ?at=2026-08-25T09:20  (hkt wall time — freezes EVERY readout)
+     scenarios: devrail ▸ time sim (deep-links to ?at=…) · views: ?view=day|empty
+     S09 states: ?err=news (degraded calendar) · ?dt=1.2 (dynamic type 120%)
+     edge dates: ?at=2026-05-25T22:00 (holiday MONDAY — label fix) ·
+     ?at=<tue>T05:58/06:01 (17:00 ct rollover pair, "rollover" scen) -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="1edge">
+<meta name="theme-color" content="#0b0d12">
+<link rel="icon" href="data:,">
+<title>1edge — zen</title>
+<link rel="stylesheet" href="/st/css/tokens?v=r6">
+<link rel="stylesheet" href="/st/css/tokens-light?v=r6" id="ls-auto" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="/st/css/tokens-light?v=r6" id="ls-force" disabled>
+<script src="/st/js/theme?v=r6"></script>
+<link rel="stylesheet" href="/st/css/base?v=c16">
+<link rel="stylesheet" href="/st/css/frame?v=c16">
+<script type="module" src="/st/js/feedback?v=r6"></script>
+<style>
+  .strip, .pal-list { -webkit-touch-callout: none; }
+  .day-cell { user-select: none; -webkit-user-select: none; }
+  .strip.no-snap { scroll-snap-type: none; }
+  .ev-panel { margin-top: var(--s4); }
+</style>
+</head>
+<body data-view="day">
+
+<div class="app">
+
+  <header class="topbar glass is-live" id="topbar">
+    <div class="shell-fit topbar-inner">
+      <div class="topbar-row">
+        <div class="row" style="gap:10px;">
+          <span class="pulse" aria-hidden="true"></span>
+          <span class="brand">1edge<b>.</b></span>
+          <span class="capsule mkt is-open" id="mkt"><span class="dot"></span><span id="mkt-label">cme</span>&nbsp;<span id="mkt-cd" style="color:var(--dim);"></span></span>
+          <span class="sim-chip" id="sim-chip" hidden>mock time</span>
+        </div>
+        <span class="num" style="font-size:var(--text-xs); color:var(--dim);" id="today-date">—</span>
+      </div>
+      <div class="band-wrap">
+        <div class="band" id="band"><div class="nowmark" id="nowmark"></div></div>
+        <div class="band-ruler" id="ruler" aria-hidden="true"></div>
+        <p class="band-caption" id="band-cap" hidden></p>
+      </div>
+    </div>
+    <nav class="rail" id="rail" aria-label="trading sessions">
+      <div class="sess" id="sess-tok">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.6 1h.8l3 10.2H7.3l-.7-2.4H5.4l-.7 2.4H2.6Zm.4 3.4-.5 2.6h1Z"/></svg>
+          <span class="sess-code">tok</span>
+        </span>
+        <span class="sess-state" id="st-tok">—</span>
+        <span class="sess-win" id="sw-tok">—</span>
+      </div>
+      <div class="sess" id="sess-lon">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M6 .4 7.7 3.1v8.1H4.3V3.1ZM6 4.9a1.2 1.2 0 1 0 .01 2.41A1.2 1.2 0 0 0 6 4.9Z"/></svg>
+          <span class="sess-code">lon</span>
+        </span>
+        <span class="sess-state" id="st-lon">—</span>
+        <span class="sess-win" id="sw-lon">—</span>
+      </div>
+      <div class="sess" id="sess-nyc">
+        <span class="sess-top">
+          <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M5.7.8h.6l.2 1.7h.7v1.6h.7v1.9h.8v5.2H7.4V8h-.9v3.2H5.4V8h-.9v3.2H3.3V6h.8V4.1h.7V2.5h.7Z"/></svg>
+          <span class="sess-code">nyc</span>
+        </span>
+        <span class="sess-state" id="st-nyc">—</span>
+        <span class="sess-win" id="sw-nyc">—</span>
+      </div>
+    </nav>
+  </header>
+
+  <div class="strip-shell">
+    <nav class="strip" id="strip" aria-label="calendar strip"></nav>
+  </div>
+
+  <section class="clock-block shell-fit" aria-label="clocks">
+    <div class="clock-grid clock-pad">
+      <div>
+        <p class="label" id="focus-line">—</p>
+        <div class="clock-hkt"><span id="clk-hkt">--:--</span><span class="secs" id="clk-hkt-s">--</span></div>
+        <p class="clock-zone">hong kong</p>
+      </div>
+      <div>
+        <div class="clock-sub"><span id="clk-ct">--:--</span><span class="clock-zone" style="margin-top:0;">chicago</span></div>
+        <p class="next-change" id="next-change">—</p>
+        <div class="day-prog" aria-hidden="true">
+          <div class="bar"><div class="fill" id="prog-fill" style="width:0%"></div></div>
+          <p id="prog-cap">—</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="content">
+    <div class="only-full">
+      <div class="day-head spread">
+        <h1 id="day-title">—</h1>
+        <span class="capsule capsule-up num" id="day-r">r +0.0</span>
+      </div>
+
+      <section class="panel ev-panel" aria-label="market events">
+        <div class="ev-head spread">
+          <div>
+            <span class="sec-title">economic calendar</span>
+            <p class="ev-scope" id="ev-scope">usd · —</p>
+          </div>
+          <div class="seg" id="ev-tabs" role="group" aria-label="events scope">
+            <button data-ev="day" aria-pressed="true">day</button><button data-ev="wk" aria-pressed="false">wk</button>
+          </div>
+        </div>
+        <p class="ev-next" id="ev-next">
+          <span class="fold" id="ev-next-fold" aria-hidden="true"><i class="skel" style="width:10px;height:10px;border-radius:3px;display:block"></i></span><span class="ttl" id="ev-next-ttl"><i class="skel" aria-hidden="true" style="width:38%;height:11px;display:block"></i></span><span class="cd" id="ev-next-cd"></span>
+        </p>
+        <div class="ev-body" id="ev-body">
+          <div class="ev-list" aria-hidden="true">
+            <div class="ev-row"><span class="fold"><i class="skel" style="width:10px;height:10px;border-radius:3px;display:block"></i></span><span class="ev-t"><i class="skel" style="width:34px;height:10px;display:block"></i></span><span class="ttl"><i class="skel" style="width:62%;height:10px;display:block"></i></span></div>
+            <div class="ev-row"><span class="fold"><i class="skel" style="width:10px;height:10px;border-radius:3px;display:block"></i></span><span class="ev-t"><i class="skel" style="width:34px;height:10px;display:block"></i></span><span class="ttl"><i class="skel" style="width:78%;height:10px;display:block"></i></span></div>
+            <div class="ev-row"><span class="fold"><i class="skel" style="width:10px;height:10px;border-radius:3px;display:block"></i></span><span class="ev-t"><i class="skel" style="width:34px;height:10px;display:block"></i></span><span class="ttl"><i class="skel" style="width:48%;height:10px;display:block"></i></span></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="panel stub-panel" style="margin-top: var(--s4);">
+        <span class="sec-title"><span class="sec-no">s03</span>today rail</span>
+        <p class="empty">the rail lands here in s03 — facts, trades, news, stream.</p>
+      </div>
+    </div>
+
+    <div class="cockpit-empty only-empty">
+      <span class="glyph" aria-hidden="true">_</span>
+      <h2>the desk is clear.</h2>
+      <p class="empty">nothing captured yet — press n or tap ⌘k → compose.</p>
+      <button class="btn btn-primary tap" id="empty-compose">capture first thought</button>
+    </div>
+  </main>
+
+  <details class="devrail">
+    <summary>s01 · demo states</summary>
+    <div class="row">
+      <span class="label">mock time</span>
+      <div class="seg" id="scen-seg" role="group" aria-label="mock-only review times">
+        <button data-scen="now">now</button><button data-scen="asia">asia dead</button><button data-scen="tok">tok</button><button data-scen="lunch">tok lunch</button><button data-scen="lon">lon</button><button data-scen="ny">ny open</button><button data-scen="halt">cme halt</button><button data-scen="late">post-ny</button><button data-scen="wknd">weekend</button><button data-scen="hol">holiday</button><button data-scen="holmon">hol mon</button><button data-scen="half">half day</button><button data-scen="roll">rollover</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">view</span>
+      <div class="seg" id="view-seg" role="group" aria-label="cockpit view">
+        <button data-v="day" aria-pressed="true">day</button><button data-v="empty" aria-pressed="false">empty</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">theme</span>
+      <div class="seg" id="theme-seg" role="group" aria-label="theme">
+        <button data-t="auto" aria-pressed="true">auto</button><button data-t="light" aria-pressed="false">light</button><button data-t="dark" aria-pressed="false">dark</button>
+      </div>
+    </div>
+    <p class="empty" style="padding: var(--s2) 0;">tz source is fixed hkt for now — browser-tz auto-detect lands post-freeze.</p>
+  </details>
+
+</div>
+
+<button class="fab-k" id="fab-k" aria-label="open command palette">⌘k</button>
+
+<dialog class="palette" id="palette" aria-label="command palette">
+  <input class="pal-input" id="pal-input" type="text" placeholder="jump, compose, ritual…" role="combobox"
+         aria-expanded="true" aria-controls="pal-list" aria-autocomplete="list" autocomplete="off">
+  <div class="pal-list" id="pal-list" role="listbox"></div>
+</dialog>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const qs = new URLSearchParams(location.search);
+  const MONTHS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  const DOWS = ["sun","mon","tue","wed","thu","fri","sat"];
+  const pad = (n) => String(n).padStart(2, "0");
+  const CT = "America/Chicago";
+  const esc = (s) => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+  /* ================================================================
+     TIME ENGINE — everything derives from nowMs(). ?at=<hkt wall>
+     freezes the whole cockpit into a shareable mockup ("sim").
+     ================================================================ */
+  const AT_MS = (() => {
+    const raw = qs.get("at");
+    if (!raw) return null;
+    const ms = Date.parse(`${raw.length === 13 ? raw + ":00" : raw}+08:00`);
+    return Number.isFinite(ms) ? ms : null;
+  })();
+  const LIVE = AT_MS === null;
+  const nowMs = () => LIVE ? Date.now() : AT_MS;
+
+  /* S09 a11y demo: dynamic type — rem type scale survives the bump */
+  (() => {
+    const dt = parseFloat(qs.get("dt"));
+    if (Number.isFinite(dt) && dt >= 0.8 && dt <= 2) document.documentElement.style.fontSize = (dt * 100) + "%";
+  })();
+
+  const DOW_IDX = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+  function tzParts(tz, ms) {
+    const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23",
+      weekday: "short", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(ms));
+    const o = {}; for (const x of p) o[x.type] = x.value; return o;
+  }
+  const isoOfParts = (o) => `${o.year}-${o.month}-${o.day}`;
+  const hktIsoAt = (ms) => isoOfParts(tzParts("Asia/Hong_Kong", ms));
+  function tzOffMin(tz, ms) {
+    const o = tzParts(tz, ms);
+    const asUTC = Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour, +o.minute);
+    return Math.round((asUTC - ms) / 60000);
+  }
+  function wallUTC(tz, iso, hh, mm) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const guess = Date.UTC(y, m - 1, d, hh, mm);
+    return guess - tzOffMin(tz, new Date(guess)) * 60000;
+  }
+  const addIso = (iso, n) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d + n));
+    return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+  };
+  const dowOfIso = (iso) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  };
+  const dateOfIso = (iso) => new Date(`${iso}T12:00:00Z`);
+  const fmtDay = (d) => `${pad(d.getDate())}-${MONTHS[d.getMonth()]}-${d.getFullYear()}`;
+  const hkHM = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Hong_Kong", hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const hkHHMM = (ms) => hkHM.format(new Date(ms));
+  /* COUNTDOWN GRAMMAR — one canon everywhere:
+     ≥1h → "3h 24m" · <1h → "24m" · seconds appear ONLY on news events
+     inside the final 15 minutes (fmtDur(x, true) → "14m 32s"). */
+  const fmtDur = (ms, secs = false) => {
+    let s = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60), ss = s % 60;
+    if (h > 0) return secs ? `${h}h ${pad(m)}m ${pad(ss)}s` : `${h}h ${m}m`;
+    if (secs) return `${m}m ${pad(ss)}s`;
+    return m >= 1 ? `${m}m` : "<1m";
+  };
+
+  /* ================================================================
+     CME MASTER CLOCK — faithful port of src/lib/market.ts (mock):
+     holidays w/ observed shift, early halts (MLK/Presidents/Memorial),
+     early closes (post-Thanksgiving, Xmas eve, NYE, pre-Jul4-sat),
+     daily maintenance halt 16:00–17:00 ct, weekend close fri 16:00 ct.
+     ================================================================ */
+  const addD = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const isoD = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const nthWd = (y, m, wd, n) => {
+    const f = new Date(y, m, 1), diff = (wd - f.getDay() + 7) % 7;
+    return addD(f, diff + (n - 1) * 7);
+  };
+  const lastWd = (y, m, wd) => {
+    const l = new Date(y, m + 1, 0);
+    return addD(l, -((l.getDay() - wd + 7) % 7));
+  };
+  const observed = (d) => d.getDay() === 6 ? addD(d, -1) : d.getDay() === 0 ? addD(d, 1) : d;
+  function easter(y) {
+    const a = y % 19, b = Math.floor(y / 100), c = y % 100, d2 = Math.floor(b / 4), e2 = b % 4,
+      f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d2 - g + 15) % 30,
+      i2 = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e2 + 2 * i2 - h - k) % 7,
+      mm = Math.floor((a + 11 * h + 22 * l) / 451),
+      month = Math.floor((h + l - 7 * mm + 114) / 31),
+      day = ((h + l - 7 * mm + 114) % 31) + 1;
+    return new Date(y, month - 1, day);
+  }
+  const MEM = new Map();
+  const once = (key, fn) => { if (!MEM.has(key)) MEM.set(key, fn()); return MEM.get(key); };
+  const cmeHolidays = (y) => once(`ch${y}`, () => [
+    observed(new Date(y, 0, 1)), addD(easter(y), -2), observed(new Date(y, 5, 19)),
+    observed(new Date(y, 6, 4)), nthWd(y, 10, 4, 4), observed(new Date(y, 11, 25)),
+  ].map(isoD));
+  const nyseHolidays = (y) => once(`nh${y}`, () => [
+    observed(new Date(y, 0, 1)), nthWd(y, 0, 1, 3), nthWd(y, 1, 1, 3), addD(easter(y), -2),
+    lastWd(y, 4, 1), observed(new Date(y, 5, 19)), observed(new Date(y, 6, 4)),
+    nthWd(y, 8, 1, 1), nthWd(y, 10, 4, 4), observed(new Date(y, 11, 25)),
+  ].map(isoD));
+  const japanHolidays = (y) => once(`jh${y}`, () => {
+    const eq = (c) => Math.floor(c + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
+    const base = [
+      new Date(y, 0, 1), new Date(y, 0, 2), nthWd(y, 0, 1, 2), new Date(y, 1, 11), new Date(y, 1, 23),
+      new Date(y, 2, eq(20.8431)), new Date(y, 3, 29), new Date(y, 4, 3), new Date(y, 4, 4), new Date(y, 4, 5),
+      nthWd(y, 6, 1, 3), new Date(y, 7, 11), nthWd(y, 8, 1, 3), new Date(y, 8, eq(23.2488)),
+      nthWd(y, 9, 1, 2), new Date(y, 10, 3), new Date(y, 10, 23),
+    ];
+    const set = new Set(base.map(isoD));
+    for (const d of base) if (d.getDay() === 0) {
+      let sub = addD(d, 1);
+      while (set.has(isoD(sub)) || sub.getDay() === 0 || sub.getDay() === 6) sub = addD(sub, 1);
+      set.add(isoD(sub));
+    }
+    return [...set];
+  });
+  const ukHolidays = (y) => once(`uh${y}`, () => {
+    const shift = (d) => (d.getDay() === 0 || d.getDay() === 6 ? addD(d, 2) : d);
+    const ny = new Date(y, 0, 1);
+    return [...new Set([
+      ny.getDay() === 6 ? addD(ny, 2) : ny.getDay() === 0 ? addD(ny, 1) : ny,
+      addD(easter(y), -2), addD(easter(y), 1),
+      nthWd(y, 4, 1, 1), lastWd(y, 4, 1), lastWd(y, 7, 1),
+      shift(new Date(y, 11, 25)), shift(new Date(y, 11, 26)),
+    ].map(isoD))];
+  });
+  const isTradingDay = (iso, hol) => dowOfIso(iso) !== 0 && dowOfIso(iso) !== 6 && !hol.has(iso);
+  const cmeStatus = (iso) => {
+    const wd = dowOfIso(iso);
+    if (wd === 0 || wd === 6) return { kind: "closed", reason: "weekend" };
+    const y = +iso.slice(0, 4);
+    if (cmeHolidays(y).includes(iso) || cmeHolidays(y + 1).includes(iso) || cmeHolidays(y - 1).includes(iso))
+      return { kind: "closed", reason: "holiday" };
+    for (const e of once(`eh${y}`, () => [
+      { iso: isoD(nthWd(y, 0, 1, 3)), hh: 12, mm: 0 }, { iso: isoD(nthWd(y, 1, 1, 3)), hh: 12, mm: 0 },
+      { iso: isoD(lastWd(y, 4, 1)), hh: 12, mm: 0 }, { iso: isoD(nthWd(y, 8, 1, 1)), hh: 12, mm: 0 },
+    ])) if (e.iso === iso && dowOfIso(e.iso) !== 0 && dowOfIso(e.iso) !== 6) return { kind: "early-halt", hh: e.hh, mm: e.mm };
+    for (const e of once(`ec${y}`, () => {
+      const jul4 = new Date(y, 6, 4);
+      return [
+        { iso: isoD(addD(nthWd(y, 10, 4, 4), 1)), hh: 13, mm: 15 },
+        { iso: `${y}-12-24`, hh: 13, mm: 15 }, { iso: `${y}-12-31`, hh: 13, mm: 15 },
+        ...(jul4.getDay() === 6 ? [{ iso: isoD(addD(jul4, -2)), hh: 12, mm: 0 }] : []),
+      ];
+    })) if (e.iso === iso && dowOfIso(e.iso) !== 0 && dowOfIso(e.iso) !== 6) return { kind: "early", hh: e.hh, mm: e.mm };
+    return { kind: "open" };
+  };
+
+  const rank = { open: 0, halt: 1, close: 2 };
+  const boundsCache = new Map();
+  function boundsAround(centerIso) {
+    if (!boundsCache.has(centerIso)) {
+      const out = [];
+      for (let i = -4; i <= 11; i++) {
+        const D = addIso(centerIso, i), st = cmeStatus(D);
+        if (st.kind === "closed") continue;
+        out.push({ ms: wallUTC(CT, addIso(D, -1), 17, 0), t: "open", iso: D });
+        if (st.kind === "early") out.push({ ms: wallUTC(CT, D, st.hh, st.mm), t: "close", iso: D });
+        else if (cmeStatus(addIso(D, 1)).kind === "closed") out.push({ ms: wallUTC(CT, D, 16, 0), t: "close", iso: D });
+        else {
+          if (st.kind === "early-halt") out.push({ ms: wallUTC(CT, D, st.hh, st.mm), t: "halt", iso: D });
+          out.push({ ms: wallUTC(CT, D, 16, 0), t: "halt", iso: D });
+        }
+      }
+      out.sort((a, b) => a.ms - b.ms || rank[a.t] - rank[b.t]);
+      boundsCache.set(centerIso, out);
+    }
+    return boundsCache.get(centerIso);
+  }
+  /* trading-day window for iso (open → its final halt/close), or null when closed */
+  function windowFor(iso) {
+    const bs = boundsAround(iso);
+    const open = bs.find((b) => b.t === "open" && b.iso === iso);
+    if (!open) return null;
+    const mine = bs.filter((b) => b.iso === iso && b.t !== "open");
+    return { open: open.ms, end: mine.length ? mine[mine.length - 1].ms : open.ms + 1380 * 60000, iso };
+  }
+  /* phase at instant: which boundary segment contains now.
+     anchors its own ±day window so far-frozen ?at= mockups stay honest */
+  function phaseAt(ms) {
+    const bs = boundsAround(hktIsoAt(ms));
+    let cur = null;
+    for (const b of bs) { if (b.ms <= ms) cur = b; else break; }
+    const next = bs.find((b) => b.ms > ms) || null;
+    /* S09 fix (was: dead branch): closed days produce no bounds, so a
+       HOLIDAY MONDAY's last bound is friday's close and the reason
+       derivation mislabelled it "weekend". the hkt day itself is the
+       truth — if it is a cme holiday, say so. */
+    const todaySt = cmeStatus(hktIsoAt(ms));
+    if (todaySt.kind === "closed" && todaySt.reason === "holiday")
+      return { phase: "closed", reason: "holiday", untilMs: next?.ms ?? ms };
+    if (!cur || cur.t === undefined) return { phase: "closed", reason: "weekend", untilMs: next?.ms ?? ms };
+    if (cur.t === "open") return { phase: "open", untilMs: next.ms, iso: cur.iso };
+    if (cur.t === "halt") {
+      const st = cmeStatus(cur.iso);
+      return { phase: "halt", early: st.kind === "early-halt", untilMs: next.ms, iso: cur.iso };
+    }
+    const st = cmeStatus(cur.iso);
+    const reason = st.kind === "early" ? "early close"
+      : dowOfIso(cur.iso) === 5 ? "weekend" : "holiday";
+    return { phase: "closed", reason, untilMs: next?.ms ?? ms };
+  }
+  /* the CME trading day the cockpit should display for a given strip selection:
+     when "today" is selected, sessions past hkt-midnight still belong to
+     yesterday's trading day — chrome follows cme, the strip follows the calendar */
+  function effIso() {
+    if (selOff !== 0) return atIso(selOff);
+    const ph = phaseAt(nowMs());
+    return ph.iso ?? atIso(0);
+  }
+
+  /* cash-equity session spans (utc ms) inside cme trading day iso */
+  function sessSpans(iso) {
+    const st = cmeStatus(iso);
+    if (st.kind === "closed") return null;
+    const win = windowFor(iso);
+    const clampEnd = st.kind === "early" ? wallUTC(CT, iso, st.hh, st.mm) : win.end;
+    const mk = (tz, aH, aM, bH, bM) => {
+      const s = wallUTC(tz, iso, aH, aM), e = wallUTC(tz, iso, bH, bM);
+      if (e <= win.open || s >= clampEnd) return null;
+      return [Math.max(s, win.open), Math.min(e, clampEnd)];
+    };
+    const jp = new Set(japanHolidays(+iso.slice(0, 4)));
+    const uk = new Set(ukHolidays(+iso.slice(0, 4)));
+    const us = new Set(nyseHolidays(+iso.slice(0, 4)));
+    const usEarly = nyseHolidays(+iso.slice(0, 4)).includes(iso) ? null :
+      (st.kind === "early" ? 13 : 16);
+    const tok = [];
+    if (isTradingDay(iso, jp)) {
+      const a = mk("Asia/Tokyo", 9, 0, 11, 30), b = mk("Asia/Tokyo", 12, 30, 15, 30);
+      if (a) tok.push(a); if (b) tok.push(b);
+    }
+    const lon = isTradingDay(iso, uk) ? [mk("Europe/London", 8, 0, 16, 30)].filter(Boolean) : [];
+    const nyc = isTradingDay(iso, us) && usEarly ? [mk("America/New_York", 9, 30, usEarly, 0)].filter(Boolean) : [];
+    return { tok, lon, nyc };
+  }
+
+  /* ================================================================
+     STATE — virtual now, selected day, events tape
+     ================================================================ */
+  const NOW0 = nowMs();
+  const TODAY_ISO = hktIsoAt(NOW0);
+  const TODAY = dateOfIso(TODAY_ISO);
+  let selOff = 0;
+  let evTab = qs.get("events") || "day";
+  if (!["day", "wk"].includes(evTab)) evTab = "day";
+  let NEWS = null;
+
+  /* ---- calendar strip ---- */
+  const STRIP_LO = -14, STRIP_HI = 28;
+  const strip = $("strip");
+  const cells = [];
+  const HOLIDAY_OFF = 3, UNLOGGED = new Set([-5, -8]);
+  const hash = (s) => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); };
+  const atIso = (off) => addIso(TODAY_ISO, off);
+  const kindOf = (off) => {
+    const d = dateOfIso(atIso(off)), dow = d.getUTCDay();
+    if (off === HOLIDAY_OFF) return "holiday";
+    if (dow === 0 || dow === 6) return "weekend";
+    if (off < 0 && !UNLOGGED.has(off)) return "logged";
+    if (off < 0) return "missed";
+    return off === 0 ? "today" : "future";
+  };
+  for (let off = STRIP_LO; off <= STRIP_HI; off++) {
+    const iso = atIso(off), d = dateOfIso(iso), k = kindOf(off);
+    const prev = off > STRIP_LO ? dateOfIso(atIso(off - 1)) : null;
+    const isMonthStart = !prev || d.getUTCMonth() !== prev.getUTCMonth();
+    const b = document.createElement("button");
+    b.className = "day-cell" +
+      (k === "weekend" || k === "holiday" ? " is-off" : "") +
+      (k === "logged" ? " is-logged" : "") +
+      (k === "holiday" ? " is-holiday" : "") +
+      (off === 0 ? " is-today" : "") +
+      (isMonthStart ? " is-month" : "");
+    b.dataset.off = off;
+    b.setAttribute("aria-pressed", String(off === 0));
+    if (off === 0) b.setAttribute("aria-current", "date");
+    const dowTxt = off === 0 ? "today" : isMonthStart ? MONTHS[d.getUTCMonth()] : DOWS[d.getUTCDay()];
+    b.innerHTML = `<span class="dow">${dowTxt}</span>` +
+                  `<span class="dom">${pad(d.getUTCDate())}</span><span class="mark"></span>`;
+    strip.appendChild(b); cells.push(b);
+  }
+  const IDX = (off) => off - STRIP_LO;
+  const statsFor = (iso) => {
+    const h = hash(iso);
+    const r = ((h % 520) - 180) / 100;
+    return { r, trades: 1 + h % 6, pnl: Math.round(r * 250),
+             mood: ["sharp","clear","flat","wired","tired"][h % 5],
+             sleep: (62 + h % 20 / 10).toFixed(1) };
+  };
+
+  /* ---- chrono band ---- */
+  const band = $("band"), nowmark = $("nowmark"), ruler = $("ruler"), bandCap = $("band-cap");
+  function buildBand() {
+    band.querySelectorAll(".sp,.pin").forEach((n) => n.remove());
+    ruler.innerHTML = "";
+    const iso = effIso();
+    const win = windowFor(iso);
+    const spans = sessSpans(iso);
+    const pct = (ms) => ((ms - win.open) / (win.end - win.open) * 100).toFixed(3) + "%";
+    if (!win) {
+      band.classList.add("is-dim");
+      nowmark.style.display = "none";
+      const why = cmeStatus(iso).reason;
+      bandCap.hidden = false;
+      bandCap.textContent = `no cme session · ${why}`;
+      return;
+    }
+    bandCap.hidden = true;
+    band.classList.remove("is-dim");
+    for (const [name, arr] of Object.entries(spans || {})) {
+      for (const [s, e] of arr) {
+        const f = document.createElement("div");
+        f.className = `sp s-${name}`;
+        f.style.left = pct(s);
+        f.style.width = ((e - s) / (win.end - win.open) * 100).toFixed(3) + "%";
+        band.appendChild(f);
+      }
+    }
+    for (let k = 180; k < 1380; k += 180) {
+      const major = k % 360 === 0;
+      const t = document.createElement("i");
+      t.className = "tick" + (major ? " major" : "");
+      t.style.left = (k / 1380 * 100).toFixed(3) + "%";
+      ruler.appendChild(t);
+      if (major) {
+        const lab = document.createElement("span");
+        lab.className = "tlab";
+        lab.style.left = (k / 1380 * 100).toFixed(3) + "%";
+        lab.textContent = hkHHMM(win.open + k * 60000).slice(0, 2);
+        ruler.appendChild(lab);
+      }
+    }
+    if (NEWS) {
+      for (const ev of NEWS.flat) {
+        if (ev.iso !== iso) continue;
+        const p = document.createElement("button");
+        p.className = "pin" + (ev.kind === "red" ? " is-red" : "");
+        p.dataset.ms = ev.ms;
+        p.style.left = pct(Math.min(Math.max(ev.ms, win.open + 60000), win.end - 60000));
+        p.setAttribute("aria-label", `${ev.kind} ${ev.time} ${ev.title}`);
+        p.addEventListener("click", () => showPopAt(p,
+          `<p class="pop-line"><b class="${ev.kind === "red" ? "num-down" : ""}">${ev.kind}</b> ${esc(ev.title)}<span>${ev.time} hkt · ${ev.src.toLowerCase()}${ev.v ? " ✓" : ""}</span></p>`));
+        band.appendChild(p);
+      }
+    }
+    band.dataset.open = win.open; band.dataset.end = win.end;
+  }
+
+  /* ---- ticking readouts ---- */
+  const hkFmt = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Hong_Kong", hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const ctFmt = new Intl.DateTimeFormat("en-US", { timeZone: CT, hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+  const MKT_LABEL = { open: ["cme · open", "is-open"], halt: ["cme · halt", "is-open"], closed: ["cme · closed", ""] };
+  /* S09: the cme day rolls at 17:00 ct while the app is open — when the
+     effective day flips, the band must rebuild (yesterday's spans/pins
+     went stale); a 1s tick used to leave it dimmed on the old day */
+  let bandIso = null;
+  function renderClock() {
+    const now = nowMs();
+    const isoRolled = effIso();
+    if (isoRolled !== bandIso) { bandIso = isoRolled; buildBand(); }
+    $("clk-hkt").textContent = hkFmt.format(now);
+    $("clk-hkt-s").textContent = LIVE ? pad(new Date(now).getSeconds()) : pad(new Date(now + 8 * 3600e3).getUTCSeconds());
+    $("clk-ct").textContent = ctFmt.format(now);
+
+    const ph = phaseAt(now);
+    const live = ph.phase === "open";
+    $("topbar").classList.toggle("is-live", live);
+
+    const [label, cls] = ph.phase === "closed" && ph.reason === "holiday"
+      ? ["cme · holiday", "is-holiday"] : MKT_LABEL[ph.phase];
+    $("mkt-label").textContent = label;
+    $("mkt").className = "capsule mkt " + cls;
+
+    const remainS = Math.max(0, Math.floor((ph.untilMs - now) / 1000));
+    const verb = ph.phase === "open" ? "closes" : ph.phase === "halt" ? "resumes" : "opens";
+    $("mkt-cd").textContent = fmtDur(remainS * 1000);
+    const target = ph.untilMs;
+    const extra = ph.phase === "closed" ? ` · ${ph.reason}` : "";
+    $("next-change").innerHTML =
+      `${verb} in <b>${fmtDur(remainS * 1000)}</b> · ${hkHHMM(target)} hkt${extra}`;
+
+    /* band now-mark + dim */
+    const winOpen = +band.dataset.open, winEnd = +band.dataset.end;
+    const inWin = Number.isFinite(winOpen) && now >= winOpen && now < winEnd;
+    const iso = effIso();
+    const st = cmeStatus(iso);
+    band.classList.toggle("is-dim", !inWin);
+    nowmark.style.display = inWin ? "" : "none";
+    if (inWin) nowmark.style.left = `calc(${((now - winOpen) / (winEnd - winOpen) * 100).toFixed(3)}% - 1px)`;
+
+    /* sessions rail */
+    const spans = sessSpans(iso);
+    const railDefs = [["tok", spans?.tok], ["lon", spans?.lon], ["nyc", spans?.nyc]];
+    for (const [name, arr] of railDefs) {
+      const el = $("sess-" + name), stEl = $("st-" + name), swEl = $("sw-" + name);
+      el.classList.remove("is-live");
+      if (!arr || !arr.length) {
+        stEl.textContent = "closed";
+        swEl.textContent = "no session";
+        continue;
+      }
+      swEl.textContent = `${hkHHMM(arr[0][0])}–${hkHHMM(arr[arr.length - 1][1])} hkt`;
+      const cur = arr.find(([s, e]) => now >= s && now < e);
+      if (cur) {
+        el.classList.add("is-live");
+        stEl.innerHTML = `<span class="live-dot" aria-hidden="true"></span>live · <b>${fmtDur(cur[1] - now)}</b> left`;
+      } else if (name === "tok" && arr.length === 2 && now >= arr[0][1] && now < arr[1][0]) {
+        stEl.innerHTML = `back in <b>${fmtDur(arr[1][0] - now)}</b>`;
+      } else {
+        const nx = arr.find(([s]) => s > now);
+        if (!nx) stEl.textContent = now >= winEnd ? "done" : "closed";
+        else if (now < winOpen) stEl.textContent = "scheduled";
+        else stEl.innerHTML = `opens in <b>${fmtDur(nx[0] - now)}</b>`;
+      }
+    }
+
+    /* day-progress hairline */
+    if (Number.isFinite(winOpen) && st.kind !== "closed") {
+      const p = Math.min(100, Math.max(0, (Math.min(now, winEnd) - winOpen) / (winEnd - winOpen) * 100));
+      $("prog-fill").style.width = p.toFixed(1) + "%";
+      $("prog-cap").textContent = inWin
+        ? `cme day ${Math.round(p)}% · ${fmtDur(remainS * 1000)} to ${ph.phase === "open" ? "close" : "resume"}`
+        : `${iso} · session ${Math.round(p)}%`;
+    } else {
+      $("prog-fill").style.width = "0%";
+      $("prog-cap").textContent = `no session · ${st.reason}`;
+    }
+
+    /* sim chrome */
+    if (!LIVE) {
+      $("sim-chip").hidden = false;
+      const o = tzParts("Asia/Hong_Kong", now);
+      $("today-date").textContent = `${DOWS[DOW_IDX[o.weekday]]} ${o.day} ${MONTHS[+o.month - 1]} · ${o.hour}:${o.minute} hkt · mock`;
+    } else {
+      $("today-date").textContent = fmtDay(TODAY);
+    }
+  }
+
+  /* ---- events tape ---- */
+  async function loadNews() {
+    if (qs.get("err") === "news") {   /* S09: pins the degraded state for review */
+      NEWS = { cachedAt: null, sources: {}, flat: [], failed: true };
+      buildBand();
+      renderEvents();
+      return;
+    }
+    try {
+      const j = await fetch("/st/data/news.json?v=r6").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      const flat = [];
+      for (const [iso, d] of Object.entries(j.days || {})) {
+        const win = windowFor(iso);
+        const base = win ? win.open : Date.parse(`${iso}T06:00:00+08:00`);
+        for (const kind of ["red", "orange"]) {
+          for (const ev of d[kind] || []) {
+            let ms = Date.parse(`${iso}T${ev.time}:00+08:00`);
+            if (!Number.isFinite(ms)) continue;
+            if (ms < base) ms += 86400000;
+            flat.push({ ms, iso, time: ev.time, title: ev.title, kind, src: ev.src || "?", v: !!ev.v });
+          }
+        }
+      }
+      flat.sort((a, b) => a.ms - b.ms);
+      NEWS = { cachedAt: j.cachedAt, sources: j.sources || {}, flat };
+    } catch {
+      NEWS = { cachedAt: null, sources: {}, flat: [], failed: true };
+    }
+    buildBand();       // pins
+    renderEvents();
+  }
+  /* folders both hollow — severity lives in hue + weight (red reads louder
+     through stroke weight, not a solid slab), per owner feedback */
+  const foldSvg = (red) => red
+    ? `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1.5 3A1.5 1.5 0 0 1 3 1.5h2.2l1 1.3H9A1.5 1.5 0 0 1 10.5 4.3v4.2A1.5 1.5 0 0 1 9 10H3a1.5 1.5 0 0 1-1.5-1.5Z"/></svg>`
+    : `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.1" aria-hidden="true"><path d="M1.5 3A1.5 1.5 0 0 1 3 1.5h2.2l1 1.3H9A1.5 1.5 0 0 1 10.5 4.3v4.2A1.5 1.5 0 0 1 9 10H3a1.5 1.5 0 0 1-1.5-1.5Z"/></svg>`;
+  const mondayOf = (iso) => {
+    const wd = dowOfIso(iso);
+    return addIso(iso, wd === 0 ? -6 : 1 - wd);
+  };
+  const hkDateOf = (ms) => hktIsoAt(ms);
+
+  function renderEvents() {
+    if (!NEWS) return;
+    const now = nowMs();
+    /* S09: degraded calendar — calm note + retry, the clock keeps running */
+    if (NEWS.failed) {
+      const soonEl = $("ev-next");
+      soonEl.classList.remove("is-red", "is-orange", "is-soon");
+      $("ev-next-fold").innerHTML = "";
+      $("ev-next-ttl").textContent = "calendar unavailable";
+      delete $("ev-next-cd").dataset.cd;
+      $("ev-next-cd").textContent = "";
+      const body = $("ev-body");
+      body.innerHTML = `<p class="note note-warn" role="alert">calendar unavailable — the session clock is unaffected.<button class="note-act" id="ev-retry" type="button">retry</button></p>`;
+      body.querySelector("#ev-retry").addEventListener("click", () => {
+        body.innerHTML = `<div class="ev-list" aria-hidden="true"><i class="skel" style="width:72%;height:10px;display:block"></i></div>`;
+        const u = new URL(location); u.searchParams.delete("err"); qs.delete("err"); history.replaceState(null, "", u);
+        loadNews();
+      });
+      return;
+    }
+    /* hero: next event anywhere — carries its own folder colour */
+    const nx = NEWS.flat.find((e) => e.ms > now);
+    const soonEl = $("ev-next");
+    soonEl.classList.remove("is-red", "is-orange");
+    if (nx) {
+      const soon = nx.ms - now <= 15 * 60000;
+      soonEl.classList.toggle("is-soon", soon);
+      soonEl.classList.add(`is-${nx.kind}`);
+      $("ev-next-fold").innerHTML = foldSvg(nx.kind === "red");
+      $("ev-next-ttl").textContent = `${nx.title} · ${nx.time} hkt`;
+      $("ev-next-cd").dataset.cd = nx.ms;
+    } else {
+      soonEl.classList.remove("is-soon");
+      $("ev-next-fold").innerHTML = "";
+      $("ev-next-ttl").textContent = "no polled events ahead";
+      delete $("ev-next-cd").dataset.cd;
+      $("ev-next-cd").textContent = "";
+    }
+
+    document.querySelectorAll("#ev-tabs [data-ev]").forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.dataset.ev === evTab)));
+    const body = $("ev-body"), scope = $("ev-scope");
+
+    if (evTab === "day") {
+      const iso = effIso();
+      const d = dateOfIso(iso);
+      scope.textContent = `usd · ${DOWS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+      const rows = NEWS.flat.filter((e) => e.iso === iso);
+      if (!rows.length) {
+        body.innerHTML = `<div class="ev-list"><p class="empty" style="padding:var(--s3)">no usd events on this session.</p></div>`;
+        return;
+      }
+      let nextSeen = false;
+      body.innerHTML = `<div class="ev-list">` + rows.map((e) => {
+        const past = e.ms <= now;
+        const isNext = !past && !nextSeen && (nextSeen = true);
+        return `<button class="ev-row is-${e.kind}${past ? " is-past" : ""}${isNext ? " is-next" : ""}${e.v ? " is-verified" : ""}" data-ms="${e.ms}">
+          <span class="fold">${foldSvg(e.kind === "red")}</span>
+          <span class="ev-t">${e.time}</span>
+          <span class="ttl">${esc(e.title)}</span>
+          <span class="srcs">${e.src.toLowerCase()}${e.v ? " ✓" : ""}</span>
+          ${!past ? `<span class="ev-cd" data-cd="${e.ms}"></span>` : ""}
+        </button>`;
+      }).join("") + `</div>`;
+    } else {
+      /* week view — tap a day to expand its event list inline */
+      const mon = mondayOf(TODAY_ISO);
+      const md = dateOfIso(mon);
+      scope.textContent = `usd · week of ${md.getUTCDate()} ${MONTHS[md.getUTCMonth()]}`;
+      const byDate = new Map();
+      for (const e of NEWS.flat) {
+        const dk = hkDateOf(e.ms);
+        if (!byDate.has(dk)) byDate.set(dk, []);
+        byDate.get(dk).push(e);
+      }
+      let openIso = TODAY_ISO;
+      if (!byDate.has(openIso)) {
+        for (let i = 1; i <= 7; i++) { const k = addIso(mon, i); if ((byDate.get(k) || []).length) { openIso = k; break; } }
+      }
+      body.innerHTML = `<div class="wk-list">` + Array.from({ length: 7 }, (_, i) => {
+        const iso = addIso(mon, i), rows = byDate.get(iso) || [];
+        const red = rows.filter((e) => e.kind === "red").length;
+        const org = rows.length - red;
+        const hd = (rows.find((e) => e.kind === "red") || rows[0]);
+        const d = dateOfIso(iso);
+        const detail = rows.length
+          ? rows.map((e) => `<div class="ev-row is-${e.kind} is-flat">
+              <span class="fold">${foldSvg(e.kind === "red")}</span>
+              <span class="ev-t">${e.time}</span>
+              <span class="ttl">${esc(e.title)}</span>
+              <span class="srcs">${e.src.toLowerCase()}${e.v ? " ✓" : ""}</span>
+            </div>`).join("")
+          : `<p class="empty" style="padding: var(--s2) var(--s2) var(--s3);">no usd events.</p>`;
+        return `<div class="wk-item">
+          <button class="wk-row${iso === TODAY_ISO ? " is-today" : ""}${(d.getUTCDay() === 0 || d.getUTCDay() === 6) ? " is-off" : ""}${iso === openIso && rows.length ? " is-open" : ""}" data-day="${iso}" aria-expanded="${iso === openIso && rows.length ? "true" : "false"}">
+            <span class="chev" aria-hidden="true">›</span>
+            <span class="d">${DOWS[d.getUTCDay()]} ${pad(d.getUTCDate())}</span>
+            <span class="cnt">${red ? `<span class="badge red">● ${red}</span>` : ""}${org ? `<span class="badge orange">○ ${org}</span>` : ""}</span>
+            <span class="hd">${hd ? esc(hd.title) : rows.length ? `${org} medium` : "—"}</span>
+          </button>
+          <div class="wk-detail"${iso === openIso && rows.length ? "" : " hidden"}>${detail}</div>
+        </div>`;
+      }).join("") + `</div>`;
+      body.querySelectorAll(".wk-row").forEach((r) =>
+        r.addEventListener("click", () => {
+          const det = r.nextElementSibling;
+          const open = det.hidden;
+          det.hidden = !open;
+          r.classList.toggle("is-open", open);
+          r.setAttribute("aria-expanded", String(open));
+        }));
+    }
+
+    updateCds();
+  }
+  function updateCds() {
+    const now = nowMs();
+    const heroCd = $("ev-next-cd");
+    if (heroCd.dataset.cd) {
+      const left = +heroCd.dataset.cd - now;
+      heroCd.textContent = left > 0 ? `in ${fmtDur(left, left <= 15 * 60000)}` : "now";
+    }
+    document.querySelectorAll("[data-cd]").forEach((el) => {
+      const left = +el.dataset.cd - now;
+      el.textContent = left > 0 ? `in ${fmtDur(left, left <= 15 * 60000)}` : "now";
+    });
+  }
+
+  $("ev-tabs").addEventListener("click", (e) => {
+    const v = e.target.dataset.ev;
+    if (!v) return;
+    evTab = v;
+    const u = new URL(location); u.searchParams.set("events", v); history.replaceState(null, "", u);
+    renderEvents();
+  });
+
+  /* ---- selection ---- */
+  function select(off, focusCell) {
+    selOff = off;
+    const iso = atIso(off), d = dateOfIso(iso), k = kindOf(off);
+    cells.forEach((c) => {
+      const on = +c.dataset.off === off;
+      c.setAttribute("aria-pressed", String(on));
+      c.tabIndex = on ? 0 : -1;
+    });
+    $("focus-line").textContent =
+      `${DOWS[d.getUTCDay()]} ${fmtDay(d)} · ` +
+      ({ logged: "logged", missed: "trading day · no log", today: "today", future: "ahead",
+         weekend: "weekend", holiday: "market holiday" }[k]);
+    $("day-title").textContent = fmtDay(d);
+    const stt = statsFor(iso);
+    $("day-r").textContent = `r ${stt.r >= 0 ? "+" : "−"}${Math.abs(stt.r).toFixed(1)}`;
+    $("day-r").className = "capsule num " + (stt.r >= 0 ? "capsule-up" : "capsule-down");
+    buildBand();
+    if (evTab === "day") renderEvents();
+    if (focusCell) focusCell.focus({ preventScroll: true });
+  }
+  strip.addEventListener("click", (e) => {
+    const c = e.target.closest(".day-cell");
+    if (c) select(+c.dataset.off, null);
+  });
+  strip.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    const off = Math.max(STRIP_LO, Math.min(STRIP_HI, selOff + (e.key === "ArrowRight" ? 1 : -1)));
+    select(off, cells[IDX(off)]);
+  });
+
+  /* ---- popovers (long-press stats + event detail) ---- */
+  let lp = null, pop = null, popAnchor = null;
+  function closePop() { pop?.remove(); pop = null; popAnchor = null; }
+  function placePop(cell) {
+    const r = cell.getBoundingClientRect(), pw = pop.offsetWidth, ph2 = pop.offsetHeight;
+    let x = r.left + r.width / 2 - pw / 2;
+    x = Math.max(8, Math.min(innerWidth - pw - 8, x));
+    let y = r.top - ph2 - 10;
+    if (y < 60) y = r.bottom + 10;
+    pop.style.left = x + "px"; pop.style.top = y + "px";
+  }
+  function showPopAt(el, html) {
+    closePop();
+    pop = document.createElement("div");
+    pop.className = "pop";
+    pop.setAttribute("role", "dialog");
+    pop.innerHTML = html;
+    document.body.appendChild(pop);
+    placePop(el);
+    popAnchor = el;
+  }
+  strip.addEventListener("pointerdown", (e) => {
+    const c = e.target.closest(".day-cell");
+    if (!c) return;
+    const sx = e.clientX, sy = e.clientY;
+    lp = setTimeout(() => {
+      lp = null;
+      const iso = atIso(+c.dataset.off), k = kindOf(+c.dataset.off);
+      let inner;
+      if (k === "logged" || k === "today") {
+        const stt = statsFor(iso);
+        inner = `<p class="label">${fmtDay(dateOfIso(iso))}</p>
+          <dl>
+            <div class="kv"><dt>r</dt><dd class="num ${stt.r >= 0 ? "num-up" : "num-down"}">${stt.r >= 0 ? "+" : "−"}${Math.abs(stt.r).toFixed(2)}</dd></div>
+            <div class="kv"><dt>pnl</dt><dd class="num">$${stt.pnl >= 0 ? "+" : "−"}${Math.abs(stt.pnl)}</dd></div>
+            <div class="kv"><dt>trades</dt><dd class="num">${stt.trades}</dd></div>
+            <div class="kv"><dt>mood / sleep</dt><dd>${stt.mood} · ${stt.sleep}h</dd></div>
+          </dl>`;
+      } else {
+        inner = `<p class="label">${fmtDay(dateOfIso(iso))}</p><p class="empty">no log for this day.</p>`;
+      }
+      showPopAt(c, inner);
+    }, 480);
+    const cancel = () => { clearTimeout(lp); lp = null; };
+    strip.addEventListener("pointermove", (mv) => {
+      if (Math.hypot(mv.clientX - sx, mv.clientY - sy) > 8) cancel();
+    }, { once: true });
+    strip.addEventListener("pointerup", cancel, { once: true });
+    strip.addEventListener("pointercancel", cancel, { once: true });
+  });
+  document.addEventListener("pointerdown", (e) => {
+    if (pop && !pop.contains(e.target) && e.target !== popAnchor && !popAnchor?.contains?.(e.target)) closePop();
+  }, true);
+  document.addEventListener("scroll", closePop, true);
+
+  /* ---- command palette ---- */
+  const ITEMS = [
+    { sec: "jump to day", label: "today", hint: "g t" },
+    { sec: "jump to day", label: "yesterday", hint: "g y" },
+    { sec: "jump to day", label: "last review (sun)", hint: "g r" },
+    { sec: "jump to day", label: "payout history", hint: "" },
+    { sec: "events", label: "next red folder", hint: "" },
+    { sec: "events", label: "this week", hint: "" },
+    { sec: "compose", label: "thought", hint: "n" },
+    { sec: "compose", label: "quote", hint: "q" },
+    { sec: "compose", label: "trade", hint: "t" },
+    { sec: "rituals", label: "start quiet", hint: "" },
+    { sec: "rituals", label: "soundscapes", hint: "" },
+    { sec: "rituals", label: "21-day chain", hint: "" },
+    { sec: "archive", label: "all days", hint: "" },
+    { sec: "archive", label: "period tape", hint: "" },
+    { sec: "settings", label: "accounts", hint: "", url: "accounts.html" },
+    { sec: "settings", label: "library", hint: "", url: "library.html" },
+    { sec: "settings", label: "media", hint: "", url: "media.html" },
+    { sec: "settings", label: "zen settings", hint: "", url: "settings.html" },
+  ];
+  const palette = $("palette"), palInput = $("pal-input"), palList = $("pal-list");
+  let visible = [], cursor = 0, lastFocus = null;
+  const recents = () => JSON.parse(sessionStorage.getItem("zen-recents") || "[]");
+  function fuzzy(q, hay) {
+    q = q.toLowerCase(); hay = hay.toLowerCase();
+    const idx = hay.indexOf(q);
+    if (idx >= 0) return idx === 0 || hay[idx - 1] === " " ? 0 : 1;
+    let i = 0;
+    for (const ch of hay) if (ch === q[i]) i++;
+    return i === q.length ? 2 : -1;
+  }
+  function renderPal() {
+    const q = palInput.value.trim();
+    let pool = [...ITEMS];
+    if (!q) {
+      const rs = recents().map(label => ITEMS.find(i => i.label === label)).filter(Boolean)
+        .map(i => ({ ...i, sec: "recent" }));
+      pool = [...rs, ...ITEMS.filter(i => !rs.some(r => r.label === i.label))];
+    } else {
+      pool = ITEMS.map(i => ({ item: i, s: fuzzy(q, i.label + " " + i.sec) }))
+        .filter(x => x.s >= 0).sort((a, b) => a.s - b.s).map(x => x.item);
+    }
+    visible = pool; cursor = 0;
+    let html = "", lastSec = null;
+    pool.forEach((i, n) => {
+      if (i.sec !== lastSec) { html += `<p class="pal-sec">${i.sec}</p>`; lastSec = i.sec; }
+      html += `<div class="pal-item" role="option" id="pal-o${n}" data-i="${n}" data-active="${n === cursor}" aria-selected="${n === cursor}">
+                 <span class="grow">${i.label}</span><span class="hint">${i.hint}</span></div>`;
+    });
+    palList.innerHTML = html || `<p class="pal-empty empty">nothing matches “${q.replace(/</g, "&lt;")}”.</p>`;
+    palInput.setAttribute("aria-activedescendant", pool.length ? `pal-o${cursor}` : "");
+  }
+  function moveCursor(d) {
+    if (!visible.length) return;
+    cursor = (cursor + d + visible.length) % visible.length;
+    palList.querySelectorAll(".pal-item").forEach(el =>
+      el.dataset.active = String(+el.dataset.i === cursor));
+    palList.querySelector(`[data-i="${cursor}"]`)?.scrollIntoView({ block: "nearest" });
+    palInput.setAttribute("aria-activedescendant", `pal-o${cursor}`);
+  }
+  function pick() {
+    const it = visible[cursor];
+    if (!it) return;
+    const rs = recents().filter(l => l !== it.label); rs.unshift(it.label);
+    sessionStorage.setItem("zen-recents", JSON.stringify(rs.slice(0, 3)));
+    palette.close();
+    if (it.label === "next red folder" && NEWS) {
+      const nx = NEWS.flat.find((e) => e.ms > nowMs() && e.kind === "red");
+      toast(nx ? `next red · ${nx.title} · ${nx.time} hkt` : "no red folders ahead");
+    } else if (it.url) location.assign(it.url);
+    else toast(`mock → ${it.label}`);
+  }
+  function openPal() {
+    lastFocus = document.activeElement;
+    palInput.value = ""; renderPal();
+    palette.showModal();
+    setTimeout(() => palInput.focus(), 60);
+  }
+  palette.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); moveCursor(1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); moveCursor(-1); }
+    else if (e.key === "Enter") { e.preventDefault(); pick(); }
+  });
+  palInput.addEventListener("input", renderPal);
+  palList.addEventListener("click", (e) => {
+    const it = e.target.closest(".pal-item");
+    if (it) { cursor = +it.dataset.i; pick(); }
+  });
+  palette.addEventListener("click", (e) => { if (e.target === palette) palette.close(); });
+  palette.addEventListener("close", () => { closePop(); lastFocus?.focus?.({ preventScroll: true }); });
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); palette.open ? palette.close() : openPal(); }
+    else if (e.key === "/" && !palette.open && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) {
+      e.preventDefault(); openPal();
+    } else if (e.key === "Escape" && pop) closePop();
+  });
+  $("fab-k").addEventListener("click", openPal);
+  $("empty-compose").addEventListener("click", () => toast("mock → composer lands in s02"));
+
+  /* ---- demo rail: scenarios freeze virtual time (?at=) ---- */
+  function setParam(k, v) {
+    const u = new URL(location); u.searchParams.set(k, v);
+    history.replaceState(null, "", u);
+  }
+  const nextDowIso = (target) => {
+    for (let i = 1; i <= 7; i++) if (dowOfIso(addIso(TODAY_ISO, i)) === target) return addIso(TODAY_ISO, i);
+  };
+  const SCEN = {
+    asia: { dow: 2, h: 3, m: 30 },   /* tue 03:30 — cme live, asia grind */
+    tok:  { dow: 2, h: 9, m: 20 },   /* tue 09:20 — tok live */
+    lunch:{ dow: 2, h: 11, m: 50 },  /* tue 11:50 — tok lunch break */
+    lon:  { dow: 2, h: 16, m: 0 },   /* tue 16:00 — lon live */
+    ny:   { dow: 2, h: 22, m: 35 },  /* tue 22:35 — ny live */
+    halt: { dow: 3, h: 5, m: 20 },   /* wed 05:20 — cme maintenance halt */
+    late: { dow: 4, h: 3, m: 40 },   /* thu 03:40 — post-ny globex */
+    wknd: { dow: 6, h: 14, m: 0 },   /* sat 14:00 — all closed */
+    hol:  { iso: "2026-11-26", h: 22, m: 0 },  /* thanksgiving thursday */
+    holmon:{ iso: "2027-07-05", h: 22, m: 0 }, /* jul4 observed MONDAY — closed, label fix demo */
+    half: { iso: "2026-11-28", h: 2, m: 30 },  /* early-close morning, closing soon */
+    roll: { dow: 2, h: 5, m: 58 },   /* tue 05:58 — cme day rolls 06:00 hkt, watch it flip */
+  };
+  $("scen-seg").addEventListener("click", (e) => {
+    const key = e.target.dataset.scen;
+    if (!key) return;
+    const u = new URL(location);
+    if (key === "now") u.searchParams.delete("at");
+    else {
+      const s = SCEN[key];
+      const iso = s.iso || nextDowIso(s.dow);
+      u.searchParams.set("at", `${iso}T${pad(s.h)}:${pad(s.m)}`);
+    }
+    location.assign(u);
+  });
+  if (AT_MS !== null) {
+    for (const [key, s] of Object.entries(SCEN)) {
+      const iso = s.iso || nextDowIso(s.dow);
+      if (AT_MS === Date.parse(`${iso}T${pad(s.h)}:${pad(s.m)}+08:00`)) {
+        $(`#scen-seg [data-scen="${key}"]`)?.setAttribute("aria-pressed", "true");
+        break;
+      }
+    }
+  }
+
+  /* view + theme segs */
+  $("view-seg").addEventListener("click", (e) => {
+    const v = e.target.dataset.v; if (!v) return;
+    document.body.dataset.view = v;
+    document.querySelectorAll("#view-seg [data-v]").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.v === v)));
+    setParam("view", v);
+  });
+  if (qs.get("view") === "empty") {
+    document.body.dataset.view = "empty";
+    document.querySelectorAll("#view-seg [data-v]").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.v === "empty")));
+  }
+
+  /* ---- toast ---- */
+  let toastEl = null;
+  function toast(msg) {
+    toastEl?.remove();
+    toastEl = Object.assign(document.createElement("div"), { className: "fb-toast", textContent: msg });
+    document.body.appendChild(toastEl);
+    setTimeout(() => toastEl?.remove(), 2200);
+  }
+
+  /* ---- init + loop ---- */
+  if (LIVE) document.body.classList.add("live-tick");
+  select(0, null);
+  renderClock();
+  loadNews();
+  setInterval(() => { renderClock(); updateCds(); }, 1000);
+  /* centering must beat css snap: suspend snap for one frame */
+  function centerToday() {
+    const c = cells[IDX(0)];
+    strip.classList.add("no-snap");
+    strip.scrollLeft = c.offsetLeft - (strip.clientWidth - c.offsetWidth) / 2;
+    requestAnimationFrame(() => requestAnimationFrame(() => strip.classList.remove("no-snap")));
+  }
+  centerToday();
+  addEventListener("load", centerToday);
+})();
+</script>
+</body>
+</html>

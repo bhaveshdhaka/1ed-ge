@@ -1,0 +1,403 @@
+/* ============================================================
+   1edge today-rail primitives — THE DAY SURFACE
+   S03 · rev R1 · session C10 · consumes tokens.css + base.css
+   + frame.css (+ composer.css for card/toast/chip reuse),
+   adds ZERO literals (var()/color-mix() only).
+   Patterns: rail sections + jump navchips · facts strip with
+   bottom-sheet editors · trade accordion tickets (lazy detail,
+   fills, shots) · day events digest · stream cards + lightbox ·
+   reflection obligation chip + ai-draft stub.
+   iOS Safari primary: hit-slop to >=44pt on every control,
+   sheets dock bottom on coarse pointers (centered on desktop),
+   safe areas, :active feedback, reduced-motion guarded.
+   ============================================================ */
+
+/* ---- hidden wins over any author display rule (S02 gate lesson) ---- */
+[hidden] { display: none !important; }
+
+/* ---- rail sections: one rhythm, jump-addressable.
+   scroll-margin clears the sticky topbar chrome on jumps ---- */
+.rail-sec {
+    margin-top: var(--s7);
+    scroll-margin-top: 168px;
+}
+.sec-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s3);
+    min-height: 28px;
+    margin-bottom: var(--s3);
+}
+.sec-head .sec-title { margin: 0; }
+.sec-tools { display: flex; align-items: center; gap: var(--s2); flex: none; }
+
+/* ---- jump navchips: in-flow section legend (nothing sticky but the bar) ----
+   numbered mono index = order + terminal hint, tap = smooth scroll */
+.rail-nav {
+    display: flex;
+    gap: var(--s2);
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-top: var(--s5);
+}
+.rail-nav::-webkit-scrollbar { display: none; }
+.navchip {
+    position: relative;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 26px;
+    padding: 0 11px;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px var(--line);
+    color: var(--dim);
+    font-size: var(--text-2xs);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    transition: color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+}
+.navchip::after { content: ""; position: absolute; inset: -9px -4px; }   /* 26 + 18 = 44 */
+.navchip:active { background: var(--bg-overlay); color: var(--ink); }
+.navchip .n {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-3xs);
+    color: var(--faint);
+}
+
+/* ---- facts strip: one line per fact, tap row -> sheet editor.
+   computed lines (trades/day-r) are NOT editable — they jump instead ---- */
+.facts { padding: var(--s1) var(--s3); }
+.factrow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s3);
+    width: 100%;
+    min-height: 38px;
+    padding: var(--s1) 0;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    transition: background var(--t-fast);
+}
+.factrow:last-child { border-bottom: none; }
+.factrow::after { content: ""; position: absolute; inset: -3px -12px; }  /* 38 + 6 = 44 */
+.factrow:active { background: var(--bg-overlay); }
+.fact-k {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--dim);
+    font-size: var(--text-sm);
+}
+.fact-v {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    min-width: 0;
+    text-align: right;
+    font-size: var(--text-sm);
+    color: var(--ink);
+}
+.fact-v .fv-sep { color: var(--line3); }
+.fact-v .fv-open { color: var(--faint); font-size: var(--text-xs); }
+.fact-chev {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--faint);
+}
+.factrow.is-jump .fact-chev { transform: rotate(90deg); }
+.fv-ticks { display: inline-flex; gap: 4px; font-size: var(--text-xs); letter-spacing: 2px; }
+.fv-ticks .t-yes { color: var(--up); }
+.fv-ticks .t-no  { color: var(--faint); }
+
+/* ---- fact sheet editor: OPAQUE overlay (locked rule), iOS bottom sheet
+   on coarse pointers, centered dialog on desktop. Real form inside:
+   named inputs synced from chips/segments (composer grammar). ---- */
+dialog.sh {
+    width: min(520px, 100vw);
+    max-height: 86svh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+dialog.sh[open] { animation: pop-in var(--t-med) both; }
+/* bottom-sheet dock is a PHONE pattern: coarse pointer AND narrow
+   viewport (owner note, S06 r1 — an iPad is coarse too and read a
+   full-bleed sheet on a wide screen). Wide coarse (iPad) gets the
+   same centered opaque dialog as desktop. */
+@media (pointer: coarse) and (max-width: 640px) {
+    dialog.sh {
+        width: 100vw;
+        max-width: none;
+        margin: auto auto 0;
+        margin-top: auto;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        max-height: 88svh;
+        padding-bottom: calc(var(--s5) + env(safe-area-inset-bottom, 0px));
+        animation-name: sh-up;
+    }
+}
+@keyframes sh-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+}
+.sh-grab { display: none; }
+@media (pointer: coarse) and (max-width: 640px) {
+    .sh-grab {
+        display: block;
+        width: 36px;
+        height: 4px;
+        margin: 0 auto var(--s3);
+        border-radius: 999px;
+        background: var(--line3);
+    }
+}
+.sh-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s3);
+    margin-bottom: var(--s4);
+}
+.sh-title {
+    font-size: var(--text-md);
+    font-weight: 650;
+    letter-spacing: var(--track-tight);
+}
+.sh-sub {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-2xs);
+    color: var(--faint);
+}
+.sh-body { display: flex; flex-direction: column; gap: var(--s4); }
+.sh-field { display: flex; flex-direction: column; gap: 5px; }
+.sh-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--s2);
+    margin-top: var(--s5);
+}
+.sh-grid3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s3);
+}
+
+/* ---- trades: collapsed one-line rows -> full ticket accordion.
+   grid-rows 0fr->1fr keeps the expand pure-CSS and smooth;
+   ticket DOM injects lazily on first open (screenshots wait too) ---- */
+.tlist { display: flex; flex-direction: column; }
+.trow-wrap:last-child .trow { box-shadow: none; }
+.trow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 42px;
+    padding: var(--s1) var(--s2);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 0 -1px 0 var(--line);
+    text-align: left;
+    transition: background var(--t-fast);
+}
+.trow::after { content: ""; position: absolute; inset: -1px -8px; }      /* 42 + 2 = 44 */
+.trow:active { background: var(--bg-overlay); }
+.trow .t-time {
+    flex: none;
+    width: 42px;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-xs);
+    color: var(--dim);
+}
+.trow .t-setup {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    color: var(--soft);
+}
+.trow .chev {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--faint);
+    transition: transform var(--t-fast);
+}
+.trow[aria-expanded="true"] .chev { transform: rotate(90deg) scaleY(-1); }
+.tdisc { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-med); }
+.trow-wrap.is-open .tdisc { grid-template-rows: 1fr; }
+.tdisc-in { overflow: hidden; min-height: 0; }
+
+.ticket {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+    padding: var(--s1) var(--s2) var(--s3);
+    margin-left: 10px;
+    box-shadow: inset 2px 0 0 var(--line);
+}
+.tk-fills {
+    border-radius: var(--radius-sm);
+    background: var(--inset);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
+}
+.fill-row {
+    display: grid;
+    grid-template-columns: 46px 1fr 44px 34px;
+    gap: var(--s2);
+    padding: 5px var(--s2);
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-2xs);
+    color: var(--soft);
+}
+.fill-row + .fill-row { box-shadow: inset 0 1px 0 var(--line); }
+.fill-row .fx-t { color: var(--faint); }
+.fill-row .fx-q { text-align: right; }
+.fill-row .fx-s {
+    text-align: right;
+    font-size: var(--text-3xs);
+    letter-spacing: var(--track-wide);
+    text-transform: uppercase;
+    color: var(--faint);
+}
+.tk-shots { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.tk-shot {
+    position: relative;
+    width: 96px;
+    height: 64px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--line2);
+    transition: transform var(--t-fast);
+}
+.tk-shot:active { transform: scale(0.97); }
+.tk-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ---- stream image moment + lightbox (native dialog, retina-proof svg) -- */
+.card-img {
+    display: block;
+    width: 100%;
+    margin-top: var(--s2);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--line2);
+    transition: transform var(--t-fast);
+}
+.card-img:active { transform: scale(0.99); }
+.card-img img { display: block; width: 100%; height: auto; }
+
+dialog.lightbox {
+    width: 100vw;
+    height: 100svh;
+    max-width: none;
+    max-height: none;
+    padding: calc(env(safe-area-inset-top, 0px) + var(--s5))
+             var(--s4)
+             calc(env(safe-area-inset-bottom, 0px) + var(--s5));
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+dialog.lightbox::backdrop { background: var(--scrim); }
+.lb-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* ---- reflection: obligation chip + ai draft stub.
+   severity rides hue + weight on the outline, dot matches;
+   countdown inside the chip follows the duration grammar ---- */
+.state-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-2xs);
+    font-weight: 600;
+    white-space: nowrap;
+}
+.state-chip::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.75;
+}
+.state-chip.done {
+    color: var(--up);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--up) 34%, transparent);
+}
+.state-chip.due {
+    color: var(--warn);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 40%, transparent);
+}
+.state-chip.overdue {
+    color: var(--down);
+    font-weight: 700;
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--down) 48%, transparent);
+}
+.refl { padding: var(--s4); }
+.refl-text {
+    margin: 0;
+    font-size: var(--text-md);
+    line-height: 1.6;
+    color: var(--soft);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.refl-src { margin-top: var(--s2); }
+.refl-meta {
+    margin-top: var(--s3);
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+    font-size: var(--text-2xs);
+    letter-spacing: 0.04em;
+    color: var(--faint);
+}
+.refl-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--s2);
+    margin-top: var(--s3);
+    padding-top: var(--s3);
+    box-shadow: inset 0 1px 0 var(--line);
+}
+
+/* ---- events digest reuses frame ev-* primitives; card wrapper only ---- */
+.ev-card { padding: var(--s3) var(--s3) var(--s2); }
+.ev-card .ev-list { margin-top: var(--s1); }
+
+/* ---- composer stub: quiet pointer to the capture surface (s02 owns it).
+   mode buttons are REAL links into composer presets — no fake inputs ---- */
+.cstub { padding: var(--s3) var(--s4) var(--s4); }
+.cstub-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s2);
+}
+.cstub-note {
+    margin: var(--s3) 0 0;
+    font-size: var(--text-sm);
+    color: var(--faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tdisc { transition: none; }
+}

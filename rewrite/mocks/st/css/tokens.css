@@ -1,0 +1,119 @@
+/* ============================================================
+   1edge tokens — DARK CANON · variant A (Linear × Apple hybrid)
+   S00 · rev R4 · session C04 · DRAFT until owner freeze
+   (values unchanged since R3; R4 = theme wiring + iOS zoom fixes)
+   Owner picked variant A in writing 2026-08-24; variant B retired.
+   ------------------------------------------------------------
+   THEME MODEL: this file is the dark canon. Light lives in
+   tokens-light.css (same property names), loaded by pages as
+   #ls-auto under media="(prefers-color-scheme: light)" and as
+   #ls-force for manual override — st/js/theme.js drives it.
+   No-JS = pure system-following. Geometry, spacing, motion and
+   all property NAMES are identical across themes.
+   ------------------------------------------------------------
+   ADOPTED SYSTEMS (tweaked, never invented — owner directive):
+   · LINEAR dark-app surface model — canvas → raised → overlay
+     separated by LUMINANCE steps, white-alpha hairlines, flat
+     resting panels (depth lives only in floating chrome),
+     single indigo accent (brand hue ≈ #5e6ad2, lifted one step
+     for dark canvas) used surgically, ~30px controls, ease-out
+     micro-motion, glow focus halos.
+   · APPLE HIG / iOS materials — SF(system) voice; blur+
+     saturate "material" reserved for FLOATING CHROME over
+     content (nav bars, pills, menus); sheets/dialogs stay
+     OPAQUE over a plain dim scrim; 44pt targets (visual
+     controls may be smaller with invisible hit-slop); safe
+     areas via env(); svh units.
+   · RADIX COLORS dark 12-step semantics — step map:
+     1 → --bg · 2 → --bg-raise · 3/4 → --line · 5 → --line2
+     6/7 → --line3 · 9/10 → --accent/--accent-hi
+     11 → ink ladder (faint<dim<soft) · 12 → --ink
+   DATA COLORS are the only saturated moments (green/red data
+   only). Property NAMES are API — base.css + screens depend
+   on them; variants A/B differ by VALUES only.
+   ============================================================ */
+
+:root {
+    color-scheme: dark;
+
+    /* ---- surface ladder (Radix steps 1–2) ---- */
+    --bg: #0b0d12;
+    --bg-raise: rgba(255, 255, 255, 0.034);
+    --bg-overlay: rgba(255, 255, 255, 0.06);
+    --inset: rgba(0, 0, 0, 0.30);
+    --surface-solid: #151820;              /* overlays/modals: OPAQUE (locked rule: no glass on sheets) */
+    --material: rgba(17, 20, 28, 0.68);    /* floating-chrome fill, pre-blur (iOS material analog) */
+    --blur: 20px;
+    --edge-hi: rgba(255, 255, 255, 0.045); /* Linear "light catches the top edge" */
+    --ambient: rgba(117, 131, 216, 0.05);  /* page-corner ambience, accent-derived */
+
+    /* ---- hairlines / edges (white-alpha, never opaque gray) ---- */
+    --line: rgba(255, 255, 255, 0.06);
+    --line2: rgba(255, 255, 255, 0.11);
+    --line3: rgba(255, 255, 255, 0.18);
+
+    /* ---- ink ladder ---- */
+    --ink: rgba(239, 242, 247, 0.95);
+    --soft: rgba(239, 242, 247, 0.60);
+    --dim: rgba(239, 242, 247, 0.42);
+    --faint: rgba(239, 242, 247, 0.26);
+
+    /* ---- accent: chrome only, surgical (Linear indigo) ---- */
+    --accent: #7583d8;
+    --accent-hi: #8b97e8;
+    --accent-dim: rgba(117, 131, 216, 0.16);
+    --accent-glow: rgba(117, 131, 216, 0.32);
+    --on-accent: #ffffff;
+
+    /* ---- data colors: the only saturated moments ---- */
+    --up: #4cb782;                         /* Linear success green, exact */
+    --down: #e5484d;                       /* Radix red-9 dark */
+    --warn: #d9a552;
+    --scrim: rgba(5, 6, 9, 0.58);          /* dialog backdrop: dim, never blurred */
+
+    /* ---- type: sans speaks, mono counts ---- */
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+                 "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", SFMono-Regular,
+                 Menlo, monospace;
+
+    --text-3xs: 0.625rem;                  /* 10 micro-labels */
+    --text-2xs: 0.6875rem;                 /* 11 */
+    --text-xs: 0.75rem;                    /* 12 controls */
+    --text-sm: 0.8125rem;                  /* 13 dense */
+    --text-base: 0.875rem;                 /* 14 body — pro-tool density */
+    --text-md: 1rem;                       /* 16 lede */
+    --text-lg: 1.25rem;                    /* 20 section */
+    --text-xl: 1.5rem;                     /* 24 title */
+    --text-2xl: 1.875rem;                  /* 30 display */
+
+    --leading: 1.5;
+    --track-tight: -0.015em;
+    --track-wide: 0.08em;
+    --track-num: -0.005em;                 /* SF Mono tolerates a hair tighter */
+
+    /* ---- geometry ---- */
+    --radius-lg: 12px;                     /* sheets */
+    --radius: 8px;                         /* panels */
+    --radius-sm: 6px;                      /* controls */
+
+    /* ---- depth: resting stays flat; float carries shadow ---- */
+    --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.28), 0 4px 14px rgba(0, 0, 0, 0.18);
+    --shadow-float: 0 2px 8px rgba(0, 0, 0, 0.32), 0 16px 48px rgba(0, 0, 0, 0.42);
+
+    /* ---- control metrics (Linear-grade density) ---- */
+    --ctl-h: 30px;
+    --ctl-pad-x: 11px;
+    --input-h: 34px;
+    --row-h: 36px;
+
+    /* ---- space (4pt grid, shared across variants) ---- */
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px;
+    --s5: 20px; --s6: 24px; --s7: 28px; --s8: 32px; --s10: 40px;
+
+    /* ---- motion: ease-out only, nothing bounces (Linear) ---- */
+    --ease: cubic-bezier(0.22, 0.61, 0.21, 1);
+    --t-fast: 130ms var(--ease);
+    --t-med: 210ms var(--ease);
+    --t-slow: 340ms var(--ease);
+}

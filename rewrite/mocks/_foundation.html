@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0d12">
+<title>foundation — 1edge</title>
+<link rel="stylesheet" href="st/css/tokens?v=r4b">
+<link rel="stylesheet" href="st/css/tokens-light?v=r4b" id="ls-auto" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="st/css/tokens-light?v=r4b" id="ls-force" disabled>
+<script src="st/js/theme?v=r4b"></script>
+<link rel="stylesheet" href="st/css/base?v=c16">
+<script type="module" src="st/js/feedback?v=r4b"></script>
+<style>
+  /* page-local layout only — every primitive lives in base.css */
+  .ladder > div { display:flex; align-items:center; justify-content:space-between; gap:var(--s3);
+                  min-height:var(--row-h); padding:0 var(--s3); font-size:var(--text-sm); }
+  .ladder > div + div { box-shadow: inset 0 1px 0 var(--line); }
+  .specimen { display:flex; align-items:baseline; gap:var(--s4); min-height:var(--row-h);
+              padding:var(--s2) 0; border-bottom:1px solid var(--line); }
+  .specimen:last-child { border-bottom:none; }
+  .spec-tag { width:96px; flex:none; }
+  .space-line { display:flex; align-items:center; gap:var(--s3); }
+  .space-n { width:3ch; flex:none; font-size:var(--text-2xs); color:var(--dim); }
+  .space-bar { height:12px; border-radius:3px; background:var(--accent); flex:none; }
+  .space-cap { font-size:var(--text-2xs); color:var(--soft); }
+  .glass-demo { min-height:96px; display:flex; align-items:center; justify-content:center; }
+  /* motion tiles: wrap instead of cramming three-across on narrow phones
+     (owner note 06:28 — section must survive any width, incl. iOS zoom) */
+  .motion-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(118px, 1fr)); gap:var(--s3); }
+</style>
+</head>
+<body>
+<!-- S00-foundation · rev R4 · living styleguide · variant A (Linear × Apple); light/dark follows system + manual seg -->
+<main class="shell" style="padding-block:calc(env(safe-area-inset-top, 0px) + var(--s8)) var(--s10);">
+
+  <header>
+    <div class="row" style="gap:var(--s2)">
+      <p class="label" style="margin:0">S00 · foundation · rev R4</p>
+      <span class="capsule capsule-accent">A · linear × apple</span>
+    </div>
+    <h1 style="font-size:var(--text-2xl);font-weight:700;letter-spacing:var(--track-tight);margin:var(--s2) 0 var(--s1)">
+      quiet precision<span style="color:var(--accent)">.</span>
+    </h1>
+    <p style="color:var(--soft);font-size:var(--text-md);max-width:56ch;margin:0">
+      Linear’s structure, Apple’s materials — light and dark. Follows your
+      system appearance; force either below. Surfaces separate by luminance,
+      one accent, numbers in mono.
+    </p>
+    <div class="row" style="margin-top:var(--s3)">
+      <span class="label">theme</span>
+      <div class="seg" id="theme-seg" role="group" aria-label="theme">
+        <button data-t="auto" aria-pressed="true">auto</button><button data-t="light" aria-pressed="false">light</button><button data-t="dark" aria-pressed="false">dark</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">01</span>ink ladder — one hue, opacity hierarchy</h2>
+    <div class="panel">
+      <div class="ladder">
+        <div><span>ink · primary statements</span><span class="num" style="font-size:var(--text-2xs);color:var(--dim)">alpha .95</span></div>
+        <div><span style="color:var(--soft)">soft · supporting text</span><span class="num" style="font-size:var(--text-2xs);color:var(--dim)">alpha .60</span></div>
+        <div><span style="color:var(--dim)">dim · labels, metadata</span><span class="num" style="font-size:var(--text-2xs);color:var(--dim)">alpha .42</span></div>
+        <div><span style="color:var(--faint)">faint · whispers, placeholders</span><span class="num" style="font-size:var(--text-2xs);color:var(--dim)">alpha .26</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">02</span>surfaces — luminance separation; depth is earned</h2>
+    <div class="panel" style="padding:var(--s4)">
+      <div class="spread" style="margin-bottom:var(--s3)">
+        <span style="font-size:var(--text-sm);font-weight:600">panel — resting elevation</span>
+        <span class="capsule">hairline + top light-catch</span>
+      </div>
+      <div class="well" style="padding:var(--s3)">
+        <p class="label" style="margin:0 0 var(--s1)">well — recessed</p>
+        <p style="margin:0;font-size:var(--text-sm);color:var(--soft)">
+          No opaque gray borders anywhere. Edges are white-alpha hairlines;
+          resting panels stay flat.
+        </p>
+      </div>
+      <div class="row" style="margin-top:var(--s3)">
+        <button class="btn btn-primary">primary</button>
+        <button class="btn btn-ghost">ghost</button>
+        <button class="btn btn-danger">destructive</button>
+      </div>
+    </div>
+    <div class="panel glass-demo" style="margin-top:var(--s3);background-image:radial-gradient(80% 110% at 18% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),radial-gradient(70% 90% at 92% 100%, color-mix(in srgb, var(--up) 9%, transparent), transparent 55%)">
+      <span class="glass" style="border-radius:999px;padding:var(--s2) var(--s4);font-size:var(--text-xs);font-weight:600">floating chrome · blur + saturate</span>
+    </div>
+    <p class="empty" style="margin-top:var(--s2)">
+      material = blur+saturate, reserved for chrome that floats over content — bars, pills, menus. overlays stay opaque.
+    </p>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">03</span>data colors — the only saturated moments</h2>
+    <div class="well" style="padding:var(--s1) var(--s3)">
+      <dl style="margin:0">
+        <div class="kv"><dt>day r</dt><dd class="num num-up">+3.41R</dd></div>
+        <div class="kv"><dt>day r</dt><dd class="num num-down">−1.20R</dd></div>
+        <div class="kv"><dt>equity</dt><dd class="num">$12,480.00</dd></div>
+        <div class="kv"><dt>grace ends</dt><dd class="num" style="color:var(--warn)">03:00 HKT</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">04</span>voice vs data — type scale</h2>
+    <div class="specimen"><span class="spec-tag label">display 30</span><span style="font-size:var(--text-2xl);font-weight:700;letter-spacing:var(--track-tight)">Trading is kaizen</span></div>
+    <div class="specimen"><span class="spec-tag label">title 24</span><span style="font-size:var(--text-xl);font-weight:700;letter-spacing:var(--track-tight)">Today at a glance</span></div>
+    <div class="specimen"><span class="spec-tag label">section 20</span><span style="font-size:var(--text-lg);font-weight:650">The stream</span></div>
+    <div class="specimen"><span class="spec-tag label">lede 16</span><span style="font-size:var(--text-md);color:var(--soft)">Everything public. Every ticket, every miss.</span></div>
+    <div class="specimen"><span class="spec-tag label">body 14</span><span>I open every position and show the process as it happens.</span></div>
+    <div class="specimen"><span class="spec-tag label">dense 13</span><span style="font-size:var(--text-sm);color:var(--soft)">Dense rows carry the working surface.</span></div>
+    <div class="specimen"><span class="spec-tag label">data mono</span><span class="num" style="font-size:var(--text-base)">MNQ 2026-09 · 23,410.25 → 23,455.75 · +2.28R</span></div>
+    <div class="specimen"><span class="spec-tag label">micro-label</span><span style="font-size:var(--text-3xs);font-weight:600;letter-spacing:var(--track-wide);text-transform:uppercase;color:var(--faint)">Session · CME open</span></div>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">05</span>spacing — 4pt grid, foreground, labeled</h2>
+    <div class="well" style="padding:var(--s3)">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="space-line"><span class="num space-n">4</span><span class="space-bar" style="width:calc(var(--s1)*6);opacity:.95"></span><span class="space-cap">icon ↔ label</span></div>
+        <div class="space-line"><span class="num space-n">8</span><span class="space-bar" style="width:calc(var(--s2)*6);opacity:.85"></span><span class="space-cap">inside chips, control gaps</span></div>
+        <div class="space-line"><span class="num space-n">12</span><span class="space-bar" style="width:calc(var(--s3)*6);opacity:.75"></span><span class="space-cap">card inner padding (tight)</span></div>
+        <div class="space-line"><span class="num space-n">16</span><span class="space-bar" style="width:calc(var(--s4)*6);opacity:.65"></span><span class="space-cap">card padding · page gutter</span></div>
+        <div class="space-line"><span class="num space-n">24</span><span class="space-bar" style="width:calc(var(--s6)*6);opacity:.55"></span><span class="space-cap">between cards</span></div>
+        <div class="space-line"><span class="num space-n">32</span><span class="space-bar" style="width:calc(var(--s8)*6);opacity:.45"></span><span class="space-cap">between sections</span></div>
+      </div>
+    </div>
+    <p class="empty" style="margin-top:var(--s2)">bars at 6× scale — components compose these steps; nothing is spaced ad hoc.</p>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">06</span>primitives in situ</h2>
+    <div class="row" style="flex-wrap:wrap;margin-bottom:var(--s3)">
+      <span class="capsule">thought</span>
+      <span class="capsule capsule-accent">review due</span>
+      <span class="capsule capsule-up">+2.28R</span>
+      <span class="capsule capsule-down">rule break</span>
+      <span class="capsule">CME · closed</span>
+    </div>
+    <div class="seg" role="group" aria-label="demo segmented">
+      <button aria-pressed="true">week</button><button aria-pressed="false">month</button><button aria-pressed="false">quarter</button>
+    </div>
+    <div class="well" style="margin-top:var(--s3);padding:var(--s1) var(--s3)">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr><th class="th">time</th><th class="th">setup</th><th class="th" style="text-align:right">R</th></tr></thead>
+        <tbody>
+          <tr><td class="td num">21:04</td><td class="td">R2F short</td><td class="td num num-up" style="text-align:right">+1.80</td></tr>
+          <tr><td class="td num">22:41</td><td class="td">doji fail</td><td class="td num num-down" style="text-align:right">−1.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <input class="input tap" placeholder="what actually happened…" style="margin-top:var(--s3)">
+    <p class="empty" style="margin-top:var(--s3)">no trades logged today.</p>
+  </section>
+
+  <section class="section-gap">
+    <h2 class="sec-title"><span class="sec-no">07</span>motion — ease-out, fade-up, nothing bounces</h2>
+    <div class="motion-grid">
+      <div id="m-fast" class="well" style="padding:var(--s3);cursor:pointer">
+        <span class="label">fast 130ms</span>
+        <p style="margin:4px 0 0;font-size:var(--text-xs);color:var(--dim)">tap to replay</p>
+      </div>
+      <div id="m-med" class="well" style="padding:var(--s3);cursor:pointer">
+        <span class="label">med 210ms</span>
+        <p style="margin:4px 0 0;font-size:var(--text-xs);color:var(--dim)">tap to replay</p>
+      </div>
+      <div id="m-slow" class="well" style="padding:var(--s3);cursor:pointer">
+        <span class="label">slow 340ms</span>
+        <p style="margin:4px 0 0;font-size:var(--text-xs);color:var(--dim)">tap to replay</p>
+      </div>
+    </div>
+  </section>
+
+  <footer style="margin-top:var(--s10)">
+    <p class="empty">frozen here = the build contract. annotate anything — notes anchor to elements.</p>
+  </footer>
+</main>
+
+<script type="module">
+  const replay = (id, t) => {
+    const el = document.getElementById(id);
+    el.addEventListener("click", () => {
+      el.style.animation = "none"; void el.offsetWidth;
+      el.style.animation = `fade-up ${t} cubic-bezier(.22,.61,.21,1) both`;
+    });
+  };
+  replay("m-fast", "130ms"); replay("m-med", "210ms"); replay("m-slow", "340ms");
+</script>
+</body>
+</html>
